@@ -1,0 +1,67 @@
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #000;
+  color: #00ff00;
+  font-family: monospace;
+}
+
+header {
+  text-align: center;
+  border-bottom: 2px solid #00ff00;
+  padding-bottom: 10px;
+}
+
+button {
+  background-color: #004400;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #00ff00;
+  color: #000;
+}
+
+.pack {
+  text-align: center;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  background-color: #111;
+  border: 2px solid #00aaff;
+  margin: 10px;
+  padding: 15px;
+  width: 150px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+  border-color: #00ff00;
+}
+
+.battle-field {
+  display: flex;
+  justify-content: space-around;
+}
+
+input {
+  background-color: #111;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  padding: 10px;
+  margin: 10px;
+}
