@@ -101,7 +101,7 @@ PAGE_TEMPLATE = """
   <meta name="theme-color" content="#09111f">
   <meta name="description" content="TON 10K Club mini game with wallet connection, real domain checks and Telegram integration.">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
   <style>
     :root {
       --bg: #071019;
@@ -943,7 +943,7 @@ PAGE_TEMPLATE = """
 
       tonConnectUI.uiOptions = {
         language: 'ru',
-        uiPreferences: { theme: 'dark' }
+        uiPreferences: { theme: TON_CONNECT_UI.THEME.DARK }
       };
 
       let previousWallet = null;
