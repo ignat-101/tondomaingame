@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import json
 import os
 import random
@@ -8,6 +9,7 @@ import uuid
 from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import parse_qsl
 
 import requests
 from dotenv import load_dotenv
@@ -53,6 +55,10 @@ TG_SETUP_TOKEN = os.getenv('TG_SETUP_TOKEN', '').strip()
 BASE_RATING = int(os.getenv('BASE_RATING', '1000'))
 RATING_K_FACTOR = int(os.getenv('RATING_K_FACTOR', '32'))
 DOMAIN_CACHE_TTL = int(os.getenv('DOMAIN_CACHE_TTL', '300'))
+DEFAULT_INVITE_TIMEOUT_SECONDS = int(os.getenv('DEFAULT_INVITE_TIMEOUT_SECONDS', '60'))
+MIN_INVITE_TIMEOUT_SECONDS = int(os.getenv('MIN_INVITE_TIMEOUT_SECONDS', '30'))
+MAX_INVITE_TIMEOUT_SECONDS = int(os.getenv('MAX_INVITE_TIMEOUT_SECONDS', '600'))
+TELEGRAM_INITDATA_MAX_AGE = int(os.getenv('TELEGRAM_INITDATA_MAX_AGE', '86400'))
 DB_PATH = Path(os.getenv('APP_DB_PATH', 'tondomaingame.db'))
 
 DOMAIN_CACHE = {}
@@ -459,13 +465,22 @@ PAGE_TEMPLATE = """
 
         <section class="panel view" id="view-modes">
           <h2>Шаг 3. Режимы игры</h2>
-          <p class="muted">Рейтинговый режим сохраняет ELO-рейтинг в базе. Обычный режим проводит быстрый матч без рейтинга. Командный режим создаёт комнату на 2-4 игроков с реальными доменами участников.</p>
+          <p class="muted">Теперь соперники только реальные люди. Для рейтингового и обычного матча укажи кошелёк соперника, задай время на ответ и бот отправит ему приглашение в Telegram. Командный режим по-прежнему работает комнатами на 2-4 игроков.</p>
+
+          <div class="team-card" style="margin-bottom:18px;">
+            <h3>Человеческий PvP через Telegram</h3>
+            <div class="row">
+              <input id="opponent-wallet" placeholder="Кошелёк соперника">
+              <input id="invite-timeout" type="number" min="30" max="600" step="30" value="60" placeholder="Время ответа, сек">
+            </div>
+            <div class="tiny">Соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз, чтобы привязать свой кошелёк к Telegram.</div>
+          </div>
 
           <div class="mode-grid">
             <div class="mode-card">
               <h3>Рейтинговый</h3>
-              <p>Матч против серверного соперника, после боя рейтинг пересчитывается по ELO.</p>
-              <button id="play-ranked-btn" disabled>Играть рейтинговый матч</button>
+              <p>Бот отправит вызов реальному сопернику. После принятия рейтинг пересчитается по ELO.</p>
+              <button id="play-ranked-btn" disabled>Отправить рейтинговый вызов</button>
             </div>
             <div class="mode-card">
               <h3>Командный</h3>
@@ -474,12 +489,13 @@ PAGE_TEMPLATE = """
             </div>
             <div class="mode-card">
               <h3>Обычный</h3>
-              <p>Быстрый матч без изменения рейтинга.</p>
-              <button id="play-casual-btn" disabled>Играть обычный матч</button>
+              <p>Бот отправит вызов реальному сопернику без изменения рейтинга.</p>
+              <button id="play-casual-btn" disabled>Отправить обычный вызов</button>
             </div>
           </div>
 
           <div class="result-box" id="battle-result" style="display:none;"></div>
+          <div class="result-box" id="invite-result" style="display:none;"></div>
 
           <div class="panel team-card" id="team-panel" style="margin-top:18px; display:none;">
             <h3>Командная комната</h3>
@@ -515,13 +531,15 @@ PAGE_TEMPLATE = """
           <div class="kv"><span class="muted">Активный домен</span><span id="profile-domain">-</span></div>
           <div class="kv"><span class="muted">Рейтинг</span><span id="profile-rating">1000</span></div>
           <div class="kv"><span class="muted">Сыграно матчей</span><span id="profile-games">0</span></div>
+          <div class="kv"><span class="muted">Telegram</span><span id="profile-telegram">не привязан</span></div>
         </section>
 
         <section class="panel">
           <h3>Telegram бот</h3>
-          <p class="muted">Бот умеет открывать мини-апп и получать данные из веб-приложения через webhook. Если приложение открыто внутри Telegram, можно отправить сводку текущего результата обратно боту.</p>
+          <p class="muted">Бот принимает `/start`, связывает Telegram с кошельком, отправляет реальные приглашения на матч и даёт сопернику ограниченное время на ответ.</p>
           <div class="actions">
             <a class="market-link" id="telegram-open-link" target="_blank" rel="noopener">Открыть бота</a>
+            <button id="telegram-link-btn" disabled>Привязать Telegram к кошельку</button>
             <button class="secondary" id="telegram-share-btn" disabled>Отправить результат в Telegram</button>
           </div>
           <div class="status tiny" id="telegram-status"></div>
@@ -559,16 +577,19 @@ PAGE_TEMPLATE = """
     const profileDomain = document.getElementById('profile-domain');
     const profileRating = document.getElementById('profile-rating');
     const profileGames = document.getElementById('profile-games');
+    const profileTelegram = document.getElementById('profile-telegram');
     const selectedDomainLabel = document.getElementById('selected-domain-label');
     const packScoreLabel = document.getElementById('pack-score-label');
     const packCards = document.getElementById('pack-cards');
     const battleResult = document.getElementById('battle-result');
+    const inviteResult = document.getElementById('invite-result');
     const leaderboard = document.getElementById('leaderboard');
     const marketplacesBox = document.getElementById('marketplaces-box');
     const marketplacesLinks = document.getElementById('marketplaces-links');
     const telegramOpenLink = document.getElementById('telegram-open-link');
     const telegramStatus = document.getElementById('telegram-status');
     const telegramShareBtn = document.getElementById('telegram-share-btn');
+    const telegramLinkBtn = document.getElementById('telegram-link-btn');
 
     telegramOpenLink.href = telegramBotUsername
       ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
@@ -635,9 +656,11 @@ PAGE_TEMPLATE = """
       if (state.playerProfile) {
         profileRating.textContent = state.playerProfile.rating;
         profileGames.textContent = state.playerProfile.games_played;
+        profileTelegram.textContent = state.playerProfile.telegram_linked ? 'привязан' : 'не привязан';
       } else {
         profileRating.textContent = '1000';
         profileGames.textContent = '0';
+        profileTelegram.textContent = 'не привязан';
       }
     }
 
@@ -652,6 +675,7 @@ PAGE_TEMPLATE = """
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards);
       document.getElementById('create-room-btn').disabled = !(connected && hasCards);
       document.getElementById('join-room-btn').disabled = !(connected && hasCards);
+      telegramLinkBtn.disabled = !connected;
     }
 
     function renderDomains(domains) {
@@ -811,22 +835,61 @@ PAGE_TEMPLATE = """
       }
     }
 
+    async function pollInvite(inviteId) {
+      const startedAt = Date.now();
+      const maxPollMs = 1000 * 60 * 15;
+      const loop = async () => {
+        const data = await api(`/api/match-invite/${inviteId}?wallet=${encodeURIComponent(state.wallet)}`);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+          loadLeaderboard();
+        }
+        if (data.result) {
+          state.lastResult = data.result;
+          renderBattleResult(data.result);
+          inviteResult.style.display = 'block';
+          inviteResult.innerHTML = `<strong>Приглашение ${inviteId} завершено.</strong><p class="muted">Соперник принял вызов, матч рассчитан на сервере.</p>`;
+          return;
+        }
+        if (['declined', 'expired', 'completed'].includes(data.invite.status)) {
+          inviteResult.style.display = 'block';
+          inviteResult.innerHTML = `<strong>Статус приглашения ${inviteId}: ${data.invite.status}</strong>`;
+          return;
+        }
+        if (Date.now() - startedAt < maxPollMs) {
+          setTimeout(loop, 4000);
+        }
+      };
+      loop();
+    }
+
     async function playMatch(mode) {
+      const opponentWallet = document.getElementById('opponent-wallet').value.trim();
+      const timeoutSeconds = Number(document.getElementById('invite-timeout').value || 60);
       try {
         const data = await api(`/api/match/${mode}`, {
           method: 'POST',
-          body: {wallet: state.wallet, domain: state.selectedDomain}
+          body: {
+            wallet: state.wallet,
+            domain: state.selectedDomain,
+            opponent_wallet: opponentWallet,
+            timeout_seconds: timeoutSeconds
+          }
         });
-        state.lastResult = data.result;
-        renderBattleResult(data.result);
+        inviteResult.style.display = 'block';
+        inviteResult.innerHTML = `
+          <strong>Приглашение ${data.invite.id} отправлено.</strong>
+          <p class="muted">Бот написал сопернику в Telegram. Время на ответ: ${data.invite.timeout_seconds} сек.</p>
+        `;
         if (data.player) {
           state.playerProfile = data.player;
           renderProfile();
         }
-        await loadLeaderboard();
+        pollInvite(data.invite.id);
       } catch (error) {
-        battleResult.style.display = 'block';
-        battleResult.innerHTML = `<strong class="error">${error.message}</strong>`;
+        inviteResult.style.display = 'block';
+        inviteResult.innerHTML = `<strong class="error">${error.message}</strong>`;
       }
     }
 
@@ -911,7 +974,29 @@ PAGE_TEMPLATE = """
       tg.ready();
       tg.expand();
       telegramBadge.textContent = 'Telegram: mini app активен';
-      telegramStatus.textContent = 'Приложение открыто внутри Telegram. После матча можно отправить результат боту.';
+      telegramStatus.textContent = 'Приложение открыто внутри Telegram. Можно привязать кошелёк и получать PvP-приглашения от бота.';
+    }
+
+    async function linkTelegramWallet() {
+      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      if (!tg || !tg.initData) {
+        telegramStatus.textContent = 'Привязка доступна только внутри Telegram mini app.';
+        return;
+      }
+      try {
+        const data = await api('/api/telegram/link', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            init_data: tg.initData
+          }
+        });
+        state.playerProfile = data.player;
+        renderProfile();
+        telegramStatus.textContent = 'Telegram успешно привязан к кошельку. Теперь тебе могут приходить PvP-приглашения.';
+      } catch (error) {
+        telegramStatus.textContent = error.message;
+      }
     }
 
     async function shareTelegram() {
@@ -996,6 +1081,7 @@ PAGE_TEMPLATE = """
     document.getElementById('join-room-btn').addEventListener('click', joinRoom);
     document.getElementById('refresh-room-btn').addEventListener('click', refreshRoom);
     document.getElementById('start-room-btn').addEventListener('click', startRoom);
+    telegramLinkBtn.addEventListener('click', linkTelegramWallet);
     telegramShareBtn.addEventListener('click', shareTelegram);
 
     initTelegram();
@@ -1015,6 +1101,14 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
+def now_utc():
+    return datetime.now(timezone.utc)
+
+
+def parse_iso(value):
+    return datetime.fromisoformat(value)
+
+
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -1032,6 +1126,7 @@ def init_db():
                 ranked_wins INTEGER NOT NULL DEFAULT 0,
                 ranked_losses INTEGER NOT NULL DEFAULT 0,
                 best_domain TEXT,
+                current_domain TEXT,
                 updated_at TEXT NOT NULL
             );
 
@@ -1064,8 +1159,38 @@ def init_db():
                 joined_at TEXT NOT NULL,
                 PRIMARY KEY (room_id, wallet)
             );
+
+            CREATE TABLE IF NOT EXISTS telegram_users (
+                telegram_user_id INTEGER PRIMARY KEY,
+                chat_id INTEGER NOT NULL,
+                username TEXT,
+                first_name TEXT,
+                last_name TEXT,
+                wallet TEXT,
+                linked_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS duel_invites (
+                id TEXT PRIMARY KEY,
+                mode TEXT NOT NULL,
+                inviter_wallet TEXT NOT NULL,
+                inviter_domain TEXT NOT NULL,
+                invitee_wallet TEXT NOT NULL,
+                invitee_domain TEXT NOT NULL,
+                status TEXT NOT NULL,
+                timeout_seconds INTEGER NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                responded_at TEXT,
+                telegram_message_id INTEGER,
+                result_json TEXT
+            );
             '''
         )
+        columns = {row['name'] for row in conn.execute("PRAGMA table_info(players)").fetchall()}
+        if 'current_domain' not in columns:
+            conn.execute('ALTER TABLE players ADD COLUMN current_domain TEXT')
         conn.commit()
 
 
@@ -1277,23 +1402,111 @@ def validate_wallet_owns_domain(wallet, domain):
     return any(item['domain'] == domain for item in domains)
 
 
-def ensure_player(wallet, best_domain=None):
+def upsert_telegram_user(user, chat_id):
+    telegram_user_id = user.get('id')
+    if not telegram_user_id or not chat_id:
+        return
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO telegram_users (
+                telegram_user_id, chat_id, username, first_name, last_name, wallet, linked_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, NULL, ?, ?)
+            ON CONFLICT(telegram_user_id) DO UPDATE SET
+                chat_id = excluded.chat_id,
+                username = excluded.username,
+                first_name = excluded.first_name,
+                last_name = excluded.last_name,
+                updated_at = excluded.updated_at
+            ''',
+            (
+                telegram_user_id,
+                chat_id,
+                user.get('username'),
+                user.get('first_name'),
+                user.get('last_name'),
+                now_iso(),
+                now_iso(),
+            ),
+        )
+        conn.commit()
+
+
+def telegram_wallet_link(wallet):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM telegram_users WHERE wallet = ?', (wallet,)).fetchone()
+    return dict(row) if row else None
+
+
+def telegram_user_link(telegram_user_id):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM telegram_users WHERE telegram_user_id = ?', (telegram_user_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def link_wallet_to_telegram(wallet, telegram_user_id):
+    link = telegram_user_link(telegram_user_id)
+    if link is None:
+        raise ValueError('Сначала запусти бота в Telegram через /start, потом открой mini app.')
+    with closing(get_db()) as conn:
+        conn.execute(
+            'UPDATE telegram_users SET wallet = ?, updated_at = ?, linked_at = COALESCE(linked_at, ?) WHERE telegram_user_id = ?',
+            (wallet, now_iso(), now_iso(), telegram_user_id),
+        )
+        conn.commit()
+    return telegram_user_link(telegram_user_id)
+
+
+def validate_telegram_init_data(init_data):
+    if not TG_BOT_TOKEN:
+        raise ValueError('TG_BOT_TOKEN не настроен.')
+    pairs = dict(parse_qsl(init_data, keep_blank_values=True))
+    received_hash = pairs.pop('hash', None)
+    auth_date = pairs.get('auth_date')
+    if not received_hash or not auth_date:
+        raise ValueError('Некорректные Telegram init data.')
+    if now_utc().timestamp() - int(auth_date) > TELEGRAM_INITDATA_MAX_AGE:
+        raise ValueError('Сессия Telegram устарела. Открой mini app заново.')
+
+    data_check_string = '\n'.join(f'{key}={pairs[key]}' for key in sorted(pairs.keys()))
+    secret_key = hmac.new(b'WebAppData', TG_BOT_TOKEN.encode(), hashlib.sha256).digest()
+    calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(calculated_hash, received_hash):
+        raise ValueError('Не удалось подтвердить Telegram-сессию.')
+    if 'user' in pairs:
+        pairs['user'] = json.loads(pairs['user'])
+    return pairs
+
+
+def ensure_player(wallet, best_domain=None, current_domain=None):
     with closing(get_db()) as conn:
         row = conn.execute('SELECT * FROM players WHERE wallet = ?', (wallet,)).fetchone()
         if row is None:
             conn.execute(
                 '''
-                INSERT INTO players (wallet, rating, games_played, ranked_wins, ranked_losses, best_domain, updated_at)
-                VALUES (?, ?, 0, 0, 0, ?, ?)
+                INSERT INTO players (wallet, rating, games_played, ranked_wins, ranked_losses, best_domain, current_domain, updated_at)
+                VALUES (?, ?, 0, 0, 0, ?, ?, ?)
                 ''',
-                (wallet, BASE_RATING, best_domain, now_iso()),
+                (wallet, BASE_RATING, best_domain, current_domain, now_iso()),
             )
             conn.commit()
             row = conn.execute('SELECT * FROM players WHERE wallet = ?', (wallet,)).fetchone()
-        elif best_domain and (row['best_domain'] is None or score_from_domain(best_domain)['score'] > score_from_domain(row['best_domain'])['score']):
-            conn.execute('UPDATE players SET best_domain = ?, updated_at = ? WHERE wallet = ?', (best_domain, now_iso(), wallet))
-            conn.commit()
-            row = conn.execute('SELECT * FROM players WHERE wallet = ?', (wallet,)).fetchone()
+        else:
+            updates = []
+            params = []
+            if best_domain and (row['best_domain'] is None or score_from_domain(best_domain)['score'] > score_from_domain(row['best_domain'])['score']):
+                updates.append('best_domain = ?')
+                params.append(best_domain)
+            if current_domain:
+                updates.append('current_domain = ?')
+                params.append(current_domain)
+            if updates:
+                updates.append('updated_at = ?')
+                params.append(now_iso())
+                params.append(wallet)
+                conn.execute(f'UPDATE players SET {", ".join(updates)} WHERE wallet = ?', params)
+                conn.commit()
+                row = conn.execute('SELECT * FROM players WHERE wallet = ?', (wallet,)).fetchone()
     return dict(row)
 
 
@@ -1306,48 +1519,52 @@ def get_player(wallet):
         'ranked_wins': player['ranked_wins'],
         'ranked_losses': player['ranked_losses'],
         'best_domain': player['best_domain'],
+        'current_domain': player['current_domain'],
+        'telegram_linked': telegram_wallet_link(wallet) is not None,
     }
 
 
-def choose_opponent_domain(wallet, domain, mode):
-    seed = hashlib.sha256(f'{wallet}:{domain}:{mode}'.encode()).hexdigest()
-    rng = random.Random(seed)
-    while True:
-        opponent = f'{rng.randint(0, 9999):04d}'
-        if opponent != domain:
-            return opponent
-
-
-def matchup_result(player_domain, wallet, mode):
-    player_cards = generate_pack(player_domain, wallet)
-    opponent_domain = choose_opponent_domain(wallet, player_domain, mode)
-    opponent_cards = generate_pack(opponent_domain, f'cpu:{mode}:{wallet}')
-    player_total = deck_score(player_cards)
-    opponent_total = deck_score(opponent_cards)
-    if player_total > opponent_total:
-        result = 'win'
-    elif player_total < opponent_total:
-        result = 'loss'
+def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
+    cards_a = generate_pack(domain_a, wallet_a)
+    cards_b = generate_pack(domain_b, wallet_b)
+    score_a = deck_score(cards_a)
+    score_b = deck_score(cards_b)
+    if score_a > score_b:
+        winner = wallet_a
+    elif score_b > score_a:
+        winner = wallet_b
     else:
-        result = 'draw'
+        winner = None
     return {
-        'player_cards': player_cards,
-        'opponent_cards': opponent_cards,
-        'player_score': player_total,
-        'opponent_score': opponent_total,
-        'opponent_domain': opponent_domain,
-        'result': result,
+        'wallet_a': wallet_a,
+        'wallet_b': wallet_b,
+        'domain_a': domain_a,
+        'domain_b': domain_b,
+        'cards_a': cards_a,
+        'cards_b': cards_b,
+        'score_a': score_a,
+        'score_b': score_b,
+        'winner': winner,
     }
 
 
-def apply_ranked_result(wallet, domain, match):
-    player = ensure_player(wallet, best_domain=domain)
-    rating_before = player['rating']
-    opponent_rating = BASE_RATING + min(450, max(-250, (match['opponent_score'] - match['player_score']) * 3))
-    expected = 1 / (1 + 10 ** ((opponent_rating - rating_before) / 400))
-    actual = 1.0 if match['result'] == 'win' else 0.0 if match['result'] == 'loss' else 0.5
-    delta = round(RATING_K_FACTOR * (actual - expected))
-    rating_after = max(100, rating_before + delta)
+def apply_ranked_result_duel(match):
+    player_a = ensure_player(match['wallet_a'], best_domain=match['domain_a'], current_domain=match['domain_a'])
+    player_b = ensure_player(match['wallet_b'], best_domain=match['domain_b'], current_domain=match['domain_b'])
+    rating_a_before = player_a['rating']
+    rating_b_before = player_b['rating']
+
+    score_a = 1.0 if match['winner'] == match['wallet_a'] else 0.0 if match['winner'] == match['wallet_b'] else 0.5
+    score_b = 1.0 - score_a if score_a != 0.5 else 0.5
+    expected_a = 1 / (1 + 10 ** ((rating_b_before - rating_a_before) / 400))
+    expected_b = 1 / (1 + 10 ** ((rating_a_before - rating_b_before) / 400))
+    rating_a_after = max(100, rating_a_before + round(RATING_K_FACTOR * (score_a - expected_a)))
+    rating_b_after = max(100, rating_b_before + round(RATING_K_FACTOR * (score_b - expected_b)))
+
+    def result_label(wallet):
+        if match['winner'] is None:
+            return 'draw'
+        return 'win' if match['winner'] == wallet else 'loss'
 
     with closing(get_db()) as conn:
         conn.execute(
@@ -1357,68 +1574,279 @@ def apply_ranked_result(wallet, domain, match):
                 ranked_wins = ranked_wins + ?,
                 ranked_losses = ranked_losses + ?,
                 best_domain = COALESCE(best_domain, ?),
+                current_domain = ?,
                 updated_at = ?
             WHERE wallet = ?
             ''',
             (
-                rating_after,
-                1 if match['result'] == 'win' else 0,
-                1 if match['result'] == 'loss' else 0,
-                domain,
+                rating_a_after,
+                1 if result_label(match['wallet_a']) == 'win' else 0,
+                1 if result_label(match['wallet_a']) == 'loss' else 0,
+                match['domain_a'],
+                match['domain_a'],
                 now_iso(),
-                wallet,
+                match['wallet_a'],
             ),
         )
         conn.execute(
             '''
-            INSERT INTO ranked_matches (
-                id, wallet, domain, opponent_domain, result, rating_before, rating_after,
-                player_score, opponent_score, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            UPDATE players
+            SET rating = ?, games_played = games_played + 1,
+                ranked_wins = ranked_wins + ?,
+                ranked_losses = ranked_losses + ?,
+                best_domain = COALESCE(best_domain, ?),
+                current_domain = ?,
+                updated_at = ?
+            WHERE wallet = ?
             ''',
             (
-                uuid.uuid4().hex,
-                wallet,
-                domain,
-                match['opponent_domain'],
-                match['result'],
-                rating_before,
-                rating_after,
-                match['player_score'],
-                match['opponent_score'],
+                rating_b_after,
+                1 if result_label(match['wallet_b']) == 'win' else 0,
+                1 if result_label(match['wallet_b']) == 'loss' else 0,
+                match['domain_b'],
+                match['domain_b'],
                 now_iso(),
+                match['wallet_b'],
             ),
         )
+        for wallet, domain, opponent_domain, result, before, after, own_score, opp_score in (
+            (
+                match['wallet_a'],
+                match['domain_a'],
+                match['domain_b'],
+                result_label(match['wallet_a']),
+                rating_a_before,
+                rating_a_after,
+                match['score_a'],
+                match['score_b'],
+            ),
+            (
+                match['wallet_b'],
+                match['domain_b'],
+                match['domain_a'],
+                result_label(match['wallet_b']),
+                rating_b_before,
+                rating_b_after,
+                match['score_b'],
+                match['score_a'],
+            ),
+        ):
+            conn.execute(
+                '''
+                INSERT INTO ranked_matches (
+                    id, wallet, domain, opponent_domain, result, rating_before, rating_after,
+                    player_score, opponent_score, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''',
+                (
+                    uuid.uuid4().hex,
+                    wallet,
+                    domain,
+                    opponent_domain,
+                    result,
+                    before,
+                    after,
+                    own_score,
+                    opp_score,
+                    now_iso(),
+                ),
+            )
         conn.commit()
 
-    return get_player(wallet), rating_before, rating_after
+    return (
+        get_player(match['wallet_a']),
+        get_player(match['wallet_b']),
+        rating_a_before,
+        rating_a_after,
+        rating_b_before,
+        rating_b_after,
+    )
 
 
-def build_match_response(mode, wallet, domain):
-    match = matchup_result(domain, wallet, mode)
+def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=None, rating_meta=None):
     result_labels = {
         'win': 'Победа',
         'loss': 'Поражение',
         'draw': 'Ничья',
     }
+    viewer_is_a = viewer_wallet == match['wallet_a']
+    own_wallet = match['wallet_a'] if viewer_is_a else match['wallet_b']
+    opp_wallet = match['wallet_b'] if viewer_is_a else match['wallet_a']
+    own_domain = match['domain_a'] if viewer_is_a else match['domain_b']
+    opp_domain = match['domain_b'] if viewer_is_a else match['domain_a']
+    own_score = match['score_a'] if viewer_is_a else match['score_b']
+    opp_score = match['score_b'] if viewer_is_a else match['score_a']
+
+    if match['winner'] is None:
+        own_result = 'draw'
+    else:
+        own_result = 'win' if match['winner'] == own_wallet else 'loss'
 
     payload = {
         'kind': 'solo',
-        'mode_title': 'Рейтинговый матч' if mode == 'ranked' else 'Обычный матч',
-        'player_domain': domain,
-        'opponent_domain': match['opponent_domain'],
-        'player_score': match['player_score'],
-        'opponent_score': match['opponent_score'],
-        'result_label': result_labels[match['result']],
+        'mode_title': 'Рейтинговый матч' if invite['mode'] == 'ranked' else 'Обычный матч',
+        'player_wallet': own_wallet,
+        'opponent_wallet': opp_wallet,
+        'player_domain': own_domain,
+        'opponent_domain': opp_domain,
+        'player_score': own_score,
+        'opponent_score': opp_score,
+        'result_label': result_labels[own_result],
+    }
+    if rating_meta:
+        if viewer_is_a:
+            payload['rating_before'] = rating_meta['rating_a_before']
+            payload['rating_after'] = rating_meta['rating_a_after']
+        else:
+            payload['rating_before'] = rating_meta['rating_b_before']
+            payload['rating_after'] = rating_meta['rating_b_after']
+    return payload
+
+
+def clamp_invite_timeout(seconds):
+    return max(MIN_INVITE_TIMEOUT_SECONDS, min(MAX_INVITE_TIMEOUT_SECONDS, int(seconds)))
+
+
+def load_invite(invite_id):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM duel_invites WHERE id = ?', (invite_id,)).fetchone()
+    if row is None:
+        raise ValueError('Приглашение не найдено.')
+    invite = dict(row)
+    invite['result_json'] = json.loads(invite['result_json']) if invite['result_json'] else None
+    return invite
+
+
+def save_invite_result(invite_id, result):
+    with closing(get_db()) as conn:
+        conn.execute(
+            'UPDATE duel_invites SET result_json = ?, responded_at = ?, status = ? WHERE id = ?',
+            (json.dumps(result, ensure_ascii=False), now_iso(), 'completed', invite_id),
+        )
+        conn.commit()
+
+
+def expire_invite_if_needed(invite):
+    if invite['status'] == 'pending' and parse_iso(invite['expires_at']) <= now_utc():
+        with closing(get_db()) as conn:
+            conn.execute(
+                'UPDATE duel_invites SET status = ?, responded_at = ? WHERE id = ?',
+                ('expired', now_iso(), invite['id']),
+            )
+            conn.commit()
+        invite['status'] = 'expired'
+        inviter_link = telegram_wallet_link(invite['inviter_wallet'])
+        if inviter_link:
+            telegram_send_message(
+                inviter_link['chat_id'],
+                f'Приглашение на матч {invite["id"]} истекло. Соперник не ответил за {invite["timeout_seconds"]} сек.',
+            )
+    return invite
+
+
+def invite_reply_markup(invite_id):
+    return {
+        'inline_keyboard': [[
+            {'text': 'Принять', 'callback_data': f'invite_accept:{invite_id}'},
+            {'text': 'Отклонить', 'callback_data': f'invite_decline:{invite_id}'},
+        ]]
     }
 
-    player = get_player(wallet)
-    if mode == 'ranked':
-        player, rating_before, rating_after = apply_ranked_result(wallet, domain, match)
-        payload['rating_before'] = rating_before
-        payload['rating_after'] = rating_after
 
-    return {'result': payload, 'player': player}
+def create_duel_invite(mode, inviter_wallet, inviter_domain, invitee_wallet, timeout_seconds):
+    timeout_seconds = clamp_invite_timeout(timeout_seconds)
+    invitee_player = ensure_player(invitee_wallet)
+    invitee_domain = invitee_player['current_domain'] or invitee_player['best_domain']
+    if not invitee_domain:
+        raise ValueError('У соперника ещё нет выбранного реального домена для игры.')
+    invitee_link = telegram_wallet_link(invitee_wallet)
+    if invitee_link is None:
+        raise ValueError('Соперник не привязал Telegram к своему кошельку.')
+
+    invite_id = uuid.uuid4().hex[:8].upper()
+    expires_at = now_utc().timestamp() + timeout_seconds
+    message = (
+        f'Вас приглашают на {"рейтинговую" if mode == "ranked" else "обычную"} игру.\n'
+        f'Домен соперника: {inviter_domain}.ton\n'
+        f'Ваш домен: {invitee_domain}.ton\n'
+        f'Время на ответ: {timeout_seconds} сек.'
+    )
+    response = telegram_api(
+        'sendMessage',
+        {
+            'chat_id': invitee_link['chat_id'],
+            'text': message,
+            'reply_markup': invite_reply_markup(invite_id),
+        },
+    )
+    telegram_message_id = response['result']['message_id']
+
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO duel_invites (
+                id, mode, inviter_wallet, inviter_domain, invitee_wallet, invitee_domain,
+                status, timeout_seconds, created_at, expires_at, telegram_message_id, result_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+            ''',
+            (
+                invite_id,
+                mode,
+                inviter_wallet,
+                inviter_domain,
+                invitee_wallet,
+                invitee_domain,
+                'pending',
+                timeout_seconds,
+                now_iso(),
+                datetime.fromtimestamp(expires_at, tz=timezone.utc).isoformat(),
+                telegram_message_id,
+            ),
+        )
+        conn.commit()
+
+    inviter_link = telegram_wallet_link(inviter_wallet)
+    if inviter_link:
+        telegram_send_message(
+            inviter_link['chat_id'],
+            f'Приглашение {invite_id} отправлено. Ожидаем ответ соперника {timeout_seconds} сек.',
+        )
+
+    return load_invite(invite_id)
+
+
+def finalize_invite(invite):
+    match = head_to_head_result(
+        invite['inviter_wallet'],
+        invite['inviter_domain'],
+        invite['invitee_wallet'],
+        invite['invitee_domain'],
+    )
+    rating_meta = None
+    if invite['mode'] == 'ranked':
+        _, _, rating_a_before, rating_a_after, rating_b_before, rating_b_after = apply_ranked_result_duel(match)
+        rating_meta = {
+            'rating_a_before': rating_a_before,
+            'rating_a_after': rating_a_after,
+            'rating_b_before': rating_b_before,
+            'rating_b_after': rating_b_after,
+        }
+    result = {
+        'for_inviter': invite_result_payload(invite, match, invite['inviter_wallet'], rating_meta=rating_meta),
+        'for_invitee': invite_result_payload(invite, match, invite['invitee_wallet'], rating_meta=rating_meta),
+    }
+    save_invite_result(invite['id'], result)
+    return load_invite(invite['id'])
+
+
+def set_invite_status(invite_id, status):
+    with closing(get_db()) as conn:
+        conn.execute(
+            'UPDATE duel_invites SET status = ?, responded_at = ? WHERE id = ?',
+            (status, now_iso(), invite_id),
+        )
+        conn.commit()
+    return load_invite(invite_id)
 
 
 def room_snapshot(room_id, viewer_wallet=None):
@@ -1544,6 +1972,28 @@ def telegram_send_message(chat_id, text, reply_markup=None):
     telegram_api('sendMessage', payload)
 
 
+def telegram_answer_callback(callback_query_id, text, show_alert=False):
+    telegram_api(
+        'answerCallbackQuery',
+        {
+            'callback_query_id': callback_query_id,
+            'text': text,
+            'show_alert': show_alert,
+        },
+    )
+
+
+def telegram_clear_inline_keyboard(chat_id, message_id):
+    telegram_api(
+        'editMessageReplyMarkup',
+        {
+            'chat_id': chat_id,
+            'message_id': message_id,
+            'reply_markup': {'inline_keyboard': []},
+        },
+    )
+
+
 def telegram_welcome_markup():
     if not TG_WEBAPP_URL:
         return None
@@ -1553,11 +2003,74 @@ def telegram_welcome_markup():
     }
 
 
+def handle_invite_callback(callback_query):
+    callback_id = callback_query.get('id')
+    from_user = callback_query.get('from') or {}
+    message = callback_query.get('message') or {}
+    chat_id = (message.get('chat') or {}).get('id')
+    data = callback_query.get('data') or ''
+    if ':' not in data:
+        telegram_answer_callback(callback_id, 'Неизвестное действие.', True)
+        return
+
+    action, invite_id = data.split(':', 1)
+    try:
+        invite = expire_invite_if_needed(load_invite(invite_id))
+    except ValueError:
+        telegram_answer_callback(callback_id, 'Приглашение не найдено.', True)
+        return
+
+    invitee_link = telegram_wallet_link(invite['invitee_wallet'])
+    if invitee_link is None or invitee_link['telegram_user_id'] != from_user.get('id'):
+        telegram_answer_callback(callback_id, 'Это приглашение адресовано не вам.', True)
+        return
+
+    if invite['status'] != 'pending':
+        telegram_answer_callback(callback_id, f'Приглашение уже {invite["status"]}.', True)
+        return
+
+    if action == 'invite_decline':
+        invite = set_invite_status(invite_id, 'declined')
+        inviter_link = telegram_wallet_link(invite['inviter_wallet'])
+        if inviter_link:
+            telegram_send_message(inviter_link['chat_id'], f'Соперник отклонил приглашение {invite_id}.')
+        if chat_id and invite['telegram_message_id']:
+            telegram_clear_inline_keyboard(chat_id, invite['telegram_message_id'])
+        telegram_answer_callback(callback_id, 'Приглашение отклонено.')
+        return
+
+    if action == 'invite_accept':
+        invite = set_invite_status(invite_id, 'accepted')
+        invite = finalize_invite(invite)
+        inviter_link = telegram_wallet_link(invite['inviter_wallet'])
+        invitee_link = telegram_wallet_link(invite['invitee_wallet'])
+        if inviter_link:
+            telegram_send_message(
+                inviter_link['chat_id'],
+                'Соперник принял вызов.\n' + json.dumps(invite['result_json']['for_inviter'], ensure_ascii=False, indent=2),
+            )
+        if invitee_link:
+            telegram_send_message(
+                invitee_link['chat_id'],
+                'Матч завершён.\n' + json.dumps(invite['result_json']['for_invitee'], ensure_ascii=False, indent=2),
+            )
+        if chat_id and invite['telegram_message_id']:
+            telegram_clear_inline_keyboard(chat_id, invite['telegram_message_id'])
+        telegram_answer_callback(callback_id, 'Вызов принят. Матч сыгран.')
+        return
+
+    telegram_answer_callback(callback_id, 'Неизвестное действие.', True)
+
+
 def handle_telegram_message(message):
     chat = message.get('chat') or {}
     chat_id = chat.get('id')
     if not chat_id:
         return
+
+    from_user = message.get('from') or {}
+    if from_user:
+        upsert_telegram_user(from_user, chat_id)
 
     text = (message.get('text') or '').strip()
     web_app_data = (message.get('web_app_data') or {}).get('data')
@@ -1647,6 +2160,25 @@ def api_player(wallet):
     return jsonify({'player': get_player(wallet)})
 
 
+@app.route('/api/telegram/link', methods=['POST'])
+def api_telegram_link():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    init_data = (payload.get('init_data') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи TON-кошелёк.')
+    if not init_data:
+        return json_error('Привязка Telegram доступна только внутри Telegram mini app.')
+    try:
+        telegram_data = validate_telegram_init_data(init_data)
+        user = telegram_data.get('user') or {}
+        link = link_wallet_to_telegram(wallet, user['id'])
+        ensure_player(wallet)
+    except (ValueError, KeyError) as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'telegram': link, 'player': get_player(wallet)})
+
+
 @app.route('/api/leaderboard')
 def api_leaderboard():
     with closing(get_db()) as conn:
@@ -1693,7 +2225,7 @@ def api_pack():
 
     cards = generate_pack(domain, wallet)
     total = deck_score(cards)
-    ensure_player(wallet, domain)
+    ensure_player(wallet, domain, domain)
     return jsonify({'wallet': wallet, 'domain': domain, 'cards': cards, 'total_score': total})
 
 
@@ -1705,19 +2237,47 @@ def api_match(mode):
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     domain = normalize_domain(payload.get('domain'))
+    opponent_wallet = (payload.get('opponent_wallet') or '').strip()
+    timeout_seconds = payload.get('timeout_seconds') or DEFAULT_INVITE_TIMEOUT_SECONDS
 
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
     if not domain:
         return json_error('Нужно выбрать домен.')
+    if not valid_wallet_address(opponent_wallet):
+        return json_error('Укажи кошелёк соперника.')
+    if opponent_wallet == wallet:
+        return json_error('Нельзя отправить вызов самому себе.')
 
     try:
         if not validate_wallet_owns_domain(wallet, domain):
             return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
+        ensure_player(wallet, domain, domain)
+        invite = create_duel_invite(mode, wallet, domain, opponent_wallet, timeout_seconds)
     except (RuntimeError, ValueError) as exc:
-        return json_error(str(exc), 502)
+        return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
 
-    return jsonify(build_match_response(mode, wallet, domain))
+    return jsonify({'invite': invite, 'player': get_player(wallet)})
+
+
+@app.route('/api/match-invite/<invite_id>')
+def api_match_invite(invite_id):
+    wallet = (request.args.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно передать свой кошелёк.')
+    try:
+        invite = expire_invite_if_needed(load_invite(invite_id))
+    except ValueError as exc:
+        return json_error(str(exc), 404)
+
+    if wallet not in {invite['inviter_wallet'], invite['invitee_wallet']}:
+        return json_error('Нет доступа к этому приглашению.', 403)
+
+    result = None
+    if invite['result_json']:
+        result = invite['result_json']['for_inviter'] if wallet == invite['inviter_wallet'] else invite['result_json']['for_invitee']
+
+    return jsonify({'invite': invite, 'result': result, 'player': get_player(wallet)})
 
 
 @app.route('/api/team-room/create', methods=['POST'])
@@ -1807,9 +2367,15 @@ def telegram_webhook():
 
     update = request.get_json(silent=True) or {}
     message = update.get('message')
+    callback_query = update.get('callback_query')
     if message:
         try:
             handle_telegram_message(message)
+        except Exception as exc:  # pragma: no cover
+            return json_error(str(exc), 500)
+    if callback_query:
+        try:
+            handle_invite_callback(callback_query)
         except Exception as exc:  # pragma: no cover
             return json_error(str(exc), 500)
     return jsonify({'ok': True})
