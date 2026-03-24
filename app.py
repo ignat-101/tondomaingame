@@ -313,6 +313,62 @@ PAGE_TEMPLATE = """
       box-shadow: 0 0 0 1px rgba(83, 246, 184, 0.32);
     }
 
+    .mode-grid {
+      perspective: 1400px;
+    }
+
+    .mode-card {
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 420ms cubic-bezier(.2,.8,.2,1), box-shadow 420ms ease, border-color 420ms ease;
+    }
+
+    .mode-card::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(69, 215, 255, 0.18), rgba(83, 246, 184, 0.14), transparent 70%);
+      opacity: 0;
+      transition: opacity 320ms ease;
+      pointer-events: none;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-6px) rotateX(7deg) rotateY(-7deg);
+      box-shadow: 0 28px 48px rgba(0, 0, 0, 0.28);
+    }
+
+    .mode-card.active-mode {
+      border-color: rgba(83, 246, 184, 0.58);
+      box-shadow: 0 30px 60px rgba(69, 215, 255, 0.22);
+      transform: translateY(-14px) rotateX(14deg) rotateY(-14deg) scale(1.03);
+    }
+
+    .mode-card.active-mode::after {
+      opacity: 1;
+    }
+
+    .mode-card.active-mode .mode-burst {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .mode-burst {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(83, 246, 184, 0.55), rgba(69, 215, 255, 0.1) 60%, transparent 70%);
+      filter: blur(1px);
+      opacity: 0;
+      transform: scale(0.4);
+      transition: transform 380ms ease, opacity 380ms ease;
+      pointer-events: none;
+    }
+
     .game-card {
       position: relative;
       overflow: hidden;
@@ -536,22 +592,26 @@ PAGE_TEMPLATE = """
           </div>
 
           <div class="mode-grid">
-            <div class="mode-card">
+            <div class="mode-card" data-mode-card="ranked">
+              <div class="mode-burst"></div>
               <h3>Рейтинговый</h3>
               <p>Бот отправит вызов реальному сопернику. После принятия рейтинг пересчитается по ELO.</p>
               <button id="play-ranked-btn" disabled>Отправить рейтинговый вызов</button>
             </div>
-            <div class="mode-card">
+            <div class="mode-card" data-mode-card="team">
+              <div class="mode-burst"></div>
               <h3>Командный</h3>
               <p>Создай комнату или войди по коду. Поддерживается от 2 до 4 игроков.</p>
               <button id="show-team-btn">Открыть комнату</button>
             </div>
-            <div class="mode-card">
+            <div class="mode-card" data-mode-card="casual">
+              <div class="mode-burst"></div>
               <h3>Обычный</h3>
               <p>Бот отправит вызов реальному сопернику без изменения рейтинга.</p>
               <button id="play-casual-btn" disabled>Отправить обычный вызов</button>
             </div>
-            <div class="mode-card">
+            <div class="mode-card" data-mode-card="bot">
+              <div class="mode-burst"></div>
               <h3>С ботом</h3>
               <p>Игра против бота, у него рандомные карточки, для ознакомления с механикой игры.</p>
               <button id="play-bot-btn" disabled>Играть с ботом</button>
@@ -726,6 +786,12 @@ PAGE_TEMPLATE = """
       });
       document.querySelectorAll('[data-step-chip]').forEach((chip) => {
         chip.classList.toggle('active', chip.dataset.stepChip === name);
+      });
+    }
+
+    function animateModeChoice(modeName) {
+      document.querySelectorAll('[data-mode-card]').forEach((card) => {
+        card.classList.toggle('active-mode', card.dataset.modeCard === modeName);
       });
     }
 
@@ -1047,6 +1113,7 @@ PAGE_TEMPLATE = """
     async function playMatch(mode) {
       const opponentWallet = document.getElementById('opponent-wallet').value.trim();
       const timeoutSeconds = Number(document.getElementById('invite-timeout').value || 60);
+      animateModeChoice(mode);
       try {
         const data = await api(`/api/match/${mode}`, {
           method: 'POST',
@@ -1077,6 +1144,7 @@ PAGE_TEMPLATE = """
     }
 
     async function playBotMatch() {
+      animateModeChoice('bot');
       try {
         const data = await api('/api/match/bot', {
           method: 'POST',
@@ -1313,6 +1381,7 @@ PAGE_TEMPLATE = """
     document.getElementById('play-casual-btn').addEventListener('click', () => playMatch('casual'));
     document.getElementById('play-bot-btn').addEventListener('click', playBotMatch);
     document.getElementById('show-team-btn').addEventListener('click', () => {
+      animateModeChoice('team');
       document.getElementById('team-panel').style.display = 'block';
       setStatus(document.getElementById('team-status'), 'Создай командную комнату или войди по коду.', 'warning');
     });
@@ -1570,8 +1639,8 @@ def random_bot_cards(seed_value, count=5):
     rng = random.Random(hashlib.sha256(f'bot:{seed_value}'.encode()).hexdigest())
     cards = []
     for slot in range(1, count + 1):
-        attack = rng.randint(18, 72)
-        defense = rng.randint(16, 68)
+        attack = rng.randint(12, 48)
+        defense = rng.randint(10, 42)
         cards.append(
             {
                 'slot': slot,
