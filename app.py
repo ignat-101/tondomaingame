@@ -59,6 +59,7 @@ DEFAULT_INVITE_TIMEOUT_SECONDS = int(os.getenv('DEFAULT_INVITE_TIMEOUT_SECONDS',
 MIN_INVITE_TIMEOUT_SECONDS = int(os.getenv('MIN_INVITE_TIMEOUT_SECONDS', '30'))
 MAX_INVITE_TIMEOUT_SECONDS = int(os.getenv('MAX_INVITE_TIMEOUT_SECONDS', '600'))
 TELEGRAM_INITDATA_MAX_AGE = int(os.getenv('TELEGRAM_INITDATA_MAX_AGE', '86400'))
+ACTIVE_USER_WINDOW_SECONDS = int(os.getenv('ACTIVE_USER_WINDOW_SECONDS', '900'))
 DB_PATH = Path(os.getenv('APP_DB_PATH', 'tondomaingame.db'))
 
 DOMAIN_CACHE = {}
@@ -329,6 +330,64 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
+    .card-grid.reveal .game-card {
+      opacity: 0;
+      transform: translateY(14px) rotateY(90deg);
+      animation: cardFlipIn 650ms ease forwards;
+    }
+
+    .card-grid.reveal .game-card:nth-child(1) { animation-delay: 0.05s; }
+    .card-grid.reveal .game-card:nth-child(2) { animation-delay: 0.15s; }
+    .card-grid.reveal .game-card:nth-child(3) { animation-delay: 0.25s; }
+    .card-grid.reveal .game-card:nth-child(4) { animation-delay: 0.35s; }
+    .card-grid.reveal .game-card:nth-child(5) { animation-delay: 0.45s; }
+
+    @keyframes cardFlipIn {
+      0% { opacity: 0; transform: translateY(18px) rotateY(90deg) scale(0.96); }
+      60% { opacity: 1; transform: translateY(-4px) rotateY(0deg) scale(1.01); }
+      100% { opacity: 1; transform: translateY(0) rotateY(0deg) scale(1); }
+    }
+
+    .duel-anim {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(69, 215, 255, 0.35);
+      background:
+        radial-gradient(circle at center, rgba(69, 215, 255, 0.16), transparent 42%),
+        linear-gradient(120deg, rgba(10, 18, 33, 0.95), rgba(16, 33, 58, 0.92));
+    }
+
+    .duel-anim::after {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background: linear-gradient(90deg, transparent, rgba(83, 246, 184, 0.16), transparent);
+      animation: sweep 1.8s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes sweep {
+      from { transform: translateX(-50%) rotate(8deg); }
+      to { transform: translateX(50%) rotate(8deg); }
+    }
+
+    .friend-list, .active-users-list, .deck-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .user-item {
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .user-item strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
     .game-card h3, .mode-card h3, .domain-card h3 {
       margin: 0 0 10px;
     }
@@ -465,12 +524,12 @@ PAGE_TEMPLATE = """
 
         <section class="panel view" id="view-modes">
           <h2>Шаг 3. Режимы игры</h2>
-          <p class="muted">Теперь соперники только реальные люди. Для рейтингового и обычного матча укажи кошелёк соперника, задай время на ответ и бот отправит ему приглашение в Telegram. Командный режим по-прежнему работает комнатами на 2-4 игроков.</p>
+          <p class="muted">Для рейтингового и обычного матча укажи соперника, задай время на ответ и бот отправит ему приглашение в Telegram. Командный режим по-прежнему работает комнатами на 2-4 игроков.</p>
 
           <div class="team-card" style="margin-bottom:18px;">
-            <h3>Человеческий PvP через Telegram</h3>
+            <h3>PvP через Telegram</h3>
             <div class="row">
-              <input id="opponent-wallet" placeholder="Кошелёк соперника">
+              <input id="opponent-wallet" placeholder="Кошелёк или домен соперника">
               <input id="invite-timeout" type="number" min="30" max="600" step="30" value="60" placeholder="Время ответа, сек">
             </div>
             <div class="tiny">Соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз, чтобы привязать свой кошелёк к Telegram.</div>
@@ -546,6 +605,28 @@ PAGE_TEMPLATE = """
         </section>
 
         <section class="panel">
+          <h3>Моя колода</h3>
+          <div class="actions">
+            <button class="secondary" id="show-deck-btn" disabled>Смотреть свою колоду</button>
+          </div>
+          <div class="deck-list" id="deck-view"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Активные юзеры сейчас</h3>
+          <div class="active-users-list" id="active-users-list"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Друзья</h3>
+          <div class="row">
+            <input id="friend-reference" placeholder="Кошелёк или домен">
+            <button id="add-friend-btn" disabled>Добавить</button>
+          </div>
+          <div class="friend-list" id="friends-list"></div>
+        </section>
+
+        <section class="panel">
           <h3>Топ рейтинга</h3>
           <div class="leaderboard" id="leaderboard"></div>
         </section>
@@ -563,7 +644,9 @@ PAGE_TEMPLATE = """
       playerProfile: null,
       lastResult: null,
       roomId: null,
-      room: null
+      room: null,
+      activeUsers: [],
+      friends: []
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -590,6 +673,11 @@ PAGE_TEMPLATE = """
     const telegramStatus = document.getElementById('telegram-status');
     const telegramShareBtn = document.getElementById('telegram-share-btn');
     const telegramLinkBtn = document.getElementById('telegram-link-btn');
+    const activeUsersList = document.getElementById('active-users-list');
+    const friendsList = document.getElementById('friends-list');
+    const deckView = document.getElementById('deck-view');
+    const addFriendBtn = document.getElementById('add-friend-btn');
+    const showDeckBtn = document.getElementById('show-deck-btn');
 
     telegramOpenLink.href = telegramBotUsername
       ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
@@ -647,6 +735,69 @@ PAGE_TEMPLATE = """
       `).join('');
     }
 
+    function fillOpponent(reference) {
+      document.getElementById('opponent-wallet').value = reference;
+      switchView('modes');
+    }
+
+    function renderActiveUsers(items) {
+      state.activeUsers = items;
+      if (!items.length) {
+        activeUsersList.innerHTML = '<div class="user-item muted">Активные игроки появятся здесь после входа в игру.</div>';
+        return;
+      }
+      activeUsersList.innerHTML = items.map((item) => `
+        <div class="user-item">
+          <strong>${item.display_name}</strong>
+          <div class="tiny">${item.domain}.ton • рейтинг ${item.rating}</div>
+          <div class="tiny">Средняя атака: ${item.average_attack} • Средняя защита: ${item.average_defense}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" onclick="fillOpponent('${item.domain}')">По домену</button>
+            <button class="secondary" onclick="fillOpponent('${item.wallet}')">По кошельку</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderFriends(items) {
+      state.friends = items;
+      if (!items.length) {
+        friendsList.innerHTML = '<div class="user-item muted">Добавь игроков в друзья, чтобы быстро вызывать их на матч.</div>';
+        return;
+      }
+      friendsList.innerHTML = items.map((item) => `
+        <div class="user-item">
+          <strong>${item.display_name}</strong>
+          <div class="tiny">${item.domain ? `${item.domain}.ton` : 'домен не выбран'} • рейтинг ${item.rating || '-'}</div>
+          <div class="tiny">${item.average_attack ? `Средняя атака: ${item.average_attack} • Средняя защита: ${item.average_defense}` : 'Колода ещё не сохранена'}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" onclick="fillOpponent('${item.domain || item.wallet}')">Выбрать</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderDeck(data) {
+      if (!data) {
+        deckView.innerHTML = '<div class="user-item muted">Сначала выбери домен и открой колоду.</div>';
+        return;
+      }
+      deckView.innerHTML = `
+        <div class="user-item">
+          <strong>${data.domain}.ton</strong>
+          <div class="tiny">Средняя атака: ${data.deck.average_attack} • Средняя защита: ${data.deck.average_defense}</div>
+          <div class="tiny">Сумма колоды: ${data.deck.total_score}</div>
+        </div>
+        ${data.deck.cards.map((card) => `
+          <div class="user-item">
+            <strong>${card.title}</strong>
+            <div class="tiny">Слот ${card.slot} • ${card.rarity}</div>
+            <div class="tiny">Атака ${card.attack} • Защита ${card.defense} • Сила ${card.score}</div>
+          </div>
+        `).join('')}
+      `;
+    }
+
     function renderProfile() {
       walletBadge.textContent = state.wallet ? `Подключён: ${shortAddress(state.wallet)}` : 'Кошелёк не подключен';
       profileWallet.textContent = state.wallet ? shortAddress(state.wallet) : '-';
@@ -657,10 +808,12 @@ PAGE_TEMPLATE = """
         profileRating.textContent = state.playerProfile.rating;
         profileGames.textContent = state.playerProfile.games_played;
         profileTelegram.textContent = state.playerProfile.telegram_linked ? 'привязан' : 'не привязан';
+        showDeckBtn.disabled = !(state.playerProfile.current_domain || state.playerProfile.best_domain);
       } else {
         profileRating.textContent = '1000';
         profileGames.textContent = '0';
         profileTelegram.textContent = 'не привязан';
+        showDeckBtn.disabled = true;
       }
     }
 
@@ -676,6 +829,7 @@ PAGE_TEMPLATE = """
       document.getElementById('create-room-btn').disabled = !(connected && hasCards);
       document.getElementById('join-room-btn').disabled = !(connected && hasCards);
       telegramLinkBtn.disabled = !connected;
+      addFriendBtn.disabled = !connected;
     }
 
     function renderDomains(domains) {
@@ -714,6 +868,7 @@ PAGE_TEMPLATE = """
     };
 
     function renderPack(cards, total) {
+      packCards.classList.remove('reveal');
       packCards.innerHTML = cards.map((card) => `
         <article class="game-card">
           <div class="tiny">${card.rarity}</div>
@@ -726,10 +881,12 @@ PAGE_TEMPLATE = """
         </article>
       `).join('');
       packScoreLabel.textContent = `Сумма колоды: ${total}`;
+      requestAnimationFrame(() => packCards.classList.add('reveal'));
     }
 
     function renderBattleResult(result) {
       battleResult.style.display = 'block';
+      battleResult.classList.add('duel-anim');
       if (result.kind === 'team') {
         battleResult.innerHTML = `
           <h3>Командный матч завершён</h3>
@@ -788,15 +945,23 @@ PAGE_TEMPLATE = """
       renderLeaderBoard(data.players);
     }
 
+    async function loadActiveUsers() {
+      const data = await api('/api/active-users');
+      renderActiveUsers(data.players);
+    }
+
     async function loadProfile() {
       if (!state.wallet) {
         state.playerProfile = null;
         renderProfile();
+        renderFriends([]);
         return;
       }
       const profile = await api(`/api/player/${encodeURIComponent(state.wallet)}`);
       state.playerProfile = profile.player;
       renderProfile();
+      const friends = await api(`/api/friends/${encodeURIComponent(state.wallet)}`);
+      renderFriends(friends.friends);
     }
 
     async function checkDomains() {
@@ -830,6 +995,9 @@ PAGE_TEMPLATE = """
         renderPack(data.cards, data.total_score);
         setStatus(document.getElementById('pack-status'), `Колода готова. ${data.domain}.ton даёт ${data.total_score} очков силы.`, 'success');
         updateButtons();
+        showDeck();
+        loadActiveUsers();
+        loadProfile();
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
@@ -844,16 +1012,19 @@ PAGE_TEMPLATE = """
           state.playerProfile = data.player;
           renderProfile();
           loadLeaderboard();
+          loadActiveUsers();
         }
         if (data.result) {
           state.lastResult = data.result;
           renderBattleResult(data.result);
           inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
           inviteResult.innerHTML = `<strong>Приглашение ${inviteId} завершено.</strong><p class="muted">Соперник принял вызов, матч рассчитан на сервере.</p>`;
           return;
         }
         if (['declined', 'expired', 'completed'].includes(data.invite.status)) {
           inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
           inviteResult.innerHTML = `<strong>Статус приглашения ${inviteId}: ${data.invite.status}</strong>`;
           return;
         }
@@ -878,6 +1049,7 @@ PAGE_TEMPLATE = """
           }
         });
         inviteResult.style.display = 'block';
+        inviteResult.classList.add('duel-anim');
         inviteResult.innerHTML = `
           <strong>Приглашение ${data.invite.id} отправлено.</strong>
           <p class="muted">Бот написал сопернику в Telegram. Время на ответ: ${data.invite.timeout_seconds} сек.</p>
@@ -886,9 +1058,11 @@ PAGE_TEMPLATE = """
           state.playerProfile = data.player;
           renderProfile();
         }
+        loadActiveUsers();
         pollInvite(data.invite.id);
       } catch (error) {
         inviteResult.style.display = 'block';
+        inviteResult.classList.add('duel-anim');
         inviteResult.innerHTML = `<strong class="error">${error.message}</strong>`;
       }
     }
@@ -994,8 +1168,33 @@ PAGE_TEMPLATE = """
         state.playerProfile = data.player;
         renderProfile();
         telegramStatus.textContent = 'Telegram успешно привязан к кошельку. Теперь тебе могут приходить PvP-приглашения.';
+        loadActiveUsers();
       } catch (error) {
         telegramStatus.textContent = error.message;
+      }
+    }
+
+    async function showDeck() {
+      if (!state.wallet) return;
+      try {
+        const deck = await api(`/api/deck/${encodeURIComponent(state.wallet)}`);
+        renderDeck(deck);
+      } catch (error) {
+        deckView.innerHTML = `<div class="user-item error">${error.message}</div>`;
+      }
+    }
+
+    async function addFriend() {
+      const reference = document.getElementById('friend-reference').value.trim();
+      try {
+        const data = await api('/api/friends', {
+          method: 'POST',
+          body: { wallet: state.wallet, reference }
+        });
+        renderFriends(data.friends);
+        document.getElementById('friend-reference').value = '';
+      } catch (error) {
+        friendsList.innerHTML = `<div class="user-item error">${error.message}</div>${friendsList.innerHTML}`;
       }
     }
 
@@ -1056,6 +1255,8 @@ PAGE_TEMPLATE = """
           state.cards = [];
           renderDomains([]);
           renderProfile();
+          renderFriends([]);
+          renderDeck(null);
           setStatus(walletStatus, 'Подключи кошелёк через TonConnect.', 'warning');
         }
       };
@@ -1083,13 +1284,20 @@ PAGE_TEMPLATE = """
     document.getElementById('start-room-btn').addEventListener('click', startRoom);
     telegramLinkBtn.addEventListener('click', linkTelegramWallet);
     telegramShareBtn.addEventListener('click', shareTelegram);
+    showDeckBtn.addEventListener('click', showDeck);
+    addFriendBtn.addEventListener('click', addFriend);
+
+    window.fillOpponent = fillOpponent;
 
     initTelegram();
     initTonConnect().catch((error) => {
       setStatus(walletStatus, `Ошибка TonConnect: ${error.message}`, 'error');
     });
     loadLeaderboard();
+    loadActiveUsers();
     renderProfile();
+    renderFriends([]);
+    renderDeck(null);
     updateButtons();
   </script>
 </body>
@@ -1185,6 +1393,13 @@ def init_db():
                 responded_at TEXT,
                 telegram_message_id INTEGER,
                 result_json TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS friends (
+                owner_wallet TEXT NOT NULL,
+                friend_wallet TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (owner_wallet, friend_wallet)
             );
             '''
         )
@@ -1297,6 +1512,19 @@ def generate_pack(domain, wallet, count=5):
 
 def deck_score(cards):
     return sum(card['score'] for card in cards)
+
+
+def deck_summary_for_domain(domain, wallet_seed=None):
+    if not domain:
+        return None
+    seed = wallet_seed or f'summary:{domain}'
+    cards = generate_pack(domain, seed)
+    return {
+        'cards': cards,
+        'average_attack': round(sum(card['attack'] for card in cards) / len(cards), 1),
+        'average_defense': round(sum(card['defense'] for card in cards) / len(cards), 1),
+        'total_score': deck_score(cards),
+    }
 
 
 def extract_domain_candidates_from_nft(item):
@@ -1444,6 +1672,17 @@ def telegram_user_link(telegram_user_id):
     return dict(row) if row else None
 
 
+def display_name_for_wallet(wallet):
+    link = telegram_wallet_link(wallet)
+    if link:
+        return link.get('username') or link.get('first_name') or short_wallet(wallet)
+    return short_wallet(wallet)
+
+
+def short_wallet(wallet):
+    return f'{wallet[:6]}...{wallet[-6:]}' if wallet and len(wallet) > 12 else wallet
+
+
 def link_wallet_to_telegram(wallet, telegram_user_id):
     link = telegram_user_link(telegram_user_id)
     if link is None:
@@ -1476,6 +1715,108 @@ def validate_telegram_init_data(init_data):
     if 'user' in pairs:
         pairs['user'] = json.loads(pairs['user'])
     return pairs
+
+
+def resolve_player_reference(reference):
+    ref = (reference or '').strip().lower()
+    if not ref:
+        raise ValueError('Укажи кошелёк или домен соперника.')
+    if valid_wallet_address(reference):
+        return reference.strip()
+
+    domain = normalize_domain(ref)
+    if not domain:
+        raise ValueError('Поле соперника принимает только полный кошелёк или 4-значный .ton домен.')
+
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            '''
+            SELECT wallet FROM players
+            WHERE current_domain = ? OR best_domain = ?
+            ORDER BY updated_at DESC
+            LIMIT 1
+            ''',
+            (domain, domain),
+        ).fetchone()
+    if row is None:
+        raise ValueError('Игрок с таким доменом ещё не найден. Пусть он сначала зайдёт в игру и выберет домен.')
+    return row['wallet']
+
+
+def active_users():
+    cutoff = datetime.fromtimestamp(now_utc().timestamp() - ACTIVE_USER_WINDOW_SECONDS, tz=timezone.utc).isoformat()
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT p.wallet, p.rating, p.current_domain, p.updated_at,
+                   t.username, t.first_name
+            FROM players p
+            LEFT JOIN telegram_users t ON t.wallet = p.wallet
+            WHERE p.current_domain IS NOT NULL AND p.updated_at >= ?
+            ORDER BY p.updated_at DESC
+            ''',
+            (cutoff,),
+        ).fetchall()
+    result = []
+    for row in rows:
+        summary = deck_summary_for_domain(row['current_domain'], row['wallet'])
+        result.append(
+            {
+                'wallet': row['wallet'],
+                'display_name': row['username'] or row['first_name'] or short_wallet(row['wallet']),
+                'domain': row['current_domain'],
+                'rating': row['rating'],
+                'average_attack': summary['average_attack'],
+                'average_defense': summary['average_defense'],
+                'total_score': summary['total_score'],
+                'updated_at': row['updated_at'],
+            }
+        )
+    return result
+
+
+def friend_rows(owner_wallet):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT f.friend_wallet AS wallet, p.current_domain, p.rating, p.updated_at,
+                   t.username, t.first_name
+            FROM friends f
+            LEFT JOIN players p ON p.wallet = f.friend_wallet
+            LEFT JOIN telegram_users t ON t.wallet = f.friend_wallet
+            WHERE f.owner_wallet = ?
+            ORDER BY f.created_at DESC
+            ''',
+            (owner_wallet,),
+        ).fetchall()
+    result = []
+    for row in rows:
+        summary = deck_summary_for_domain(row['current_domain'], row['wallet']) if row['current_domain'] else None
+        result.append(
+            {
+                'wallet': row['wallet'],
+                'display_name': row['username'] or row['first_name'] or short_wallet(row['wallet']),
+                'domain': row['current_domain'],
+                'rating': row['rating'],
+                'average_attack': summary['average_attack'] if summary else None,
+                'average_defense': summary['average_defense'] if summary else None,
+            }
+        )
+    return result
+
+
+def add_friend(owner_wallet, friend_reference):
+    friend_wallet = resolve_player_reference(friend_reference)
+    if friend_wallet == owner_wallet:
+        raise ValueError('Себя в друзья добавлять не нужно.')
+    ensure_player(friend_wallet)
+    with closing(get_db()) as conn:
+        conn.execute(
+            'INSERT OR IGNORE INTO friends (owner_wallet, friend_wallet, created_at) VALUES (?, ?, ?)',
+            (owner_wallet, friend_wallet, now_iso()),
+        )
+        conn.commit()
+    return friend_wallet
 
 
 def ensure_player(wallet, best_domain=None, current_domain=None):
@@ -1512,6 +1853,7 @@ def ensure_player(wallet, best_domain=None, current_domain=None):
 
 def get_player(wallet):
     player = ensure_player(wallet)
+    current_deck = deck_summary_for_domain(player['current_domain'], wallet) if player['current_domain'] else None
     return {
         'wallet': player['wallet'],
         'rating': player['rating'],
@@ -1521,6 +1863,8 @@ def get_player(wallet):
         'best_domain': player['best_domain'],
         'current_domain': player['current_domain'],
         'telegram_linked': telegram_wallet_link(wallet) is not None,
+        'display_name': display_name_for_wallet(wallet),
+        'deck_summary': current_deck,
     }
 
 
@@ -2160,6 +2504,18 @@ def api_player(wallet):
     return jsonify({'player': get_player(wallet)})
 
 
+@app.route('/api/deck/<wallet>')
+def api_deck(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    player = get_player(wallet)
+    domain = player['current_domain'] or player['best_domain']
+    if not domain:
+        return json_error('У игрока ещё нет сохранённой колоды.', 404)
+    summary = deck_summary_for_domain(domain, wallet)
+    return jsonify({'wallet': wallet, 'domain': domain, 'deck': summary})
+
+
 @app.route('/api/telegram/link', methods=['POST'])
 def api_telegram_link():
     payload = request.get_json(silent=True) or {}
@@ -2191,6 +2547,32 @@ def api_leaderboard():
             '''
         ).fetchall()
     return jsonify({'players': [dict(row) for row in rows]})
+
+
+@app.route('/api/active-users')
+def api_active_users():
+    return jsonify({'players': active_users()})
+
+
+@app.route('/api/friends/<wallet>')
+def api_friends(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    return jsonify({'friends': friend_rows(wallet)})
+
+
+@app.route('/api/friends', methods=['POST'])
+def api_add_friend():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    reference = (payload.get('reference') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        friend_wallet = add_friend(wallet, reference)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'friend_wallet': friend_wallet, 'friends': friend_rows(wallet)})
 
 
 @app.route('/api/wallet/domains', methods=['POST'])
@@ -2237,19 +2619,17 @@ def api_match(mode):
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     domain = normalize_domain(payload.get('domain'))
-    opponent_wallet = (payload.get('opponent_wallet') or '').strip()
+    opponent_reference = (payload.get('opponent_wallet') or '').strip()
     timeout_seconds = payload.get('timeout_seconds') or DEFAULT_INVITE_TIMEOUT_SECONDS
 
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
     if not domain:
         return json_error('Нужно выбрать домен.')
-    if not valid_wallet_address(opponent_wallet):
-        return json_error('Укажи кошелёк соперника.')
-    if opponent_wallet == wallet:
-        return json_error('Нельзя отправить вызов самому себе.')
-
     try:
+        opponent_wallet = resolve_player_reference(opponent_reference)
+        if opponent_wallet == wallet:
+            return json_error('Нельзя отправить вызов самому себе.')
         if not validate_wallet_owns_domain(wallet, domain):
             return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
         ensure_player(wallet, domain, domain)
