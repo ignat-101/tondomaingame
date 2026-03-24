@@ -39,10 +39,7 @@ PORT = 5000
 DEBUG = False
 
 # Production settings
-SSL_CERT_PATH = None  # путь к cert.pem для HTTPS
-SSL_KEY_PATH = None   # путь к key.pem для HTTPS
-RATE_LIMIT = '10 per minute'  # лимит запросов
+RATE_LIMIT = '60 per minute'
 
-# Telegram Mini App
-TG_BOT_TOKEN = ''  # для webhook, если нужно
-TG_WEBAPP_URL = 'https://yourdomain.com'  # URL миниаппа
+# Telegram Mini App / Bot
+TG_WEBAPP_URL = 'https://yourdomain.com'

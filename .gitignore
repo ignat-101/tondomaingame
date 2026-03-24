@@ -13,3 +13,4 @@ key.pem
 
 build/
 dist/
+*.db
