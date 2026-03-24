@@ -551,6 +551,11 @@ PAGE_TEMPLATE = """
               <p>Бот отправит вызов реальному сопернику без изменения рейтинга.</p>
               <button id="play-casual-btn" disabled>Отправить обычный вызов</button>
             </div>
+            <div class="mode-card">
+              <h3>С ботом</h3>
+              <p>Игра против бота, у него рандомные карточки, для ознакомления с механикой игры.</p>
+              <button id="play-bot-btn" disabled>Играть с ботом</button>
+            </div>
           </div>
 
           <div class="result-box" id="battle-result" style="display:none;"></div>
@@ -585,6 +590,15 @@ PAGE_TEMPLATE = """
 
       <aside class="side">
         <section class="panel">
+          <h3>Моя колода</h3>
+          <div class="actions">
+            <button class="secondary" id="show-deck-btn" disabled>Открыть колоду</button>
+            <button class="secondary" id="toggle-deck-btn">Скрыть</button>
+          </div>
+          <div class="deck-list" id="deck-view"></div>
+        </section>
+
+        <section class="panel">
           <h3>Профиль игрока</h3>
           <div class="kv"><span class="muted">Кошелёк</span><span id="profile-wallet">-</span></div>
           <div class="kv"><span class="muted">Активный домен</span><span id="profile-domain">-</span></div>
@@ -602,14 +616,6 @@ PAGE_TEMPLATE = """
             <button class="secondary" id="telegram-share-btn" disabled>Отправить результат в Telegram</button>
           </div>
           <div class="status tiny" id="telegram-status"></div>
-        </section>
-
-        <section class="panel">
-          <h3>Моя колода</h3>
-          <div class="actions">
-            <button class="secondary" id="show-deck-btn" disabled>Смотреть свою колоду</button>
-          </div>
-          <div class="deck-list" id="deck-view"></div>
         </section>
 
         <section class="panel">
@@ -678,6 +684,7 @@ PAGE_TEMPLATE = """
     const deckView = document.getElementById('deck-view');
     const addFriendBtn = document.getElementById('add-friend-btn');
     const showDeckBtn = document.getElementById('show-deck-btn');
+    const toggleDeckBtn = document.getElementById('toggle-deck-btn');
 
     telegramOpenLink.href = telegramBotUsername
       ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
@@ -826,6 +833,7 @@ PAGE_TEMPLATE = """
       document.getElementById('continue-to-modes-btn').disabled = !hasCards;
       document.getElementById('play-ranked-btn').disabled = !(connected && hasCards);
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards);
+      document.getElementById('play-bot-btn').disabled = !(connected && hasCards);
       document.getElementById('create-room-btn').disabled = !(connected && hasCards);
       document.getElementById('join-room-btn').disabled = !(connected && hasCards);
       telegramLinkBtn.disabled = !connected;
@@ -906,10 +914,11 @@ PAGE_TEMPLATE = """
         const ratingLine = result.rating_after !== undefined
           ? `<div class="team-line"><span>Рейтинг</span><strong>${result.rating_before} → ${result.rating_after}</strong></div>`
           : '';
+        const opponentLabel = result.opponent_domain ? `${result.opponent_domain}.ton` : 'бот';
         battleResult.innerHTML = `
           <h3>${result.mode_title}</h3>
           <div class="team-line"><span>Твой домен</span><strong>${result.player_domain}.ton</strong></div>
-          <div class="team-line"><span>Соперник</span><strong>${result.opponent_domain}.ton</strong></div>
+          <div class="team-line"><span>Соперник</span><strong>${opponentLabel}</strong></div>
           <div class="team-line"><span>Твои очки</span><strong>${result.player_score}</strong></div>
           <div class="team-line"><span>Очки соперника</span><strong>${result.opponent_score}</strong></div>
           ${ratingLine}
@@ -1067,6 +1076,28 @@ PAGE_TEMPLATE = """
       }
     }
 
+    async function playBotMatch() {
+      try {
+        const data = await api('/api/match/bot', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            domain: state.selectedDomain
+          }
+        });
+        state.lastResult = data.result;
+        renderBattleResult(data.result);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        }
+      } catch (error) {
+        battleResult.style.display = 'block';
+        battleResult.classList.add('duel-anim');
+        battleResult.innerHTML = `<strong class="error">${error.message}</strong>`;
+      }
+    }
+
     async function createRoom() {
       const username = document.getElementById('team-username').value.trim() || shortAddress(state.wallet);
       try {
@@ -1184,6 +1215,12 @@ PAGE_TEMPLATE = """
       }
     }
 
+    function toggleDeck() {
+      const isHidden = deckView.style.display === 'none';
+      deckView.style.display = isHidden ? 'grid' : 'none';
+      toggleDeckBtn.textContent = isHidden ? 'Скрыть' : 'Открыть';
+    }
+
     async function addFriend() {
       const reference = document.getElementById('friend-reference').value.trim();
       try {
@@ -1274,6 +1311,7 @@ PAGE_TEMPLATE = """
     document.getElementById('continue-to-modes-btn').addEventListener('click', () => switchView('modes'));
     document.getElementById('play-ranked-btn').addEventListener('click', () => playMatch('ranked'));
     document.getElementById('play-casual-btn').addEventListener('click', () => playMatch('casual'));
+    document.getElementById('play-bot-btn').addEventListener('click', playBotMatch);
     document.getElementById('show-team-btn').addEventListener('click', () => {
       document.getElementById('team-panel').style.display = 'block';
       setStatus(document.getElementById('team-status'), 'Создай командную комнату или войди по коду.', 'warning');
@@ -1285,6 +1323,7 @@ PAGE_TEMPLATE = """
     telegramLinkBtn.addEventListener('click', linkTelegramWallet);
     telegramShareBtn.addEventListener('click', shareTelegram);
     showDeckBtn.addEventListener('click', showDeck);
+    toggleDeckBtn.addEventListener('click', toggleDeck);
     addFriendBtn.addEventListener('click', addFriend);
 
     window.fillOpponent = fillOpponent;
@@ -1525,6 +1564,26 @@ def deck_summary_for_domain(domain, wallet_seed=None):
         'average_defense': round(sum(card['defense'] for card in cards) / len(cards), 1),
         'total_score': deck_score(cards),
     }
+
+
+def random_bot_cards(seed_value, count=5):
+    rng = random.Random(hashlib.sha256(f'bot:{seed_value}'.encode()).hexdigest())
+    cards = []
+    for slot in range(1, count + 1):
+        attack = rng.randint(18, 72)
+        defense = rng.randint(16, 68)
+        cards.append(
+            {
+                'slot': slot,
+                'title': CARD_TITLES[rng.randrange(len(CARD_TITLES))],
+                'ability': CARD_ABILITIES[rng.randrange(len(CARD_ABILITIES))],
+                'attack': attack,
+                'defense': defense,
+                'score': attack + defense,
+                'rarity': card_rarity(attack + defense),
+            }
+        )
+    return cards
 
 
 def extract_domain_candidates_from_nft(item):
@@ -2638,6 +2697,49 @@ def api_match(mode):
         return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
 
     return jsonify({'invite': invite, 'player': get_player(wallet)})
+
+
+@app.route('/api/match/bot', methods=['POST'])
+def api_match_bot():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not domain:
+        return json_error('Нужно выбрать домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502)
+
+    player_cards = generate_pack(domain, wallet)
+    bot_cards = random_bot_cards(f'{wallet}:{domain}:{now_iso()}')
+    player_score = deck_score(player_cards)
+    bot_score = sum(card['score'] for card in bot_cards)
+    if player_score > bot_score:
+        result_label = 'Победа'
+    elif player_score < bot_score:
+        result_label = 'Поражение'
+    else:
+        result_label = 'Ничья'
+    ensure_player(wallet, domain, domain)
+    return jsonify(
+        {
+            'result': {
+                'kind': 'solo',
+                'mode_title': 'Матч с ботом',
+                'player_domain': domain,
+                'opponent_domain': None,
+                'player_score': player_score,
+                'opponent_score': bot_score,
+                'result_label': result_label,
+            },
+            'bot_cards': bot_cards,
+            'player': get_player(wallet),
+        }
+    )
 
 
 @app.route('/api/match-invite/<invite_id>')
