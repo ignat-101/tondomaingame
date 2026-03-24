@@ -28,7 +28,7 @@ TIERS = [
 # TON API (пример: TonAPI), можно изменить на ваш endpoint
 TONAPI_BASE_URL = 'https://tonapi.io/v2/accounts/{wallet}/nfts'
 # В продакшене заполняется через переменную окружения
-TONAPI_KEY = 'deb89cee76554d55c3cc05a3cae196f0510ea293b1f75ebb505c79d5b230dc6b'  # если есть ключ, укажите здесь
+TONAPI_KEY = ''
 
 # DNS TON API для проверки существования домена
 DNS_TON_BASE_URL = 'https://dns.ton.org/v1/domains/{domain}'

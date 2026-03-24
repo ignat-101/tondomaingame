@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.idea/
+.venv/
+.venv-1/
+__pycache__/
+*.pyc
+
+node_modules/
+
+cert.pem
+key.pem
+
+build/
+dist/

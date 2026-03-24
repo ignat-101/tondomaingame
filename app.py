@@ -32,6 +32,21 @@ if os.getenv('TG_WEBAPP_URL'):
     TG_WEBAPP_URL = os.getenv('TG_WEBAPP_URL')
 
 
+TONCONNECT_MANIFEST = {
+    'name': 'TON 10K Club Domain Game',
+    'description': 'A game where TON DNS domains become trading cards',
+    'icons': ['https://10kclub.com/favicon.ico'],
+    'developer': {
+        'name': 'TON 10K Club',
+        'url': 'https://10kclub.com',
+    },
+    'redirect': {
+        'success': '/',
+        'cancel': '/',
+    },
+}
+
+
 def detect_10k_patterns(domain: str):
     """Определяет 10K Club паттерны для домена в формате "0000"."""
     d = [int(x) for x in domain]
@@ -298,6 +313,11 @@ def index():
 </body>
 </html>
 ''')
+
+
+@app.route('/tonconnect-manifest.json')
+def tonconnect_manifest():
+    return jsonify(TONCONNECT_MANIFEST)
 
 
 @app.route('/api/check-domain/<domain>')

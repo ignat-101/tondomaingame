@@ -4,11 +4,11 @@
 
 ## Особенности
 
+- Flask-приложение в одном основном файле
 - Подключение кошелька через TonConnect или TonAPI
 - Проверка домена на dns.ton.org
 - Генерация карт на основе 10K Club паттернов
 - Интеграция с Telegram Mini App
-- Rate limiting и SSL для production
 
 ## Установка
 
@@ -50,7 +50,7 @@
 ### Шаг 5: Переменные окружения
 - В "Web" → "Environment variables"
 - Добавьте:
-  - `TONAPI_KEY=deb89cee76554d55c3cc05a3cae196f0510ea293b1f75ebb505c79d5b230dc6b`
+  - `TONAPI_KEY=your_tonapi_key`
   - `TG_WEBAPP_URL=https://yourusername.pythonanywhere.com`
   - `FLASK_ENV=production`
 
@@ -67,7 +67,7 @@
 - ATTACK_BASE, DEFENSE_BASE
 - PATTERN_BONUSES (бонусы за паттерны)
 - TIERS (пороги редкости)
-- TONAPI_KEY (API ключ для TonAPI)
+- TONAPI_KEY через `.env` или переменные окружения
 
 ## API Endpoints
 
@@ -79,4 +79,4 @@
 
 ## Telegram Mini App
 
-To use as a Telegram mini app, deploy the built files and configure in BotFather with the web app URL.
+Для Telegram Mini App разверните это Flask-приложение и укажите его URL в BotFather как Web App URL.
