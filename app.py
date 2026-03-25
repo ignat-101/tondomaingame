@@ -522,7 +522,7 @@ PAGE_TEMPLATE = """
     }
 
     body.showdown-open {
-      overflow: hidden;
+      overflow: auto;
     }
 
     .showdown-fullscreen {
@@ -532,7 +532,10 @@ PAGE_TEMPLATE = """
       margin: 0;
       border-radius: 0;
       border: 0;
-      padding: 14px 18px calc(16px + env(safe-area-inset-bottom));
+      padding:
+        calc(12px + env(safe-area-inset-top))
+        12px
+        calc(16px + env(safe-area-inset-bottom));
       display: grid;
       grid-template-rows: minmax(150px, 1fr) auto minmax(150px, 1fr) auto;
       gap: 12px;
@@ -540,7 +543,10 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 50% 10%, rgba(83, 246, 184, 0.16), transparent 38%),
         radial-gradient(circle at 50% 90%, rgba(69, 215, 255, 0.16), transparent 38%),
         linear-gradient(180deg, rgba(4, 11, 20, 0.98), rgba(8, 18, 34, 0.98));
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
 
     .showdown-zone {
@@ -916,12 +922,20 @@ PAGE_TEMPLATE = """
       .mobile-nav button {
         min-height: 44px;
         height: 44px;
-        padding: 10px 8px;
-        font-size: 12px;
+        padding: 7px 4px;
+        font-size: 11px;
         display: flex;
         align-items: center;
         justify-content: center;
-        white-space: nowrap;
+        text-align: center;
+        line-height: 1.05;
+        white-space: normal;
+        word-break: break-word;
+        min-width: 0;
+      }
+
+      #nav-achievements {
+        font-size: 10px;
       }
     }
   </style>
