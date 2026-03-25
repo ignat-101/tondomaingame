@@ -521,6 +521,105 @@ PAGE_TEMPLATE = """
       margin-top: 16px;
     }
 
+    body.showdown-open {
+      overflow: hidden;
+    }
+
+    .showdown-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      margin: 0;
+      border-radius: 0;
+      border: 0;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background:
+        radial-gradient(circle at 50% 10%, rgba(83, 246, 184, 0.16), transparent 38%),
+        radial-gradient(circle at 50% 90%, rgba(69, 215, 255, 0.16), transparent 38%),
+        linear-gradient(180deg, rgba(4, 11, 20, 0.98), rgba(8, 18, 34, 0.98));
+      overflow: auto;
+    }
+
+    .showdown-deck {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    }
+
+    .showdown-card {
+      border: 1px solid rgba(121, 217, 255, 0.25);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .showdown-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .showdown-center {
+      border: 1px solid rgba(121, 217, 255, 0.32);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(6, 18, 32, 0.84);
+      backdrop-filter: blur(3px);
+    }
+
+    .showdown-score {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      font-size: clamp(24px, 6vw, 42px);
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .discipline-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .discipline-row {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 9px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 260ms ease, transform 260ms ease;
+    }
+
+    .discipline-row.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .discipline-row.win {
+      border-color: rgba(83, 246, 184, 0.45);
+      background: rgba(83, 246, 184, 0.1);
+    }
+
+    .discipline-row.lose {
+      border-color: rgba(255, 122, 134, 0.45);
+      background: rgba(255, 122, 134, 0.1);
+    }
+
+    .discipline-row.draw {
+      border-color: rgba(255, 211, 110, 0.45);
+      background: rgba(255, 211, 110, 0.1);
+    }
+
     .team-line {
       display: flex;
       justify-content: space-between;
@@ -617,6 +716,16 @@ PAGE_TEMPLATE = """
       gap: 12px;
       flex-wrap: wrap;
       margin-top: 18px;
+    }
+
+    @media (max-width: 700px) {
+      .showdown-fullscreen {
+        padding: 12px;
+      }
+
+      .showdown-score {
+        font-size: clamp(18px, 7vw, 30px);
+      }
     }
 
     .pack-showcase {
@@ -906,7 +1015,7 @@ PAGE_TEMPLATE = """
             <div class="mode-card" data-mode-card="bot">
               <div class="mode-burst"></div>
               <h3>С ботом</h3>
-              <p>Тестовый wiki gachi бой: 5 раундов против бота с рандомной колодой.</p>
+              <p>Тестовый wiki gachi: 5 раундов против бота с рандомной колодой.</p>
               <button id="play-bot-btn" disabled>Играть с ботом</button>
             </div>
             <div class="mode-card" data-mode-card="onecard">
@@ -1422,10 +1531,50 @@ PAGE_TEMPLATE = """
       requestAnimationFrame(() => packCards.classList.add('reveal'));
     }
 
+    function showdownDeckMarkup(cards, fallbackCard) {
+      const normalized = Array.isArray(cards) && cards.length
+        ? cards
+        : (fallbackCard ? [fallbackCard] : []);
+      if (!normalized.length) {
+        return '<div class="tiny">Колода недоступна</div>';
+      }
+      return normalized.map((card, index) => `
+        <div class="showdown-card">
+          <strong>${index + 1}. ${card.title || 'Карта'}</strong>
+          <div class="tiny">ATK ${card.attack ?? '-'} • DEF ${card.defense ?? '-'} • LUCK ${card.luck ?? 0}</div>
+          <div class="tiny">Сила: ${card.score ?? '-'}</div>
+        </div>
+      `).join('');
+    }
+
+    function revealDisciplineRows() {
+      const rows = battleResult.querySelectorAll('.discipline-row');
+      rows.forEach((row, index) => {
+        setTimeout(() => {
+          row.classList.add('visible');
+        }, 360 + index * 420);
+      });
+    }
+
+    function showMatchIntro(title) {
+      battleResult.className = 'result-box duel-anim showdown-fullscreen';
+      battleResult.style.display = 'block';
+      document.body.classList.add('showdown-open');
+      battleResult.innerHTML = `
+        <section class="showdown-center">
+          <h3>${title}</h3>
+          <div class="showdown-score"><span>?</span><span>:</span><span>?</span></div>
+          <p class="muted">Подготавливаем колоды и дисциплины. Сейчас начнётся разбор по раундам.</p>
+        </section>
+      `;
+    }
+
     function renderBattleResult(result) {
+      battleResult.className = 'result-box';
       battleResult.style.display = 'block';
       battleResult.classList.add('duel-anim');
       if (result.kind === 'team') {
+        document.body.classList.remove('showdown-open');
         battleResult.innerHTML = `
           <h3>Командный матч завершён</h3>
           <div class="team-line"><strong>${result.teams[0].name}</strong><strong>${result.teams[0].score}</strong></div>
@@ -1460,13 +1609,16 @@ PAGE_TEMPLATE = """
           ? `<div class="tiny">Карта соперника: ${result.opponent_card.title} • сила ${result.opponent_card.score}</div>`
           : '';
         const roundsLine = Array.isArray(result.rounds) && result.rounds.length
-          ? `<div style="margin-top:10px;">
-              <strong>Ход боя (wiki gachi)</strong>
+          ? `<div class="discipline-list">
               ${result.rounds.map((round) => {
-                const mark = round.winner === 'player' ? '✅' : (round.winner === 'opponent' ? '❌' : '➖');
-                const playerCard = round.player_card?.title ? `${round.player_card.title}` : 'Твоя карта';
-                const opponentCard = round.opponent_card?.title ? `${round.opponent_card.title}` : 'Карта соперника';
-                return `<div class="tiny" style="margin-top:4px;">${mark} ${round.label}: ${playerCard} (${round.player_total}) vs ${opponentCard} (${round.opponent_total})</div>`;
+                const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
+                const marker = round.winner === 'player' ? 'WIN' : (round.winner === 'opponent' ? 'LOSE' : 'DRAW');
+                return `
+                  <div class="discipline-row ${roundClass}">
+                    <span>${round.label}</span>
+                    <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
+                  </div>
+                `;
               }).join('')}
             </div>`
           : '';
@@ -1474,34 +1626,54 @@ PAGE_TEMPLATE = """
           ? `<div class="tiny">Сила колод (тай-брейк): ${result.player_deck_power} vs ${result.opponent_deck_power}${result.tie_breaker ? ' • использован тай-брейк' : ''}</div>`
           : '';
         state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
+        battleResult.classList.add('showdown-fullscreen');
+        document.body.classList.add('showdown-open');
         battleResult.innerHTML = `
-          <div class="result-flip">
-            <div class="result-flip-card ${resultClass}">
-              <div class="result-flip-face ${frontClass}">${frontLabel}</div>
-              <div class="result-flip-face back">LOSE</div>
+          <section>
+            <div class="tiny">Твоя колода • ${result.player_domain}.ton</div>
+            <div class="showdown-deck">
+              ${showdownDeckMarkup(result.player_cards, result.player_card)}
             </div>
-          </div>
-          <h3>${result.mode_title}</h3>
-          <div class="team-line"><span>Твой домен</span><strong>${result.player_domain}.ton</strong></div>
-          <div class="team-line"><span>Соперник</span><strong>${opponentLabel}</strong></div>
-          <div class="team-line"><span>Твои очки</span><strong>${result.player_score}</strong></div>
-          <div class="team-line"><span>Очки соперника</span><strong>${result.opponent_score}</strong></div>
-          ${cardLine}
-          ${oppCardLine}
-          ${deckPowerLine}
-          ${roundsLine}
-          ${ratingLine}
-          <p class="muted">Результат: ${result.result_label}</p>
+          </section>
+          <section class="showdown-center">
+            <div class="result-flip">
+              <div class="result-flip-card ${resultClass}">
+                <div class="result-flip-face ${frontClass}">${frontLabel}</div>
+                <div class="result-flip-face back">LOSE</div>
+              </div>
+            </div>
+            <h3>${result.mode_title}</h3>
+            <div class="showdown-score">
+              <span>${result.player_score}</span>
+              <span>:</span>
+              <span>${result.opponent_score}</span>
+            </div>
+            <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
+            ${cardLine}
+            ${oppCardLine}
+            ${roundsLine}
+            ${deckPowerLine}
+            ${ratingLine}
+            <p class="muted">Итог: ${result.result_label}</p>
+          </section>
+          <section>
+            <div class="tiny">Колода соперника • ${opponentLabel}</div>
+            <div class="showdown-deck">
+              ${showdownDeckMarkup(result.opponent_cards, result.opponent_card)}
+            </div>
+          </section>
           <div class="result-actions">
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
         `;
+        revealDisciplineRows();
       }
       telegramShareBtn.disabled = false;
     }
 
     function openModes() {
+      document.body.classList.remove('showdown-open');
       switchView('modes');
     }
 
@@ -1531,6 +1703,8 @@ PAGE_TEMPLATE = """
       foilPack.classList.remove('opening');
       packNote.textContent = 'Tap to open';
       battleResult.style.display = 'none';
+      battleResult.className = 'result-box';
+      document.body.classList.remove('showdown-open');
       inviteResult.style.display = 'none';
       renderDomains(state.domains);
       renderProfile();
@@ -1708,6 +1882,7 @@ PAGE_TEMPLATE = """
 
     async function playBotMatch() {
       animateModeChoice('bot');
+      showMatchIntro('Запуск матча с ботом');
       try {
         const data = await api('/api/match/bot', {
           method: 'POST',
@@ -1724,8 +1899,9 @@ PAGE_TEMPLATE = """
         }
         await loadAchievements();
       } catch (error) {
+        battleResult.className = 'result-box duel-anim';
         battleResult.style.display = 'block';
-        battleResult.classList.add('duel-anim');
+        document.body.classList.remove('showdown-open');
         battleResult.innerHTML = `<strong class="error">${error.message}</strong>`;
       }
     }
@@ -1921,6 +2097,7 @@ PAGE_TEMPLATE = """
         return;
       }
       animateModeChoice('onecard');
+      showMatchIntro('Запуск дуэли одной картой');
       try {
         const data = await api('/api/match/one-card', {
           method: 'POST',
@@ -1938,8 +2115,9 @@ PAGE_TEMPLATE = """
         }
         await loadAchievements();
       } catch (error) {
+        battleResult.className = 'result-box duel-anim';
         battleResult.style.display = 'block';
-        battleResult.classList.add('duel-anim');
+        document.body.classList.remove('showdown-open');
         battleResult.innerHTML = `<strong class="error">${error.message}</strong>`;
       }
     }
@@ -3305,6 +3483,9 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
             }
         )
 
+    own_cards = match['cards_a'] if viewer_is_a else match['cards_b']
+    opp_cards = match['cards_b'] if viewer_is_a else match['cards_a']
+
     payload = {
         'kind': 'solo',
         'mode': invite['mode'],
@@ -3319,6 +3500,8 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
         'opponent_deck_power': opp_deck_power,
         'tie_breaker': bool(match.get('tie_breaker')),
         'rounds': rounds,
+        'player_cards': own_cards,
+        'opponent_cards': opp_cards,
         'result': own_result if own_result != 'loss' else 'lose',
         'result_label': result_labels[own_result],
     }
@@ -4057,6 +4240,8 @@ def api_match_bot():
                 'opponent_deck_power': bot_deck_power,
                 'tie_breaker': duel['tie_breaker'],
                 'rounds': rounds,
+                'player_cards': player_cards,
+                'opponent_cards': bot_cards,
                 'result': result_code,
                 'result_label': result_label,
             },
@@ -4116,6 +4301,8 @@ def api_match_one_card():
                 'result_label': result_label,
                 'player_card': player_card,
                 'opponent_card': bot_card,
+                'player_cards': [player_card],
+                'opponent_cards': [bot_card],
             },
             'player': get_player(wallet),
         }
