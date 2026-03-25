@@ -6,6 +6,7 @@ import random
 import re
 import sqlite3
 import uuid
+import calendar
 from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
@@ -61,8 +62,11 @@ MAX_INVITE_TIMEOUT_SECONDS = int(os.getenv('MAX_INVITE_TIMEOUT_SECONDS', '600'))
 TELEGRAM_INITDATA_MAX_AGE = int(os.getenv('TELEGRAM_INITDATA_MAX_AGE', '86400'))
 ACTIVE_USER_WINDOW_SECONDS = int(os.getenv('ACTIVE_USER_WINDOW_SECONDS', '900'))
 DB_PATH = Path(os.getenv('APP_DB_PATH', 'tondomaingame.db'))
+TEN_K_CONFIG_TTL = int(os.getenv('TEN_K_CONFIG_TTL', '900'))
+TEN_K_CONFIG_URL = 'https://10kclub.com/api/clubs/10k/config'
 
 DOMAIN_CACHE = {}
+TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
 
 TONCONNECT_MANIFEST = {
     'url': APP_ROOT or None,
@@ -544,8 +548,8 @@ PAGE_TEMPLATE = """
       position: relative;
       min-height: 140px;
       transform-style: preserve-3d;
-      animation-duration: 2.8s;
-      animation-timing-function: cubic-bezier(.12,.8,.18,1);
+      animation-duration: 2.2s;
+      animation-timing-function: cubic-bezier(.16,.84,.2,1);
       animation-fill-mode: forwards;
     }
 
@@ -588,27 +592,21 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes resultFlipWin {
-      0% { transform: translateZ(0) scale(0.92) rotateY(0deg); }
-      22% { transform: translateZ(86px) scale(1.08) rotateY(720deg); }
-      52% { transform: translateZ(64px) scale(1.04) rotateY(1260deg); }
-      80% { transform: translateZ(24px) scale(1.02) rotateY(1650deg); }
-      100% { transform: translateZ(0) scale(1) rotateY(1800deg); }
+      0% { transform: translateZ(0) scale(0.96) rotateY(0deg); }
+      68% { transform: translateZ(34px) scale(1.03) rotateY(900deg); }
+      100% { transform: translateZ(0) scale(1) rotateY(1080deg); }
     }
 
     @keyframes resultFlipLose {
-      0% { transform: translateZ(0) scale(0.92) rotateY(0deg); }
-      22% { transform: translateZ(86px) scale(1.08) rotateY(720deg); }
-      52% { transform: translateZ(64px) scale(1.04) rotateY(1260deg); }
-      80% { transform: translateZ(24px) scale(1.02) rotateY(1830deg); }
-      100% { transform: translateZ(0) scale(1) rotateY(1980deg); }
+      0% { transform: translateZ(0) scale(0.96) rotateY(0deg); }
+      68% { transform: translateZ(34px) scale(1.03) rotateY(990deg); }
+      100% { transform: translateZ(0) scale(1) rotateY(1260deg); }
     }
 
     @keyframes resultFlipDraw {
-      0% { transform: translateZ(0) scale(0.92) rotateY(0deg); }
-      22% { transform: translateZ(86px) scale(1.08) rotateY(720deg); }
-      52% { transform: translateZ(64px) scale(1.04) rotateY(1260deg); }
-      80% { transform: translateZ(24px) scale(1.02) rotateY(1650deg); }
-      100% { transform: translateZ(0) scale(1) rotateY(1800deg); }
+      0% { transform: translateZ(0) scale(0.96) rotateY(0deg); }
+      68% { transform: translateZ(34px) scale(1.03) rotateY(900deg); }
+      100% { transform: translateZ(0) scale(1) rotateY(1080deg); }
     }
 
     .result-actions {
@@ -1117,7 +1115,9 @@ PAGE_TEMPLATE = """
         <div class="domain-card ${state.selectedDomain === domain.domain ? 'selected' : ''}">
           <h3>${domain.domain}.ton</h3>
           <p>Источник: ${domain.source_label}</p>
+          <p>Тир: ${domain.tier || '-'} • Удача: ${domain.luck || 0}</p>
           <p>Паттерны: ${domain.patterns.length ? domain.patterns.join(', ') : 'базовый 10K домен'}</p>
+          <p>Спецколлекции: ${domain.special_collections && domain.special_collections.length ? domain.special_collections.join(', ') : 'нет'}</p>
           <p>Счёт домена: ${domain.score} • DNS: ${domain.domain_exists ? 'активен' : 'не подтверждён'}</p>
           <button onclick="selectDomain('${domain.domain}')">Выбрать домен</button>
         </div>
@@ -1145,6 +1145,7 @@ PAGE_TEMPLATE = """
           <p>${card.domain}.ton • слот ${card.slot}</p>
           <div class="team-line"><span>Атака</span><strong>${card.attack}</strong></div>
           <div class="team-line"><span>Защита</span><strong>${card.defense}</strong></div>
+          <div class="team-line"><span>Удача</span><strong>${card.luck || 0}</strong></div>
           <div class="team-line"><span>Сила</span><strong>${card.score}</strong></div>
           <p>${card.ability}</p>
         </article>
@@ -1793,6 +1794,203 @@ def normalize_domain(value):
     return None
 
 
+def fetch_10k_config(force_refresh=False):
+    now_ts = datetime.now().timestamp()
+    if (
+        TEN_K_CONFIG_CACHE['config'] is not None
+        and not force_refresh
+        and TEN_K_CONFIG_CACHE['expires_at'] > now_ts
+    ):
+        return TEN_K_CONFIG_CACHE['config']
+
+    response = HTTP.get(TEN_K_CONFIG_URL, timeout=15)
+    response.raise_for_status()
+    payload = response.json()
+    config = payload.get('config') or {}
+    if not isinstance(config, dict):
+        raise RuntimeError('Некорректный ответ 10kclub config.')
+    TEN_K_CONFIG_CACHE['config'] = config
+    TEN_K_CONFIG_CACHE['expires_at'] = now_ts + TEN_K_CONFIG_TTL
+    return config
+
+
+def _match_mask(mask, domain):
+    if len(mask) != len(domain):
+        return False, {}
+    bindings = {}
+    for digit, token in zip(domain, mask):
+        if token.isdigit():
+            if digit != token:
+                return False, {}
+            continue
+        bound = bindings.get(token)
+        if bound is None:
+            bindings[token] = digit
+        elif bound != digit:
+            return False, {}
+    if len(set(bindings.values())) != len(bindings):
+        return False, {}
+    return True, bindings
+
+
+def _calendar_date_match(domain, formats):
+    value = domain.zfill(4)
+    for fmt in formats:
+        if fmt == 'MMDD':
+            month = int(value[:2])
+            day = int(value[2:])
+        elif fmt == 'DDMM':
+            day = int(value[:2])
+            month = int(value[2:])
+        else:
+            continue
+        if month < 1 or month > 12:
+            continue
+        days_in_month = calendar.monthrange(2024, month)[1]
+        if 1 <= day <= days_in_month:
+            return True
+    return False
+
+
+def _eval_rule_condition(condition, domain, matched_patterns=None, matched_groups=None):
+    matched_patterns = matched_patterns or set()
+    matched_groups = matched_groups or set()
+    ctype = (condition or {}).get('type')
+    if not ctype:
+        return False
+
+    if ctype == 'mask':
+        ok, bindings = _match_mask((condition.get('mask') or '').strip(), domain)
+        if not ok:
+            return False
+        for item in condition.get('constraints') or []:
+            if item.get('operator') != 'adjacent':
+                continue
+            left = bindings.get(item.get('left'))
+            right = bindings.get(item.get('right'))
+            if left is None or right is None:
+                return False
+            if abs(int(left) - int(right)) != 1:
+                return False
+        return True
+
+    if ctype == 'numeric-range':
+        number = int(domain)
+        min_value = int(condition.get('min', 0))
+        max_value = int(condition.get('max', 9999))
+        return min_value <= number <= max_value
+
+    if ctype == 'arithmetic-sequence':
+        steps = condition.get('steps') or []
+        if not steps:
+            return False
+        digits = [int(ch) for ch in domain]
+        diffs = [digits[idx + 1] - digits[idx] for idx in range(len(digits) - 1)]
+        return any(all(diff == int(step) for diff in diffs) for step in steps)
+
+    if ctype == 'calendar-date':
+        return _calendar_date_match(domain, condition.get('formats') or ['MMDD', 'DDMM'])
+
+    if ctype == 'palindrome':
+        return domain == domain[::-1]
+
+    if ctype == 'all-of':
+        return all(
+            _eval_rule_condition(sub, domain, matched_patterns, matched_groups)
+            for sub in (condition.get('conditions') or [])
+        )
+
+    if ctype == 'any-of':
+        return any(
+            _eval_rule_condition(sub, domain, matched_patterns, matched_groups)
+            for sub in (condition.get('conditions') or [])
+        )
+
+    if ctype == 'pattern-ref':
+        refs = condition.get('anyOf') or []
+        return any(ref in matched_patterns for ref in refs)
+
+    if ctype == 'group-ref':
+        required = condition.get('requiredGroups') or []
+        min_matched = int(condition.get('minMatchedPatterns', 0))
+        return all(group_id in matched_groups for group_id in required) and len(matched_patterns) >= min_matched
+
+    return False
+
+
+def classify_domain_with_10k_config(domain):
+    config = fetch_10k_config()
+    pattern_list = config.get('patterns') or []
+    pattern_rules = sorted(config.get('patternRules') or [], key=lambda item: int(item.get('priority', 0)))
+    group_list = config.get('groups') or []
+    group_rules = sorted(config.get('groupRules') or [], key=lambda item: int(item.get('priority', 0)))
+
+    patterns_by_id = {item.get('id'): item for item in pattern_list if item.get('id')}
+    groups_by_id = {item.get('id'): item for item in group_list if item.get('id')}
+    matched_pattern_ids = set()
+
+    for rule in pattern_rules:
+        if _eval_rule_condition(rule.get('condition') or {}, domain, matched_pattern_ids, set()):
+            pattern_id = rule.get('patternId')
+            if pattern_id:
+                matched_pattern_ids.add(pattern_id)
+
+    matched_group_ids = set()
+    for rule in group_rules:
+        if _eval_rule_condition(rule.get('condition') or {}, domain, matched_pattern_ids, matched_group_ids):
+            group_id = rule.get('groupId')
+            if group_id:
+                matched_group_ids.add(group_id)
+
+    if not any(group_id in matched_group_ids for group_id in ('tier0', 'tier1', 'tier2')):
+        matched_group_ids.add('regular')
+    if any(group_id.startswith('g-') for group_id in matched_group_ids):
+        matched_group_ids.add('special')
+
+    tier_group_id = 'regular'
+    for candidate in ('tier0', 'tier1', 'tier2', 'regular'):
+        if candidate in matched_group_ids:
+            tier_group_id = candidate
+            break
+    tier_group = groups_by_id.get(tier_group_id) or {}
+
+    base_score_values = []
+    bonus_score_values = []
+    for group_id in matched_group_ids:
+        group = groups_by_id.get(group_id) or {}
+        score_mode = group.get('scoreMode')
+        score_value = int(group.get('scoreValue') or 0)
+        if score_mode == 'base':
+            base_score_values.append(score_value)
+        elif score_mode == 'bonus':
+            bonus_score_values.append(score_value)
+
+    base_score = max(base_score_values) if base_score_values else 2500
+    bonus_score = sum(bonus_score_values)
+    tier_name = tier_group.get('label') or tier_group_id
+    special_collections = [
+        (groups_by_id[group_id].get('label') or group_id)
+        for group_id in sorted(matched_group_ids)
+        if group_id.startswith('g-') and group_id in groups_by_id
+    ]
+    pattern_labels = [
+        (patterns_by_id[pattern_id].get('label') or pattern_id)
+        for pattern_id in sorted(matched_pattern_ids)
+        if pattern_id in patterns_by_id
+    ]
+
+    return {
+        'patterns': pattern_labels,
+        'pattern_ids': sorted(matched_pattern_ids),
+        'tier': tier_name,
+        'tier_id': tier_group_id,
+        'base_score': base_score,
+        'bonus_score': bonus_score,
+        'special_collections': special_collections,
+        'groups': sorted(matched_group_ids),
+    }
+
+
 def detect_10k_patterns(domain):
     digits = [int(char) for char in domain]
     patterns = []
@@ -1818,25 +2016,43 @@ def detect_10k_patterns(domain):
 def score_from_domain(domain):
     attack = sum(int(char) for char in domain) + ATTACK_BASE
     defense = DEFENSE_BASE + (1 if domain.startswith('0') else 0)
-    patterns = detect_10k_patterns(domain)
-    for pattern in patterns:
-        bonus = PATTERN_BONUSES.get(pattern, {'attack': 0, 'defense': 0})
-        attack += bonus['attack']
-        defense += bonus['defense']
-
-    score = attack + defense
+    luck = 0
+    patterns = []
     tier = 'Tier-3'
-    for tier_config in TIERS:
-        if score >= tier_config['min_score']:
-            tier = tier_config['name']
-            break
+    special_collections = []
+
+    try:
+        club = classify_domain_with_10k_config(domain)
+        patterns = club['patterns']
+        tier = club['tier']
+        special_collections = club['special_collections']
+        base_score = club['base_score']
+        bonus_score = club['bonus_score']
+        attack += base_score // 700 + bonus_score // 1200
+        defense += base_score // 900 + bonus_score // 1800
+        luck = 2 + bonus_score // 1500 + len(special_collections)
+    except (requests.RequestException, RuntimeError, ValueError, KeyError):
+        patterns = detect_10k_patterns(domain)
+        for pattern in patterns:
+            bonus = PATTERN_BONUSES.get(pattern, {'attack': 0, 'defense': 0})
+            attack += bonus['attack']
+            defense += bonus['defense']
+
+    score = attack + defense + luck
+    if tier == 'Tier-3':
+        for tier_config in TIERS:
+            if score >= tier_config['min_score']:
+                tier = tier_config['name']
+                break
 
     return {
         'domain': domain,
         'attack': attack,
         'defense': defense,
+        'luck': luck,
         'patterns': patterns,
         'tier': tier,
+        'special_collections': special_collections,
         'score': score,
     }
 
@@ -1856,9 +2072,10 @@ def generate_pack(domain, wallet, count=5):
     rng = random.Random(hashlib.sha256(f'{wallet}:{domain}'.encode()).hexdigest())
     cards = []
     for slot in range(1, count + 1):
-        attack = max(1, base['attack'] + rng.randint(-6, 12) + slot)
-        defense = max(1, base['defense'] + rng.randint(-4, 10))
-        score = attack + defense
+        luck = max(0, base.get('luck', 0) + rng.randint(-1, 3))
+        attack = max(1, base['attack'] + rng.randint(-6, 12) + slot + luck // 2)
+        defense = max(1, base['defense'] + rng.randint(-4, 10) + luck // 3)
+        score = attack + defense + luck
         cards.append(
             {
                 'slot': slot,
@@ -1867,6 +2084,7 @@ def generate_pack(domain, wallet, count=5):
                 'domain': domain,
                 'attack': attack,
                 'defense': defense,
+                'luck': luck,
                 'score': score,
                 'rarity': card_rarity(score),
                 'patterns': base['patterns'],
@@ -1999,6 +2217,9 @@ def fetch_wallet_domains(wallet, force_refresh=False):
                     or (item.get('metadata') or {}).get('name')
                     or 'TonAPI NFT item',
                     'patterns': base['patterns'],
+                    'tier': base['tier'],
+                    'special_collections': base.get('special_collections', []),
+                    'luck': base.get('luck', 0),
                     'score': base['score'],
                 }
 
@@ -2413,6 +2634,7 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
 
     payload = {
         'kind': 'solo',
+        'mode': invite['mode'],
         'mode_title': 'Рейтинговый матч' if invite['mode'] == 'ranked' else 'Обычный матч',
         'player_wallet': own_wallet,
         'opponent_wallet': opp_wallet,
@@ -2420,6 +2642,7 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
         'opponent_domain': opp_domain,
         'player_score': own_score,
         'opponent_score': opp_score,
+        'result': own_result if own_result != 'loss' else 'lose',
         'result_label': result_labels[own_result],
     }
     if rating_meta:
@@ -3045,21 +3268,26 @@ def api_match_bot():
     player_score = deck_score(player_cards)
     bot_score = sum(card['score'] for card in bot_cards)
     if player_score > bot_score:
+        result_code = 'win'
         result_label = 'Победа'
     elif player_score < bot_score:
+        result_code = 'lose'
         result_label = 'Поражение'
     else:
+        result_code = 'draw'
         result_label = 'Ничья'
     ensure_player(wallet, domain, domain)
     return jsonify(
         {
             'result': {
                 'kind': 'solo',
+                'mode': 'bot',
                 'mode_title': 'Матч с ботом',
                 'player_domain': domain,
                 'opponent_domain': None,
                 'player_score': player_score,
                 'opponent_score': bot_score,
+                'result': result_code,
                 'result_label': result_label,
             },
             'bot_cards': bot_cards,
