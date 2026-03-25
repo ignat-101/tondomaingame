@@ -528,28 +528,48 @@ PAGE_TEMPLATE = """
     .showdown-fullscreen {
       position: fixed;
       inset: 0;
-      z-index: 1200;
+      z-index: 5000;
       margin: 0;
       border-radius: 0;
       border: 0;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+      padding: 14px 18px calc(16px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: minmax(150px, 1fr) auto minmax(150px, 1fr) auto;
+      gap: 12px;
       background:
         radial-gradient(circle at 50% 10%, rgba(83, 246, 184, 0.16), transparent 38%),
         radial-gradient(circle at 50% 90%, rgba(69, 215, 255, 0.16), transparent 38%),
         linear-gradient(180deg, rgba(4, 11, 20, 0.98), rgba(8, 18, 34, 0.98));
-      overflow: auto;
+      overflow: hidden;
+    }
+
+    .showdown-zone {
+      min-height: 0;
+      display: grid;
+      gap: 8px;
     }
 
     .showdown-deck {
-      display: grid;
+      display: flex;
       gap: 10px;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+      padding-bottom: 4px;
+    }
+
+    .showdown-deck::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .showdown-deck::-webkit-scrollbar-thumb {
+      background: rgba(121, 217, 255, 0.35);
+      border-radius: 999px;
     }
 
     .showdown-card {
+      flex: 0 0 188px;
+      min-width: 188px;
       border: 1px solid rgba(121, 217, 255, 0.25);
       border-radius: 14px;
       padding: 10px;
@@ -568,6 +588,9 @@ PAGE_TEMPLATE = """
       padding: 14px;
       background: rgba(6, 18, 32, 0.84);
       backdrop-filter: blur(3px);
+      max-height: 46vh;
+      overflow: auto;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
     }
 
     .showdown-score {
@@ -715,16 +738,23 @@ PAGE_TEMPLATE = """
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
-      margin-top: 18px;
+      margin-top: 0;
+      justify-content: center;
     }
 
     @media (max-width: 700px) {
       .showdown-fullscreen {
-        padding: 12px;
+        padding: 10px 10px calc(12px + env(safe-area-inset-bottom));
+        grid-template-rows: minmax(120px, 1fr) auto minmax(120px, 1fr) auto;
       }
 
       .showdown-score {
         font-size: clamp(18px, 7vw, 30px);
+      }
+
+      .showdown-card {
+        flex-basis: 152px;
+        min-width: 152px;
       }
     }
 
@@ -1560,6 +1590,7 @@ PAGE_TEMPLATE = """
       battleResult.className = 'result-box duel-anim showdown-fullscreen';
       battleResult.style.display = 'block';
       document.body.classList.add('showdown-open');
+      battleResult.scrollTop = 0;
       battleResult.innerHTML = `
         <section class="showdown-center">
           <h3>${title}</h3>
@@ -1628,14 +1659,15 @@ PAGE_TEMPLATE = """
         state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
         battleResult.classList.add('showdown-fullscreen');
         document.body.classList.add('showdown-open');
+        battleResult.scrollTop = 0;
         battleResult.innerHTML = `
-          <section>
-            <div class="tiny">Твоя колода • ${result.player_domain}.ton</div>
+          <section class="showdown-zone showdown-top">
+            <div class="tiny"><strong>Твоя колода</strong> • ${result.player_domain}.ton</div>
             <div class="showdown-deck">
               ${showdownDeckMarkup(result.player_cards, result.player_card)}
             </div>
           </section>
-          <section class="showdown-center">
+          <section class="showdown-center showdown-middle">
             <div class="result-flip">
               <div class="result-flip-card ${resultClass}">
                 <div class="result-flip-face ${frontClass}">${frontLabel}</div>
@@ -1656,8 +1688,8 @@ PAGE_TEMPLATE = """
             ${ratingLine}
             <p class="muted">Итог: ${result.result_label}</p>
           </section>
-          <section>
-            <div class="tiny">Колода соперника • ${opponentLabel}</div>
+          <section class="showdown-zone showdown-bottom">
+            <div class="tiny"><strong>Колода соперника</strong> • ${opponentLabel}</div>
             <div class="showdown-deck">
               ${showdownDeckMarkup(result.opponent_cards, result.opponent_card)}
             </div>
