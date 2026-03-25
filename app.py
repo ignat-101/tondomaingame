@@ -481,7 +481,7 @@ PAGE_TEMPLATE = """
     .status {
       min-height: 28px;
       color: var(--muted);
-      margin-top: 10px;
+      margin-top: 8px;
     }
 
     .success { color: var(--accent-2); }
@@ -522,7 +522,7 @@ PAGE_TEMPLATE = """
     }
 
     body.showdown-open {
-      overflow: auto;
+      overflow: hidden;
     }
 
     .showdown-fullscreen {
@@ -537,22 +537,31 @@ PAGE_TEMPLATE = """
         12px
         calc(16px + env(safe-area-inset-bottom));
       display: grid;
-      grid-template-rows: minmax(150px, 1fr) auto minmax(150px, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
       gap: 12px;
       background:
         radial-gradient(circle at 50% 10%, rgba(83, 246, 184, 0.16), transparent 38%),
         radial-gradient(circle at 50% 90%, rgba(69, 215, 255, 0.16), transparent 38%),
         linear-gradient(180deg, rgba(4, 11, 20, 0.98), rgba(8, 18, 34, 0.98));
-      overflow-x: hidden;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
+      overflow: hidden;
     }
 
-    .showdown-zone {
+    .showdown-header {
+      border: 1px solid rgba(121, 217, 255, 0.32);
+      border-radius: 18px;
+      padding: 12px;
+      background: rgba(6, 18, 32, 0.9);
+      backdrop-filter: blur(3px);
+    }
+
+    .showdown-main {
+      border: 1px solid rgba(121, 217, 255, 0.25);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(4, 14, 27, 0.75);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
       min-height: 0;
-      display: grid;
-      gap: 8px;
     }
 
     .showdown-deck {
@@ -589,14 +598,12 @@ PAGE_TEMPLATE = """
     }
 
     .showdown-center {
-      border: 1px solid rgba(121, 217, 255, 0.32);
-      border-radius: 18px;
-      padding: 14px;
-      background: rgba(6, 18, 32, 0.84);
-      backdrop-filter: blur(3px);
-      max-height: 46vh;
-      overflow: auto;
-      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      backdrop-filter: none;
+      box-shadow: none;
+      overflow: visible;
     }
 
     .showdown-score {
@@ -748,10 +755,44 @@ PAGE_TEMPLATE = """
       justify-content: center;
     }
 
+    .showdown-decks-panel {
+      border: 1px solid rgba(121, 217, 255, 0.25);
+      border-radius: 16px;
+      padding: 10px;
+      background: rgba(4, 14, 27, 0.78);
+      display: grid;
+      gap: 10px;
+    }
+
+    .showdown-deck-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .showdown-deck-tabs button {
+      min-height: 40px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .showdown-deck-tabs button.active {
+      border-color: rgba(83, 246, 184, 0.58);
+      background: linear-gradient(135deg, rgba(69, 215, 255, 0.2), rgba(83, 246, 184, 0.2));
+    }
+
+    .showdown-deck-panel {
+      display: none;
+    }
+
+    .showdown-deck-panel.active {
+      display: block;
+    }
+
     @media (max-width: 700px) {
       .showdown-fullscreen {
         padding: 10px 10px calc(12px + env(safe-area-inset-bottom));
-        grid-template-rows: minmax(120px, 1fr) auto minmax(120px, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
       }
 
       .showdown-score {
@@ -761,6 +802,10 @@ PAGE_TEMPLATE = """
       .showdown-card {
         flex-basis: 152px;
         min-width: 152px;
+      }
+
+      .result-flip-card {
+        min-height: 90px;
       }
     }
 
@@ -1600,6 +1645,15 @@ PAGE_TEMPLATE = """
       });
     }
 
+    function switchShowdownDeck(target) {
+      battleResult.querySelectorAll('[data-deck-tab]').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.deckTab === target);
+      });
+      battleResult.querySelectorAll('[data-deck-panel]').forEach((panel) => {
+        panel.classList.toggle('active', panel.dataset.deckPanel === target);
+      });
+    }
+
     function showMatchIntro(title) {
       battleResult.className = 'result-box duel-anim showdown-fullscreen';
       battleResult.style.display = 'block';
@@ -1675,13 +1729,7 @@ PAGE_TEMPLATE = """
         document.body.classList.add('showdown-open');
         battleResult.scrollTop = 0;
         battleResult.innerHTML = `
-          <section class="showdown-zone showdown-top">
-            <div class="tiny"><strong>Твоя колода</strong> • ${result.player_domain}.ton</div>
-            <div class="showdown-deck">
-              ${showdownDeckMarkup(result.player_cards, result.player_card)}
-            </div>
-          </section>
-          <section class="showdown-center showdown-middle">
+          <section class="showdown-header">
             <div class="result-flip">
               <div class="result-flip-card ${resultClass}">
                 <div class="result-flip-face ${frontClass}">${frontLabel}</div>
@@ -1695,17 +1743,33 @@ PAGE_TEMPLATE = """
               <span>${result.opponent_score}</span>
             </div>
             <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
-            ${cardLine}
-            ${oppCardLine}
-            ${roundsLine}
-            ${deckPowerLine}
-            ${ratingLine}
-            <p class="muted">Итог: ${result.result_label}</p>
           </section>
-          <section class="showdown-zone showdown-bottom">
-            <div class="tiny"><strong>Колода соперника</strong> • ${opponentLabel}</div>
-            <div class="showdown-deck">
-              ${showdownDeckMarkup(result.opponent_cards, result.opponent_card)}
+          <section class="showdown-main">
+            <div class="showdown-center showdown-middle">
+              ${cardLine}
+              ${oppCardLine}
+              ${roundsLine}
+              ${deckPowerLine}
+              ${ratingLine}
+              <p class="muted">Итог: ${result.result_label}</p>
+            </div>
+          </section>
+          <section class="showdown-decks-panel">
+            <div class="showdown-deck-tabs">
+              <button class="active" data-deck-tab="player" onclick="switchShowdownDeck('player')">Моя колода</button>
+              <button data-deck-tab="opponent" onclick="switchShowdownDeck('opponent')">Соперник</button>
+            </div>
+            <div class="showdown-deck-panel active" data-deck-panel="player">
+              <div class="tiny"><strong>Твоя колода</strong> • ${result.player_domain}.ton</div>
+              <div class="showdown-deck">
+                ${showdownDeckMarkup(result.player_cards, result.player_card)}
+              </div>
+            </div>
+            <div class="showdown-deck-panel" data-deck-panel="opponent">
+              <div class="tiny"><strong>Колода соперника</strong> • ${opponentLabel}</div>
+              <div class="showdown-deck">
+                ${showdownDeckMarkup(result.opponent_cards, result.opponent_card)}
+              </div>
             </div>
           </section>
           <div class="result-actions">
@@ -2307,6 +2371,7 @@ PAGE_TEMPLATE = """
 
     window.fillOpponent = fillOpponent;
     window.repeatLastMode = repeatLastMode;
+    window.switchShowdownDeck = switchShowdownDeck;
     window.openModes = openModes;
     window.selectDeckDomain = selectDeckDomain;
 
