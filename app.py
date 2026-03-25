@@ -397,7 +397,10 @@ PAGE_TEMPLATE = """
 
     .game-card {
       position: relative;
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       min-height: 250px;
       background:
         radial-gradient(circle at top right, rgba(69, 215, 255, 0.18), transparent 32%),
@@ -522,7 +525,7 @@ PAGE_TEMPLATE = """
     }
 
     body.showdown-open {
-      overflow: hidden;
+      overflow: auto;
     }
 
     .showdown-fullscreen {
@@ -753,40 +756,6 @@ PAGE_TEMPLATE = """
       flex-wrap: wrap;
       margin-top: 0;
       justify-content: center;
-    }
-
-    .showdown-decks-panel {
-      border: 1px solid rgba(121, 217, 255, 0.25);
-      border-radius: 16px;
-      padding: 10px;
-      background: rgba(4, 14, 27, 0.78);
-      display: grid;
-      gap: 10px;
-    }
-
-    .showdown-deck-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .showdown-deck-tabs button {
-      min-height: 40px;
-      padding: 8px 10px;
-      font-size: 12px;
-    }
-
-    .showdown-deck-tabs button.active {
-      border-color: rgba(83, 246, 184, 0.58);
-      background: linear-gradient(135deg, rgba(69, 215, 255, 0.2), rgba(83, 246, 184, 0.2));
-    }
-
-    .showdown-deck-panel {
-      display: none;
-    }
-
-    .showdown-deck-panel.active {
-      display: block;
     }
 
     @media (max-width: 700px) {
@@ -1645,15 +1614,6 @@ PAGE_TEMPLATE = """
       });
     }
 
-    function switchShowdownDeck(target) {
-      battleResult.querySelectorAll('[data-deck-tab]').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.deckTab === target);
-      });
-      battleResult.querySelectorAll('[data-deck-panel]').forEach((panel) => {
-        panel.classList.toggle('active', panel.dataset.deckPanel === target);
-      });
-    }
-
     function showMatchIntro(title) {
       battleResult.className = 'result-box duel-anim showdown-fullscreen';
       battleResult.style.display = 'block';
@@ -1730,22 +1690,26 @@ PAGE_TEMPLATE = """
         battleResult.scrollTop = 0;
         battleResult.innerHTML = `
           <section class="showdown-header">
-            <div class="result-flip">
-              <div class="result-flip-card ${resultClass}">
-                <div class="result-flip-face ${frontClass}">${frontLabel}</div>
-                <div class="result-flip-face back">LOSE</div>
-              </div>
+            <div class="tiny"><strong>Колода пользователя</strong> • ${result.player_domain}.ton</div>
+            <div class="showdown-deck">
+              ${showdownDeckMarkup(result.player_cards, result.player_card)}
             </div>
-            <h3>${result.mode_title}</h3>
-            <div class="showdown-score">
-              <span>${result.player_score}</span>
-              <span>:</span>
-              <span>${result.opponent_score}</span>
-            </div>
-            <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
           </section>
           <section class="showdown-main">
             <div class="showdown-center showdown-middle">
+              <div class="result-flip">
+                <div class="result-flip-card ${resultClass}">
+                  <div class="result-flip-face ${frontClass}">${frontLabel}</div>
+                  <div class="result-flip-face back">LOSE</div>
+                </div>
+              </div>
+              <h3>${result.mode_title}</h3>
+              <div class="showdown-score">
+                <span>${result.player_score}</span>
+                <span>:</span>
+                <span>${result.opponent_score}</span>
+              </div>
+              <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
               ${cardLine}
               ${oppCardLine}
               ${roundsLine}
@@ -1754,22 +1718,10 @@ PAGE_TEMPLATE = """
               <p class="muted">Итог: ${result.result_label}</p>
             </div>
           </section>
-          <section class="showdown-decks-panel">
-            <div class="showdown-deck-tabs">
-              <button class="active" data-deck-tab="player" onclick="switchShowdownDeck('player')">Моя колода</button>
-              <button data-deck-tab="opponent" onclick="switchShowdownDeck('opponent')">Соперник</button>
-            </div>
-            <div class="showdown-deck-panel active" data-deck-panel="player">
-              <div class="tiny"><strong>Твоя колода</strong> • ${result.player_domain}.ton</div>
-              <div class="showdown-deck">
-                ${showdownDeckMarkup(result.player_cards, result.player_card)}
-              </div>
-            </div>
-            <div class="showdown-deck-panel" data-deck-panel="opponent">
-              <div class="tiny"><strong>Колода соперника</strong> • ${opponentLabel}</div>
-              <div class="showdown-deck">
-                ${showdownDeckMarkup(result.opponent_cards, result.opponent_card)}
-              </div>
+          <section class="showdown-header">
+            <div class="tiny"><strong>Колода противника</strong> • ${opponentLabel}</div>
+            <div class="showdown-deck">
+              ${showdownDeckMarkup(result.opponent_cards, result.opponent_card)}
             </div>
           </section>
           <div class="result-actions">
@@ -2371,7 +2323,6 @@ PAGE_TEMPLATE = """
 
     window.fillOpponent = fillOpponent;
     window.repeatLastMode = repeatLastMode;
-    window.switchShowdownDeck = switchShowdownDeck;
     window.openModes = openModes;
     window.selectDeckDomain = selectDeckDomain;
 
