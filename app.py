@@ -773,8 +773,13 @@ PAGE_TEMPLATE = """
       }
       .mobile-nav button {
         min-height: 44px;
+        height: 44px;
         padding: 10px 8px;
-        font-size: 13px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
       }
     }
   </style>
@@ -1028,7 +1033,7 @@ PAGE_TEMPLATE = """
     <button id="nav-pack">Карты</button>
     <button id="nav-modes">Игра</button>
     <button id="nav-profile">Профиль</button>
-    <button id="nav-achievements">Ачивки</button>
+    <button id="nav-achievements">Достижения</button>
   </nav>
 
   <script>
