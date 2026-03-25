@@ -616,6 +616,142 @@ PAGE_TEMPLATE = """
       margin-top: 18px;
     }
 
+    .pack-showcase {
+      margin-top: 16px;
+      border-radius: 24px;
+      border: 1px solid rgba(246, 196, 83, 0.45);
+      background:
+        radial-gradient(circle at top, rgba(246, 196, 83, 0.18), transparent 45%),
+        linear-gradient(170deg, rgba(7, 11, 18, 0.96), rgba(5, 9, 16, 0.92));
+      padding: 16px 14px 18px;
+      text-align: center;
+    }
+
+    .pack-counter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      min-width: 260px;
+      border-radius: 999px;
+      border: 1px solid rgba(246, 196, 83, 0.9);
+      color: #f6c453;
+      letter-spacing: 0.2em;
+      font-weight: 700;
+      padding: 0 20px;
+      box-shadow: 0 0 26px rgba(246, 196, 83, 0.24);
+      margin-bottom: 10px;
+    }
+
+    .pack-note {
+      color: rgba(238, 246, 255, 0.86);
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+
+    .foil-pack {
+      position: relative;
+      width: min(320px, 90%);
+      margin: 0 auto;
+      border-radius: 18px;
+      background: linear-gradient(155deg, #f8f8f8, #d8d8d8 45%, #ececec);
+      color: #212121;
+      padding: 26px 18px 28px;
+      box-shadow: 0 24px 40px rgba(0, 0, 0, 0.32);
+      overflow: hidden;
+      transition: transform 420ms ease, opacity 420ms ease;
+    }
+
+    .foil-pack::before, .foil-pack::after {
+      content: "";
+      position: absolute;
+      left: -1px;
+      right: -1px;
+      height: 16px;
+      background:
+        linear-gradient(135deg, transparent 8px, #f6f6f6 0) repeat-x;
+      background-size: 16px 16px;
+    }
+
+    .foil-pack::before { top: 0; }
+    .foil-pack::after {
+      bottom: 0;
+      transform: rotate(180deg);
+    }
+
+    .pack-cap {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 58px;
+      background: linear-gradient(180deg, #ffffff, #dcdcdc);
+      border-bottom: 2px solid rgba(0, 0, 0, 0.18);
+      transform-origin: top center;
+      z-index: 2;
+    }
+
+    .foil-pack.opening .pack-cap {
+      animation: tearOpen 880ms cubic-bezier(.2,.82,.2,1) forwards;
+    }
+
+    .foil-pack.opening {
+      animation: packShake 880ms ease-in-out;
+    }
+
+    .pack-showcase.opened .foil-pack {
+      transform: translateY(-26px) scale(0.92);
+      opacity: 0.18;
+    }
+
+    .pack-brand {
+      margin-top: 52px;
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: rgba(0, 0, 0, 0.72);
+    }
+
+    .pack-sub {
+      font-size: 26px;
+      color: rgba(0, 0, 0, 0.62);
+      margin: 4px 0 12px;
+    }
+
+    .pack-tap {
+      margin-top: 12px;
+      color: #f0f0f0;
+      letter-spacing: 0.08em;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .owned-decks {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .global-players-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @keyframes tearOpen {
+      0% { transform: translateY(0) rotateX(0deg); opacity: 1; }
+      55% { transform: translateY(-12px) rotateX(26deg); opacity: 1; }
+      100% { transform: translateY(-40px) rotateX(58deg); opacity: 0; }
+    }
+
+    @keyframes packShake {
+      0% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-3px) rotate(-1deg); }
+      40% { transform: translateX(3px) rotate(1deg); }
+      60% { transform: translateX(-2px) rotate(-0.5deg); }
+      100% { transform: translateX(0) rotate(0deg); }
+    }
+
     @media (max-width: 920px) {
       body { padding-bottom: 84px; }
       .layout { grid-template-columns: 1fr; }
@@ -701,6 +837,17 @@ PAGE_TEMPLATE = """
             <button class="secondary" id="back-to-wallet-btn">Назад</button>
             <button class="secondary" id="rebind-domain-btn">Перепривязать домен</button>
             <button id="open-pack-btn" disabled>Открыть 5 карточек</button>
+          </div>
+
+          <div class="pack-showcase" id="pack-showcase">
+            <div class="pack-counter" id="pack-counter">DAILY PACKS: 9 / 10</div>
+            <p class="pack-note" id="pack-note">Tap to open</p>
+            <div class="foil-pack" id="foil-pack">
+              <div class="pack-cap"></div>
+              <div class="pack-brand">TON</div>
+              <div class="pack-sub">Domain Cards</div>
+            </div>
+            <div class="pack-tap">▲ TAP TO OPEN ▲</div>
           </div>
 
           <div class="status" id="pack-status"></div>
@@ -791,6 +938,8 @@ PAGE_TEMPLATE = """
           <div id="mobile-friends-list" class="friend-list"></div>
           <h3 style="margin-top:20px;">Рейтинг</h3>
           <div id="mobile-leaderboard" class="leaderboard"></div>
+          <h3 style="margin-top:20px;">Общая база игроков</h3>
+          <div id="mobile-global-players-list" class="global-players-list"></div>
         </section>
       </main>
 
@@ -802,6 +951,8 @@ PAGE_TEMPLATE = """
             <button class="secondary" id="toggle-deck-btn">Скрыть</button>
           </div>
           <div class="deck-list" id="deck-view"></div>
+          <h3 style="margin-top:18px;">Колоды кошелька</h3>
+          <div class="owned-decks" id="owned-decks-list"></div>
         </section>
 
         <section class="panel">
@@ -827,6 +978,11 @@ PAGE_TEMPLATE = """
         <section class="panel">
           <h3>Активные юзеры сейчас</h3>
           <div class="active-users-list" id="active-users-list"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Общая база игроков</h3>
+          <div class="global-players-list" id="global-players-list"></div>
         </section>
 
         <section class="panel">
@@ -865,7 +1021,9 @@ PAGE_TEMPLATE = """
       roomId: null,
       room: null,
       activeUsers: [],
-      friends: []
+      friends: [],
+      ownedDecks: [],
+      allPlayers: []
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -902,6 +1060,13 @@ PAGE_TEMPLATE = """
     const mobileFriendsList = document.getElementById('mobile-friends-list');
     const mobileLeaderboard = document.getElementById('mobile-leaderboard');
     const mobileDeckView = document.getElementById('mobile-deck-view');
+    const mobileGlobalPlayersList = document.getElementById('mobile-global-players-list');
+    const ownedDecksList = document.getElementById('owned-decks-list');
+    const globalPlayersList = document.getElementById('global-players-list');
+    const packShowcase = document.getElementById('pack-showcase');
+    const foilPack = document.getElementById('foil-pack');
+    const packCounter = document.getElementById('pack-counter');
+    const packNote = document.getElementById('pack-note');
 
     telegramOpenLink.href = telegramBotUsername
       ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
@@ -1083,6 +1248,43 @@ PAGE_TEMPLATE = """
       document.getElementById('mobile-show-deck-btn').disabled = showDeckBtn.disabled;
     }
 
+    function renderOwnedDecks(decks, currentDomain) {
+      state.ownedDecks = decks || [];
+      if (!state.ownedDecks.length) {
+        ownedDecksList.innerHTML = '<div class="user-item muted">Сначала проверь домены кошелька.</div>';
+        return;
+      }
+      ownedDecksList.innerHTML = state.ownedDecks.map((item) => `
+        <div class="user-item">
+          <strong>${item.domain}.ton ${item.is_active || currentDomain === item.domain ? '(активная)' : ''}</strong>
+          <div class="tiny">Тир: ${item.tier || '-'} • Удача: ${item.luck || 0}</div>
+          <div class="tiny">Сила колоды: ${item.deck.total_score}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" onclick="selectDeckDomain('${item.domain}')">Сделать активной</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderGlobalPlayers(items) {
+      state.allPlayers = items || [];
+      const emptyMarkup = '<div class="user-item muted">Игроки появятся после первого входа.</div>';
+      if (!state.allPlayers.length) {
+        globalPlayersList.innerHTML = emptyMarkup;
+        mobileGlobalPlayersList.innerHTML = emptyMarkup;
+        return;
+      }
+      const markup = state.allPlayers.map((player, index) => `
+        <div class="user-item">
+          <strong>#${index + 1} ${shortAddress(player.wallet)}</strong>
+          <div class="tiny">Домен: ${player.current_domain ? `${player.current_domain}.ton` : 'не выбран'}</div>
+          <div class="tiny">Рейтинг: ${player.rating} • Матчей: ${player.games_played}</div>
+        </div>
+      `).join('');
+      globalPlayersList.innerHTML = markup;
+      mobileGlobalPlayersList.innerHTML = markup;
+    }
+
     function updateButtons() {
       const connected = Boolean(state.wallet);
       const hasDomain = Boolean(state.selectedDomain);
@@ -1129,6 +1331,9 @@ PAGE_TEMPLATE = """
       state.cards = [];
       packCards.innerHTML = '';
       packScoreLabel.textContent = 'Сумма колоды: -';
+      packShowcase.classList.remove('opened');
+      foilPack.classList.remove('opening');
+      packNote.textContent = 'Tap to open';
       renderDomains(state.domains);
       renderProfile();
       updateButtons();
@@ -1231,6 +1436,9 @@ PAGE_TEMPLATE = """
       state.lastResult = null;
       packCards.innerHTML = '';
       packScoreLabel.textContent = 'Сумма колоды: -';
+      packShowcase.classList.remove('opened');
+      foilPack.classList.remove('opening');
+      packNote.textContent = 'Tap to open';
       battleResult.style.display = 'none';
       inviteResult.style.display = 'none';
       renderDomains(state.domains);
@@ -1278,6 +1486,7 @@ PAGE_TEMPLATE = """
         state.playerProfile = null;
         renderProfile();
         renderFriends([]);
+        renderOwnedDecks([], null);
         return;
       }
       const profile = await api(`/api/player/${encodeURIComponent(state.wallet)}`);
@@ -1302,6 +1511,7 @@ PAGE_TEMPLATE = """
           setStatus(walletStatus, 'Подключение прошло успешно, но 10K Club доменов в кошельке не найдено.', 'warning');
         }
         renderDomains(data.domains);
+        loadOwnedDecks();
       } catch (error) {
         setStatus(walletStatus, error.message, 'error');
       }
@@ -1309,19 +1519,30 @@ PAGE_TEMPLATE = """
 
     async function openPack() {
       setStatus(document.getElementById('pack-status'), 'Распаковываем 5 карточек из домена...', 'warning');
+      foilPack.classList.remove('opening');
+      packShowcase.classList.remove('opened');
+      requestAnimationFrame(() => foilPack.classList.add('opening'));
+      packNote.textContent = 'Opening...';
       try {
         const data = await api('/api/pack', {
           method: 'POST',
           body: {wallet: state.wallet, domain: state.selectedDomain}
         });
         state.cards = data.cards;
+        packShowcase.classList.add('opened');
+        packCounter.textContent = `DAILY PACKS: ${Math.max(1, 10 - (new Date().getUTCDate() % 5))} / 10`;
+        packNote.textContent = 'Pack opened';
         renderPack(data.cards, data.total_score);
         setStatus(document.getElementById('pack-status'), `Колода готова. ${data.domain}.ton даёт ${data.total_score} очков силы.`, 'success');
         updateButtons();
         showDeck();
+        loadOwnedDecks();
         loadActiveUsers();
+        loadGlobalPlayers();
         loadProfile();
       } catch (error) {
+        foilPack.classList.remove('opening');
+        packNote.textContent = 'Tap to open';
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
     }
@@ -1531,6 +1752,57 @@ PAGE_TEMPLATE = """
       }
     }
 
+    async function loadOwnedDecks() {
+      if (!state.wallet) {
+        renderOwnedDecks([], null);
+        return;
+      }
+      try {
+        const data = await api(`/api/decks/${encodeURIComponent(state.wallet)}`);
+        renderOwnedDecks(data.decks || [], data.current_domain);
+      } catch (error) {
+        ownedDecksList.innerHTML = `<div class="user-item error">${error.message}</div>`;
+      }
+    }
+
+    async function selectDeckDomain(domain) {
+      if (!state.wallet) return;
+      try {
+        const data = await api('/api/deck/select', {
+          method: 'POST',
+          body: { wallet: state.wallet, domain }
+        });
+        state.selectedDomain = data.domain;
+        state.playerProfile = data.player;
+        renderProfile();
+        renderDeck({ wallet: state.wallet, domain: data.domain, deck: data.deck });
+        await loadOwnedDecks();
+        setStatus(document.getElementById('pack-status'), `Активная колода переключена на ${data.domain}.ton.`, 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
+    async function loadGlobalPlayers() {
+      try {
+        const data = await api('/api/players/global');
+        renderGlobalPlayers(data.players || []);
+      } catch (error) {
+        globalPlayersList.innerHTML = `<div class="user-item error">${error.message}</div>`;
+      }
+    }
+
+    async function registerPlayer() {
+      if (!state.wallet) return;
+      try {
+        await api('/api/player/register', {
+          method: 'POST',
+          body: { wallet: state.wallet }
+        });
+      } catch (_) {
+      }
+    }
+
     function toggleDeck() {
       const isHidden = deckView.style.display === 'none';
       deckView.style.display = isHidden ? 'grid' : 'none';
@@ -1594,12 +1866,18 @@ PAGE_TEMPLATE = """
           state.cards = [];
           packCards.innerHTML = '';
           packScoreLabel.textContent = 'Сумма колоды: -';
+          packShowcase.classList.remove('opened');
+          foilPack.classList.remove('opening');
+          packNote.textContent = 'Tap to open';
           renderDomains([]);
         }
         previousWallet = state.wallet;
         updateButtons();
         if (state.wallet) {
+          await registerPlayer();
           setStatus(walletStatus, `Кошелёк подключен: ${state.wallet}`, 'success');
+          await loadOwnedDecks();
+          await loadGlobalPlayers();
           await loadProfile();
         } else {
           state.domainsChecked = false;
@@ -1610,6 +1888,7 @@ PAGE_TEMPLATE = """
           renderProfile();
           renderFriends([]);
           renderDeck(null);
+          renderOwnedDecks([], null);
           setStatus(walletStatus, 'Подключи кошелёк через TonConnect.', 'warning');
         }
       };
@@ -1625,6 +1904,11 @@ PAGE_TEMPLATE = """
     document.getElementById('back-to-wallet-btn').addEventListener('click', () => switchView('wallet'));
     document.getElementById('rebind-domain-btn').addEventListener('click', rebindDomain);
     document.getElementById('open-pack-btn').addEventListener('click', openPack);
+    foilPack.addEventListener('click', () => {
+      if (!document.getElementById('open-pack-btn').disabled) {
+        openPack();
+      }
+    });
     document.getElementById('continue-to-modes-btn').addEventListener('click', () => switchView('modes'));
     document.getElementById('play-ranked-btn').addEventListener('click', () => playMatch('ranked'));
     document.getElementById('play-casual-btn').addEventListener('click', () => playMatch('casual'));
@@ -1653,6 +1937,7 @@ PAGE_TEMPLATE = """
     window.fillOpponent = fillOpponent;
     window.repeatLastMode = repeatLastMode;
     window.openModes = openModes;
+    window.selectDeckDomain = selectDeckDomain;
 
     initTelegram();
     initTonConnect().catch((error) => {
@@ -1660,9 +1945,11 @@ PAGE_TEMPLATE = """
     });
     loadLeaderboard();
     loadActiveUsers();
+    loadGlobalPlayers();
     renderProfile();
     renderFriends([]);
     renderDeck(null);
+    renderOwnedDecks([], null);
     switchView('wallet');
     updateButtons();
   </script>
@@ -1701,6 +1988,7 @@ def init_db():
                 ranked_losses INTEGER NOT NULL DEFAULT 0,
                 best_domain TEXT,
                 current_domain TEXT,
+                first_seen TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
 
@@ -1772,6 +2060,9 @@ def init_db():
         columns = {row['name'] for row in conn.execute("PRAGMA table_info(players)").fetchall()}
         if 'current_domain' not in columns:
             conn.execute('ALTER TABLE players ADD COLUMN current_domain TEXT')
+        if 'first_seen' not in columns:
+            conn.execute('ALTER TABLE players ADD COLUMN first_seen TEXT')
+            conn.execute('UPDATE players SET first_seen = COALESCE(first_seen, updated_at)')
         conn.commit()
 
 
@@ -2429,12 +2720,13 @@ def ensure_player(wallet, best_domain=None, current_domain=None):
     with closing(get_db()) as conn:
         row = conn.execute('SELECT * FROM players WHERE wallet = ?', (wallet,)).fetchone()
         if row is None:
+            ts = now_iso()
             conn.execute(
                 '''
-                INSERT INTO players (wallet, rating, games_played, ranked_wins, ranked_losses, best_domain, current_domain, updated_at)
-                VALUES (?, ?, 0, 0, 0, ?, ?, ?)
+                INSERT INTO players (wallet, rating, games_played, ranked_wins, ranked_losses, best_domain, current_domain, first_seen, updated_at)
+                VALUES (?, ?, 0, 0, 0, ?, ?, ?, ?)
                 ''',
-                (wallet, BASE_RATING, best_domain, current_domain, now_iso()),
+                (wallet, BASE_RATING, best_domain, current_domain, ts, ts),
             )
             conn.commit()
             row = conn.execute('SELECT * FROM players WHERE wallet = ?', (wallet,)).fetchone()
@@ -2472,6 +2764,20 @@ def get_player(wallet):
         'display_name': display_name_for_wallet(wallet),
         'deck_summary': current_deck,
     }
+
+
+def global_player_rows(limit=200):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT wallet, rating, games_played, ranked_wins, ranked_losses, best_domain, current_domain, first_seen, updated_at
+            FROM players
+            ORDER BY first_seen ASC, updated_at DESC
+            LIMIT ?
+            ''',
+            (limit,),
+        ).fetchall()
+    return [dict(row) for row in rows]
 
 
 def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
@@ -3112,6 +3418,16 @@ def api_player(wallet):
     return jsonify({'player': get_player(wallet)})
 
 
+@app.route('/api/player/register', methods=['POST'])
+def api_player_register():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    ensure_player(wallet)
+    return jsonify({'ok': True, 'player': get_player(wallet)})
+
+
 @app.route('/api/deck/<wallet>')
 def api_deck(wallet):
     if not valid_wallet_address(wallet):
@@ -3122,6 +3438,51 @@ def api_deck(wallet):
         return json_error('У игрока ещё нет сохранённой колоды.', 404)
     summary = deck_summary_for_domain(domain, wallet)
     return jsonify({'wallet': wallet, 'domain': domain, 'deck': summary})
+
+
+@app.route('/api/decks/<wallet>')
+def api_decks(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    try:
+        domains = fetch_wallet_domains(wallet)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502)
+    player = ensure_player(wallet, domains[0]['domain'] if domains else None, None)
+    decks = []
+    for item in domains:
+        summary = deck_summary_for_domain(item['domain'], wallet)
+        decks.append(
+            {
+                'domain': item['domain'],
+                'tier': item.get('tier'),
+                'luck': item.get('luck', 0),
+                'score': item.get('score', summary['total_score']),
+                'special_collections': item.get('special_collections') or [],
+                'deck': summary,
+                'is_active': player.get('current_domain') == item['domain'],
+            }
+        )
+    return jsonify({'wallet': wallet, 'current_domain': player.get('current_domain'), 'decks': decks})
+
+
+@app.route('/api/deck/select', methods=['POST'])
+def api_deck_select():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    if not domain:
+        return json_error('Выбери домен для активной колоды.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не найден в подключённом кошельке.', 403)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502)
+    ensure_player(wallet, domain, domain)
+    summary = deck_summary_for_domain(domain, wallet)
+    return jsonify({'ok': True, 'wallet': wallet, 'domain': domain, 'deck': summary, 'player': get_player(wallet)})
 
 
 @app.route('/api/telegram/link', methods=['POST'])
@@ -3160,6 +3521,11 @@ def api_leaderboard():
 @app.route('/api/active-users')
 def api_active_users():
     return jsonify({'players': active_users()})
+
+
+@app.route('/api/players/global')
+def api_players_global():
+    return jsonify({'players': global_player_rows()})
 
 
 @app.route('/api/friends/<wallet>')
