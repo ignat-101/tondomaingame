@@ -544,7 +544,9 @@ PAGE_TEMPLATE = """
       position: relative;
       min-height: 140px;
       transform-style: preserve-3d;
-      animation: resultFlip 1.1s ease forwards;
+      animation-duration: 2.8s;
+      animation-timing-function: cubic-bezier(.12,.8,.18,1);
+      animation-fill-mode: forwards;
     }
 
     .result-flip-face {
@@ -587,20 +589,33 @@ PAGE_TEMPLATE = """
 
     @keyframes resultFlipWin {
       0% { transform: translateZ(0) scale(0.92) rotateY(0deg); }
-      45% { transform: translateZ(70px) scale(1.08) rotateY(180deg); }
-      100% { transform: translateZ(0) scale(1) rotateY(0deg); }
+      22% { transform: translateZ(86px) scale(1.08) rotateY(720deg); }
+      52% { transform: translateZ(64px) scale(1.04) rotateY(1260deg); }
+      80% { transform: translateZ(24px) scale(1.02) rotateY(1650deg); }
+      100% { transform: translateZ(0) scale(1) rotateY(1800deg); }
     }
 
     @keyframes resultFlipLose {
       0% { transform: translateZ(0) scale(0.92) rotateY(0deg); }
-      45% { transform: translateZ(70px) scale(1.08) rotateY(180deg); }
-      100% { transform: translateZ(0) scale(1) rotateY(180deg); }
+      22% { transform: translateZ(86px) scale(1.08) rotateY(720deg); }
+      52% { transform: translateZ(64px) scale(1.04) rotateY(1260deg); }
+      80% { transform: translateZ(24px) scale(1.02) rotateY(1830deg); }
+      100% { transform: translateZ(0) scale(1) rotateY(1980deg); }
     }
 
     @keyframes resultFlipDraw {
       0% { transform: translateZ(0) scale(0.92) rotateY(0deg); }
-      50% { transform: translateZ(70px) scale(1.08) rotateY(180deg); }
-      100% { transform: translateZ(0) scale(1) rotateY(0deg); }
+      22% { transform: translateZ(86px) scale(1.08) rotateY(720deg); }
+      52% { transform: translateZ(64px) scale(1.04) rotateY(1260deg); }
+      80% { transform: translateZ(24px) scale(1.02) rotateY(1650deg); }
+      100% { transform: translateZ(0) scale(1) rotateY(1800deg); }
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
     }
 
     @media (max-width: 920px) {
@@ -1155,15 +1170,21 @@ PAGE_TEMPLATE = """
               `).join('')}
             </div>
           `).join('')}
+          <div class="result-actions">
+            <button onclick="repeatLastMode()">Играть ещё раз</button>
+            <button class="secondary" onclick="openModes()">К режимам</button>
+          </div>
         `;
       } else {
         const ratingLine = result.rating_after !== undefined
           ? `<div class="team-line"><span>Рейтинг</span><strong>${result.rating_before} → ${result.rating_after}</strong></div>`
           : '';
         const opponentLabel = result.opponent_domain ? `${result.opponent_domain}.ton` : 'бот';
-        const resultClass = result.result === 'win' ? 'to-win' : (result.result === 'lose' ? 'to-lose' : 'to-draw');
-        const frontLabel = result.result === 'draw' ? 'DRAW' : 'WIN';
-        const frontClass = result.result === 'draw' ? 'draw' : 'front';
+        const resultKey = result.result || (result.result_label === 'Победа' ? 'win' : (result.result_label === 'Поражение' ? 'lose' : 'draw'));
+        const resultClass = resultKey === 'win' ? 'to-win' : (resultKey === 'lose' ? 'to-lose' : 'to-draw');
+        const frontLabel = resultKey === 'draw' ? 'DRAW' : 'WIN';
+        const frontClass = resultKey === 'draw' ? 'draw' : 'front';
+        state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
         battleResult.innerHTML = `
           <div class="result-flip">
             <div class="result-flip-card ${resultClass}">
@@ -1178,9 +1199,29 @@ PAGE_TEMPLATE = """
           <div class="team-line"><span>Очки соперника</span><strong>${result.opponent_score}</strong></div>
           ${ratingLine}
           <p class="muted">Результат: ${result.result_label}</p>
+          <div class="result-actions">
+            <button onclick="repeatLastMode()">Играть ещё раз</button>
+            <button class="secondary" onclick="openModes()">К режимам</button>
+          </div>
         `;
       }
       telegramShareBtn.disabled = false;
+    }
+
+    function openModes() {
+      switchView('modes');
+    }
+
+    function repeatLastMode() {
+      if (state.lastReplayMode === 'bot') {
+        playBotMatch();
+        return;
+      }
+      if (state.lastReplayMode === 'ranked' || state.lastReplayMode === 'casual') {
+        playMatch(state.lastReplayMode);
+        return;
+      }
+      switchView('modes');
     }
 
     function rebindDomain() {
@@ -1609,6 +1650,8 @@ PAGE_TEMPLATE = """
     addFriendBtn.addEventListener('click', addFriend);
 
     window.fillOpponent = fillOpponent;
+    window.repeatLastMode = repeatLastMode;
+    window.openModes = openModes;
 
     initTelegram();
     initTonConnect().catch((error) => {
