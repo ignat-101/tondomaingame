@@ -762,7 +762,7 @@ PAGE_TEMPLATE = """
         right: 12px;
         bottom: 12px;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 10px;
         padding: 10px;
         border-radius: 20px;
@@ -801,6 +801,7 @@ PAGE_TEMPLATE = """
         <div class="step-chip" data-step-chip="pack">2. Распаковка</div>
         <div class="step-chip" data-step-chip="modes">3. Режимы игры</div>
         <div class="step-chip" data-step-chip="profile">4. Профиль</div>
+        <div class="step-chip" data-step-chip="achievements">5. Достижения</div>
       </div>
     </section>
 
@@ -867,6 +868,11 @@ PAGE_TEMPLATE = """
               <input id="opponent-wallet" placeholder="Кошелёк или домен соперника">
               <input id="invite-timeout" type="number" min="30" max="600" step="30" value="60" placeholder="Время ответа, сек">
             </div>
+            <div class="row">
+              <select id="one-card-slot">
+                <option value="">Выбери карту для режима одной карты</option>
+              </select>
+            </div>
             <div class="tiny">Соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз, чтобы привязать свой кошелёк к Telegram.</div>
           </div>
 
@@ -894,6 +900,12 @@ PAGE_TEMPLATE = """
               <h3>С ботом</h3>
               <p>Игра против бота, у него рандомные карточки, для ознакомления с механикой игры.</p>
               <button id="play-bot-btn" disabled>Играть с ботом</button>
+            </div>
+            <div class="mode-card" data-mode-card="onecard">
+              <div class="mode-burst"></div>
+              <h3>Одна карта</h3>
+              <p>Выбери одну карту из своей колоды и сыграй дуэль 1x1 против случайной карты соперника.</p>
+              <button id="play-onecard-btn" disabled>Играть 1 картой</button>
             </div>
           </div>
 
@@ -940,6 +952,15 @@ PAGE_TEMPLATE = """
           <div id="mobile-leaderboard" class="leaderboard"></div>
           <h3 style="margin-top:20px;">Общая база игроков</h3>
           <div id="mobile-global-players-list" class="global-players-list"></div>
+        </section>
+
+        <section class="panel view" id="view-achievements">
+          <h2>Достижения</h2>
+          <p class="muted">Открывай достижения за игру, коллекцию доменов и рейтинг.</p>
+          <div class="actions">
+            <button id="refresh-achievements-btn" disabled>Обновить достижения</button>
+          </div>
+          <div class="deck-list" id="achievements-list"></div>
         </section>
       </main>
 
@@ -1007,6 +1028,7 @@ PAGE_TEMPLATE = """
     <button id="nav-pack">Карты</button>
     <button id="nav-modes">Игра</button>
     <button id="nav-profile">Профиль</button>
+    <button id="nav-achievements">Ачивки</button>
   </nav>
 
   <script>
@@ -1023,7 +1045,8 @@ PAGE_TEMPLATE = """
       activeUsers: [],
       friends: [],
       ownedDecks: [],
-      allPlayers: []
+      allPlayers: [],
+      achievements: []
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -1067,6 +1090,9 @@ PAGE_TEMPLATE = """
     const foilPack = document.getElementById('foil-pack');
     const packCounter = document.getElementById('pack-counter');
     const packNote = document.getElementById('pack-note');
+    const oneCardSlot = document.getElementById('one-card-slot');
+    const achievementsList = document.getElementById('achievements-list');
+    const refreshAchievementsBtn = document.getElementById('refresh-achievements-btn');
 
     telegramOpenLink.href = telegramBotUsername
       ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
@@ -1285,6 +1311,31 @@ PAGE_TEMPLATE = """
       mobileGlobalPlayersList.innerHTML = markup;
     }
 
+    function renderAchievements(items) {
+      state.achievements = items || [];
+      if (!state.achievements.length) {
+        achievementsList.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы увидеть достижения.</div>';
+        return;
+      }
+      achievementsList.innerHTML = state.achievements.map((item) => `
+        <div class="user-item">
+          <strong>${item.unlocked ? '🏆' : '🔒'} ${item.title}</strong>
+          <div class="tiny">${item.description}</div>
+          <div class="tiny">${item.progress}</div>
+        </div>
+      `).join('');
+    }
+
+    function refreshOneCardSelector() {
+      oneCardSlot.innerHTML = '<option value="">Выбери карту для режима одной карты</option>';
+      if (!state.cards.length) {
+        return;
+      }
+      oneCardSlot.innerHTML += state.cards.map((card) => `
+        <option value="${card.slot}">Слот ${card.slot}: ${card.title} (${card.score})</option>
+      `).join('');
+    }
+
     function updateButtons() {
       const connected = Boolean(state.wallet);
       const hasDomain = Boolean(state.selectedDomain);
@@ -1295,10 +1346,12 @@ PAGE_TEMPLATE = """
       document.getElementById('play-ranked-btn').disabled = !(connected && hasCards);
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards);
       document.getElementById('play-bot-btn').disabled = !(connected && hasCards);
+      document.getElementById('play-onecard-btn').disabled = !(connected && hasCards && oneCardSlot.value);
       document.getElementById('create-room-btn').disabled = !(connected && hasCards);
       document.getElementById('join-room-btn').disabled = !(connected && hasCards);
       telegramLinkBtn.disabled = !connected;
       addFriendBtn.disabled = !connected;
+      refreshAchievementsBtn.disabled = !connected;
     }
 
     function renderDomains(domains) {
@@ -1334,6 +1387,7 @@ PAGE_TEMPLATE = """
       packShowcase.classList.remove('opened');
       foilPack.classList.remove('opening');
       packNote.textContent = 'Tap to open';
+      refreshOneCardSelector();
       renderDomains(state.domains);
       renderProfile();
       updateButtons();
@@ -1356,6 +1410,7 @@ PAGE_TEMPLATE = """
         </article>
       `).join('');
       packScoreLabel.textContent = `Сумма колоды: ${total}`;
+      refreshOneCardSelector();
       requestAnimationFrame(() => packCards.classList.add('reveal'));
     }
 
@@ -1390,6 +1445,12 @@ PAGE_TEMPLATE = """
         const resultClass = resultKey === 'win' ? 'to-win' : (resultKey === 'lose' ? 'to-lose' : 'to-draw');
         const frontLabel = resultKey === 'draw' ? 'DRAW' : 'WIN';
         const frontClass = resultKey === 'draw' ? 'draw' : 'front';
+        const cardLine = result.player_card
+          ? `<div class="tiny">Твоя карта: слот ${result.player_card.slot} • ${result.player_card.title} • сила ${result.player_card.score}</div>`
+          : '';
+        const oppCardLine = result.opponent_card
+          ? `<div class="tiny">Карта соперника: ${result.opponent_card.title} • сила ${result.opponent_card.score}</div>`
+          : '';
         state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
         battleResult.innerHTML = `
           <div class="result-flip">
@@ -1403,6 +1464,8 @@ PAGE_TEMPLATE = """
           <div class="team-line"><span>Соперник</span><strong>${opponentLabel}</strong></div>
           <div class="team-line"><span>Твои очки</span><strong>${result.player_score}</strong></div>
           <div class="team-line"><span>Очки соперника</span><strong>${result.opponent_score}</strong></div>
+          ${cardLine}
+          ${oppCardLine}
           ${ratingLine}
           <p class="muted">Результат: ${result.result_label}</p>
           <div class="result-actions">
@@ -1421,6 +1484,10 @@ PAGE_TEMPLATE = """
     function repeatLastMode() {
       if (state.lastReplayMode === 'bot') {
         playBotMatch();
+        return;
+      }
+      if (state.lastReplayMode === 'onecard') {
+        playOneCardMatch();
         return;
       }
       if (state.lastReplayMode === 'ranked' || state.lastReplayMode === 'casual') {
@@ -1444,6 +1511,7 @@ PAGE_TEMPLATE = """
       renderDomains(state.domains);
       renderProfile();
       renderDeck(null);
+      refreshOneCardSelector();
       updateButtons();
       switchView('wallet');
       setStatus(walletStatus, 'Выбери домен заново и открой новую колоду.', 'warning');
@@ -1539,6 +1607,7 @@ PAGE_TEMPLATE = """
         loadOwnedDecks();
         loadActiveUsers();
         loadGlobalPlayers();
+        loadAchievements();
         loadProfile();
       } catch (error) {
         foilPack.classList.remove('opening');
@@ -1561,6 +1630,7 @@ PAGE_TEMPLATE = """
         if (data.result) {
           state.lastResult = data.result;
           renderBattleResult(data.result);
+          loadAchievements();
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
           inviteResult.innerHTML = `<strong>Приглашение ${inviteId} завершено.</strong><p class="muted">Соперник принял вызов, матч рассчитан на сервере.</p>`;
@@ -1628,6 +1698,7 @@ PAGE_TEMPLATE = """
           state.playerProfile = data.player;
           renderProfile();
         }
+        await loadAchievements();
       } catch (error) {
         battleResult.style.display = 'block';
         battleResult.classList.add('duel-anim');
@@ -1774,8 +1845,11 @@ PAGE_TEMPLATE = """
         });
         state.selectedDomain = data.domain;
         state.playerProfile = data.player;
+        state.cards = data.deck.cards || [];
         renderProfile();
         renderDeck({ wallet: state.wallet, domain: data.domain, deck: data.deck });
+        refreshOneCardSelector();
+        updateButtons();
         await loadOwnedDecks();
         setStatus(document.getElementById('pack-status'), `Активная колода переключена на ${data.domain}.ton.`, 'success');
       } catch (error) {
@@ -1792,6 +1866,19 @@ PAGE_TEMPLATE = """
       }
     }
 
+    async function loadAchievements() {
+      if (!state.wallet) {
+        renderAchievements([]);
+        return;
+      }
+      try {
+        const data = await api(`/api/achievements/${encodeURIComponent(state.wallet)}`);
+        renderAchievements(data.achievements || []);
+      } catch (error) {
+        achievementsList.innerHTML = `<div class="user-item error">${error.message}</div>`;
+      }
+    }
+
     async function registerPlayer() {
       if (!state.wallet) return;
       try {
@@ -1800,6 +1887,36 @@ PAGE_TEMPLATE = """
           body: { wallet: state.wallet }
         });
       } catch (_) {
+      }
+    }
+
+    async function playOneCardMatch() {
+      const slot = Number(oneCardSlot.value || 0);
+      if (!slot) {
+        setStatus(document.getElementById('pack-status'), 'Для режима одной карты выбери карту из колоды.', 'warning');
+        return;
+      }
+      animateModeChoice('onecard');
+      try {
+        const data = await api('/api/match/one-card', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            domain: state.selectedDomain,
+            card_slot: slot
+          }
+        });
+        state.lastResult = data.result;
+        renderBattleResult(data.result);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        }
+        await loadAchievements();
+      } catch (error) {
+        battleResult.style.display = 'block';
+        battleResult.classList.add('duel-anim');
+        battleResult.innerHTML = `<strong class="error">${error.message}</strong>`;
       }
     }
 
@@ -1879,6 +1996,7 @@ PAGE_TEMPLATE = """
           await loadOwnedDecks();
           await loadGlobalPlayers();
           await loadProfile();
+          await loadAchievements();
         } else {
           state.domainsChecked = false;
           state.domains = [];
@@ -1889,6 +2007,7 @@ PAGE_TEMPLATE = """
           renderFriends([]);
           renderDeck(null);
           renderOwnedDecks([], null);
+          renderAchievements([]);
           setStatus(walletStatus, 'Подключи кошелёк через TonConnect.', 'warning');
         }
       };
@@ -1913,6 +2032,9 @@ PAGE_TEMPLATE = """
     document.getElementById('play-ranked-btn').addEventListener('click', () => playMatch('ranked'));
     document.getElementById('play-casual-btn').addEventListener('click', () => playMatch('casual'));
     document.getElementById('play-bot-btn').addEventListener('click', playBotMatch);
+    document.getElementById('play-onecard-btn').addEventListener('click', playOneCardMatch);
+    oneCardSlot.addEventListener('change', updateButtons);
+    refreshAchievementsBtn.addEventListener('click', loadAchievements);
     document.getElementById('show-team-btn').addEventListener('click', () => {
       animateModeChoice('team');
       document.getElementById('team-panel').style.display = 'block';
@@ -1932,6 +2054,7 @@ PAGE_TEMPLATE = """
     document.getElementById('nav-pack').addEventListener('click', () => switchView('pack'));
     document.getElementById('nav-modes').addEventListener('click', () => switchView('modes'));
     document.getElementById('nav-profile').addEventListener('click', () => switchView('profile'));
+    document.getElementById('nav-achievements').addEventListener('click', () => switchView('achievements'));
     addFriendBtn.addEventListener('click', addFriend);
 
     window.fillOpponent = fillOpponent;
@@ -1946,10 +2069,13 @@ PAGE_TEMPLATE = """
     loadLeaderboard();
     loadActiveUsers();
     loadGlobalPlayers();
+    loadAchievements();
     renderProfile();
     renderFriends([]);
     renderDeck(null);
     renderOwnedDecks([], null);
+    renderAchievements([]);
+    refreshOneCardSelector();
     switchView('wallet');
     updateButtons();
   </script>
@@ -2421,6 +2547,10 @@ def random_bot_cards(seed_value, count=5):
     return cards
 
 
+def random_bot_single_card(seed_value):
+    return random_bot_cards(seed_value, count=1)[0]
+
+
 def extract_domain_candidates_from_nft(item):
     fields = []
     metadata = item.get('metadata') or {}
@@ -2766,6 +2896,23 @@ def get_player(wallet):
     }
 
 
+def record_non_ranked_game(wallet, domain=None):
+    ensure_player(wallet, best_domain=domain, current_domain=domain)
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            UPDATE players
+            SET games_played = games_played + 1,
+                current_domain = COALESCE(?, current_domain),
+                best_domain = COALESCE(best_domain, ?),
+                updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (domain, domain, now_iso(), wallet),
+        )
+        conn.commit()
+
+
 def global_player_rows(limit=200):
     with closing(get_db()) as conn:
         rows = conn.execute(
@@ -2778,6 +2925,76 @@ def global_player_rows(limit=200):
             (limit,),
         ).fetchall()
     return [dict(row) for row in rows]
+
+
+def achievements_for_wallet(wallet):
+    player = get_player(wallet)
+    with closing(get_db()) as conn:
+        friend_count = conn.execute(
+            'SELECT COUNT(*) AS value FROM friends WHERE owner_wallet = ?',
+            (wallet,),
+        ).fetchone()['value']
+    try:
+        domain_count = len(fetch_wallet_domains(wallet))
+    except (RuntimeError, ValueError):
+        domain_count = 0
+
+    ranked_wins = player.get('ranked_wins') or 0
+    games_played = player.get('games_played') or 0
+    rating = player.get('rating') or 0
+    deck_opened = bool(player.get('current_domain') or player.get('best_domain'))
+
+    return [
+        {
+            'id': 'first_login',
+            'title': 'Первый вход',
+            'description': 'Подключить кошелёк и зайти в игру.',
+            'unlocked': True,
+            'progress': 'Готово',
+        },
+        {
+            'id': 'first_deck',
+            'title': 'Первая колода',
+            'description': 'Открыть первую колоду из домена.',
+            'unlocked': deck_opened,
+            'progress': 'Открыта' if deck_opened else '0/1',
+        },
+        {
+            'id': 'collector_3',
+            'title': 'Коллекционер',
+            'description': 'Иметь 3 домена или больше.',
+            'unlocked': domain_count >= 3,
+            'progress': f'{domain_count}/3 доменов',
+        },
+        {
+            'id': 'social_3',
+            'title': 'Социальный игрок',
+            'description': 'Добавить 3 друзей.',
+            'unlocked': friend_count >= 3,
+            'progress': f'{friend_count}/3 друзей',
+        },
+        {
+            'id': 'ranked_win',
+            'title': 'Первая рейтинговая победа',
+            'description': 'Выиграть 1 рейтинговый матч.',
+            'unlocked': ranked_wins >= 1,
+            'progress': f'{ranked_wins}/1 побед',
+        },
+        {
+            'id': 'fighter_10',
+            'title': 'Опытный боец',
+            'description': 'Сыграть 10 матчей.',
+            'unlocked': games_played >= 10,
+            'progress': f'{games_played}/10 матчей',
+        },
+        {
+            'id': 'rating_1200',
+            'title': 'Рейтинг 1200+',
+            'description': 'Поднять рейтинг до 1200.',
+            'unlocked': rating >= 1200,
+            'progress': f'{rating}/1200',
+        },
+    ]
 
 
 def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
@@ -3528,6 +3745,14 @@ def api_players_global():
     return jsonify({'players': global_player_rows()})
 
 
+@app.route('/api/achievements/<wallet>')
+def api_achievements(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    ensure_player(wallet)
+    return jsonify({'wallet': wallet, 'achievements': achievements_for_wallet(wallet)})
+
+
 @app.route('/api/friends/<wallet>')
 def api_friends(wallet):
     if not valid_wallet_address(wallet):
@@ -3642,7 +3867,7 @@ def api_match_bot():
     else:
         result_code = 'draw'
         result_label = 'Ничья'
-    ensure_player(wallet, domain, domain)
+    record_non_ranked_game(wallet, domain)
     return jsonify(
         {
             'result': {
@@ -3657,6 +3882,62 @@ def api_match_bot():
                 'result_label': result_label,
             },
             'bot_cards': bot_cards,
+            'player': get_player(wallet),
+        }
+    )
+
+
+@app.route('/api/match/one-card', methods=['POST'])
+def api_match_one_card():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    card_slot = int(payload.get('card_slot') or 0)
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not domain:
+        return json_error('Нужно выбрать домен.')
+    if card_slot < 1 or card_slot > 5:
+        return json_error('Нужно выбрать карту из слотов 1-5.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502)
+
+    cards = generate_pack(domain, wallet)
+    player_card = next((card for card in cards if card['slot'] == card_slot), None)
+    if player_card is None:
+        return json_error('Карта не найдена в колоде.', 400)
+    bot_card = random_bot_single_card(f'onecard:{wallet}:{domain}:{now_iso()}')
+    player_score = player_card['score']
+    bot_score = bot_card['score']
+    if player_score > bot_score:
+        result_code = 'win'
+        result_label = 'Победа'
+    elif player_score < bot_score:
+        result_code = 'lose'
+        result_label = 'Поражение'
+    else:
+        result_code = 'draw'
+        result_label = 'Ничья'
+
+    record_non_ranked_game(wallet, domain)
+    return jsonify(
+        {
+            'result': {
+                'kind': 'solo',
+                'mode': 'onecard',
+                'mode_title': 'Дуэль одной картой',
+                'player_domain': domain,
+                'opponent_domain': None,
+                'player_score': player_score,
+                'opponent_score': bot_score,
+                'result': result_code,
+                'result_label': result_label,
+                'player_card': player_card,
+                'opponent_card': bot_card,
+            },
             'player': get_player(wallet),
         }
     )
