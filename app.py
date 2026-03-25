@@ -314,11 +314,30 @@ PAGE_TEMPLATE = """
     }
 
     .mode-grid {
+      position: relative;
       perspective: 1400px;
+    }
+
+    .mode-grid.mode-focus::before {
+      content: "";
+      position: absolute;
+      inset: -10px;
+      border-radius: 28px;
+      background: rgba(2, 8, 16, 0.58);
+      backdrop-filter: blur(6px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .mode-grid.mode-focus .mode-card:not(.active-mode) {
+      transform: scale(0.96);
+      opacity: 0.52;
+      filter: blur(1.5px);
     }
 
     .mode-card {
       position: relative;
+      z-index: 1;
       transform-style: preserve-3d;
       transition: transform 420ms cubic-bezier(.2,.8,.2,1), box-shadow 420ms ease, border-color 420ms ease;
     }
@@ -342,7 +361,7 @@ PAGE_TEMPLATE = """
     .mode-card.active-mode {
       border-color: rgba(83, 246, 184, 0.58);
       box-shadow: 0 30px 60px rgba(69, 215, 255, 0.22);
-      transform: translateY(-14px) rotateX(14deg) rotateY(-14deg) scale(1.03);
+      transform: translateY(-18px) translateZ(90px) rotateX(14deg) rotateY(-14deg) scale(1.08);
     }
 
     .mode-card.active-mode::after {
@@ -507,8 +526,107 @@ PAGE_TEMPLATE = """
       color: var(--muted);
     }
 
+    .mobile-nav {
+      display: none;
+    }
+
+    .mobile-nav button.active {
+      border-color: rgba(83, 246, 184, 0.58);
+      background: linear-gradient(135deg, rgba(69, 215, 255, 0.2), rgba(83, 246, 184, 0.18));
+    }
+
+    .result-flip {
+      perspective: 1400px;
+      margin-bottom: 14px;
+    }
+
+    .result-flip-card {
+      position: relative;
+      min-height: 140px;
+      transform-style: preserve-3d;
+      animation: resultFlip 1.1s ease forwards;
+    }
+
+    .result-flip-face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      backface-visibility: hidden;
+      font-size: clamp(34px, 9vw, 62px);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .result-flip-face.front {
+      background: linear-gradient(135deg, rgba(83, 246, 184, 0.24), rgba(69, 215, 255, 0.22));
+    }
+
+    .result-flip-face.draw {
+      background: linear-gradient(135deg, rgba(255, 211, 110, 0.26), rgba(69, 215, 255, 0.18));
+    }
+
+    .result-flip-face.back {
+      transform: rotateY(180deg);
+      background: linear-gradient(135deg, rgba(255, 122, 134, 0.22), rgba(255, 211, 110, 0.14));
+    }
+
+    .result-flip-card.to-win {
+      animation-name: resultFlipWin;
+    }
+
+    .result-flip-card.to-lose {
+      animation-name: resultFlipLose;
+    }
+
+    .result-flip-card.to-draw {
+      animation-name: resultFlipDraw;
+    }
+
+    @keyframes resultFlipWin {
+      0% { transform: translateZ(0) scale(0.92) rotateY(0deg); }
+      45% { transform: translateZ(70px) scale(1.08) rotateY(180deg); }
+      100% { transform: translateZ(0) scale(1) rotateY(0deg); }
+    }
+
+    @keyframes resultFlipLose {
+      0% { transform: translateZ(0) scale(0.92) rotateY(0deg); }
+      45% { transform: translateZ(70px) scale(1.08) rotateY(180deg); }
+      100% { transform: translateZ(0) scale(1) rotateY(180deg); }
+    }
+
+    @keyframes resultFlipDraw {
+      0% { transform: translateZ(0) scale(0.92) rotateY(0deg); }
+      50% { transform: translateZ(70px) scale(1.08) rotateY(180deg); }
+      100% { transform: translateZ(0) scale(1) rotateY(0deg); }
+    }
+
     @media (max-width: 920px) {
+      body { padding-bottom: 84px; }
       .layout { grid-template-columns: 1fr; }
+      .side { display: none; }
+      .mobile-nav {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        padding: 10px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: rgba(7, 16, 25, 0.94);
+        backdrop-filter: blur(16px);
+        z-index: 20;
+      }
+      .mobile-nav button {
+        min-height: 44px;
+        padding: 10px 8px;
+        font-size: 13px;
+      }
     }
   </style>
 </head>
@@ -533,6 +651,7 @@ PAGE_TEMPLATE = """
         <div class="step-chip active" data-step-chip="wallet">1. Кошелёк</div>
         <div class="step-chip" data-step-chip="pack">2. Распаковка</div>
         <div class="step-chip" data-step-chip="modes">3. Режимы игры</div>
+        <div class="step-chip" data-step-chip="profile">4. Профиль</div>
       </div>
     </section>
 
@@ -567,6 +686,7 @@ PAGE_TEMPLATE = """
 
           <div class="actions">
             <button class="secondary" id="back-to-wallet-btn">Назад</button>
+            <button class="secondary" id="rebind-domain-btn">Перепривязать домен</button>
             <button id="open-pack-btn" disabled>Открыть 5 карточек</button>
           </div>
 
@@ -645,6 +765,20 @@ PAGE_TEMPLATE = """
             <div class="team-grid" id="team-room-view"></div>
           </div>
         </section>
+
+        <section class="panel view" id="view-profile">
+          <h2>Профиль</h2>
+          <div id="mobile-profile-summary" class="deck-list"></div>
+          <div class="actions" style="margin-top:14px;">
+            <button class="secondary" id="mobile-show-deck-btn">Моя колода</button>
+            <button class="secondary" id="mobile-link-tg-btn">Привязать Telegram</button>
+          </div>
+          <div id="mobile-deck-view" class="deck-list" style="margin-top:14px;"></div>
+          <h3 style="margin-top:20px;">Друзья</h3>
+          <div id="mobile-friends-list" class="friend-list"></div>
+          <h3 style="margin-top:20px;">Рейтинг</h3>
+          <div id="mobile-leaderboard" class="leaderboard"></div>
+        </section>
       </main>
 
       <aside class="side">
@@ -699,6 +833,13 @@ PAGE_TEMPLATE = """
     </div>
   </div>
 
+  <nav class="mobile-nav">
+    <button id="nav-wallet">Кошелёк</button>
+    <button id="nav-pack">Карты</button>
+    <button id="nav-modes">Игра</button>
+    <button id="nav-profile">Профиль</button>
+  </nav>
+
   <script>
     const state = {
       wallet: null,
@@ -744,6 +885,10 @@ PAGE_TEMPLATE = """
     const addFriendBtn = document.getElementById('add-friend-btn');
     const showDeckBtn = document.getElementById('show-deck-btn');
     const toggleDeckBtn = document.getElementById('toggle-deck-btn');
+    const mobileProfileSummary = document.getElementById('mobile-profile-summary');
+    const mobileFriendsList = document.getElementById('mobile-friends-list');
+    const mobileLeaderboard = document.getElementById('mobile-leaderboard');
+    const mobileDeckView = document.getElementById('mobile-deck-view');
 
     telegramOpenLink.href = telegramBotUsername
       ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
@@ -786,25 +931,42 @@ PAGE_TEMPLATE = """
       document.querySelectorAll('[data-step-chip]').forEach((chip) => {
         chip.classList.toggle('active', chip.dataset.stepChip === name);
       });
-    }
-
-    function animateModeChoice(modeName) {
-      document.querySelectorAll('[data-mode-card]').forEach((card) => {
-        card.classList.toggle('active-mode', card.dataset.modeCard === modeName);
+      document.querySelectorAll('.mobile-nav button').forEach((button) => {
+        button.classList.toggle('active', button.id === `nav-${name}`);
       });
     }
 
+    function animateModeChoice(modeName) {
+      const modeGrid = document.querySelector('.mode-grid');
+      if (modeGrid) {
+        modeGrid.classList.add('mode-focus');
+      }
+      document.querySelectorAll('[data-mode-card]').forEach((card) => {
+        card.classList.toggle('active-mode', card.dataset.modeCard === modeName);
+      });
+      window.clearTimeout(window.__modeFocusTimer);
+      window.__modeFocusTimer = window.setTimeout(() => {
+        if (modeGrid) {
+          modeGrid.classList.remove('mode-focus');
+        }
+      }, 2200);
+    }
+
     function renderLeaderBoard(items) {
+      const emptyMarkup = '<div class="leaderboard-item muted">Рейтинг появится после первых матчей.</div>';
       if (!items.length) {
-        leaderboard.innerHTML = '<div class="leaderboard-item muted">Рейтинг появится после первых матчей.</div>';
+        leaderboard.innerHTML = emptyMarkup;
+        mobileLeaderboard.innerHTML = emptyMarkup;
         return;
       }
-      leaderboard.innerHTML = items.map((item, index) => `
+      const markup = items.map((item, index) => `
         <div class="leaderboard-item">
           <div class="team-line"><strong>#${index + 1} ${shortAddress(item.wallet)}</strong><strong>${item.rating}</strong></div>
           <div class="tiny">Матчей: ${item.games_played} • Побед: ${item.ranked_wins} • Лучший домен: ${item.best_domain || '-'}</div>
         </div>
       `).join('');
+      leaderboard.innerHTML = markup;
+      mobileLeaderboard.innerHTML = markup;
     }
 
     function fillOpponent(reference) {
@@ -833,11 +995,13 @@ PAGE_TEMPLATE = """
 
     function renderFriends(items) {
       state.friends = items;
+      const emptyMarkup = '<div class="user-item muted">Добавь игроков в друзья, чтобы быстро вызывать их на матч.</div>';
       if (!items.length) {
-        friendsList.innerHTML = '<div class="user-item muted">Добавь игроков в друзья, чтобы быстро вызывать их на матч.</div>';
+        friendsList.innerHTML = emptyMarkup;
+        mobileFriendsList.innerHTML = emptyMarkup;
         return;
       }
-      friendsList.innerHTML = items.map((item) => `
+      const markup = items.map((item) => `
         <div class="user-item">
           <strong>${item.display_name}</strong>
           <div class="tiny">${item.domain ? `${item.domain}.ton` : 'домен не выбран'} • рейтинг ${item.rating || '-'}</div>
@@ -847,14 +1011,18 @@ PAGE_TEMPLATE = """
           </div>
         </div>
       `).join('');
+      friendsList.innerHTML = markup;
+      mobileFriendsList.innerHTML = markup;
     }
 
     function renderDeck(data) {
+      const emptyMarkup = '<div class="user-item muted">Сначала выбери домен и открой колоду.</div>';
       if (!data) {
-        deckView.innerHTML = '<div class="user-item muted">Сначала выбери домен и открой колоду.</div>';
+        deckView.innerHTML = emptyMarkup;
+        mobileDeckView.innerHTML = emptyMarkup;
         return;
       }
-      deckView.innerHTML = `
+      const markup = `
         <div class="user-item">
           <strong>${data.domain}.ton</strong>
           <div class="tiny">Средняя атака: ${data.deck.average_attack} • Средняя защита: ${data.deck.average_defense}</div>
@@ -868,6 +1036,8 @@ PAGE_TEMPLATE = """
           </div>
         `).join('')}
       `;
+      deckView.innerHTML = markup;
+      mobileDeckView.innerHTML = markup;
     }
 
     function renderProfile() {
@@ -887,6 +1057,17 @@ PAGE_TEMPLATE = """
         profileTelegram.textContent = 'не привязан';
         showDeckBtn.disabled = true;
       }
+
+      mobileProfileSummary.innerHTML = `
+        <div class="user-item">
+          <strong>${state.selectedDomain ? `${state.selectedDomain}.ton` : 'Профиль игрока'}</strong>
+          <div class="tiny">Кошелёк: ${state.wallet ? shortAddress(state.wallet) : '-'}</div>
+          <div class="tiny">Активный домен: ${state.selectedDomain ? `${state.selectedDomain}.ton` : '-'}</div>
+          <div class="tiny">Рейтинг: ${profileRating.textContent} • Матчей: ${profileGames.textContent}</div>
+          <div class="tiny">Telegram: ${profileTelegram.textContent}</div>
+        </div>
+      `;
+      document.getElementById('mobile-show-deck-btn').disabled = showDeckBtn.disabled;
     }
 
     function updateButtons() {
@@ -980,7 +1161,16 @@ PAGE_TEMPLATE = """
           ? `<div class="team-line"><span>Рейтинг</span><strong>${result.rating_before} → ${result.rating_after}</strong></div>`
           : '';
         const opponentLabel = result.opponent_domain ? `${result.opponent_domain}.ton` : 'бот';
+        const resultClass = result.result === 'win' ? 'to-win' : (result.result === 'lose' ? 'to-lose' : 'to-draw');
+        const frontLabel = result.result === 'draw' ? 'DRAW' : 'WIN';
+        const frontClass = result.result === 'draw' ? 'draw' : 'front';
         battleResult.innerHTML = `
+          <div class="result-flip">
+            <div class="result-flip-card ${resultClass}">
+              <div class="result-flip-face ${frontClass}">${frontLabel}</div>
+              <div class="result-flip-face back">LOSE</div>
+            </div>
+          </div>
           <h3>${result.mode_title}</h3>
           <div class="team-line"><span>Твой домен</span><strong>${result.player_domain}.ton</strong></div>
           <div class="team-line"><span>Соперник</span><strong>${opponentLabel}</strong></div>
@@ -991,6 +1181,23 @@ PAGE_TEMPLATE = """
         `;
       }
       telegramShareBtn.disabled = false;
+    }
+
+    function rebindDomain() {
+      state.selectedDomain = null;
+      state.cards = [];
+      state.lastResult = null;
+      packCards.innerHTML = '';
+      packScoreLabel.textContent = 'Сумма колоды: -';
+      battleResult.style.display = 'none';
+      inviteResult.style.display = 'none';
+      renderDomains(state.domains);
+      renderProfile();
+      renderDeck(null);
+      updateButtons();
+      switchView('wallet');
+      setStatus(walletStatus, 'Выбери домен заново и открой новую колоду.', 'warning');
+      setStatus(document.getElementById('pack-status'), 'Привязка домена сброшена. Можно выбрать другой домен.', 'warning');
     }
 
     function renderRoom(room) {
@@ -1374,6 +1581,7 @@ PAGE_TEMPLATE = """
 
     document.getElementById('check-domains-btn').addEventListener('click', checkDomains);
     document.getElementById('back-to-wallet-btn').addEventListener('click', () => switchView('wallet'));
+    document.getElementById('rebind-domain-btn').addEventListener('click', rebindDomain);
     document.getElementById('open-pack-btn').addEventListener('click', openPack);
     document.getElementById('continue-to-modes-btn').addEventListener('click', () => switchView('modes'));
     document.getElementById('play-ranked-btn').addEventListener('click', () => playMatch('ranked'));
@@ -1392,6 +1600,12 @@ PAGE_TEMPLATE = """
     telegramShareBtn.addEventListener('click', shareTelegram);
     showDeckBtn.addEventListener('click', showDeck);
     toggleDeckBtn.addEventListener('click', toggleDeck);
+    document.getElementById('mobile-show-deck-btn').addEventListener('click', showDeck);
+    document.getElementById('mobile-link-tg-btn').addEventListener('click', linkTelegramWallet);
+    document.getElementById('nav-wallet').addEventListener('click', () => switchView('wallet'));
+    document.getElementById('nav-pack').addEventListener('click', () => switchView('pack'));
+    document.getElementById('nav-modes').addEventListener('click', () => switchView('modes'));
+    document.getElementById('nav-profile').addEventListener('click', () => switchView('profile'));
     addFriendBtn.addEventListener('click', addFriend);
 
     window.fillOpponent = fillOpponent;
@@ -1405,6 +1619,7 @@ PAGE_TEMPLATE = """
     renderProfile();
     renderFriends([]);
     renderDeck(null);
+    switchView('wallet');
     updateButtons();
   </script>
 </body>
