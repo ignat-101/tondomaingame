@@ -53,6 +53,9 @@ TG_BOT_TOKEN = os.getenv('TG_BOT_TOKEN', '').strip()
 TG_BOT_USERNAME = os.getenv('TG_BOT_USERNAME', '').lstrip('@').strip()
 TG_WEBHOOK_SECRET = os.getenv('TG_WEBHOOK_SECRET', '').strip()
 TG_SETUP_TOKEN = os.getenv('TG_SETUP_TOKEN', '').strip()
+HOST = os.getenv('HOST', HOST).strip()
+PORT = int(os.getenv('PORT', str(PORT)))
+DEBUG = os.getenv('DEBUG', str(DEBUG)).strip().lower() in {'1', 'true', 'yes', 'on'}
 BASE_RATING = int(os.getenv('BASE_RATING', '1000'))
 RATING_K_FACTOR = int(os.getenv('RATING_K_FACTOR', '32'))
 DOMAIN_CACHE_TTL = int(os.getenv('DOMAIN_CACHE_TTL', '300'))
@@ -865,7 +868,7 @@ PAGE_TEMPLATE = """
 
         <section class="panel view" id="view-modes">
           <h2>Шаг 3. Режимы игры</h2>
-          <p class="muted">Для рейтингового и обычного матча укажи соперника, задай время на ответ и бот отправит ему приглашение в Telegram. Командный режим по-прежнему работает комнатами на 2-4 игроков.</p>
+          <p class="muted">Бой идёт в формате wiki gachi: 5 раундов по статам (атака, защита, удача, общая сила и финальный натиск). Для рейтингового и обычного матча укажи соперника, задай время на ответ и бот отправит ему приглашение в Telegram.</p>
 
           <div class="team-card" style="margin-bottom:18px;">
             <h3>PvP через Telegram</h3>
@@ -885,7 +888,7 @@ PAGE_TEMPLATE = """
             <div class="mode-card" data-mode-card="ranked">
               <div class="mode-burst"></div>
               <h3>Рейтинговый</h3>
-              <p>Бот отправит вызов реальному сопернику. После принятия рейтинг пересчитается по ELO.</p>
+              <p>5-раундовый бой против реального соперника. После принятия рейтинг пересчитается по ELO.</p>
               <button id="play-ranked-btn" disabled>Отправить рейтинговый вызов</button>
             </div>
             <div class="mode-card" data-mode-card="team">
@@ -897,13 +900,13 @@ PAGE_TEMPLATE = """
             <div class="mode-card" data-mode-card="casual">
               <div class="mode-burst"></div>
               <h3>Обычный</h3>
-              <p>Бот отправит вызов реальному сопернику без изменения рейтинга.</p>
+              <p>Тот же 5-раундовый формат, но без изменения рейтинга.</p>
               <button id="play-casual-btn" disabled>Отправить обычный вызов</button>
             </div>
             <div class="mode-card" data-mode-card="bot">
               <div class="mode-burst"></div>
               <h3>С ботом</h3>
-              <p>Игра против бота, у него рандомные карточки, для ознакомления с механикой игры.</p>
+              <p>Тестовый wiki gachi бой: 5 раундов против бота с рандомной колодой.</p>
               <button id="play-bot-btn" disabled>Играть с ботом</button>
             </div>
             <div class="mode-card" data-mode-card="onecard">
@@ -1456,6 +1459,20 @@ PAGE_TEMPLATE = """
         const oppCardLine = result.opponent_card
           ? `<div class="tiny">Карта соперника: ${result.opponent_card.title} • сила ${result.opponent_card.score}</div>`
           : '';
+        const roundsLine = Array.isArray(result.rounds) && result.rounds.length
+          ? `<div style="margin-top:10px;">
+              <strong>Ход боя (wiki gachi)</strong>
+              ${result.rounds.map((round) => {
+                const mark = round.winner === 'player' ? '✅' : (round.winner === 'opponent' ? '❌' : '➖');
+                const playerCard = round.player_card?.title ? `${round.player_card.title}` : 'Твоя карта';
+                const opponentCard = round.opponent_card?.title ? `${round.opponent_card.title}` : 'Карта соперника';
+                return `<div class="tiny" style="margin-top:4px;">${mark} ${round.label}: ${playerCard} (${round.player_total}) vs ${opponentCard} (${round.opponent_total})</div>`;
+              }).join('')}
+            </div>`
+          : '';
+        const deckPowerLine = result.player_deck_power !== undefined && result.opponent_deck_power !== undefined
+          ? `<div class="tiny">Сила колод (тай-брейк): ${result.player_deck_power} vs ${result.opponent_deck_power}${result.tie_breaker ? ' • использован тай-брейк' : ''}</div>`
+          : '';
         state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
         battleResult.innerHTML = `
           <div class="result-flip">
@@ -1471,6 +1488,8 @@ PAGE_TEMPLATE = """
           <div class="team-line"><span>Очки соперника</span><strong>${result.opponent_score}</strong></div>
           ${cardLine}
           ${oppCardLine}
+          ${deckPowerLine}
+          ${roundsLine}
           ${ratingLine}
           <p class="muted">Результат: ${result.result_label}</p>
           <div class="result-actions">
@@ -2519,6 +2538,100 @@ def deck_score(cards):
     return sum(card['score'] for card in cards)
 
 
+WIKIGACHI_ROUND_PLAN = [
+    ('attack', 'Раунд 1: Атака'),
+    ('defense', 'Раунд 2: Защита'),
+    ('luck', 'Раунд 3: Удача'),
+    ('score', 'Раунд 4: Общая сила'),
+    ('attack', 'Раунд 5: Финальный натиск'),
+]
+
+
+def card_stat_value(card, stat_name):
+    if stat_name == 'attack':
+        return int(card.get('attack', 0))
+    if stat_name == 'defense':
+        return int(card.get('defense', 0))
+    if stat_name == 'luck':
+        return int(card.get('luck', 0))
+    return int(card.get('score', 0))
+
+
+def wikigachi_duel(cards_a, cards_b, seed_value):
+    rounds = []
+    wins_a = 0
+    wins_b = 0
+
+    if not cards_a or not cards_b:
+        return {'rounds': rounds, 'score_a': 0, 'score_b': 0, 'winner': None, 'tie_breaker': False}
+
+    rng = random.Random(hashlib.sha256(f'wikigachi:{seed_value}'.encode()).hexdigest())
+    rounds_count = min(len(cards_a), len(cards_b), len(WIKIGACHI_ROUND_PLAN))
+
+    for idx in range(rounds_count):
+        focus, label = WIKIGACHI_ROUND_PLAN[idx]
+        card_a = cards_a[idx]
+        card_b = cards_b[idx]
+        value_a = card_stat_value(card_a, focus)
+        value_b = card_stat_value(card_b, focus)
+
+        # Small deterministic swing for a less predictable duel flow.
+        swing_a = rng.randint(0, 2)
+        swing_b = rng.randint(0, 2)
+        total_a = value_a + swing_a
+        total_b = value_b + swing_b
+
+        if total_a > total_b:
+            round_winner = 'a'
+            wins_a += 1
+        elif total_b > total_a:
+            round_winner = 'b'
+            wins_b += 1
+        else:
+            round_winner = 'draw'
+
+        rounds.append(
+            {
+                'round': idx + 1,
+                'label': label,
+                'focus': focus,
+                'card_a': {'slot': card_a.get('slot'), 'title': card_a.get('title')},
+                'card_b': {'slot': card_b.get('slot'), 'title': card_b.get('title')},
+                'value_a': value_a,
+                'value_b': value_b,
+                'swing_a': swing_a,
+                'swing_b': swing_b,
+                'total_a': total_a,
+                'total_b': total_b,
+                'winner': round_winner,
+            }
+        )
+
+    tie_breaker = False
+    if wins_a > wins_b:
+        winner = 'a'
+    elif wins_b > wins_a:
+        winner = 'b'
+    else:
+        tie_breaker = True
+        total_a = deck_score(cards_a)
+        total_b = deck_score(cards_b)
+        if total_a > total_b:
+            winner = 'a'
+        elif total_b > total_a:
+            winner = 'b'
+        else:
+            winner = None
+
+    return {
+        'rounds': rounds,
+        'score_a': wins_a,
+        'score_b': wins_b,
+        'winner': winner,
+        'tie_breaker': tie_breaker,
+    }
+
+
 def deck_summary_for_domain(domain, wallet_seed=None):
     if not domain:
         return None
@@ -2538,6 +2651,7 @@ def random_bot_cards(seed_value, count=5):
     for slot in range(1, count + 1):
         attack = rng.randint(12, 48)
         defense = rng.randint(10, 42)
+        luck = rng.randint(0, 12)
         cards.append(
             {
                 'slot': slot,
@@ -2545,8 +2659,9 @@ def random_bot_cards(seed_value, count=5):
                 'ability': CARD_ABILITIES[rng.randrange(len(CARD_ABILITIES))],
                 'attack': attack,
                 'defense': defense,
-                'score': attack + defense,
-                'rarity': card_rarity(attack + defense),
+                'luck': luck,
+                'score': attack + defense + luck,
+                'rarity': card_rarity(attack + defense + luck),
             }
         )
     return cards
@@ -3005,11 +3120,12 @@ def achievements_for_wallet(wallet):
 def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
     cards_a = generate_pack(domain_a, wallet_a)
     cards_b = generate_pack(domain_b, wallet_b)
-    score_a = deck_score(cards_a)
-    score_b = deck_score(cards_b)
-    if score_a > score_b:
+    duel = wikigachi_duel(cards_a, cards_b, f'{wallet_a}:{domain_a}:{wallet_b}:{domain_b}')
+    score_a = duel['score_a']
+    score_b = duel['score_b']
+    if duel['winner'] == 'a':
         winner = wallet_a
-    elif score_b > score_a:
+    elif duel['winner'] == 'b':
         winner = wallet_b
     else:
         winner = None
@@ -3022,6 +3138,10 @@ def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
         'cards_b': cards_b,
         'score_a': score_a,
         'score_b': score_b,
+        'rounds': duel['rounds'],
+        'tie_breaker': duel['tie_breaker'],
+        'deck_power_a': deck_score(cards_a),
+        'deck_power_b': deck_score(cards_b),
         'winner': winner,
     }
 
@@ -3154,11 +3274,36 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
     opp_domain = match['domain_b'] if viewer_is_a else match['domain_a']
     own_score = match['score_a'] if viewer_is_a else match['score_b']
     opp_score = match['score_b'] if viewer_is_a else match['score_a']
+    own_deck_power = match['deck_power_a'] if viewer_is_a else match['deck_power_b']
+    opp_deck_power = match['deck_power_b'] if viewer_is_a else match['deck_power_a']
 
     if match['winner'] is None:
         own_result = 'draw'
     else:
         own_result = 'win' if match['winner'] == own_wallet else 'loss'
+
+    rounds = []
+    for item in match.get('rounds', []):
+        rounds.append(
+            {
+                'round': item['round'],
+                'label': item['label'],
+                'focus': item['focus'],
+                'player_card': item['card_a'] if viewer_is_a else item['card_b'],
+                'opponent_card': item['card_b'] if viewer_is_a else item['card_a'],
+                'player_value': item['value_a'] if viewer_is_a else item['value_b'],
+                'opponent_value': item['value_b'] if viewer_is_a else item['value_a'],
+                'player_total': item['total_a'] if viewer_is_a else item['total_b'],
+                'opponent_total': item['total_b'] if viewer_is_a else item['total_a'],
+                'winner': (
+                    'draw'
+                    if item['winner'] == 'draw'
+                    else 'player'
+                    if ((item['winner'] == 'a') == viewer_is_a)
+                    else 'opponent'
+                ),
+            }
+        )
 
     payload = {
         'kind': 'solo',
@@ -3170,6 +3315,10 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
         'opponent_domain': opp_domain,
         'player_score': own_score,
         'opponent_score': opp_score,
+        'player_deck_power': own_deck_power,
+        'opponent_deck_power': opp_deck_power,
+        'tie_breaker': bool(match.get('tie_breaker')),
+        'rounds': rounds,
         'result': own_result if own_result != 'loss' else 'lose',
         'result_label': result_labels[own_result],
     }
@@ -3861,17 +4010,38 @@ def api_match_bot():
 
     player_cards = generate_pack(domain, wallet)
     bot_cards = random_bot_cards(f'{wallet}:{domain}:{now_iso()}')
-    player_score = deck_score(player_cards)
-    bot_score = sum(card['score'] for card in bot_cards)
-    if player_score > bot_score:
+    duel = wikigachi_duel(player_cards, bot_cards, f'bot-duel:{wallet}:{domain}:{now_iso()}')
+    player_score = duel['score_a']
+    bot_score = duel['score_b']
+    player_deck_power = deck_score(player_cards)
+    bot_deck_power = deck_score(bot_cards)
+    if duel['winner'] == 'a':
         result_code = 'win'
         result_label = 'Победа'
-    elif player_score < bot_score:
+    elif duel['winner'] == 'b':
         result_code = 'lose'
         result_label = 'Поражение'
     else:
         result_code = 'draw'
         result_label = 'Ничья'
+
+    rounds = []
+    for item in duel['rounds']:
+        rounds.append(
+            {
+                'round': item['round'],
+                'label': item['label'],
+                'focus': item['focus'],
+                'player_card': item['card_a'],
+                'opponent_card': item['card_b'],
+                'player_value': item['value_a'],
+                'opponent_value': item['value_b'],
+                'player_total': item['total_a'],
+                'opponent_total': item['total_b'],
+                'winner': 'draw' if item['winner'] == 'draw' else ('player' if item['winner'] == 'a' else 'opponent'),
+            }
+        )
+
     record_non_ranked_game(wallet, domain)
     return jsonify(
         {
@@ -3883,6 +4053,10 @@ def api_match_bot():
                 'opponent_domain': None,
                 'player_score': player_score,
                 'opponent_score': bot_score,
+                'player_deck_power': player_deck_power,
+                'opponent_deck_power': bot_deck_power,
+                'tie_breaker': duel['tie_breaker'],
+                'rounds': rounds,
                 'result': result_code,
                 'result_label': result_label,
             },
