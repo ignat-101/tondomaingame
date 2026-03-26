@@ -1355,10 +1355,10 @@ PAGE_TEMPLATE = """
           <div class="team-card" style="margin-bottom:18px;">
             <h3>PvP вызовы</h3>
             <div class="row">
-              <input id="opponent-wallet" placeholder="Кошелёк или домен соперника">
+              <input id="opponent-wallet" placeholder="Домен соперника">
               <input id="invite-timeout" type="number" min="30" max="600" step="30" value="60" placeholder="Время ответа, сек">
               <select id="match-delivery">
-                <option value="site">Сразу на сайте</option>
+                <option value="site">Через сайт</option>
                 <option value="telegram">Через Telegram</option>
               </select>
             </div>
@@ -1367,7 +1367,7 @@ PAGE_TEMPLATE = """
                 <option value="">Выбери карту для режима одной карты</option>
               </select>
             </div>
-            <div class="tiny">Режим "Сразу на сайте" запускает бой мгновенно. Для режима Telegram соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз.</div>
+            <div class="tiny">Режим "Через сайт" отправляет приглашение в игру через сайт. Режим "Через Telegram" бот отправляет приглашение через Telegram. Для режима Telegram соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз.</div>
           </div>
 
           <div class="mode-grid">
@@ -1481,7 +1481,7 @@ PAGE_TEMPLATE = """
 
         <section class="panel">
           <h3>Telegram бот</h3>
-          <p class="muted">Бот принимает `/start`, связывает Telegram с кошельком, отправляет реальные приглашения на матч и даёт сопернику ограниченное время на ответ.</p>
+          <p class="muted">Бот принимает `/start`, отдельную команду `/link_wallet <wallet>` для привязки Telegram к игре, отправляет реальные приглашения на матч и даёт сопернику ограниченное время на ответ.</p>
           <div class="actions">
             <a class="market-link" id="telegram-open-link" target="_blank" rel="noopener">Открыть бота</a>
             <button id="telegram-link-btn" disabled>Привязать Telegram к кошельку</button>
@@ -4479,11 +4479,46 @@ def handle_telegram_message(message):
         )
         return
 
+    if text.startswith('/start link_wallet'):
+        telegram_send_message(
+            chat_id,
+            'Для привязки Telegram к игре используй команду:\n/link_wallet <ton_wallet>\n\nПример:\n/link_wallet EQC...',
+            telegram_welcome_markup(),
+        )
+        return
+
     if text.startswith('/start') or text.startswith('/app'):
         telegram_send_message(
             chat_id,
             'tondomaingame готов. Открой mini app кнопкой ниже, подключи TON-кошелёк и начинай матч.',
             telegram_welcome_markup(),
+        )
+        return
+
+    if text.startswith('/link_wallet') or text.startswith('/link'):
+        parts = text.split(maxsplit=1)
+        if len(parts) < 2:
+            link = telegram_user_link(from_user.get('id')) if from_user.get('id') else None
+            linked_wallet = link['wallet'] if link and link.get('wallet') else None
+            suffix = f'\nТекущий привязанный кошелёк: {linked_wallet}' if linked_wallet else ''
+            telegram_send_message(
+                chat_id,
+                'Использование: /link_wallet <ton_wallet>\nПример: /link_wallet EQC...' + suffix,
+            )
+            return
+        wallet = parts[1].strip()
+        if not valid_wallet_address(wallet):
+            telegram_send_message(chat_id, 'Некорректный TON-кошелёк. Проверь адрес и попробуй снова.')
+            return
+        try:
+            ensure_player(wallet)
+            link_wallet_to_telegram(wallet, from_user.get('id'))
+        except ValueError as exc:
+            telegram_send_message(chat_id, str(exc))
+            return
+        telegram_send_message(
+            chat_id,
+            f'Telegram успешно привязан к кошельку {wallet[:6]}...{wallet[-6:]}. Теперь можно получать приглашения.',
         )
         return
 
@@ -4519,7 +4554,7 @@ def handle_telegram_message(message):
 
     telegram_send_message(
         chat_id,
-        'Команды:\n/start\n/app\n/leaderboard\n/rating <wallet>\n\nДля игры открой mini app.',
+        'Команды:\n/start\n/app\n/link_wallet <wallet>\n/leaderboard\n/rating <wallet>\n\nДля игры открой mini app.',
         telegram_welcome_markup(),
     )
 
