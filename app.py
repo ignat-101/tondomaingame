@@ -71,8 +71,7 @@ TEN_K_CONFIG_URL = 'https://10kclub.com/api/clubs/10k/config'
 DAILY_FREE_PACKS = int(os.getenv('DAILY_FREE_PACKS', '1'))
 PACK_PRICE_NANO = int(os.getenv('PACK_PRICE_NANO', '1000000000'))  # 1 TON
 PACK_RECEIVER_WALLET = os.getenv('PACK_RECEIVER_WALLET', '').strip()
-APP_SETTING_GUEST_ACCESS = 'guest_access'
-ADMIN_SETTINGS_KEY = os.getenv('ADMIN_SETTINGS_KEY', '').strip()
+ALLOW_GUEST_WITHOUT_DOMAIN = os.getenv('ALLOW_GUEST_WITHOUT_DOMAIN', '0').strip().lower() in {'1', 'true', 'yes', 'on'}
 
 DOMAIN_CACHE = {}
 TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
@@ -3286,13 +3285,6 @@ def json_error(message, status=400):
     return jsonify({'error': message}), status
 
 
-def require_admin_settings_key():
-    if not ADMIN_SETTINGS_KEY:
-        return False
-    provided = (request.headers.get('X-Admin-Key') or '').strip()
-    return bool(provided) and hmac.compare_digest(provided, ADMIN_SETTINGS_KEY)
-
-
 def valid_wallet_address(wallet):
     return bool(wallet) and len(wallet) >= 20 and wallet[0] in {'E', 'U', 'k', '0'}
 
@@ -3308,36 +3300,8 @@ def normalize_domain(value):
     return None
 
 
-def get_app_setting(key, default=None):
-    with closing(get_db()) as conn:
-        row = conn.execute('SELECT value FROM app_settings WHERE key = ?', (key,)).fetchone()
-    if row is None:
-        return default
-    return row['value']
-
-
-def set_app_setting(key, value):
-    with closing(get_db()) as conn:
-        conn.execute(
-            '''
-            INSERT INTO app_settings (key, value, updated_at)
-            VALUES (?, ?, ?)
-            ON CONFLICT(key) DO UPDATE SET
-                value = excluded.value,
-                updated_at = excluded.updated_at
-            ''',
-            (key, str(value), now_iso()),
-        )
-        conn.commit()
-
-
 def guest_access_enabled():
-    value = str(get_app_setting(APP_SETTING_GUEST_ACCESS, '0')).strip().lower()
-    return value in {'1', 'true', 'yes', 'on'}
-
-
-def set_guest_access_enabled(enabled):
-    set_app_setting(APP_SETTING_GUEST_ACCESS, '1' if enabled else '0')
+    return ALLOW_GUEST_WITHOUT_DOMAIN
 
 
 def guest_domain_for_wallet(wallet):
@@ -5192,27 +5156,6 @@ def tonconnect_manifest():
 @app.route('/api/health')
 def api_health():
     return jsonify({'ok': True, 'time': now_iso()})
-
-
-@app.route('/api/admin/settings/guest-access', methods=['POST'])
-def api_admin_settings_guest_access():
-    if not require_admin_settings_key():
-        return json_error('Нет доступа.', 403)
-    payload = request.get_json(silent=True) or {}
-    enabled = payload.get('enabled')
-    if isinstance(enabled, str):
-        enabled = enabled.strip().lower() in {'1', 'true', 'yes', 'on'}
-    elif not isinstance(enabled, bool):
-        return json_error('Поле enabled должно быть true/false.')
-    set_guest_access_enabled(bool(enabled))
-    return jsonify({'ok': True, 'guest_access': guest_access_enabled()})
-
-
-@app.route('/api/admin/settings/guest-access')
-def api_admin_settings_guest_access_get():
-    if not require_admin_settings_key():
-        return json_error('Нет доступа.', 403)
-    return jsonify({'guest_access': guest_access_enabled()})
 
 
 @app.route('/api/player/<wallet>')
