@@ -1035,20 +1035,24 @@ PAGE_TEMPLATE = """
 
         <section class="panel view" id="view-modes">
           <h2>Шаг 3. Режимы игры</h2>
-          <p class="muted">Бой идёт в формате wiki gachi: 5 раундов по статам (атака, защита, удача, общая сила и финальный натиск). Для рейтингового и обычного матча укажи соперника, задай время на ответ и бот отправит ему приглашение в Telegram.</p>
+          <p class="muted">Бой проходит в 5 раундов по статам (атака, защита, удача, общая сила и финальный натиск). Можно отправить вызов через Telegram или сразу сыграть на сайте.</p>
 
           <div class="team-card" style="margin-bottom:18px;">
-            <h3>PvP через Telegram</h3>
+            <h3>PvP вызовы</h3>
             <div class="row">
               <input id="opponent-wallet" placeholder="Кошелёк или домен соперника">
               <input id="invite-timeout" type="number" min="30" max="600" step="30" value="60" placeholder="Время ответа, сек">
+              <select id="match-delivery">
+                <option value="site">Сразу на сайте</option>
+                <option value="telegram">Через Telegram</option>
+              </select>
             </div>
             <div class="row">
               <select id="one-card-slot">
                 <option value="">Выбери карту для режима одной карты</option>
               </select>
             </div>
-            <div class="tiny">Соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз, чтобы привязать свой кошелёк к Telegram.</div>
+            <div class="tiny">Режим "Сразу на сайте" запускает бой мгновенно. Для режима Telegram соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз.</div>
           </div>
 
           <div class="mode-grid">
@@ -1073,7 +1077,7 @@ PAGE_TEMPLATE = """
             <div class="mode-card" data-mode-card="bot">
               <div class="mode-burst"></div>
               <h3>С ботом</h3>
-              <p>Тестовый wiki gachi: 5 раундов против бота с рандомной колодой.</p>
+              <p>Тестовый 5-раундовый бой против бота с рандомной колодой.</p>
               <button id="play-bot-btn" disabled>Играть с ботом</button>
             </div>
             <div class="mode-card" data-mode-card="onecard">
@@ -1610,7 +1614,7 @@ PAGE_TEMPLATE = """
       rows.forEach((row, index) => {
         setTimeout(() => {
           row.classList.add('visible');
-        }, 360 + index * 420);
+        }, 450 + index * 1000);
       });
     }
 
@@ -1672,9 +1676,13 @@ PAGE_TEMPLATE = """
               ${result.rounds.map((round) => {
                 const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
                 const marker = round.winner === 'player' ? 'WIN' : (round.winner === 'opponent' ? 'LOSE' : 'DRAW');
+                const playerCardTitle = round.player_card?.title || 'Твоя карта';
+                const opponentCardTitle = round.opponent_card?.title || 'Карта соперника';
+                const playerSlot = round.player_card?.slot || '-';
+                const opponentSlot = round.opponent_card?.slot || '-';
                 return `
                   <div class="discipline-row ${roundClass}">
-                    <span>${round.label}</span>
+                    <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
                     <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
                   </div>
                 `;
@@ -1912,6 +1920,7 @@ PAGE_TEMPLATE = """
     async function playMatch(mode) {
       const opponentWallet = document.getElementById('opponent-wallet').value.trim();
       const timeoutSeconds = Number(document.getElementById('invite-timeout').value || 60);
+      const delivery = (document.getElementById('match-delivery')?.value || 'site').trim();
       animateModeChoice(mode);
       try {
         const data = await api(`/api/match/${mode}`, {
@@ -1920,9 +1929,25 @@ PAGE_TEMPLATE = """
             wallet: state.wallet,
             domain: state.selectedDomain,
             opponent_wallet: opponentWallet,
-            timeout_seconds: timeoutSeconds
+            timeout_seconds: timeoutSeconds,
+            delivery
           }
         });
+
+        if (data.result) {
+          state.lastResult = data.result;
+          renderBattleResult(data.result);
+          if (data.player) {
+            state.playerProfile = data.player;
+            renderProfile();
+          }
+          await loadAchievements();
+          inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
+          inviteResult.innerHTML = '<strong>Матч запущен прямо на сайте.</strong>';
+          return;
+        }
+
         inviteResult.style.display = 'block';
         inviteResult.classList.add('duel-anim');
         inviteResult.innerHTML = `
@@ -2054,8 +2079,17 @@ PAGE_TEMPLATE = """
 
     async function linkTelegramWallet() {
       const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      if (!state.wallet) {
+        telegramStatus.textContent = 'Сначала подключи кошелёк.';
+        return;
+      }
       if (!tg || !tg.initData) {
-        telegramStatus.textContent = 'Привязка доступна только внутри Telegram mini app.';
+        if (telegramBotUsername) {
+          window.open(`https://t.me/${telegramBotUsername}?start=link_wallet`, '_blank');
+          telegramStatus.textContent = 'Открыл бота. Нажми /start в Telegram и потом вернись в mini app для подтверждения связи.';
+        } else {
+          telegramStatus.textContent = 'Привязка доступна в Telegram mini app. Укажи TG_BOT_USERNAME.';
+        }
         return;
       }
       try {
@@ -4219,6 +4253,7 @@ def api_match(mode):
     domain = normalize_domain(payload.get('domain'))
     opponent_reference = (payload.get('opponent_wallet') or '').strip()
     timeout_seconds = payload.get('timeout_seconds') or DEFAULT_INVITE_TIMEOUT_SECONDS
+    delivery = (payload.get('delivery') or 'site').strip().lower()
 
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
@@ -4231,11 +4266,35 @@ def api_match(mode):
         if not validate_wallet_owns_domain(wallet, domain):
             return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
         ensure_player(wallet, domain, domain)
+
+        opponent_player = ensure_player(opponent_wallet)
+        opponent_domain = opponent_player.get('current_domain') or opponent_player.get('best_domain')
+        if not opponent_domain:
+            return json_error('У соперника ещё нет выбранного домена для боя.', 400)
+
+        if delivery == 'site':
+            match = head_to_head_result(wallet, domain, opponent_wallet, opponent_domain)
+            rating_meta = None
+            if mode == 'ranked':
+                _, _, rating_a_before, rating_a_after, rating_b_before, rating_b_after = apply_ranked_result_duel(match)
+                rating_meta = {
+                    'rating_a_before': rating_a_before,
+                    'rating_a_after': rating_a_after,
+                    'rating_b_before': rating_b_before,
+                    'rating_b_after': rating_b_after,
+                }
+            else:
+                record_non_ranked_game(wallet, domain)
+                record_non_ranked_game(opponent_wallet, opponent_domain)
+
+            result = invite_result_payload({'mode': mode}, match, wallet, rating_meta=rating_meta)
+            return jsonify({'result': result, 'player': get_player(wallet), 'delivery': 'site'})
+
         invite = create_duel_invite(mode, wallet, domain, opponent_wallet, timeout_seconds)
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
 
-    return jsonify({'invite': invite, 'player': get_player(wallet)})
+    return jsonify({'invite': invite, 'player': get_player(wallet), 'delivery': 'telegram'})
 
 
 @app.route('/api/match/bot', methods=['POST'])
