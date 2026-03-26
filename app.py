@@ -7,6 +7,7 @@ import re
 import sqlite3
 import uuid
 import calendar
+import base64
 from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
@@ -67,6 +68,9 @@ ACTIVE_USER_WINDOW_SECONDS = int(os.getenv('ACTIVE_USER_WINDOW_SECONDS', '900'))
 DB_PATH = Path(os.getenv('APP_DB_PATH', 'tondomaingame.db'))
 TEN_K_CONFIG_TTL = int(os.getenv('TEN_K_CONFIG_TTL', '900'))
 TEN_K_CONFIG_URL = 'https://10kclub.com/api/clubs/10k/config'
+DAILY_FREE_PACKS = int(os.getenv('DAILY_FREE_PACKS', '1'))
+PACK_PRICE_NANO = int(os.getenv('PACK_PRICE_NANO', '1000000000'))  # 1 TON
+PACK_RECEIVER_WALLET = os.getenv('PACK_RECEIVER_WALLET', '').strip()
 
 DOMAIN_CACHE = {}
 TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
@@ -487,6 +491,24 @@ PAGE_TEMPLATE = """
       display: grid;
       gap: 12px;
     }
+
+    .catalog-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .catalog-card {
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .catalog-card.basic { border-color: rgba(180, 180, 180, 0.35); }
+    .catalog-card.rare { border-color: rgba(69, 215, 255, 0.42); }
+    .catalog-card.epic { border-color: rgba(255, 122, 134, 0.5); }
+    .catalog-card.legendary { border-color: rgba(255, 211, 110, 0.56); }
 
     .user-item {
       border-radius: 20px;
@@ -1078,6 +1100,7 @@ PAGE_TEMPLATE = """
     }
 
     .pack-showcase {
+      position: relative;
       margin-top: 16px;
       border-radius: 24px;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1086,6 +1109,20 @@ PAGE_TEMPLATE = """
         linear-gradient(180deg, rgba(8, 12, 18, 0.96), rgba(6, 10, 15, 0.94));
       padding: 16px 14px 18px;
       text-align: center;
+    }
+
+    .pack-showcase::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(3, 9, 18, 0);
+      transition: background 260ms ease;
+      pointer-events: none;
+      border-radius: 24px;
+    }
+
+    .pack-showcase.cinematic::after {
+      background: rgba(3, 9, 18, 0.72);
     }
 
     .pack-counter {
@@ -1126,6 +1163,15 @@ PAGE_TEMPLATE = """
       box-shadow: 0 28px 44px rgba(0, 0, 0, 0.42);
       overflow: visible;
       transition: transform 420ms ease, opacity 420ms ease;
+    }
+
+    .pack-showcase.cinematic .foil-pack {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: min(88vw, 560px);
+      transform: translate(-50%, -50%) scale(1.38);
+      z-index: 7100;
     }
 
     .foil-pack::before, .foil-pack::after {
@@ -1176,6 +1222,10 @@ PAGE_TEMPLATE = """
     .pack-showcase.opened .foil-pack {
       transform: translateY(-26px) scale(0.92);
       opacity: 0.18;
+    }
+
+    .foil-pack.vanishing {
+      animation: packVanish 1.1s cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .pack-emblem {
@@ -1292,6 +1342,11 @@ PAGE_TEMPLATE = """
       100% { transform: translateX(0) rotate(0deg); }
     }
 
+    @keyframes packVanish {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(1.18) rotate(0deg); filter: blur(0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.08) rotate(-420deg); filter: blur(5px); }
+    }
+
     @media (max-width: 920px) {
       body { padding-bottom: 84px; }
       .layout { grid-template-columns: 1fr; }
@@ -1390,7 +1445,8 @@ PAGE_TEMPLATE = """
           <div class="actions">
             <button class="secondary" id="back-to-wallet-btn">Назад</button>
             <button class="secondary" id="rebind-domain-btn">Перепривязать домен</button>
-            <button id="open-pack-btn" disabled>Открыть 5 карточек</button>
+            <button id="open-pack-btn" disabled>Открыть ежедневный пак</button>
+            <button id="buy-pack-btn" disabled>Открыть пак за 1 TON</button>
           </div>
 
           <div class="pack-showcase" id="pack-showcase">
@@ -1411,6 +1467,8 @@ PAGE_TEMPLATE = """
 
           <div class="status" id="pack-status"></div>
           <div class="card-grid" id="pack-cards"></div>
+          <h3 style="margin-top:18px;">Все возможные карты (100)</h3>
+          <div class="deck-list" id="card-catalog-list"></div>
           <div class="actions">
             <button id="continue-to-modes-btn" disabled>Продолжить</button>
           </div>
@@ -1608,7 +1666,8 @@ PAGE_TEMPLATE = """
       friends: [],
       ownedDecks: [],
       allPlayers: [],
-      achievements: []
+      achievements: [],
+      cardCatalog: []
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -1652,6 +1711,8 @@ PAGE_TEMPLATE = """
     const foilPack = document.getElementById('foil-pack');
     const packCounter = document.getElementById('pack-counter');
     const packNote = document.getElementById('pack-note');
+    const buyPackBtn = document.getElementById('buy-pack-btn');
+    const cardCatalogList = document.getElementById('card-catalog-list');
     const oneCardSlot = document.getElementById('one-card-slot');
     const achievementsList = document.getElementById('achievements-list');
     const refreshAchievementsBtn = document.getElementById('refresh-achievements-btn');
@@ -1888,6 +1949,26 @@ PAGE_TEMPLATE = """
       `).join('');
     }
 
+    function renderCardCatalog(cards) {
+      state.cardCatalog = cards || [];
+      if (!state.cardCatalog.length) {
+        cardCatalogList.innerHTML = '<div class="user-item muted">Каталог карт загружается...</div>';
+        return;
+      }
+      cardCatalogList.innerHTML = `
+        <div class="catalog-grid">
+          ${state.cardCatalog.map((card) => `
+            <article class="catalog-card ${card.rarity}">
+              <strong>${card.id.toUpperCase()} • ${card.title}</strong>
+              <div class="tiny">Редкость: ${card.rarity_label}</div>
+              <div class="tiny">Тип: ${card.stat_type}</div>
+              <div class="tiny">Характеристика: ${card.base_value}</div>
+            </article>
+          `).join('')}
+        </div>
+      `;
+    }
+
     function refreshOneCardSelector() {
       oneCardSlot.innerHTML = '<option value="">Выбери карту для режима одной карты</option>';
       if (!state.cards.length) {
@@ -1904,6 +1985,7 @@ PAGE_TEMPLATE = """
       const hasCards = state.cards.length === 5;
       document.getElementById('check-domains-btn').disabled = !connected;
       document.getElementById('open-pack-btn').disabled = !(connected && hasDomain);
+      buyPackBtn.disabled = !(connected && hasDomain && tonConnectUI);
       document.getElementById('continue-to-modes-btn').disabled = !hasCards;
       document.getElementById('play-ranked-btn').disabled = !(connected && hasCards);
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards);
@@ -2464,22 +2546,27 @@ PAGE_TEMPLATE = """
       }
     }
 
-    async function openPack() {
+    async function openPack(source = 'daily', paymentId = null) {
       setStatus(document.getElementById('pack-status'), 'Распаковываем 5 карточек из домена...', 'warning');
       foilPack.classList.remove('opening');
+      foilPack.classList.remove('vanishing');
       packShowcase.classList.remove('opened');
+      packShowcase.classList.add('cinematic');
       requestAnimationFrame(() => foilPack.classList.add('opening'));
       packNote.textContent = 'Opening...';
       try {
         const data = await api('/api/pack', {
           method: 'POST',
-          body: {wallet: state.wallet, domain: state.selectedDomain}
+          body: {wallet: state.wallet, domain: state.selectedDomain, source, payment_id: paymentId}
         });
         state.cards = data.cards;
         packShowcase.classList.add('opened');
         packNote.textContent = 'Pack opened';
         await new Promise((resolve) => setTimeout(resolve, 460));
         await renderPack(data.cards, data.total_score);
+        foilPack.classList.add('vanishing');
+        await sleep(1150);
+        packShowcase.classList.remove('cinematic');
         setStatus(document.getElementById('pack-status'), `Колода готова. ${data.domain}.ton даёт ${data.total_score} очков силы.`, 'success');
         updateButtons();
         showDeck();
@@ -2490,8 +2577,55 @@ PAGE_TEMPLATE = """
         loadProfile();
       } catch (error) {
         foilPack.classList.remove('opening');
+        foilPack.classList.remove('vanishing');
+        packShowcase.classList.remove('cinematic');
         packNote.textContent = 'TAP TO OPEN';
         setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
+    async function buyPackWithTon() {
+      if (!state.wallet || !state.selectedDomain) return;
+      if (!tonConnectUI) {
+        setStatus(document.getElementById('pack-status'), 'TonConnect не инициализирован.', 'error');
+        return;
+      }
+      try {
+        setStatus(document.getElementById('pack-status'), 'Создаём TON-платёж на 1 TON...', 'warning');
+        const intent = await api('/api/pack/payment-intent', {
+          method: 'POST',
+          body: { wallet: state.wallet, domain: state.selectedDomain }
+        });
+        const tx = await tonConnectUI.sendTransaction({
+          validUntil: intent.valid_until,
+          messages: [
+            {
+              address: intent.receiver_wallet,
+              amount: String(intent.amount_nano)
+            }
+          ]
+        });
+        await api('/api/pack/payment-confirm', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            payment_id: intent.payment_id,
+            tx_hash: tx && tx.boc ? tx.boc.slice(0, 120) : ''
+          }
+        });
+        setStatus(document.getElementById('pack-status'), 'Платёж подтверждён. Открываем платный пак...', 'success');
+        await openPack('paid', intent.payment_id);
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
+    async function loadCardCatalog() {
+      try {
+        const data = await api('/api/cards/catalog');
+        renderCardCatalog(data.cards || []);
+      } catch (error) {
+        cardCatalogList.innerHTML = `<div class="user-item error">${error.message}</div>`;
       }
     }
 
@@ -2932,7 +3066,8 @@ PAGE_TEMPLATE = """
     document.getElementById('check-domains-btn').addEventListener('click', checkDomains);
     document.getElementById('back-to-wallet-btn').addEventListener('click', () => switchView('wallet'));
     document.getElementById('rebind-domain-btn').addEventListener('click', rebindDomain);
-    document.getElementById('open-pack-btn').addEventListener('click', openPack);
+    document.getElementById('open-pack-btn').addEventListener('click', () => openPack('daily'));
+    buyPackBtn.addEventListener('click', buyPackWithTon);
     foilPack.addEventListener('click', () => {
       if (!document.getElementById('open-pack-btn').disabled) {
         openPack();
@@ -2980,6 +3115,7 @@ PAGE_TEMPLATE = """
     loadActiveUsers();
     loadGlobalPlayers();
     loadAchievements();
+    loadCardCatalog();
     renderProfile();
     renderFriends([]);
     renderDeck(null);
@@ -3091,6 +3227,30 @@ def init_db():
                 created_at TEXT NOT NULL,
                 PRIMARY KEY (owner_wallet, friend_wallet)
             );
+
+            CREATE TABLE IF NOT EXISTS pack_opens (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                source TEXT NOT NULL,
+                opened_on TEXT NOT NULL,
+                payment_id TEXT,
+                cards_json TEXT NOT NULL,
+                total_score INTEGER NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS pack_payments (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                amount_nano INTEGER NOT NULL,
+                memo TEXT NOT NULL,
+                status TEXT NOT NULL,
+                tx_hash TEXT,
+                created_at TEXT NOT NULL,
+                confirmed_at TEXT
+            );
             '''
         )
         columns = {row['name'] for row in conn.execute("PRAGMA table_info(players)").fetchall()}
@@ -3119,6 +3279,80 @@ def normalize_domain(value):
     if re.fullmatch(r'\d{4}', text):
         return text
     return None
+
+
+def today_utc_str():
+    return now_utc().date().isoformat()
+
+
+def can_open_daily_pack(wallet, domain):
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            '''
+            SELECT COUNT(*) AS cnt
+            FROM pack_opens
+            WHERE wallet = ? AND domain = ? AND opened_on = ? AND source = 'daily'
+            ''',
+            (wallet, domain, today_utc_str()),
+        ).fetchone()
+    return (row['cnt'] if row else 0) < DAILY_FREE_PACKS
+
+
+def store_pack_open(wallet, domain, source, cards, total_score, payment_id=None):
+    pack_id = uuid.uuid4().hex
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO pack_opens (id, wallet, domain, source, opened_on, payment_id, cards_json, total_score, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                pack_id,
+                wallet,
+                domain,
+                source,
+                today_utc_str(),
+                payment_id,
+                json.dumps(cards, ensure_ascii=False),
+                total_score,
+                now_iso(),
+            ),
+        )
+        conn.commit()
+    return pack_id
+
+
+def create_pack_payment(wallet, domain):
+    payment_id = uuid.uuid4().hex
+    memo = f'PACK:{payment_id}:{wallet[:8]}'
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO pack_payments (id, wallet, domain, amount_nano, memo, status, tx_hash, created_at, confirmed_at)
+            VALUES (?, ?, ?, ?, ?, 'pending', NULL, ?, NULL)
+            ''',
+            (payment_id, wallet, domain, PACK_PRICE_NANO, memo, now_iso()),
+        )
+        conn.commit()
+    return payment_id, memo
+
+
+def confirm_pack_payment(payment_id, wallet, tx_hash=None):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM pack_payments WHERE id = ?', (payment_id,)).fetchone()
+        if row is None:
+            raise ValueError('Платёж не найден.')
+        if row['wallet'] != wallet:
+            raise ValueError('Платёж принадлежит другому кошельку.')
+        if row['status'] == 'confirmed':
+            return dict(row)
+        conn.execute(
+            'UPDATE pack_payments SET status = ?, tx_hash = ?, confirmed_at = ? WHERE id = ?',
+            ('confirmed', tx_hash, now_iso(), payment_id),
+        )
+        conn.commit()
+        updated = conn.execute('SELECT * FROM pack_payments WHERE id = ?', (payment_id,)).fetchone()
+    return dict(updated)
 
 
 def fetch_10k_config(force_refresh=False):
@@ -3394,29 +3628,132 @@ def card_rarity(score):
     return 'Core'
 
 
-def generate_pack(domain, count=5):
+RARITY_ORDER = ('basic', 'rare', 'epic', 'legendary')
+RARITY_LABELS = {'basic': 'Basic', 'rare': 'Rare', 'epic': 'Epic', 'legendary': 'Legendary'}
+STAT_TYPES = ('attack', 'defense', 'luck', 'power')
+CARD_TYPES = ('Pulse', 'Shield', 'Cipher', 'Nova', 'Relay')
+CARD_POOL_SIZE = 100
+
+
+def build_card_catalog():
+    rng = random.Random('ton-card-catalog-v1')
+    rarity_counts = {'basic': 52, 'rare': 26, 'epic': 14, 'legendary': 8}
+    cards = []
+    cursor = 1
+    for rarity in RARITY_ORDER:
+        for idx in range(rarity_counts[rarity]):
+            stat_type = STAT_TYPES[(cursor + idx) % len(STAT_TYPES)]
+            card_type = CARD_TYPES[(cursor * 3 + idx) % len(CARD_TYPES)]
+            base_value = (
+                rng.randint(14, 38)
+                if rarity == 'basic'
+                else rng.randint(30, 58)
+                if rarity == 'rare'
+                else rng.randint(52, 86)
+                if rarity == 'epic'
+                else rng.randint(78, 120)
+            )
+            cards.append(
+                {
+                    'id': f'c{cursor:03d}',
+                    'title': f'{card_type} {cursor:03d}',
+                    'rarity': rarity,
+                    'rarity_label': RARITY_LABELS[rarity],
+                    'stat_type': stat_type,
+                    'base_value': base_value,
+                }
+            )
+            cursor += 1
+    return cards
+
+
+CARD_CATALOG = build_card_catalog()
+CARD_CATALOG_BY_RARITY = {
+    rarity: [card for card in CARD_CATALOG if card['rarity'] == rarity] for rarity in RARITY_ORDER
+}
+
+
+def weighted_choice(weights, rng):
+    total = sum(max(0, value) for value in weights.values())
+    if total <= 0:
+        return 'basic'
+    roll = rng.uniform(0, total)
+    current = 0.0
+    for key in RARITY_ORDER:
+        current += max(0, weights.get(key, 0))
+        if roll <= current:
+            return key
+    return 'basic'
+
+
+def rarity_weights_for_domain(base):
+    weights = {'basic': 72, 'rare': 20, 'epic': 6, 'legendary': 2}
+    tier = (base.get('tier') or '').lower()
+    if 'tier-0' in tier:
+        weights = {'basic': 42, 'rare': 30, 'epic': 18, 'legendary': 10}
+    elif 'tier-1' in tier:
+        weights = {'basic': 50, 'rare': 29, 'epic': 15, 'legendary': 6}
+    elif 'tier-2' in tier:
+        weights = {'basic': 58, 'rare': 26, 'epic': 12, 'legendary': 4}
+
+    patterns = set(base.get('patterns') or [])
+    weights['rare'] += min(12, len(patterns) * 2)
+    weights['epic'] += min(8, len(patterns))
+    if patterns.intersection({'mirror', 'all_same', 'first_100', 'zero_frames'}):
+        weights['legendary'] += 3
+        weights['basic'] -= 6
+    return weights
+
+
+def materialize_card(card_template, domain, slot, domain_score, rng):
+    rarity = card_template['rarity']
+    rarity_boost = {'basic': 0, 'rare': 8, 'epic': 16, 'legendary': 28}[rarity]
+    primary = max(1, card_template['base_value'] + domain_score // 8 + rng.randint(-4, 7) + rarity_boost)
+    stat_type = card_template['stat_type']
+    attack = 2
+    defense = 2
+    luck = 1
+    if stat_type == 'attack':
+        attack = primary
+    elif stat_type == 'defense':
+        defense = primary
+    elif stat_type == 'luck':
+        luck = max(1, primary // 5)
+    else:  # power
+        attack = max(4, primary // 2)
+        defense = max(4, primary // 2)
+        luck = max(1, primary // 12)
+    score = attack + defense + luck
+    return {
+        'id': card_template['id'],
+        'slot': slot,
+        'title': card_template['title'],
+        'ability': f'Тип: {stat_type}',
+        'domain': domain,
+        'attack': attack,
+        'defense': defense,
+        'luck': luck,
+        'score': score,
+        'rarity': card_template['rarity_label'],
+        'rarity_key': rarity,
+        'stat_type': stat_type,
+        'stat_value': primary,
+        'patterns': [],
+    }
+
+
+def generate_pack(domain, count=5, seed_value=None):
     base = score_from_domain(domain)
-    rng = random.Random(hashlib.sha256(f'deck:{domain}'.encode()).hexdigest())
+    seed_source = seed_value or f'deck:{domain}'
+    rng = random.Random(hashlib.sha256(str(seed_source).encode()).hexdigest())
+    weights = rarity_weights_for_domain(base)
     cards = []
     for slot in range(1, count + 1):
-        luck = max(0, base.get('luck', 0) + rng.randint(-1, 3))
-        attack = max(1, base['attack'] + rng.randint(-6, 12) + slot + luck // 2)
-        defense = max(1, base['defense'] + rng.randint(-4, 10) + luck // 3)
-        score = attack + defense + luck
-        cards.append(
-            {
-                'slot': slot,
-                'title': CARD_TITLES[(slot + int(domain[-1])) % len(CARD_TITLES)],
-                'ability': CARD_ABILITIES[(slot + int(domain[0])) % len(CARD_ABILITIES)],
-                'domain': domain,
-                'attack': attack,
-                'defense': defense,
-                'luck': luck,
-                'score': score,
-                'rarity': card_rarity(score),
-                'patterns': base['patterns'],
-            }
-        )
+        rarity = weighted_choice(weights, rng)
+        template = rng.choice(CARD_CATALOG_BY_RARITY[rarity])
+        card = materialize_card(template, domain, slot, base['score'], rng)
+        card['patterns'] = base.get('patterns', [])
+        cards.append(card)
     return cards
 
 
@@ -3518,10 +3855,36 @@ def wikigachi_duel(cards_a, cards_b, seed_value):
     }
 
 
-def deck_summary_for_domain(domain):
+def load_active_deck_cards(wallet, domain):
+    if not wallet or not domain:
+        return None
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            '''
+            SELECT cards_json
+            FROM pack_opens
+            WHERE wallet = ? AND domain = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            ''',
+            (wallet, domain),
+        ).fetchone()
+    if row and row['cards_json']:
+        try:
+            parsed = json.loads(row['cards_json'])
+            if isinstance(parsed, list) and parsed:
+                return parsed
+        except json.JSONDecodeError:
+            return None
+    return None
+
+
+def deck_summary_for_domain(domain, wallet=None):
     if not domain:
         return None
-    cards = generate_pack(domain)
+    cards = load_active_deck_cards(wallet, domain) if wallet else None
+    if not cards:
+        cards = generate_pack(domain)
     return {
         'cards': cards,
         'average_attack': round(sum(card['attack'] for card in cards) / len(cards), 1),
@@ -3791,7 +4154,7 @@ def active_users():
         ).fetchall()
     result = []
     for row in rows:
-        summary = deck_summary_for_domain(row['current_domain'])
+        summary = deck_summary_for_domain(row['current_domain'], row['wallet'])
         result.append(
             {
                 'wallet': row['wallet'],
@@ -3823,7 +4186,7 @@ def friend_rows(owner_wallet):
         ).fetchall()
     result = []
     for row in rows:
-        summary = deck_summary_for_domain(row['current_domain']) if row['current_domain'] else None
+        summary = deck_summary_for_domain(row['current_domain'], row['wallet']) if row['current_domain'] else None
         result.append(
             {
                 'wallet': row['wallet'],
@@ -3886,7 +4249,7 @@ def ensure_player(wallet, best_domain=None, current_domain=None):
 
 def get_player(wallet):
     player = ensure_player(wallet)
-    current_deck = deck_summary_for_domain(player['current_domain']) if player['current_domain'] else None
+    current_deck = deck_summary_for_domain(player['current_domain'], wallet) if player['current_domain'] else None
     return {
         'wallet': player['wallet'],
         'rating': player['rating'],
@@ -4003,8 +4366,8 @@ def achievements_for_wallet(wallet):
 
 
 def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
-    cards_a = generate_pack(domain_a)
-    cards_b = generate_pack(domain_b)
+    cards_a = load_active_deck_cards(wallet_a, domain_a) or generate_pack(domain_a)
+    cards_b = load_active_deck_cards(wallet_b, domain_b) or generate_pack(domain_b)
     duel = wikigachi_duel(cards_a, cards_b, f'{wallet_a}:{domain_a}:{wallet_b}:{domain_b}')
     score_a = duel['score_a']
     score_b = duel['score_b']
@@ -4443,7 +4806,7 @@ def start_team_room(room_id, requester_wallet):
 
     for index, player in enumerate(snapshot['players']):
         team = teams[index % 2]
-        cards = generate_pack(player['domain'])
+        cards = load_active_deck_cards(player['wallet'], player['domain']) or generate_pack(player['domain'])
         total = deck_score(cards)
         team['players'].append(
             {
@@ -4760,7 +5123,7 @@ def api_deck(wallet):
     domain = player['current_domain'] or player['best_domain']
     if not domain:
         return json_error('У игрока ещё нет сохранённой колоды.', 404)
-    summary = deck_summary_for_domain(domain)
+    summary = deck_summary_for_domain(domain, wallet)
     return jsonify({'wallet': wallet, 'domain': domain, 'deck': summary})
 
 
@@ -4775,7 +5138,7 @@ def api_decks(wallet):
     player = ensure_player(wallet, domains[0]['domain'] if domains else None, None)
     decks = []
     for item in domains:
-        summary = deck_summary_for_domain(item['domain'])
+        summary = deck_summary_for_domain(item['domain'], wallet)
         decks.append(
             {
                 'domain': item['domain'],
@@ -4805,7 +5168,7 @@ def api_deck_select():
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
     ensure_player(wallet, domain, domain)
-    summary = deck_summary_for_domain(domain)
+    summary = deck_summary_for_domain(domain, wallet)
     return jsonify({'ok': True, 'wallet': wallet, 'domain': domain, 'deck': summary, 'player': get_player(wallet)})
 
 
@@ -4901,20 +5264,85 @@ def api_pack():
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     domain = normalize_domain(payload.get('domain'))
+    source = (payload.get('source') or 'daily').strip().lower()
+    payment_id = (payload.get('payment_id') or '').strip()
     if not valid_wallet_address(wallet):
         return json_error('Кошелёк не подключен.')
     if not domain:
         return json_error('Нужно выбрать реальный домен.')
+    if source not in {'daily', 'paid'}:
+        return json_error('Неизвестный тип открытия пака.')
     try:
         if not validate_wallet_owns_domain(wallet, domain):
             return json_error('Выбранный домен не найден в подключённом кошельке.', 403)
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
 
-    cards = generate_pack(domain)
+    if source == 'daily' and not can_open_daily_pack(wallet, domain):
+        return json_error('Ежедневный пак уже открыт. Попробуй снова завтра или открой платный пак.', 403)
+
+    if source == 'paid':
+        if not payment_id:
+            return json_error('Нужен подтверждённый платёж для открытия платного пака.', 403)
+        with closing(get_db()) as conn:
+            payment = conn.execute('SELECT * FROM pack_payments WHERE id = ?', (payment_id,)).fetchone()
+        if payment is None or payment['wallet'] != wallet or payment['domain'] != domain or payment['status'] != 'confirmed':
+            return json_error('Платёж не подтверждён.', 403)
+
+    seed = f'{domain}:{wallet}:{source}:{payment_id or now_iso()}'
+    cards = generate_pack(domain, seed_value=seed)
     total = deck_score(cards)
+    pack_id = store_pack_open(wallet, domain, source, cards, total, payment_id=payment_id or None)
     ensure_player(wallet, domain, domain)
-    return jsonify({'wallet': wallet, 'domain': domain, 'cards': cards, 'total_score': total})
+    return jsonify({'wallet': wallet, 'domain': domain, 'cards': cards, 'total_score': total, 'pack_id': pack_id, 'source': source})
+
+
+@app.route('/api/cards/catalog')
+def api_cards_catalog():
+    return jsonify({'cards': CARD_CATALOG, 'total': len(CARD_CATALOG)})
+
+
+@app.route('/api/pack/payment-intent', methods=['POST'])
+def api_pack_payment_intent():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи TON-кошелёк.')
+    if not domain:
+        return json_error('Выбери домен перед оплатой.')
+    if not PACK_RECEIVER_WALLET:
+        return json_error('Не настроен адрес получателя платежа (PACK_RECEIVER_WALLET).', 500)
+    payment_id, memo = create_pack_payment(wallet, domain)
+    return jsonify(
+        {
+            'ok': True,
+            'payment_id': payment_id,
+            'amount_nano': PACK_PRICE_NANO,
+            'amount_ton': PACK_PRICE_NANO / 1_000_000_000,
+            'receiver_wallet': PACK_RECEIVER_WALLET,
+            'memo': memo,
+            'payload_base64': base64.b64encode(memo.encode()).decode(),
+            'valid_until': int(now_utc().timestamp()) + 600,
+        }
+    )
+
+
+@app.route('/api/pack/payment-confirm', methods=['POST'])
+def api_pack_payment_confirm():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    payment_id = (payload.get('payment_id') or '').strip()
+    tx_hash = (payload.get('tx_hash') or '').strip() or None
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи TON-кошелёк.')
+    if not payment_id:
+        return json_error('Не указан payment_id.')
+    try:
+        payment = confirm_pack_payment(payment_id, wallet, tx_hash=tx_hash)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'payment': payment})
 
 
 @app.route('/api/match/<mode>', methods=['POST'])
