@@ -2452,9 +2452,9 @@ PAGE_TEMPLATE = """
           <section class="showdown-main">
             <div class="showdown-center showdown-middle">
               <div class="prebattle-stage" id="prebattle-stage">
-                <div class="tiny">Колоды готовы. Нажми, чтобы запустить матч.</div>
+                <div class="tiny" id="prebattle-ready-status">Колоды готовы. Нажми "Готов".</div>
                 <div class="showdown-entry-actions">
-                  <button id="start-battle-btn">Начать игру</button>
+                  <button id="start-battle-btn">Готов</button>
                   <button class="secondary" onclick="openModes()">К режимам</button>
                 </div>
               </div>
@@ -2511,36 +2511,93 @@ PAGE_TEMPLATE = """
         `;
 
         const startBtn = battleResult.querySelector('#start-battle-btn');
+        const prebattleReadyStatus = battleResult.querySelector('#prebattle-ready-status');
         if (startBtn) {
           startBtn.addEventListener('click', () => {
-            startBtn.disabled = true;
-            startBtn.textContent = 'Бой идёт...';
-            battleResult.classList.add('battle-live');
-            setTimeout(() => battleResult.classList.remove('battle-live'), 620);
-            playBattleFx(resultKey, 'start');
-            const prebattle = battleResult.querySelector('#prebattle-stage');
-            const battleStage = battleResult.querySelector('#battle-stage');
-            if (prebattle) {
-              prebattle.classList.add('hidden');
-            }
-            if (battleStage) {
-              battleStage.classList.add('visible');
-            }
-            const finalDelay = revealDisciplineRows(0, 0);
-            const showOutcome = () => {
-              battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
-              animateScoreCounters(battleResult);
-              playBattleFx(resultKey, 'finish');
-              const mainPanel = battleResult.querySelector('.showdown-main');
-              if (mainPanel) {
-                mainPanel.scrollTo({ top: mainPanel.scrollHeight, behavior: 'smooth' });
+            const launchBattle = () => {
+              startBtn.disabled = true;
+              startBtn.textContent = 'Бой идёт...';
+              battleResult.classList.add('battle-live');
+              setTimeout(() => battleResult.classList.remove('battle-live'), 620);
+              playBattleFx(resultKey, 'start');
+              const prebattle = battleResult.querySelector('#prebattle-stage');
+              const battleStage = battleResult.querySelector('#battle-stage');
+              if (prebattle) {
+                prebattle.classList.add('hidden');
+              }
+              if (battleStage) {
+                battleStage.classList.add('visible');
+              }
+              const finalDelay = revealDisciplineRows(0, 1000);
+              const showOutcome = () => {
+                battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
+                animateScoreCounters(battleResult);
+                playBattleFx(resultKey, 'finish');
+                const mainPanel = battleResult.querySelector('.showdown-main');
+                if (mainPanel) {
+                  mainPanel.scrollTo({ top: mainPanel.scrollHeight, behavior: 'smooth' });
+                }
+              };
+              if (finalDelay > 0) {
+                setTimeout(showOutcome, finalDelay);
+              } else {
+                showOutcome();
               }
             };
-            if (finalDelay > 0) {
-              setTimeout(showOutcome, finalDelay);
-            } else {
-              showOutcome();
+
+            if (!result.requires_ready || !result.battle_session_id || !result.opponent_wallet || !state.wallet) {
+              launchBattle();
+              return;
             }
+
+            startBtn.disabled = true;
+            startBtn.textContent = 'Готов';
+            if (prebattleReadyStatus) {
+              prebattleReadyStatus.textContent = 'Ты готов. Ожидание соперника...';
+            }
+
+            const sessionId = result.battle_session_id;
+            const pollReadyStatus = async () => {
+              try {
+                const poll = await api(`/api/battle-ready/status?wallet=${encodeURIComponent(state.wallet)}&session_id=${encodeURIComponent(sessionId)}`);
+                const st = poll.status || {};
+                if (prebattleReadyStatus) {
+                  prebattleReadyStatus.textContent = `Готовы: ${st.ready_count || 1}/2`;
+                }
+                if (st.started) {
+                  launchBattle();
+                  return;
+                }
+                setTimeout(pollReadyStatus, 900);
+              } catch (error) {
+                startBtn.disabled = false;
+                startBtn.textContent = 'Готов';
+                if (prebattleReadyStatus) {
+                  prebattleReadyStatus.textContent = error.message;
+                }
+              }
+            };
+
+            api('/api/battle-ready', {
+              method: 'POST',
+              body: { wallet: state.wallet, session_id: sessionId }
+            }).then((readyData) => {
+              const st = readyData.status || {};
+              if (prebattleReadyStatus) {
+                prebattleReadyStatus.textContent = `Готовы: ${st.ready_count || 1}/2`;
+              }
+              if (st.started) {
+                launchBattle();
+                return;
+              }
+              pollReadyStatus();
+            }).catch((error) => {
+              startBtn.disabled = false;
+              startBtn.textContent = 'Готов';
+              if (prebattleReadyStatus) {
+                prebattleReadyStatus.textContent = error.message;
+              }
+            });
           });
         }
       }
@@ -3526,6 +3583,19 @@ def init_db():
                 PRIMARY KEY (wallet_a, wallet_b)
             );
 
+            CREATE TABLE IF NOT EXISTS battle_sessions (
+                id TEXT PRIMARY KEY,
+                wallet_a TEXT NOT NULL,
+                wallet_b TEXT NOT NULL,
+                payload_a_json TEXT NOT NULL,
+                payload_b_json TEXT NOT NULL,
+                ready_a INTEGER NOT NULL DEFAULT 0,
+                ready_b INTEGER NOT NULL DEFAULT 0,
+                started_at TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS deck_builds (
                 wallet TEXT NOT NULL,
                 domain TEXT NOT NULL,
@@ -3606,6 +3676,18 @@ def ensure_runtime_tables():
                 wallet_b TEXT NOT NULL,
                 expires_at TEXT NOT NULL,
                 PRIMARY KEY (wallet_a, wallet_b)
+            );
+            CREATE TABLE IF NOT EXISTS battle_sessions (
+                id TEXT PRIMARY KEY,
+                wallet_a TEXT NOT NULL,
+                wallet_b TEXT NOT NULL,
+                payload_a_json TEXT NOT NULL,
+                payload_b_json TEXT NOT NULL,
+                ready_a INTEGER NOT NULL DEFAULT 0,
+                ready_b INTEGER NOT NULL DEFAULT 0,
+                started_at TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS deck_builds (
                 wallet TEXT NOT NULL,
@@ -5340,6 +5422,79 @@ def matchmaking_cooldown_left(conn, wallet_a, wallet_b):
     return max(0, left)
 
 
+def create_battle_session(conn, wallet_a, wallet_b, payload_a, payload_b):
+    session_id = uuid.uuid4().hex
+    ts = now_iso()
+    payload_a = dict(payload_a or {})
+    payload_b = dict(payload_b or {})
+    payload_a['battle_session_id'] = session_id
+    payload_b['battle_session_id'] = session_id
+    payload_a['requires_ready'] = True
+    payload_b['requires_ready'] = True
+    conn.execute(
+        '''
+        INSERT INTO battle_sessions (
+            id, wallet_a, wallet_b, payload_a_json, payload_b_json,
+            ready_a, ready_b, started_at, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?, ?)
+        ''',
+        (
+            session_id,
+            wallet_a,
+            wallet_b,
+            json.dumps(payload_a, ensure_ascii=False),
+            json.dumps(payload_b, ensure_ascii=False),
+            ts,
+            ts,
+        ),
+    )
+    return session_id, payload_a, payload_b
+
+
+def battle_session_snapshot(row, viewer_wallet):
+    is_a = viewer_wallet == row['wallet_a']
+    self_ready = bool(row['ready_a']) if is_a else bool(row['ready_b'])
+    opp_ready = bool(row['ready_b']) if is_a else bool(row['ready_a'])
+    return {
+        'id': row['id'],
+        'ready_self': self_ready,
+        'ready_opponent': opp_ready,
+        'ready_count': int(bool(row['ready_a'])) + int(bool(row['ready_b'])),
+        'started': bool(row['started_at']),
+        'started_at': row['started_at'],
+    }
+
+
+def mark_battle_ready(session_id, wallet):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
+        if row is None:
+            raise ValueError('Боевая сессия не найдена.')
+        if wallet not in {row['wallet_a'], row['wallet_b']}:
+            raise ValueError('Нет доступа к этой сессии.')
+        is_a = wallet == row['wallet_a']
+        if is_a:
+            conn.execute('UPDATE battle_sessions SET ready_a = 1, updated_at = ? WHERE id = ?', (now_iso(), session_id))
+        else:
+            conn.execute('UPDATE battle_sessions SET ready_b = 1, updated_at = ? WHERE id = ?', (now_iso(), session_id))
+        row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
+        if row and row['started_at'] is None and row['ready_a'] and row['ready_b']:
+            conn.execute('UPDATE battle_sessions SET started_at = ?, updated_at = ? WHERE id = ?', (now_iso(), now_iso(), session_id))
+            row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
+        conn.commit()
+    return battle_session_snapshot(row, wallet)
+
+
+def get_battle_ready_status(session_id, wallet):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
+    if row is None:
+        raise ValueError('Боевая сессия не найдена.')
+    if wallet not in {row['wallet_a'], row['wallet_b']}:
+        raise ValueError('Нет доступа к этой сессии.')
+    return battle_session_snapshot(row, wallet)
+
+
 def latest_matchmaking_row(conn, wallet, mode):
     return conn.execute(
         '''
@@ -5400,6 +5555,7 @@ def settle_matchmaking_pair(conn, mode, wallet, domain, opponent_row):
 
     own_payload = invite_result_payload({'mode': mode}, match, wallet, rating_meta=rating_meta)
     opp_payload = invite_result_payload({'mode': mode}, match, opponent_wallet, rating_meta=rating_meta)
+    _, own_payload, opp_payload = create_battle_session(conn, wallet, opponent_wallet, own_payload, opp_payload)
     set_matchmaking_cooldown(conn, wallet, opponent_wallet)
     ts = now_iso()
 
@@ -6263,6 +6419,39 @@ def api_matchmaking_cancel(mode):
     except sqlite3.Error as exc:
         return json_error(f'Ошибка отмены поиска: {exc}', 500)
     return jsonify({'ok': True, 'status': 'cancelled'})
+
+
+@app.route('/api/battle-ready', methods=['POST'])
+def api_battle_ready():
+    ensure_runtime_tables()
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    session_id = (payload.get('session_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        status = mark_battle_ready(session_id, wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'status': status})
+
+
+@app.route('/api/battle-ready/status')
+def api_battle_ready_status():
+    ensure_runtime_tables()
+    wallet = (request.args.get('wallet') or '').strip()
+    session_id = (request.args.get('session_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно передать кошелёк.')
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        status = get_battle_ready_status(session_id, wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'status': status})
 
 
 @app.route('/api/match/<mode>', methods=['POST'])
