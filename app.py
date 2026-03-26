@@ -195,7 +195,7 @@ PAGE_TEMPLATE = """
 
     .badge-row, .stepper, .stats-strip, .links-row {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
@@ -540,7 +540,7 @@ PAGE_TEMPLATE = """
         12px
         calc(16px + env(safe-area-inset-bottom));
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      grid-template-rows: auto auto auto auto;
       gap: 12px;
       background:
         radial-gradient(circle at 50% 10%, rgba(83, 246, 184, 0.16), transparent 38%),
@@ -552,7 +552,7 @@ PAGE_TEMPLATE = """
     .showdown-header {
       border: 1px solid rgba(121, 217, 255, 0.32);
       border-radius: 18px;
-      padding: 12px;
+      padding: 9px;
       background: rgba(6, 18, 32, 0.9);
       backdrop-filter: blur(3px);
     }
@@ -560,11 +560,12 @@ PAGE_TEMPLATE = """
     .showdown-main {
       border: 1px solid rgba(121, 217, 255, 0.25);
       border-radius: 16px;
-      padding: 12px;
+      padding: 10px;
       background: rgba(4, 14, 27, 0.75);
       overflow: auto;
       -webkit-overflow-scrolling: touch;
-      min-height: 0;
+      min-height: auto;
+      max-height: 46vh;
     }
 
     .showdown-deck {
@@ -675,12 +676,31 @@ PAGE_TEMPLATE = """
       pointer-events: auto;
     }
 
+    .prebattle-stage {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      padding: 8px 4px;
+    }
+
+    .prebattle-stage.hidden {
+      display: none;
+    }
+
+    .battle-stage {
+      display: none;
+    }
+
+    .battle-stage.visible {
+      display: block;
+    }
+
     .showdown-entry-actions {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
       justify-content: center;
-      margin: 10px 0 6px;
+      margin: 2px 0 2px;
     }
 
     .victory-banner {
@@ -1749,32 +1769,37 @@ PAGE_TEMPLATE = """
           </section>
           <section class="showdown-main">
             <div class="showdown-center showdown-middle">
-              <div class="showdown-entry-actions">
-                <button id="start-battle-btn">Начать игру</button>
-                <button class="secondary" onclick="openModes()">К режимам</button>
+              <div class="prebattle-stage" id="prebattle-stage">
+                <div class="tiny">Колоды готовы. Нажми, чтобы запустить матч.</div>
+                <div class="showdown-entry-actions">
+                  <button id="start-battle-btn">Начать игру</button>
+                  <button class="secondary" onclick="openModes()">К режимам</button>
+                </div>
               </div>
-              <div class="match-outcome delayed-outcome">
-                <div class="result-flip">
-                  <div class="result-flip-card ${resultClass}">
-                    <div class="result-flip-face ${frontClass}">${frontLabel}</div>
-                    <div class="result-flip-face back">LOSE</div>
+              <div class="battle-stage" id="battle-stage">
+                <div class="match-outcome delayed-outcome">
+                  <div class="result-flip">
+                    <div class="result-flip-card ${resultClass}">
+                      <div class="result-flip-face ${frontClass}">${frontLabel}</div>
+                      <div class="result-flip-face back">LOSE</div>
+                    </div>
                   </div>
+                  <h3>${result.mode_title}</h3>
+                  <div class="showdown-score">
+                    <span>${result.player_score}</span>
+                    <span>:</span>
+                    <span>${result.opponent_score}</span>
+                  </div>
+                  <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
                 </div>
-                <h3>${result.mode_title}</h3>
-                <div class="showdown-score">
-                  <span>${result.player_score}</span>
-                  <span>:</span>
-                  <span>${result.opponent_score}</span>
-                </div>
-                <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
+                ${cardLine}
+                ${oppCardLine}
+                ${roundsLine}
+                ${deckPowerLine}
+                ${ratingLine}
+                <p class="muted delayed-outcome">Итог: ${result.result_label}</p>
+                ${victoryLine}
               </div>
-              ${cardLine}
-              ${oppCardLine}
-              ${roundsLine}
-              ${deckPowerLine}
-              ${ratingLine}
-              <p class="muted delayed-outcome">Итог: ${result.result_label}</p>
-              ${victoryLine}
             </div>
           </section>
           <section class="showdown-header">
@@ -1794,13 +1819,17 @@ PAGE_TEMPLATE = """
           startBtn.addEventListener('click', () => {
             startBtn.disabled = true;
             startBtn.textContent = 'Бой идёт...';
+            const prebattle = battleResult.querySelector('#prebattle-stage');
+            const battleStage = battleResult.querySelector('#battle-stage');
+            if (prebattle) {
+              prebattle.classList.add('hidden');
+            }
+            if (battleStage) {
+              battleStage.classList.add('visible');
+            }
             const finalDelay = revealDisciplineRows(0, 1000);
             const showOutcome = () => {
               battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
-              const entry = battleResult.querySelector('.showdown-entry-actions');
-              if (entry) {
-                entry.style.display = 'none';
-              }
             };
             if (finalDelay > 0) {
               setTimeout(showOutcome, finalDelay);
