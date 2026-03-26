@@ -65,6 +65,7 @@ MIN_INVITE_TIMEOUT_SECONDS = int(os.getenv('MIN_INVITE_TIMEOUT_SECONDS', '30'))
 MAX_INVITE_TIMEOUT_SECONDS = int(os.getenv('MAX_INVITE_TIMEOUT_SECONDS', '600'))
 TELEGRAM_INITDATA_MAX_AGE = int(os.getenv('TELEGRAM_INITDATA_MAX_AGE', '86400'))
 ACTIVE_USER_WINDOW_SECONDS = int(os.getenv('ACTIVE_USER_WINDOW_SECONDS', '900'))
+MATCHMAKING_SEARCH_TTL_SECONDS = int(os.getenv('MATCHMAKING_SEARCH_TTL_SECONDS', '180'))
 DB_PATH = Path(os.getenv('APP_DB_PATH', 'tondomaingame.db'))
 TEN_K_CONFIG_TTL = int(os.getenv('TEN_K_CONFIG_TTL', '900'))
 TEN_K_CONFIG_URL = 'https://10kclub.com/api/clubs/10k/config'
@@ -1477,10 +1478,10 @@ PAGE_TEMPLATE = """
 
         <section class="panel view" id="view-modes">
           <h2>Шаг 3. Режимы игры</h2>
-          <p class="muted">Бой проходит в 5 раундов по статам (атака, защита, удача, общая сила и финальный натиск). Можно отправить вызов через Telegram или сразу сыграть на сайте.</p>
+          <p class="muted">Бой проходит в 5 раундов по статам (атака, защита, удача, общая сила и финальный натиск). Рейтинговый и обычный режимы теперь ищут соперника автоматически среди активных игроков.</p>
 
           <div class="team-card" style="margin-bottom:18px;">
-            <h3>PvP вызовы</h3>
+            <h3>Дуэль (персональное приглашение)</h3>
             <div class="row">
               <input id="opponent-wallet" placeholder="Домен соперника">
               <input id="invite-timeout" type="number" min="30" max="600" step="30" value="60" placeholder="Время ответа, сек">
@@ -1494,15 +1495,27 @@ PAGE_TEMPLATE = """
                 <option value="">Выбери карту для режима одной карты</option>
               </select>
             </div>
-            <div class="tiny">Режим "Через сайт" отправляет приглашение в игру через сайт. Режим "Через Telegam" бот отправляет приглашение через Telegram. Для режима Telegram соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз.</div>
+            <div class="tiny">Режим "Через сайт" отправляет персональное приглашение в игру через сайт. Режим "Через Telegram" бот отправляет приглашение через Telegram. Для режима Telegram соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз.</div>
+            <div class="actions" style="margin-top:10px;">
+              <button id="play-duel-btn" disabled>Отправить дуэль</button>
+            </div>
+          </div>
+
+          <div class="team-card" style="margin-bottom:18px;">
+            <h3>Автопоиск соперника</h3>
+            <div class="tiny">Нажми кнопку рейтингового или обычного режима. Если соперник уже ищет матч, бой стартует мгновенно.</div>
+            <div class="actions" style="margin-top:10px;">
+              <button class="secondary" id="cancel-matchmaking-btn" disabled>Отменить поиск</button>
+            </div>
+            <div class="status" id="matchmaking-status"></div>
           </div>
 
           <div class="mode-grid">
             <div class="mode-card" data-mode-card="ranked">
               <div class="mode-burst"></div>
               <h3>Рейтинговый</h3>
-              <p>5-раундовый бой против реального соперника. После принятия рейтинг пересчитается по ELO.</p>
-              <button id="play-ranked-btn" disabled>Отправить рейтинговый вызов</button>
+              <p>Автопоиск соперника среди активных игроков. После матча рейтинг пересчитывается по ELO.</p>
+              <button id="play-ranked-btn" disabled>Найти рейтинговый матч</button>
             </div>
             <div class="mode-card" data-mode-card="team">
               <div class="mode-burst"></div>
@@ -1513,8 +1526,14 @@ PAGE_TEMPLATE = """
             <div class="mode-card" data-mode-card="casual">
               <div class="mode-burst"></div>
               <h3>Обычный</h3>
-              <p>Тот же 5-раундовый формат, но без изменения рейтинга.</p>
-              <button id="play-casual-btn" disabled>Отправить обычный вызов</button>
+              <p>Автопоиск соперника среди активных игроков без изменения рейтинга.</p>
+              <button id="play-casual-btn" disabled>Найти обычный матч</button>
+            </div>
+            <div class="mode-card" data-mode-card="duel">
+              <div class="mode-burst"></div>
+              <h3>Дуэль</h3>
+              <p>Отправь персональное приглашение выбранному игроку на бой через сайт или Telegram.</p>
+              <button id="play-duel-mode-btn" disabled>Перейти к дуэли</button>
             </div>
             <div class="mode-card" data-mode-card="bot">
               <div class="mode-burst"></div>
@@ -1668,7 +1687,9 @@ PAGE_TEMPLATE = """
       ownedDecks: [],
       allPlayers: [],
       achievements: [],
-      cardCatalog: []
+      cardCatalog: [],
+      matchmakingMode: null,
+      matchmakingPolling: false
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -1717,6 +1738,8 @@ PAGE_TEMPLATE = """
     const oneCardSlot = document.getElementById('one-card-slot');
     const achievementsList = document.getElementById('achievements-list');
     const refreshAchievementsBtn = document.getElementById('refresh-achievements-btn');
+    const matchmakingStatus = document.getElementById('matchmaking-status');
+    const cancelMatchmakingBtn = document.getElementById('cancel-matchmaking-btn');
 
     telegramOpenLink.href = telegramBotUsername
       ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
@@ -1984,19 +2007,23 @@ PAGE_TEMPLATE = """
       const connected = Boolean(state.wallet);
       const hasDomain = Boolean(state.selectedDomain);
       const hasCards = state.cards.length === 5;
+      const searching = Boolean(state.matchmakingMode);
       document.getElementById('check-domains-btn').disabled = !connected;
       document.getElementById('open-pack-btn').disabled = !(connected && hasDomain);
       buyPackBtn.disabled = !(connected && hasDomain && tonConnectUI);
       document.getElementById('continue-to-modes-btn').disabled = !hasCards;
-      document.getElementById('play-ranked-btn').disabled = !(connected && hasCards);
-      document.getElementById('play-casual-btn').disabled = !(connected && hasCards);
-      document.getElementById('play-bot-btn').disabled = !(connected && hasCards);
-      document.getElementById('play-onecard-btn').disabled = !(connected && hasCards && oneCardSlot.value);
-      document.getElementById('create-room-btn').disabled = !(connected && hasCards);
-      document.getElementById('join-room-btn').disabled = !(connected && hasCards);
+      document.getElementById('play-ranked-btn').disabled = !(connected && hasCards) || searching;
+      document.getElementById('play-casual-btn').disabled = !(connected && hasCards) || searching;
+      document.getElementById('play-duel-btn').disabled = !(connected && hasCards) || searching;
+      document.getElementById('play-duel-mode-btn').disabled = !(connected && hasCards) || searching;
+      document.getElementById('play-bot-btn').disabled = !(connected && hasCards) || searching;
+      document.getElementById('play-onecard-btn').disabled = !(connected && hasCards && oneCardSlot.value) || searching;
+      document.getElementById('create-room-btn').disabled = !(connected && hasCards) || searching;
+      document.getElementById('join-room-btn').disabled = !(connected && hasCards) || searching;
       telegramLinkBtn.disabled = !connected;
       addFriendBtn.disabled = !connected;
       refreshAchievementsBtn.disabled = !connected;
+      cancelMatchmakingBtn.disabled = !searching;
     }
 
     function renderDomains(domains) {
@@ -2441,6 +2468,15 @@ PAGE_TEMPLATE = """
       switchView('modes');
     }
 
+    function openDuelMode() {
+      animateModeChoice('duel');
+      const input = document.getElementById('opponent-wallet');
+      if (input) {
+        input.focus();
+      }
+      matchmakingStatus.textContent = 'Дуэль: укажи домен соперника и отправь приглашение.';
+    }
+
     function repeatLastMode() {
       if (state.lastReplayMode === 'bot') {
         playBotMatch();
@@ -2451,7 +2487,11 @@ PAGE_TEMPLATE = """
         return;
       }
       if (state.lastReplayMode === 'ranked' || state.lastReplayMode === 'casual') {
-        playMatch(state.lastReplayMode);
+        startMatchmaking(state.lastReplayMode);
+        return;
+      }
+      if (state.lastReplayMode === 'duel') {
+        playMatch('duel');
         return;
       }
       switchView('modes');
@@ -2673,6 +2713,96 @@ PAGE_TEMPLATE = """
         }
       };
       loop();
+    }
+
+    function stopMatchmakingUI(message = '') {
+      state.matchmakingPolling = false;
+      state.matchmakingMode = null;
+      if (message) {
+        matchmakingStatus.textContent = message;
+      }
+      updateButtons();
+    }
+
+    async function pollMatchmaking(mode) {
+      if (!state.matchmakingPolling || state.matchmakingMode !== mode) return;
+      try {
+        const data = await api(`/api/matchmaking/${mode}/status?wallet=${encodeURIComponent(state.wallet)}`);
+        if (!state.matchmakingPolling || state.matchmakingMode !== mode) return;
+        if (data.status === 'searching') {
+          const waited = Number(data.waited_seconds || 0);
+          matchmakingStatus.textContent = `Идёт поиск соперника (${waited} сек)...`;
+          setTimeout(() => pollMatchmaking(mode), 2500);
+          return;
+        }
+        if (data.status === 'matched' && data.result) {
+          stopMatchmakingUI('Соперник найден. Матч запущен.');
+          state.lastResult = data.result;
+          renderBattleResult(data.result);
+          if (data.player) {
+            state.playerProfile = data.player;
+            renderProfile();
+          }
+          await loadAchievements();
+          await loadLeaderboard();
+          await loadActiveUsers();
+          return;
+        }
+        if (data.status === 'cancelled' || data.status === 'expired' || data.status === 'completed' || data.status === 'idle') {
+          stopMatchmakingUI('Поиск остановлен.');
+          return;
+        }
+        setTimeout(() => pollMatchmaking(mode), 2500);
+      } catch (error) {
+        stopMatchmakingUI(error.message);
+      }
+    }
+
+    async function startMatchmaking(mode) {
+      animateModeChoice(mode);
+      state.matchmakingMode = mode;
+      state.matchmakingPolling = true;
+      matchmakingStatus.textContent = 'Запускаем поиск соперника...';
+      updateButtons();
+      try {
+        const data = await api(`/api/matchmaking/${mode}/search`, {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            domain: state.selectedDomain
+          }
+        });
+        if (data.status === 'matched' && data.result) {
+          stopMatchmakingUI('Соперник найден. Матч запущен.');
+          state.lastResult = data.result;
+          renderBattleResult(data.result);
+          if (data.player) {
+            state.playerProfile = data.player;
+            renderProfile();
+          }
+          await loadAchievements();
+          await loadLeaderboard();
+          await loadActiveUsers();
+          return;
+        }
+        matchmakingStatus.textContent = 'Идёт поиск соперника...';
+        setTimeout(() => pollMatchmaking(mode), 2200);
+      } catch (error) {
+        stopMatchmakingUI(error.message);
+      }
+    }
+
+    async function cancelMatchmaking() {
+      if (!state.matchmakingMode) return;
+      const mode = state.matchmakingMode;
+      try {
+        await api(`/api/matchmaking/${mode}/cancel`, {
+          method: 'POST',
+          body: { wallet: state.wallet }
+        });
+      } catch (_) {
+      }
+      stopMatchmakingUI('Поиск отменён.');
     }
 
     async function playMatch(mode) {
@@ -3034,6 +3164,7 @@ PAGE_TEMPLATE = """
         const account = tonConnectUI.account;
         state.wallet = account && account.address ? account.address : null;
         if (state.wallet !== previousWallet) {
+          stopMatchmakingUI('');
           state.domainsChecked = false;
           state.domains = [];
           state.selectedDomain = null;
@@ -3055,6 +3186,7 @@ PAGE_TEMPLATE = """
           await loadProfile();
           await loadAchievements();
         } else {
+          stopMatchmakingUI('');
           state.domainsChecked = false;
           state.domains = [];
           state.selectedDomain = null;
@@ -3087,8 +3219,11 @@ PAGE_TEMPLATE = """
       }
     });
     document.getElementById('continue-to-modes-btn').addEventListener('click', () => switchView('modes'));
-    document.getElementById('play-ranked-btn').addEventListener('click', () => playMatch('ranked'));
-    document.getElementById('play-casual-btn').addEventListener('click', () => playMatch('casual'));
+    document.getElementById('play-ranked-btn').addEventListener('click', () => startMatchmaking('ranked'));
+    document.getElementById('play-casual-btn').addEventListener('click', () => startMatchmaking('casual'));
+    document.getElementById('play-duel-btn').addEventListener('click', () => playMatch('duel'));
+    document.getElementById('play-duel-mode-btn').addEventListener('click', openDuelMode);
+    cancelMatchmakingBtn.addEventListener('click', cancelMatchmaking);
     document.getElementById('play-bot-btn').addEventListener('click', playBotMatch);
     document.getElementById('play-onecard-btn').addEventListener('click', playOneCardMatch);
     oneCardSlot.addEventListener('change', updateButtons);
@@ -3232,6 +3367,19 @@ def init_db():
                 responded_at TEXT,
                 telegram_message_id INTEGER,
                 result_json TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS matchmaking_queue (
+                id TEXT PRIMARY KEY,
+                mode TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                status TEXT NOT NULL,
+                opponent_wallet TEXT,
+                result_json TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                consumed_at TEXT
             );
 
             CREATE TABLE IF NOT EXISTS friends (
@@ -4616,10 +4764,16 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
     own_cards = match['cards_a'] if viewer_is_a else match['cards_b']
     opp_cards = match['cards_b'] if viewer_is_a else match['cards_a']
 
+    mode_title = 'Дуэль'
+    if invite['mode'] == 'ranked':
+        mode_title = 'Рейтинговый матч'
+    elif invite['mode'] == 'casual':
+        mode_title = 'Обычный матч'
+
     payload = {
         'kind': 'solo',
         'mode': invite['mode'],
-        'mode_title': 'Рейтинговый матч' if invite['mode'] == 'ranked' else 'Обычный матч',
+        'mode_title': mode_title,
         'player_wallet': own_wallet,
         'opponent_wallet': opp_wallet,
         'player_domain': own_domain,
@@ -4707,8 +4861,13 @@ def create_duel_invite(mode, inviter_wallet, inviter_domain, invitee_wallet, tim
 
     invite_id = uuid.uuid4().hex[:8].upper()
     expires_at = now_utc().timestamp() + timeout_seconds
+    mode_phrase = 'дуэль'
+    if mode == 'ranked':
+        mode_phrase = 'рейтинговую игру'
+    elif mode == 'casual':
+        mode_phrase = 'обычную игру'
     message = (
-        f'Вас приглашают на {"рейтинговую" if mode == "ranked" else "обычную"} игру.\n'
+        f'Вас приглашают на {mode_phrase}.\n'
         f'Домен соперника: {inviter_domain}.ton\n'
         f'Ваш домен: {invitee_domain}.ton\n'
         f'Время на ответ: {timeout_seconds} сек.'
@@ -4757,6 +4916,103 @@ def create_duel_invite(mode, inviter_wallet, inviter_domain, invitee_wallet, tim
     return load_invite(invite_id)
 
 
+def cleanup_matchmaking_queue(conn):
+    threshold = datetime.fromtimestamp(
+        now_utc().timestamp() - MATCHMAKING_SEARCH_TTL_SECONDS,
+        tz=timezone.utc,
+    ).isoformat()
+    conn.execute(
+        '''
+        UPDATE matchmaking_queue
+        SET status = 'expired', updated_at = ?
+        WHERE status = 'searching' AND created_at < ?
+        ''',
+        (now_iso(), threshold),
+    )
+
+
+def latest_matchmaking_row(conn, wallet, mode):
+    return conn.execute(
+        '''
+        SELECT * FROM matchmaking_queue
+        WHERE wallet = ? AND mode = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        ''',
+        (wallet, mode),
+    ).fetchone()
+
+
+def upsert_searching_matchmaking(conn, wallet, domain, mode):
+    ts = now_iso()
+    existing = conn.execute(
+        '''
+        SELECT * FROM matchmaking_queue
+        WHERE wallet = ? AND mode = ? AND status = 'searching'
+        ORDER BY created_at DESC
+        LIMIT 1
+        ''',
+        (wallet, mode),
+    ).fetchone()
+    if existing:
+        conn.execute(
+            'UPDATE matchmaking_queue SET domain = ?, updated_at = ? WHERE id = ?',
+            (domain, ts, existing['id']),
+        )
+        return existing['id']
+    queue_id = uuid.uuid4().hex
+    conn.execute(
+        '''
+        INSERT INTO matchmaking_queue (
+            id, mode, wallet, domain, status, opponent_wallet, result_json, created_at, updated_at, consumed_at
+        ) VALUES (?, ?, ?, ?, 'searching', NULL, NULL, ?, ?, NULL)
+        ''',
+        (queue_id, mode, wallet, domain, ts, ts),
+    )
+    return queue_id
+
+
+def settle_matchmaking_pair(conn, mode, wallet, domain, opponent_row):
+    opponent_wallet = opponent_row['wallet']
+    opponent_domain = opponent_row['domain']
+    match = head_to_head_result(wallet, domain, opponent_wallet, opponent_domain)
+    rating_meta = None
+    if mode == 'ranked':
+        _, _, rating_a_before, rating_a_after, rating_b_before, rating_b_after = apply_ranked_result_duel(match)
+        rating_meta = {
+            'rating_a_before': rating_a_before,
+            'rating_a_after': rating_a_after,
+            'rating_b_before': rating_b_before,
+            'rating_b_after': rating_b_after,
+        }
+    else:
+        record_non_ranked_game(wallet, domain)
+        record_non_ranked_game(opponent_wallet, opponent_domain)
+
+    own_payload = invite_result_payload({'mode': mode}, match, wallet, rating_meta=rating_meta)
+    opp_payload = invite_result_payload({'mode': mode}, match, opponent_wallet, rating_meta=rating_meta)
+    ts = now_iso()
+
+    conn.execute(
+        '''
+        UPDATE matchmaking_queue
+        SET status = 'matched', opponent_wallet = ?, result_json = ?, updated_at = ?
+        WHERE id = ?
+        ''',
+        (wallet, json.dumps(opp_payload, ensure_ascii=False), ts, opponent_row['id']),
+    )
+    queue_id = uuid.uuid4().hex
+    conn.execute(
+        '''
+        INSERT INTO matchmaking_queue (
+            id, mode, wallet, domain, status, opponent_wallet, result_json, created_at, updated_at, consumed_at
+        ) VALUES (?, ?, ?, ?, 'matched', ?, ?, ?, ?, NULL)
+        ''',
+        (queue_id, mode, wallet, domain, opponent_wallet, json.dumps(own_payload, ensure_ascii=False), ts, ts),
+    )
+    return queue_id, own_payload, opponent_wallet
+
+
 def finalize_invite(invite):
     match = head_to_head_result(
         invite['inviter_wallet'],
@@ -4773,6 +5029,9 @@ def finalize_invite(invite):
             'rating_b_before': rating_b_before,
             'rating_b_after': rating_b_after,
         }
+    else:
+        record_non_ranked_game(invite['inviter_wallet'], invite['inviter_domain'])
+        record_non_ranked_game(invite['invitee_wallet'], invite['invitee_domain'])
     result = {
         'for_inviter': invite_result_payload(invite, match, invite['inviter_wallet'], rating_meta=rating_meta),
         'for_invitee': invite_result_payload(invite, match, invite['invitee_wallet'], rating_meta=rating_meta),
@@ -5405,9 +5664,115 @@ def api_pack_payment_confirm():
     return jsonify({'ok': True, 'payment': payment})
 
 
+@app.route('/api/matchmaking/<mode>/search', methods=['POST'])
+def api_matchmaking_search(mode):
+    if mode not in {'ranked', 'casual'}:
+        return json_error('Неизвестный режим матчмейкинга.', 404)
+
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not domain:
+        return json_error('Нужно выбрать домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
+        ensure_player(wallet, domain, domain)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
+
+    with closing(get_db()) as conn:
+        cleanup_matchmaking_queue(conn)
+        latest = latest_matchmaking_row(conn, wallet, mode)
+        if latest and latest['status'] == 'matched' and latest['result_json'] and not latest['consumed_at']:
+            result = json.loads(latest['result_json'])
+            conn.execute(
+                "UPDATE matchmaking_queue SET consumed_at = ?, status = 'completed', updated_at = ? WHERE id = ?",
+                (now_iso(), now_iso(), latest['id']),
+            )
+            conn.commit()
+            return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
+
+        opponent = conn.execute(
+            '''
+            SELECT * FROM matchmaking_queue
+            WHERE mode = ? AND status = 'searching' AND wallet != ?
+            ORDER BY created_at ASC
+            LIMIT 1
+            ''',
+            (mode, wallet),
+        ).fetchone()
+
+        if opponent:
+            queue_id, own_payload, opponent_wallet = settle_matchmaking_pair(conn, mode, wallet, domain, opponent)
+            conn.commit()
+            return jsonify(
+                {
+                    'status': 'matched',
+                    'queue_id': queue_id,
+                    'opponent_wallet': opponent_wallet,
+                    'result': own_payload,
+                    'player': get_player(wallet),
+                }
+            )
+
+        queue_id = upsert_searching_matchmaking(conn, wallet, domain, mode)
+        conn.commit()
+        return jsonify({'status': 'searching', 'queue_id': queue_id, 'player': get_player(wallet)})
+
+
+@app.route('/api/matchmaking/<mode>/status')
+def api_matchmaking_status(mode):
+    if mode not in {'ranked', 'casual'}:
+        return json_error('Неизвестный режим матчмейкинга.', 404)
+    wallet = (request.args.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно передать свой кошелёк.')
+    with closing(get_db()) as conn:
+        cleanup_matchmaking_queue(conn)
+        row = latest_matchmaking_row(conn, wallet, mode)
+        if row is None:
+            return jsonify({'status': 'idle'})
+        if row['status'] == 'searching':
+            waited = int(max(0, now_utc().timestamp() - parse_iso(row['created_at']).timestamp()))
+            return jsonify({'status': 'searching', 'waited_seconds': waited})
+        if row['status'] == 'matched' and row['result_json']:
+            result = json.loads(row['result_json'])
+            conn.execute(
+                "UPDATE matchmaking_queue SET consumed_at = ?, status = 'completed', updated_at = ? WHERE id = ?",
+                (now_iso(), now_iso(), row['id']),
+            )
+            conn.commit()
+            return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
+        return jsonify({'status': row['status']})
+
+
+@app.route('/api/matchmaking/<mode>/cancel', methods=['POST'])
+def api_matchmaking_cancel(mode):
+    if mode not in {'ranked', 'casual'}:
+        return json_error('Неизвестный режим матчмейкинга.', 404)
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            UPDATE matchmaking_queue
+            SET status = 'cancelled', updated_at = ?
+            WHERE wallet = ? AND mode = ? AND status = 'searching'
+            ''',
+            (now_iso(), wallet, mode),
+        )
+        conn.commit()
+    return jsonify({'ok': True, 'status': 'cancelled'})
+
+
 @app.route('/api/match/<mode>', methods=['POST'])
 def api_match(mode):
-    if mode not in {'ranked', 'casual'}:
+    if mode != 'duel':
         return json_error('Неизвестный режим.', 404)
 
     payload = request.get_json(silent=True) or {}
@@ -5436,23 +5801,12 @@ def api_match(mode):
 
         if delivery == 'site':
             match = head_to_head_result(wallet, domain, opponent_wallet, opponent_domain)
-            rating_meta = None
-            if mode == 'ranked':
-                _, _, rating_a_before, rating_a_after, rating_b_before, rating_b_after = apply_ranked_result_duel(match)
-                rating_meta = {
-                    'rating_a_before': rating_a_before,
-                    'rating_a_after': rating_a_after,
-                    'rating_b_before': rating_b_before,
-                    'rating_b_after': rating_b_after,
-                }
-            else:
-                record_non_ranked_game(wallet, domain)
-                record_non_ranked_game(opponent_wallet, opponent_domain)
-
-            result = invite_result_payload({'mode': mode}, match, wallet, rating_meta=rating_meta)
+            record_non_ranked_game(wallet, domain)
+            record_non_ranked_game(opponent_wallet, opponent_domain)
+            result = invite_result_payload({'mode': 'duel'}, match, wallet)
             return jsonify({'result': result, 'player': get_player(wallet), 'delivery': 'site'})
 
-        invite = create_duel_invite(mode, wallet, domain, opponent_wallet, timeout_seconds)
+        invite = create_duel_invite('duel', wallet, domain, opponent_wallet, timeout_seconds)
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
 
