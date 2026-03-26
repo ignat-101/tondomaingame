@@ -1231,6 +1231,12 @@ PAGE_TEMPLATE = """
       z-index: 7000;
       pointer-events: none;
       overflow: hidden;
+      background: rgba(3, 8, 14, 0);
+      transition: background 260ms ease;
+    }
+
+    .pack-sequence-layer.dimmed {
+      background: rgba(3, 8, 14, 0.72);
     }
 
     .pack-preview-card {
@@ -1984,12 +1990,14 @@ PAGE_TEMPLATE = """
         preview.style.left = `${window.innerWidth * 0.5}px`;
         preview.style.top = `${window.innerHeight * 0.5}px`;
         preview.classList.add('focused');
+        layer.classList.add('dimmed');
 
-        await sleep(3000);
+        await sleep(1500);
 
         const rect = target.getBoundingClientRect();
         const targetX = rect.left + rect.width / 2;
         const targetY = rect.top + rect.height / 2;
+        layer.classList.remove('dimmed');
         preview.style.left = `${targetX}px`;
         preview.style.top = `${targetY}px`;
         preview.style.transform = 'translate(-50%, -50%) scale(0.44)';
