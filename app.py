@@ -2600,7 +2600,7 @@ PAGE_TEMPLATE = """
         return;
       }
       if (state.lastReplayMode === 'ranked' || state.lastReplayMode === 'casual') {
-        startMatchmaking(state.lastReplayMode, state.lastResult?.opponent_wallet || null);
+        startMatchmaking(state.lastReplayMode);
         return;
       }
       if (state.lastReplayMode === 'duel') {
@@ -2847,7 +2847,11 @@ PAGE_TEMPLATE = """
         if (!state.matchmakingPolling || state.matchmakingMode !== mode) return;
         if (data.status === 'searching') {
           const waited = Number(data.waited_seconds || 0);
-          matchmakingStatus.textContent = `Идёт поиск соперника (${waited} сек)...`;
+          if (data.cooldown_seconds) {
+            matchmakingStatus.textContent = `Повтор с тем же соперником через ${data.cooldown_seconds} сек. Идёт поиск (${waited} сек)...`;
+          } else {
+            matchmakingStatus.textContent = `Идёт поиск соперника (${waited} сек)...`;
+          }
           setTimeout(() => pollMatchmaking(mode), 2500);
           return;
         }
@@ -2874,7 +2878,7 @@ PAGE_TEMPLATE = """
       }
     }
 
-    async function startMatchmaking(mode, avoidWallet = null) {
+    async function startMatchmaking(mode) {
       animateModeChoice(mode);
       state.matchmakingMode = mode;
       state.matchmakingPolling = true;
@@ -2885,8 +2889,7 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: {
             wallet: state.wallet,
-            domain: state.selectedDomain,
-            avoid_wallet: avoidWallet
+            domain: state.selectedDomain
           }
         });
         if (data.status === 'matched' && data.result) {
@@ -2902,7 +2905,9 @@ PAGE_TEMPLATE = """
           await loadActiveUsers();
           return;
         }
-        matchmakingStatus.textContent = 'Идёт поиск соперника...';
+        matchmakingStatus.textContent = data.cooldown_seconds
+          ? `Повтор с тем же соперником через ${data.cooldown_seconds} сек. Идёт поиск...`
+          : 'Идёт поиск соперника...';
         setTimeout(() => pollMatchmaking(mode), 2200);
       } catch (error) {
         stopMatchmakingUI(error.message);
@@ -5320,6 +5325,21 @@ def set_matchmaking_cooldown(conn, wallet_a, wallet_b, seconds=MATCHMAKING_REMAT
         )
 
 
+def matchmaking_cooldown_left(conn, wallet_a, wallet_b):
+    row = conn.execute(
+        '''
+        SELECT expires_at
+        FROM matchmaking_cooldowns
+        WHERE wallet_a = ? AND wallet_b = ?
+        ''',
+        (wallet_a, wallet_b),
+    ).fetchone()
+    if row is None:
+        return 0
+    left = int(parse_iso(row['expires_at']).timestamp() - now_utc().timestamp())
+    return max(0, left)
+
+
 def latest_matchmaking_row(conn, wallet, mode):
     return conn.execute(
         '''
@@ -5867,9 +5887,6 @@ def api_deck_select():
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     domain = normalize_domain(payload.get('domain'))
-    avoid_wallet = (payload.get('avoid_wallet') or '').strip()
-    if avoid_wallet == wallet:
-        avoid_wallet = ''
     if not valid_wallet_address(wallet):
         return json_error('Некорректный адрес кошелька.')
     if not domain:
@@ -6130,39 +6147,27 @@ def api_matchmaking_search(mode):
                 conn.commit()
                 return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
 
-            if avoid_wallet:
-                opponent = conn.execute(
-                    '''
-                    SELECT * FROM matchmaking_queue
-                    WHERE mode = ?
-                      AND status = 'searching'
-                      AND wallet != ?
-                      AND wallet != ?
-                      AND NOT EXISTS (
-                          SELECT 1 FROM matchmaking_cooldowns c
-                          WHERE c.wallet_a = ? AND c.wallet_b = matchmaking_queue.wallet AND c.expires_at > ?
-                      )
-                    ORDER BY created_at ASC
-                    LIMIT 1
-                    ''',
-                    (mode, wallet, avoid_wallet, wallet, now_iso()),
-                ).fetchone()
-            else:
-                opponent = conn.execute(
-                    '''
-                    SELECT * FROM matchmaking_queue
-                    WHERE mode = ?
-                      AND status = 'searching'
-                      AND wallet != ?
-                      AND NOT EXISTS (
-                          SELECT 1 FROM matchmaking_cooldowns c
-                          WHERE c.wallet_a = ? AND c.wallet_b = matchmaking_queue.wallet AND c.expires_at > ?
-                      )
-                    ORDER BY created_at ASC
-                    LIMIT 1
-                    ''',
-                    (mode, wallet, wallet, now_iso()),
-                ).fetchone()
+            opponents = conn.execute(
+                '''
+                SELECT * FROM matchmaking_queue
+                WHERE mode = ?
+                  AND status = 'searching'
+                  AND wallet != ?
+                ORDER BY created_at ASC
+                LIMIT 25
+                ''',
+                (mode, wallet),
+            ).fetchall()
+
+            opponent = None
+            min_cooldown = 0
+            for candidate in opponents:
+                cooldown_left = matchmaking_cooldown_left(conn, wallet, candidate['wallet'])
+                if cooldown_left <= 0:
+                    opponent = candidate
+                    break
+                if min_cooldown == 0 or cooldown_left < min_cooldown:
+                    min_cooldown = cooldown_left
 
             if opponent:
                 conn.commit()
@@ -6180,7 +6185,10 @@ def api_matchmaking_search(mode):
 
             queue_id = upsert_searching_matchmaking(conn, wallet, domain, mode)
             conn.commit()
-            return jsonify({'status': 'searching', 'queue_id': queue_id, 'player': get_player(wallet)})
+            response = {'status': 'searching', 'queue_id': queue_id, 'player': get_player(wallet)}
+            if min_cooldown > 0:
+                response['cooldown_seconds'] = min_cooldown
+            return jsonify(response)
     except sqlite3.Error as exc:
         return json_error(f'Ошибка очереди матчмейкинга: {exc}', 500)
 
@@ -6201,7 +6209,24 @@ def api_matchmaking_status(mode):
                 return jsonify({'status': 'idle'})
             if row['status'] == 'searching':
                 waited = int(max(0, now_utc().timestamp() - parse_iso(row['created_at']).timestamp()))
-                return jsonify({'status': 'searching', 'waited_seconds': waited})
+                opponents = conn.execute(
+                    '''
+                    SELECT wallet FROM matchmaking_queue
+                    WHERE mode = ? AND status = 'searching' AND wallet != ?
+                    ORDER BY created_at ASC
+                    LIMIT 25
+                    ''',
+                    (mode, wallet),
+                ).fetchall()
+                min_cooldown = 0
+                for candidate in opponents:
+                    cooldown_left = matchmaking_cooldown_left(conn, wallet, candidate['wallet'])
+                    if cooldown_left > 0 and (min_cooldown == 0 or cooldown_left < min_cooldown):
+                        min_cooldown = cooldown_left
+                response = {'status': 'searching', 'waited_seconds': waited}
+                if min_cooldown > 0:
+                    response['cooldown_seconds'] = min_cooldown
+                return jsonify(response)
             if row['status'] == 'matched' and row['result_json']:
                 result = json.loads(row['result_json'])
                 conn.execute(
