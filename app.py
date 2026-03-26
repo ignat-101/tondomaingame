@@ -666,11 +666,33 @@ PAGE_TEMPLATE = """
     .delayed-outcome {
       opacity: 0;
       transform: translateY(6px) scale(0.98);
+      pointer-events: none;
     }
 
     .delayed-outcome.visible {
       opacity: 1;
       transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .showdown-entry-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 10px 0 6px;
+    }
+
+    .victory-banner {
+      margin-top: 12px;
+      border: 1px solid rgba(83, 246, 184, 0.55);
+      border-radius: 14px;
+      padding: 10px 12px;
+      text-align: center;
+      font-weight: 700;
+      color: #d9ffe8;
+      background: linear-gradient(135deg, rgba(83, 246, 184, 0.24), rgba(69, 215, 255, 0.16));
+      box-shadow: 0 10px 26px rgba(83, 246, 184, 0.2);
     }
 
     .team-line {
@@ -1623,17 +1645,18 @@ PAGE_TEMPLATE = """
       `).join('');
     }
 
-    function revealDisciplineRows() {
+    function revealDisciplineRows(startDelay = 0, stepMs = 1000) {
       const rows = battleResult.querySelectorAll('.discipline-row');
-      let finalDelay = 0;
+      if (!rows.length) {
+        return 0;
+      }
       rows.forEach((row, index) => {
-        const delay = 1500 + index * 1000;
-        finalDelay = delay;
+        const delay = startDelay + index * stepMs;
         setTimeout(() => {
           row.classList.add('visible');
         }, delay);
       });
-      return finalDelay;
+      return startDelay + (rows.length - 1) * stepMs;
     }
 
     function showMatchIntro(title) {
@@ -1714,6 +1737,9 @@ PAGE_TEMPLATE = """
         battleResult.classList.add('showdown-fullscreen');
         document.body.classList.add('showdown-open');
         battleResult.scrollTop = 0;
+        const victoryLine = resultKey === 'win'
+          ? `<div class="victory-banner delayed-outcome">Поздравляем! Это победный матч!</div>`
+          : '';
         battleResult.innerHTML = `
           <section class="showdown-header">
             <div class="tiny"><strong>Колода пользователя</strong> • ${result.player_domain}.ton</div>
@@ -1723,27 +1749,32 @@ PAGE_TEMPLATE = """
           </section>
           <section class="showdown-main">
             <div class="showdown-center showdown-middle">
+              <div class="showdown-entry-actions">
+                <button id="start-battle-btn">Начать игру</button>
+                <button class="secondary" onclick="openModes()">К режимам</button>
+              </div>
               <div class="match-outcome delayed-outcome">
-              <div class="result-flip">
-                <div class="result-flip-card ${resultClass}">
-                  <div class="result-flip-face ${frontClass}">${frontLabel}</div>
-                  <div class="result-flip-face back">LOSE</div>
+                <div class="result-flip">
+                  <div class="result-flip-card ${resultClass}">
+                    <div class="result-flip-face ${frontClass}">${frontLabel}</div>
+                    <div class="result-flip-face back">LOSE</div>
+                  </div>
                 </div>
-              </div>
-              <h3>${result.mode_title}</h3>
-              <div class="showdown-score">
-                <span>${result.player_score}</span>
-                <span>:</span>
-                <span>${result.opponent_score}</span>
-              </div>
-              <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
+                <h3>${result.mode_title}</h3>
+                <div class="showdown-score">
+                  <span>${result.player_score}</span>
+                  <span>:</span>
+                  <span>${result.opponent_score}</span>
+                </div>
+                <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
               </div>
               ${cardLine}
               ${oppCardLine}
               ${roundsLine}
               ${deckPowerLine}
               ${ratingLine}
-              <p class="muted">Итог: ${result.result_label}</p>
+              <p class="muted delayed-outcome">Итог: ${result.result_label}</p>
+              ${victoryLine}
             </div>
           </section>
           <section class="showdown-header">
@@ -1752,19 +1783,31 @@ PAGE_TEMPLATE = """
               ${showdownDeckMarkup(result.opponent_cards, result.opponent_card)}
             </div>
           </section>
-          <div class="result-actions">
+          <div class="result-actions delayed-outcome post-actions">
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
         `;
-        const finalDelay = revealDisciplineRows();
-        const outcomeNode = battleResult.querySelector('.delayed-outcome');
-        if (outcomeNode) {
-          if (finalDelay > 0) {
-            setTimeout(() => outcomeNode.classList.add('visible'), finalDelay);
-          } else {
-            outcomeNode.classList.add('visible');
-          }
+
+        const startBtn = battleResult.querySelector('#start-battle-btn');
+        if (startBtn) {
+          startBtn.addEventListener('click', () => {
+            startBtn.disabled = true;
+            startBtn.textContent = 'Бой идёт...';
+            const finalDelay = revealDisciplineRows(0, 1000);
+            const showOutcome = () => {
+              battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
+              const entry = battleResult.querySelector('.showdown-entry-actions');
+              if (entry) {
+                entry.style.display = 'none';
+              }
+            };
+            if (finalDelay > 0) {
+              setTimeout(showOutcome, finalDelay);
+            } else {
+              showOutcome();
+            }
+          });
         }
       }
       telegramShareBtn.disabled = false;
