@@ -1156,17 +1156,17 @@ PAGE_TEMPLATE = """
       height: 132px;
       margin: 0 auto 16px;
       border-radius: 50%;
-      border: 2px solid rgba(40, 40, 40, 0.28);
-      background:
-        radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9), rgba(217, 217, 217, 0.95));
-      box-shadow: inset 0 -10px 18px rgba(0, 0, 0, 0.1);
+      border: 0;
+      background: #1593d8;
+      box-shadow: inset 0 -8px 16px rgba(0, 0, 0, 0.12);
       display: grid;
       place-items: center;
-      font-family: "Avenir Next", "Helvetica Neue", sans-serif;
-      font-size: 30px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      color: rgba(20, 20, 20, 0.8);
+    }
+
+    .pack-emblem-ton {
+      width: 88px;
+      height: 88px;
+      display: block;
     }
 
     .pack-brand {
@@ -1181,13 +1181,11 @@ PAGE_TEMPLATE = """
     }
 
     .pack-sub {
-      font-family: "Times New Roman", Georgia, serif;
-      font-size: clamp(52px, 10vw, 74px);
-      font-weight: 700;
-      color: rgba(20, 20, 20, 0.9);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(24px, 5vw, 34px);
+      color: rgba(26, 26, 26, 0.8);
       margin: 8px 0 0;
-      line-height: 0.94;
-      letter-spacing: 0.01em;
+      line-height: 1.1;
     }
 
     .pack-tap {
@@ -1332,7 +1330,12 @@ PAGE_TEMPLATE = """
             <p class="pack-note" id="pack-note">TAP TO OPEN</p>
             <div class="foil-pack" id="foil-pack">
               <div class="pack-cap"></div>
-              <div class="pack-emblem">TON</div>
+              <div class="pack-emblem" aria-hidden="true">
+                <svg class="pack-emblem-ton" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polyline points="16,24 44,70 72,24 16,24" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                  <line x1="44" y1="24" x2="44" y2="62" stroke="#ffffff" stroke-width="8" stroke-linecap="round"></line>
+                </svg>
+              </div>
               <div class="pack-sub">Ton Domain Card Pack</div>
             </div>
             <div class="pack-tap">▲ TAP TO OPEN ▲</div>
