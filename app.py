@@ -849,6 +849,66 @@ PAGE_TEMPLATE = """
       }
     }
 
+    .battle-cinematic {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0 14px;
+    }
+
+    .battle-fighter {
+      border-radius: 16px;
+      border: 1px solid rgba(121, 217, 255, 0.26);
+      padding: 12px;
+      background: linear-gradient(145deg, rgba(18, 39, 67, 0.9), rgba(8, 16, 30, 0.92));
+      box-shadow: inset 0 0 22px rgba(83, 246, 184, 0.08);
+      opacity: 0;
+      animation: fighterIn 460ms cubic-bezier(.2,.82,.2,1) forwards;
+    }
+
+    .battle-fighter strong {
+      display: block;
+      margin: 4px 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .battle-fighter.enemy {
+      text-align: right;
+      animation-delay: 100ms;
+    }
+
+    .battle-vs-orb {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 1px solid rgba(83, 246, 184, 0.5);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #dffff0;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(83, 246, 184, 0.38), rgba(69, 215, 255, 0.18) 60%, rgba(7, 14, 25, 0.95));
+      box-shadow: 0 0 24px rgba(83, 246, 184, 0.28);
+      animation: vsPulse 1.2s ease-in-out infinite;
+    }
+
+    .count-up {
+      font-variant-numeric: tabular-nums;
+    }
+
+    @keyframes fighterIn {
+      0% { opacity: 0; transform: translateY(8px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes vsPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 18px rgba(83, 246, 184, 0.2); }
+      50% { transform: scale(1.06); box-shadow: 0 0 28px rgba(83, 246, 184, 0.38); }
+    }
+
     .pack-showcase {
       margin-top: 16px;
       border-radius: 24px;
@@ -1800,10 +1860,23 @@ PAGE_TEMPLATE = """
                     </div>
                   </div>
                   <h3>${result.mode_title}</h3>
+                  <div class="battle-cinematic">
+                    <div class="battle-fighter player">
+                      <div class="tiny">Твоя карта</div>
+                      <strong>${result.player_card ? result.player_card.title : `${result.player_domain}.ton`}</strong>
+                      <div class="tiny">Сила: ${result.player_card ? result.player_card.score : result.player_score}</div>
+                    </div>
+                    <div class="battle-vs-orb">VS</div>
+                    <div class="battle-fighter enemy">
+                      <div class="tiny">Карта соперника</div>
+                      <strong>${result.opponent_card ? result.opponent_card.title : opponentLabel}</strong>
+                      <div class="tiny">Сила: ${result.opponent_card ? result.opponent_card.score : result.opponent_score}</div>
+                    </div>
+                  </div>
                   <div class="showdown-score">
-                    <span>${result.player_score}</span>
+                    <span class="count-up" data-count-to="${result.player_score}">0</span>
                     <span>:</span>
-                    <span>${result.opponent_score}</span>
+                    <span class="count-up" data-count-to="${result.opponent_score}">0</span>
                   </div>
                   <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
                 </div>
@@ -1854,7 +1927,34 @@ PAGE_TEMPLATE = """
           });
         }
       }
+      animateScoreCounters(battleResult);
       telegramShareBtn.disabled = false;
+    }
+
+    function animateScoreCounters(container) {
+      const counters = container.querySelectorAll('.count-up');
+      if (!counters.length) return;
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      counters.forEach((node) => {
+        const target = Number(node.dataset.countTo || '0');
+        if (!Number.isFinite(target)) {
+          node.textContent = '0';
+          return;
+        }
+        if (prefersReduced) {
+          node.textContent = String(target);
+          return;
+        }
+        const start = performance.now();
+        const duration = 760;
+        function step(now) {
+          const progress = Math.min(1, (now - start) / duration);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          node.textContent = String(Math.round(target * eased));
+          if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      });
     }
 
     function openModes() {
