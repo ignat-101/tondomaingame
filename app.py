@@ -828,6 +828,20 @@ PAGE_TEMPLATE = """
       color: var(--muted);
     }
 
+    .discipline-build-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+      margin-top: 10px;
+    }
+
+    .discipline-build-grid label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
     .mobile-nav {
       display: none;
     }
@@ -1612,6 +1626,19 @@ PAGE_TEMPLATE = """
             <button class="secondary" id="toggle-deck-btn">Скрыть</button>
           </div>
           <div class="deck-list" id="deck-view"></div>
+          <h3 style="margin-top:18px;">Прокачка дисциплин</h3>
+          <div class="tiny">Распредели базовую силу колоды между дисциплинами. Эти очки дают боевой бонус в раундах.</div>
+          <div class="discipline-build-grid">
+            <label>Атака <input id="build-attack" type="number" min="0" step="1"></label>
+            <label>Защита <input id="build-defense" type="number" min="0" step="1"></label>
+            <label>Удача <input id="build-luck" type="number" min="0" step="1"></label>
+            <label>Скорость <input id="build-speed" type="number" min="0" step="1"></label>
+            <label>Магия <input id="build-magic" type="number" min="0" step="1"></label>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" id="save-build-btn" disabled>Сохранить прокачку</button>
+          </div>
+          <div class="status tiny" id="build-status"></div>
           <h3 style="margin-top:18px;">Колоды кошелька</h3>
           <div class="owned-decks" id="owned-decks-list"></div>
         </section>
@@ -1689,7 +1716,8 @@ PAGE_TEMPLATE = """
       achievements: [],
       cardCatalog: [],
       matchmakingMode: null,
-      matchmakingPolling: false
+      matchmakingPolling: false,
+      disciplineBuild: null
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -1740,6 +1768,13 @@ PAGE_TEMPLATE = """
     const refreshAchievementsBtn = document.getElementById('refresh-achievements-btn');
     const matchmakingStatus = document.getElementById('matchmaking-status');
     const cancelMatchmakingBtn = document.getElementById('cancel-matchmaking-btn');
+    const buildAttack = document.getElementById('build-attack');
+    const buildDefense = document.getElementById('build-defense');
+    const buildLuck = document.getElementById('build-luck');
+    const buildSpeed = document.getElementById('build-speed');
+    const buildMagic = document.getElementById('build-magic');
+    const saveBuildBtn = document.getElementById('save-build-btn');
+    const buildStatus = document.getElementById('build-status');
 
     telegramOpenLink.href = telegramBotUsername
       ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
@@ -1877,18 +1912,77 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>${data.domain}.ton</strong>
           <div class="tiny">Средняя атака: ${data.deck.average_attack} • Средняя защита: ${data.deck.average_defense}</div>
+          <div class="tiny">Средняя скорость: ${data.deck.average_speed || 0} • Средняя магия: ${data.deck.average_magic || 0}</div>
           <div class="tiny">Сумма колоды: ${data.deck.total_score}</div>
+          <div class="tiny">Пул дисциплин: ${data.deck.discipline_pool || 0}</div>
         </div>
         ${data.deck.cards.map((card) => `
           <div class="user-item">
             <strong>${card.title}</strong>
             <div class="tiny">Слот ${card.slot} • ${card.rarity}</div>
-            <div class="tiny">Атака ${card.attack} • Защита ${card.defense} • Сила ${card.score}</div>
+            <div class="tiny">Базовая сила ${card.base_power || card.stat_value || 0}</div>
+            <div class="tiny">Атака ${card.attack} • Защита ${card.defense} • Удача ${card.luck || 0}</div>
+            <div class="tiny">Скорость ${card.speed || 0} • Магия ${card.magic || 0} • Сила ${card.score}</div>
           </div>
         `).join('')}
       `;
       deckView.innerHTML = markup;
       mobileDeckView.innerHTML = markup;
+    }
+
+    function renderDisciplineBuild(build) {
+      state.disciplineBuild = build;
+      const points = (build && build.points) || {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0};
+      buildAttack.value = points.attack || 0;
+      buildDefense.value = points.defense || 0;
+      buildLuck.value = points.luck || 0;
+      buildSpeed.value = points.speed || 0;
+      buildMagic.value = points.magic || 0;
+      const pool = Number(build && build.pool ? build.pool : 0);
+      const spent = Number(points.attack || 0) + Number(points.defense || 0) + Number(points.luck || 0) + Number(points.speed || 0) + Number(points.magic || 0);
+      buildStatus.textContent = `Пул: ${pool} • Потрачено: ${spent} • Остаток: ${Math.max(0, pool - spent)}`;
+      saveBuildBtn.disabled = !(state.wallet && state.selectedDomain);
+    }
+
+    function collectBuildPoints() {
+      return {
+        attack: Number(buildAttack.value || 0),
+        defense: Number(buildDefense.value || 0),
+        luck: Number(buildLuck.value || 0),
+        speed: Number(buildSpeed.value || 0),
+        magic: Number(buildMagic.value || 0),
+      };
+    }
+
+    async function loadDisciplineBuild() {
+      if (!state.wallet || !state.selectedDomain) {
+        renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
+        return;
+      }
+      try {
+        const data = await api(`/api/deck-build?wallet=${encodeURIComponent(state.wallet)}&domain=${encodeURIComponent(state.selectedDomain)}`);
+        renderDisciplineBuild(data.build);
+      } catch (error) {
+        buildStatus.textContent = error.message;
+      }
+    }
+
+    async function saveDisciplineBuild() {
+      if (!state.wallet || !state.selectedDomain) return;
+      try {
+        const data = await api('/api/deck-build', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            domain: state.selectedDomain,
+            points: collectBuildPoints()
+          }
+        });
+        renderDisciplineBuild(data.build);
+        buildStatus.textContent = `Прокачка сохранена. Пул: ${data.build.pool}.`;
+      } catch (error) {
+        buildStatus.textContent = error.message;
+      }
     }
 
     function renderProfile() {
@@ -2024,6 +2118,7 @@ PAGE_TEMPLATE = """
       addFriendBtn.disabled = !connected;
       refreshAchievementsBtn.disabled = !connected;
       cancelMatchmakingBtn.disabled = !searching;
+      saveBuildBtn.disabled = !(connected && hasDomain);
     }
 
     function renderDomains(domains) {
@@ -2065,6 +2160,7 @@ PAGE_TEMPLATE = """
       updateButtons();
       switchView('pack');
       setStatus(document.getElementById('pack-status'), `Выбран домен ${domain}.ton. Теперь можно открыть колоду.`, 'success');
+      loadDisciplineBuild();
     };
 
     function sleep(ms) {
@@ -2130,9 +2226,12 @@ PAGE_TEMPLATE = """
           <div class="tiny">${card.rarity}</div>
           <h3>${card.title}</h3>
           <p>${card.domain}.ton • слот ${card.slot}</p>
+          <div class="team-line"><span>Базовая сила</span><strong>${card.base_power || card.stat_value || 0}</strong></div>
           <div class="team-line"><span>Атака</span><strong>${card.attack}</strong></div>
           <div class="team-line"><span>Защита</span><strong>${card.defense}</strong></div>
           <div class="team-line"><span>Удача</span><strong>${card.luck || 0}</strong></div>
+          <div class="team-line"><span>Скорость</span><strong>${card.speed || 0}</strong></div>
+          <div class="team-line"><span>Магия</span><strong>${card.magic || 0}</strong></div>
           <div class="team-line"><span>Сила</span><strong>${card.score}</strong></div>
           <p>${card.ability}</p>
         </article>
@@ -2154,6 +2253,7 @@ PAGE_TEMPLATE = """
         <div class="showdown-card">
           <strong>${index + 1}. ${card.title || 'Карта'}</strong>
           <div class="tiny">ATK ${card.attack ?? '-'} • DEF ${card.defense ?? '-'} • LUCK ${card.luck ?? 0}</div>
+          <div class="tiny">SPD ${card.speed ?? 0} • MAG ${card.magic ?? 0} • BASE ${card.base_power ?? card.stat_value ?? 0}</div>
           <div class="tiny">Сила: ${card.score ?? '-'}</div>
         </div>
       `).join('');
@@ -2316,10 +2416,14 @@ PAGE_TEMPLATE = """
                   <div class="discipline-row ${roundClass}">
                     <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
                     <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
+                    <span class="tiny">Бонус дисциплины: +${round.player_boost || 0} / +${round.opponent_boost || 0}</span>
                   </div>
                 `;
               }).join('')}
             </div>`
+          : '';
+        const buildLine = result.player_build
+          ? `<div class="tiny">Твоя прокачка: ATK ${result.player_build.attack || 0} • DEF ${result.player_build.defense || 0} • LUCK ${result.player_build.luck || 0} • SPD ${result.player_build.speed || 0} • MAG ${result.player_build.magic || 0}</div>`
           : '';
         const deckPowerLine = result.player_deck_power !== undefined && result.opponent_deck_power !== undefined
           ? `<div class="tiny">Сила колод (тай-брейк): ${result.player_deck_power} vs ${result.opponent_deck_power}${result.tie_breaker ? ' • использован тай-брейк' : ''}</div>`
@@ -2380,6 +2484,7 @@ PAGE_TEMPLATE = """
                 </div>
                 ${cardLine}
                 ${oppCardLine}
+                ${buildLine}
                 ${roundsLine}
                 ${deckPowerLine}
                 ${ratingLine}
@@ -2518,6 +2623,7 @@ PAGE_TEMPLATE = """
       switchView('wallet');
       setStatus(walletStatus, 'Выбери домен заново и открой новую колоду.', 'warning');
       setStatus(document.getElementById('pack-status'), 'Привязка домена сброшена. Можно выбрать другой домен.', 'warning');
+      renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
     }
 
     function renderRoom(room) {
@@ -2594,6 +2700,7 @@ PAGE_TEMPLATE = """
         renderProfile();
         updateButtons();
         loadOwnedDecks();
+        loadDisciplineBuild();
       } catch (error) {
         setStatus(walletStatus, error.message, 'error');
       }
@@ -2623,6 +2730,7 @@ PAGE_TEMPLATE = """
         setStatus(document.getElementById('pack-status'), `Колода готова. ${data.domain}.ton даёт ${data.total_score} очков силы.`, 'success');
         updateButtons();
         showDeck();
+        await loadDisciplineBuild();
         loadOwnedDecks();
         loadActiveUsers();
         loadGlobalPlayers();
@@ -3003,6 +3111,7 @@ PAGE_TEMPLATE = """
       try {
         const deck = await api(`/api/deck/${encodeURIComponent(state.wallet)}`);
         renderDeck(deck);
+        await loadDisciplineBuild();
       } catch (error) {
         deckView.innerHTML = `<div class="user-item error">${error.message}</div>`;
       }
@@ -3037,6 +3146,7 @@ PAGE_TEMPLATE = """
         updateButtons();
         await loadOwnedDecks();
         setStatus(document.getElementById('pack-status'), `Активная колода переключена на ${data.domain}.ton.`, 'success');
+        await loadDisciplineBuild();
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
@@ -3175,6 +3285,7 @@ PAGE_TEMPLATE = """
           foilPack.classList.remove('opening');
           packNote.textContent = 'TAP TO OPEN';
           renderDomains([]);
+          renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
         }
         previousWallet = state.wallet;
         updateButtons();
@@ -3185,6 +3296,7 @@ PAGE_TEMPLATE = """
           await loadGlobalPlayers();
           await loadProfile();
           await loadAchievements();
+          await loadDisciplineBuild();
         } else {
           stopMatchmakingUI('');
           state.domainsChecked = false;
@@ -3197,6 +3309,7 @@ PAGE_TEMPLATE = """
           renderDeck(null);
           renderOwnedDecks([], null);
           renderAchievements([]);
+          renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
           setStatus(walletStatus, 'Подключи кошелёк через TonConnect.', 'warning');
         }
       };
@@ -3224,6 +3337,7 @@ PAGE_TEMPLATE = """
     document.getElementById('play-duel-btn').addEventListener('click', () => playMatch('duel'));
     document.getElementById('play-duel-mode-btn').addEventListener('click', openDuelMode);
     cancelMatchmakingBtn.addEventListener('click', cancelMatchmaking);
+    saveBuildBtn.addEventListener('click', saveDisciplineBuild);
     document.getElementById('play-bot-btn').addEventListener('click', playBotMatch);
     document.getElementById('play-onecard-btn').addEventListener('click', playOneCardMatch);
     oneCardSlot.addEventListener('change', updateButtons);
@@ -3249,6 +3363,14 @@ PAGE_TEMPLATE = """
     document.getElementById('nav-profile').addEventListener('click', () => switchView('profile'));
     document.getElementById('nav-achievements').addEventListener('click', () => switchView('achievements'));
     addFriendBtn.addEventListener('click', addFriend);
+    [buildAttack, buildDefense, buildLuck, buildSpeed, buildMagic].forEach((node) => {
+      node.addEventListener('input', () => {
+        const pool = Number((state.disciplineBuild && state.disciplineBuild.pool) || 0);
+        const points = collectBuildPoints();
+        const spent = points.attack + points.defense + points.luck + points.speed + points.magic;
+        buildStatus.textContent = `Пул: ${pool} • Потрачено: ${spent} • Остаток: ${Math.max(0, pool - spent)}`;
+      });
+    });
 
     window.fillOpponent = fillOpponent;
     window.repeatLastMode = repeatLastMode;
@@ -3266,6 +3388,7 @@ PAGE_TEMPLATE = """
     loadCardCatalog();
     renderProfile();
     renderFriends([]);
+    renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
     renderDeck(null);
     renderOwnedDecks([], null);
     renderAchievements([]);
@@ -3382,6 +3505,18 @@ def init_db():
                 consumed_at TEXT
             );
 
+            CREATE TABLE IF NOT EXISTS deck_builds (
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                attack INTEGER NOT NULL,
+                defense INTEGER NOT NULL,
+                luck INTEGER NOT NULL,
+                speed INTEGER NOT NULL,
+                magic INTEGER NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, domain)
+            );
+
             CREATE TABLE IF NOT EXISTS friends (
                 owner_wallet TEXT NOT NULL,
                 friend_wallet TEXT NOT NULL,
@@ -3426,6 +3561,38 @@ def init_db():
         if 'first_seen' not in columns:
             conn.execute('ALTER TABLE players ADD COLUMN first_seen TEXT')
             conn.execute('UPDATE players SET first_seen = COALESCE(first_seen, updated_at)')
+        conn.commit()
+
+
+def ensure_runtime_tables():
+    with closing(get_db()) as conn:
+        conn.executescript(
+            '''
+            CREATE TABLE IF NOT EXISTS matchmaking_queue (
+                id TEXT PRIMARY KEY,
+                mode TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                status TEXT NOT NULL,
+                opponent_wallet TEXT,
+                result_json TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                consumed_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS deck_builds (
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                attack INTEGER NOT NULL,
+                defense INTEGER NOT NULL,
+                luck INTEGER NOT NULL,
+                speed INTEGER NOT NULL,
+                magic INTEGER NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, domain)
+            );
+            '''
+        )
         conn.commit()
 
 
@@ -3837,6 +4004,7 @@ RARITY_LABELS = {'basic': 'Basic', 'rare': 'Rare', 'epic': 'Epic', 'legendary': 
 STAT_TYPES = ('attack', 'defense', 'luck', 'power')
 CARD_TYPES = ('Pulse', 'Shield', 'Cipher', 'Nova', 'Relay')
 CARD_POOL_SIZE = 100
+DISCIPLINE_KEYS = ('attack', 'defense', 'luck', 'speed', 'magic')
 
 
 def build_card_catalog():
@@ -3909,6 +4077,129 @@ def rarity_weights_for_domain(base):
     return weights
 
 
+def normalize_card_profile(card):
+    normalized = dict(card or {})
+    normalized['attack'] = int(normalized.get('attack', 0))
+    normalized['defense'] = int(normalized.get('defense', 0))
+    normalized['luck'] = int(normalized.get('luck', 0))
+    normalized['speed'] = int(normalized.get('speed', max(1, normalized['attack'] // 3)))
+    normalized['magic'] = int(normalized.get('magic', max(1, normalized['defense'] // 3)))
+    normalized['base_power'] = int(
+        normalized.get('base_power')
+        or normalized.get('stat_value')
+        or max(1, normalized['attack'] + normalized['defense'] + normalized['luck'])
+    )
+    normalized['score'] = int(
+        normalized.get('score')
+        or (normalized['attack'] + normalized['defense'] + normalized['luck'] + normalized['speed'] + normalized['magic'])
+    )
+    return normalized
+
+
+def deck_power_pool(cards):
+    normalized = [normalize_card_profile(card) for card in (cards or [])]
+    if not normalized:
+        return 0
+    return sum(card['base_power'] for card in normalized)
+
+
+def default_discipline_build(pool):
+    pool = max(0, int(pool))
+    base = pool // len(DISCIPLINE_KEYS)
+    build = {key: base for key in DISCIPLINE_KEYS}
+    remainder = pool - base * len(DISCIPLINE_KEYS)
+    for idx in range(remainder):
+        build[DISCIPLINE_KEYS[idx % len(DISCIPLINE_KEYS)]] += 1
+    return build
+
+
+def sanitize_discipline_build(payload, pool):
+    pool = max(0, int(pool))
+    values = {}
+    total = 0
+    for key in DISCIPLINE_KEYS:
+        try:
+            value = int((payload or {}).get(key, 0))
+        except (TypeError, ValueError):
+            value = 0
+        value = max(0, value)
+        values[key] = value
+        total += value
+    if total <= pool:
+        return values
+    if total <= 0:
+        return default_discipline_build(pool)
+    ratio = pool / total
+    scaled = {}
+    scaled_total = 0
+    for key in DISCIPLINE_KEYS:
+        scaled_value = int(values[key] * ratio)
+        scaled[key] = scaled_value
+        scaled_total += scaled_value
+    idx = 0
+    while scaled_total < pool:
+        key = DISCIPLINE_KEYS[idx % len(DISCIPLINE_KEYS)]
+        if values[key] > 0:
+            scaled[key] += 1
+            scaled_total += 1
+        idx += 1
+        if idx > 1000:
+            break
+    return scaled
+
+
+def load_deck_build(wallet, domain, cards):
+    ensure_runtime_tables()
+    pool = deck_power_pool(cards)
+    default_build = default_discipline_build(pool)
+    if not wallet or not domain:
+        return {'pool': pool, 'points': default_build}
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            '''
+            SELECT attack, defense, luck, speed, magic
+            FROM deck_builds
+            WHERE wallet = ? AND domain = ?
+            ''',
+            (wallet, domain),
+        ).fetchone()
+    if row is None:
+        return {'pool': pool, 'points': default_build}
+    return {'pool': pool, 'points': sanitize_discipline_build(dict(row), pool)}
+
+
+def save_deck_build(wallet, domain, cards, payload):
+    ensure_runtime_tables()
+    pool = deck_power_pool(cards)
+    points = sanitize_discipline_build(payload, pool)
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO deck_builds (wallet, domain, attack, defense, luck, speed, magic, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(wallet, domain) DO UPDATE SET
+                attack = excluded.attack,
+                defense = excluded.defense,
+                luck = excluded.luck,
+                speed = excluded.speed,
+                magic = excluded.magic,
+                updated_at = excluded.updated_at
+            ''',
+            (
+                wallet,
+                domain,
+                points['attack'],
+                points['defense'],
+                points['luck'],
+                points['speed'],
+                points['magic'],
+                now_iso(),
+            ),
+        )
+        conn.commit()
+    return {'pool': pool, 'points': points}
+
+
 def materialize_card(card_template, domain, slot):
     rarity = card_template['rarity']
     primary = max(1, int(card_template['base_value']))
@@ -3916,26 +4207,39 @@ def materialize_card(card_template, domain, slot):
     attack = 2
     defense = 2
     luck = 1
+    speed = 2
+    magic = 2
     if stat_type == 'attack':
         attack = primary
+        speed = max(2, primary // 3)
+        magic = max(2, primary // 5)
     elif stat_type == 'defense':
         defense = primary
+        speed = max(2, primary // 5)
+        magic = max(2, primary // 3)
     elif stat_type == 'luck':
         luck = max(1, primary // 5)
+        speed = max(2, primary // 4)
+        magic = max(2, primary // 4)
     else:  # power
-        attack = max(4, primary // 2)
-        defense = max(4, primary // 2)
-        luck = max(1, primary // 12)
-    score = attack + defense + luck
+        attack = max(4, primary // 3)
+        defense = max(4, primary // 3)
+        luck = max(1, primary // 10)
+        speed = max(3, primary // 5)
+        magic = max(3, primary // 5)
+    score = attack + defense + luck + speed + magic
     return {
         'id': card_template['id'],
         'slot': slot,
         'title': card_template['title'],
         'ability': f'Тип: {stat_type}',
         'domain': domain,
+        'base_power': primary,
         'attack': attack,
         'defense': defense,
         'luck': luck,
+        'speed': speed,
+        'magic': magic,
         'score': score,
         'rarity': card_template['rarity_label'],
         'rarity_key': rarity,
@@ -3961,29 +4265,39 @@ def generate_pack(domain, count=5, seed_value=None):
 
 
 def deck_score(cards):
-    return sum(card['score'] for card in cards)
+    return sum(normalize_card_profile(card)['score'] for card in cards)
 
 
 WIKIGACHI_ROUND_PLAN = [
     ('attack', 'Раунд 1: Атака'),
     ('defense', 'Раунд 2: Защита'),
     ('luck', 'Раунд 3: Удача'),
-    ('score', 'Раунд 4: Общая сила'),
-    ('attack', 'Раунд 5: Финальный натиск'),
+    ('speed', 'Раунд 4: Скорость'),
+    ('magic', 'Раунд 5: Магия'),
 ]
 
 
 def card_stat_value(card, stat_name):
+    card = normalize_card_profile(card)
     if stat_name == 'attack':
         return int(card.get('attack', 0))
     if stat_name == 'defense':
         return int(card.get('defense', 0))
     if stat_name == 'luck':
         return int(card.get('luck', 0))
+    if stat_name == 'speed':
+        return int(card.get('speed', 0))
+    if stat_name == 'magic':
+        return int(card.get('magic', 0))
     return int(card.get('score', 0))
 
 
-def wikigachi_duel(cards_a, cards_b, seed_value):
+def build_bonus_value(build_points, focus):
+    points = int((build_points or {}).get(focus, 0))
+    return max(0, round(points / 2))
+
+
+def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None):
     rounds = []
     wins_a = 0
     wins_b = 0
@@ -4000,12 +4314,14 @@ def wikigachi_duel(cards_a, cards_b, seed_value):
         card_b = cards_b[idx]
         value_a = card_stat_value(card_a, focus)
         value_b = card_stat_value(card_b, focus)
+        boost_a = build_bonus_value(build_a, focus)
+        boost_b = build_bonus_value(build_b, focus)
 
         # Small deterministic swing for a less predictable duel flow.
         swing_a = rng.randint(0, 2)
         swing_b = rng.randint(0, 2)
-        total_a = value_a + swing_a
-        total_b = value_b + swing_b
+        total_a = value_a + boost_a + swing_a
+        total_b = value_b + boost_b + swing_b
 
         if total_a > total_b:
             round_winner = 'a'
@@ -4025,6 +4341,8 @@ def wikigachi_duel(cards_a, cards_b, seed_value):
                 'card_b': {'slot': card_b.get('slot'), 'title': card_b.get('title')},
                 'value_a': value_a,
                 'value_b': value_b,
+                'boost_a': boost_a,
+                'boost_b': boost_b,
                 'swing_a': swing_a,
                 'swing_b': swing_b,
                 'total_a': total_a,
@@ -4076,7 +4394,7 @@ def load_active_deck_cards(wallet, domain):
         try:
             parsed = json.loads(row['cards_json'])
             if isinstance(parsed, list) and parsed:
-                return parsed
+                return [normalize_card_profile(card) for card in parsed]
         except json.JSONDecodeError:
             return None
     return None
@@ -4088,10 +4406,16 @@ def deck_summary_for_domain(domain, wallet=None):
     cards = load_active_deck_cards(wallet, domain) if wallet else None
     if not cards:
         cards = generate_pack(domain)
+    cards = [normalize_card_profile(card) for card in cards]
+    build = load_deck_build(wallet, domain, cards) if wallet else {'pool': deck_power_pool(cards), 'points': default_discipline_build(deck_power_pool(cards))}
     return {
         'cards': cards,
         'average_attack': round(sum(card['attack'] for card in cards) / len(cards), 1),
         'average_defense': round(sum(card['defense'] for card in cards) / len(cards), 1),
+        'average_speed': round(sum(card['speed'] for card in cards) / len(cards), 1),
+        'average_magic': round(sum(card['magic'] for card in cards) / len(cards), 1),
+        'discipline_build': build['points'],
+        'discipline_pool': build['pool'],
         'total_score': deck_score(cards),
     }
 
@@ -4103,16 +4427,21 @@ def random_bot_cards(seed_value, count=5):
         attack = rng.randint(12, 48)
         defense = rng.randint(10, 42)
         luck = rng.randint(0, 12)
+        speed = rng.randint(8, 38)
+        magic = rng.randint(8, 38)
         cards.append(
             {
                 'slot': slot,
                 'title': CARD_TITLES[rng.randrange(len(CARD_TITLES))],
                 'ability': CARD_ABILITIES[rng.randrange(len(CARD_ABILITIES))],
+                'base_power': attack + defense,
                 'attack': attack,
                 'defense': defense,
                 'luck': luck,
-                'score': attack + defense + luck,
-                'rarity': card_rarity(attack + defense + luck),
+                'speed': speed,
+                'magic': magic,
+                'score': attack + defense + luck + speed + magic,
+                'rarity': card_rarity(attack + defense + luck + speed + magic),
             }
         )
     return cards
@@ -4576,7 +4905,17 @@ def achievements_for_wallet(wallet):
 def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
     cards_a = load_active_deck_cards(wallet_a, domain_a) or generate_pack(domain_a)
     cards_b = load_active_deck_cards(wallet_b, domain_b) or generate_pack(domain_b)
-    duel = wikigachi_duel(cards_a, cards_b, f'{wallet_a}:{domain_a}:{wallet_b}:{domain_b}')
+    cards_a = [normalize_card_profile(card) for card in cards_a]
+    cards_b = [normalize_card_profile(card) for card in cards_b]
+    build_a = load_deck_build(wallet_a, domain_a, cards_a)
+    build_b = load_deck_build(wallet_b, domain_b, cards_b)
+    duel = wikigachi_duel(
+        cards_a,
+        cards_b,
+        f'{wallet_a}:{domain_a}:{wallet_b}:{domain_b}',
+        build_a=build_a['points'],
+        build_b=build_b['points'],
+    )
     score_a = duel['score_a']
     score_b = duel['score_b']
     if duel['winner'] == 'a':
@@ -4598,6 +4937,8 @@ def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
         'tie_breaker': duel['tie_breaker'],
         'deck_power_a': deck_score(cards_a),
         'deck_power_b': deck_score(cards_b),
+        'build_a': build_a,
+        'build_b': build_b,
         'winner': winner,
     }
 
@@ -4749,6 +5090,8 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
                 'opponent_card': item['card_b'] if viewer_is_a else item['card_a'],
                 'player_value': item['value_a'] if viewer_is_a else item['value_b'],
                 'opponent_value': item['value_b'] if viewer_is_a else item['value_a'],
+                'player_boost': item.get('boost_a', 0) if viewer_is_a else item.get('boost_b', 0),
+                'opponent_boost': item.get('boost_b', 0) if viewer_is_a else item.get('boost_a', 0),
                 'player_total': item['total_a'] if viewer_is_a else item['total_b'],
                 'opponent_total': item['total_b'] if viewer_is_a else item['total_a'],
                 'winner': (
@@ -4763,6 +5106,8 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
 
     own_cards = match['cards_a'] if viewer_is_a else match['cards_b']
     opp_cards = match['cards_b'] if viewer_is_a else match['cards_a']
+    own_build = match.get('build_a') if viewer_is_a else match.get('build_b')
+    opp_build = match.get('build_b') if viewer_is_a else match.get('build_a')
 
     mode_title = 'Дуэль'
     if invite['mode'] == 'ranked':
@@ -4786,6 +5131,9 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
         'rounds': rounds,
         'player_cards': own_cards,
         'opponent_cards': opp_cards,
+        'player_build': (own_build or {}).get('points') if isinstance(own_build, dict) else {},
+        'player_build_pool': (own_build or {}).get('pool') if isinstance(own_build, dict) else 0,
+        'opponent_build': (opp_build or {}).get('points') if isinstance(opp_build, dict) else {},
         'result': own_result if own_result != 'loss' else 'lose',
         'result_label': result_labels[own_result],
     }
@@ -5491,6 +5839,46 @@ def api_deck_select():
     return jsonify({'ok': True, 'wallet': wallet, 'domain': domain, 'deck': summary, 'player': get_player(wallet)})
 
 
+@app.route('/api/deck-build')
+def api_deck_build():
+    wallet = (request.args.get('wallet') or '').strip()
+    domain = normalize_domain(request.args.get('domain'))
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    if not domain:
+        return json_error('Нужно выбрать домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не найден в подключённом кошельке.', 403)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502)
+    cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
+    cards = [normalize_card_profile(card) for card in cards]
+    build = load_deck_build(wallet, domain, cards)
+    return jsonify({'wallet': wallet, 'domain': domain, 'build': build, 'cards': cards})
+
+
+@app.route('/api/deck-build', methods=['POST'])
+def api_deck_build_save():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    points = payload.get('points') or {}
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    if not domain:
+        return json_error('Нужно выбрать домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не найден в подключённом кошельке.', 403)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502)
+    cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
+    cards = [normalize_card_profile(card) for card in cards]
+    build = save_deck_build(wallet, domain, cards, points)
+    return jsonify({'ok': True, 'wallet': wallet, 'domain': domain, 'build': build})
+
+
 @app.route('/api/telegram/link', methods=['POST'])
 def api_telegram_link():
     payload = request.get_json(silent=True) or {}
@@ -5668,6 +6056,7 @@ def api_pack_payment_confirm():
 def api_matchmaking_search(mode):
     if mode not in {'ranked', 'casual'}:
         return json_error('Неизвестный режим матчмейкинга.', 404)
+    ensure_runtime_tables()
 
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
@@ -5683,90 +6072,102 @@ def api_matchmaking_search(mode):
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
 
-    with closing(get_db()) as conn:
-        cleanup_matchmaking_queue(conn)
-        latest = latest_matchmaking_row(conn, wallet, mode)
-        if latest and latest['status'] == 'matched' and latest['result_json'] and not latest['consumed_at']:
-            result = json.loads(latest['result_json'])
-            conn.execute(
-                "UPDATE matchmaking_queue SET consumed_at = ?, status = 'completed', updated_at = ? WHERE id = ?",
-                (now_iso(), now_iso(), latest['id']),
-            )
+    try:
+        with closing(get_db()) as conn:
+            cleanup_matchmaking_queue(conn)
+            latest = latest_matchmaking_row(conn, wallet, mode)
+            if latest and latest['status'] == 'matched' and latest['result_json'] and not latest['consumed_at']:
+                result = json.loads(latest['result_json'])
+                conn.execute(
+                    "UPDATE matchmaking_queue SET consumed_at = ?, status = 'completed', updated_at = ? WHERE id = ?",
+                    (now_iso(), now_iso(), latest['id']),
+                )
+                conn.commit()
+                return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
+
+            opponent = conn.execute(
+                '''
+                SELECT * FROM matchmaking_queue
+                WHERE mode = ? AND status = 'searching' AND wallet != ?
+                ORDER BY created_at ASC
+                LIMIT 1
+                ''',
+                (mode, wallet),
+            ).fetchone()
+
+            if opponent:
+                conn.commit()
+                queue_id, own_payload, opponent_wallet = settle_matchmaking_pair(conn, mode, wallet, domain, opponent)
+                conn.commit()
+                return jsonify(
+                    {
+                        'status': 'matched',
+                        'queue_id': queue_id,
+                        'opponent_wallet': opponent_wallet,
+                        'result': own_payload,
+                        'player': get_player(wallet),
+                    }
+                )
+
+            queue_id = upsert_searching_matchmaking(conn, wallet, domain, mode)
             conn.commit()
-            return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
-
-        opponent = conn.execute(
-            '''
-            SELECT * FROM matchmaking_queue
-            WHERE mode = ? AND status = 'searching' AND wallet != ?
-            ORDER BY created_at ASC
-            LIMIT 1
-            ''',
-            (mode, wallet),
-        ).fetchone()
-
-        if opponent:
-            queue_id, own_payload, opponent_wallet = settle_matchmaking_pair(conn, mode, wallet, domain, opponent)
-            conn.commit()
-            return jsonify(
-                {
-                    'status': 'matched',
-                    'queue_id': queue_id,
-                    'opponent_wallet': opponent_wallet,
-                    'result': own_payload,
-                    'player': get_player(wallet),
-                }
-            )
-
-        queue_id = upsert_searching_matchmaking(conn, wallet, domain, mode)
-        conn.commit()
-        return jsonify({'status': 'searching', 'queue_id': queue_id, 'player': get_player(wallet)})
+            return jsonify({'status': 'searching', 'queue_id': queue_id, 'player': get_player(wallet)})
+    except sqlite3.Error as exc:
+        return json_error(f'Ошибка очереди матчмейкинга: {exc}', 500)
 
 
 @app.route('/api/matchmaking/<mode>/status')
 def api_matchmaking_status(mode):
     if mode not in {'ranked', 'casual'}:
         return json_error('Неизвестный режим матчмейкинга.', 404)
+    ensure_runtime_tables()
     wallet = (request.args.get('wallet') or '').strip()
     if not valid_wallet_address(wallet):
         return json_error('Нужно передать свой кошелёк.')
-    with closing(get_db()) as conn:
-        cleanup_matchmaking_queue(conn)
-        row = latest_matchmaking_row(conn, wallet, mode)
-        if row is None:
-            return jsonify({'status': 'idle'})
-        if row['status'] == 'searching':
-            waited = int(max(0, now_utc().timestamp() - parse_iso(row['created_at']).timestamp()))
-            return jsonify({'status': 'searching', 'waited_seconds': waited})
-        if row['status'] == 'matched' and row['result_json']:
-            result = json.loads(row['result_json'])
-            conn.execute(
-                "UPDATE matchmaking_queue SET consumed_at = ?, status = 'completed', updated_at = ? WHERE id = ?",
-                (now_iso(), now_iso(), row['id']),
-            )
-            conn.commit()
-            return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
-        return jsonify({'status': row['status']})
+    try:
+        with closing(get_db()) as conn:
+            cleanup_matchmaking_queue(conn)
+            row = latest_matchmaking_row(conn, wallet, mode)
+            if row is None:
+                return jsonify({'status': 'idle'})
+            if row['status'] == 'searching':
+                waited = int(max(0, now_utc().timestamp() - parse_iso(row['created_at']).timestamp()))
+                return jsonify({'status': 'searching', 'waited_seconds': waited})
+            if row['status'] == 'matched' and row['result_json']:
+                result = json.loads(row['result_json'])
+                conn.execute(
+                    "UPDATE matchmaking_queue SET consumed_at = ?, status = 'completed', updated_at = ? WHERE id = ?",
+                    (now_iso(), now_iso(), row['id']),
+                )
+                conn.commit()
+                return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
+            return jsonify({'status': row['status']})
+    except sqlite3.Error as exc:
+        return json_error(f'Ошибка очереди матчмейкинга: {exc}', 500)
 
 
 @app.route('/api/matchmaking/<mode>/cancel', methods=['POST'])
 def api_matchmaking_cancel(mode):
     if mode not in {'ranked', 'casual'}:
         return json_error('Неизвестный режим матчмейкинга.', 404)
+    ensure_runtime_tables()
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
-    with closing(get_db()) as conn:
-        conn.execute(
-            '''
-            UPDATE matchmaking_queue
-            SET status = 'cancelled', updated_at = ?
-            WHERE wallet = ? AND mode = ? AND status = 'searching'
-            ''',
-            (now_iso(), wallet, mode),
-        )
-        conn.commit()
+    try:
+        with closing(get_db()) as conn:
+            conn.execute(
+                '''
+                UPDATE matchmaking_queue
+                SET status = 'cancelled', updated_at = ?
+                WHERE wallet = ? AND mode = ? AND status = 'searching'
+                ''',
+                (now_iso(), wallet, mode),
+            )
+            conn.commit()
+    except sqlite3.Error as exc:
+        return json_error(f'Ошибка отмены поиска: {exc}', 500)
     return jsonify({'ok': True, 'status': 'cancelled'})
 
 
@@ -5828,9 +6229,18 @@ def api_match_bot():
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
 
-    player_cards = generate_pack(domain)
+    player_cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
+    player_cards = [normalize_card_profile(card) for card in player_cards]
     bot_cards = random_bot_cards(f'{wallet}:{domain}:{now_iso()}')
-    duel = wikigachi_duel(player_cards, bot_cards, f'bot-duel:{wallet}:{domain}:{now_iso()}')
+    bot_build = {'pool': deck_power_pool(bot_cards), 'points': default_discipline_build(deck_power_pool(bot_cards))}
+    player_build = load_deck_build(wallet, domain, player_cards)
+    duel = wikigachi_duel(
+        player_cards,
+        bot_cards,
+        f'bot-duel:{wallet}:{domain}:{now_iso()}',
+        build_a=player_build['points'],
+        build_b=bot_build['points'],
+    )
     player_score = duel['score_a']
     bot_score = duel['score_b']
     player_deck_power = deck_score(player_cards)
@@ -5858,6 +6268,8 @@ def api_match_bot():
                 'opponent_value': item['value_b'],
                 'player_total': item['total_a'],
                 'opponent_total': item['total_b'],
+                'player_boost': item.get('boost_a', 0),
+                'opponent_boost': item.get('boost_b', 0),
                 'winner': 'draw' if item['winner'] == 'draw' else ('player' if item['winner'] == 'a' else 'opponent'),
             }
         )
@@ -5879,6 +6291,8 @@ def api_match_bot():
                 'rounds': rounds,
                 'player_cards': player_cards,
                 'opponent_cards': bot_cards,
+                'player_build': player_build['points'],
+                'player_build_pool': player_build['pool'],
                 'result': result_code,
                 'result_label': result_label,
             },
@@ -5906,12 +6320,15 @@ def api_match_one_card():
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
 
-    cards = generate_pack(domain)
+    cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
+    cards = [normalize_card_profile(card) for card in cards]
     player_card = next((card for card in cards if card['slot'] == card_slot), None)
     if player_card is None:
         return json_error('Карта не найдена в колоде.', 400)
     bot_card = random_bot_single_card(f'onecard:{wallet}:{domain}:{now_iso()}')
-    player_score = player_card['score']
+    player_build = load_deck_build(wallet, domain, cards)
+    player_bonus = max(0, round(sum(player_build['points'].values()) / 15))
+    player_score = player_card['score'] + player_bonus
     bot_score = bot_card['score']
     if player_score > bot_score:
         result_code = 'win'
@@ -5934,6 +6351,8 @@ def api_match_one_card():
                 'opponent_domain': None,
                 'player_score': player_score,
                 'opponent_score': bot_score,
+                'player_build': player_build['points'],
+                'player_build_pool': player_build['pool'],
                 'result': result_code,
                 'result_label': result_label,
                 'player_card': player_card,
