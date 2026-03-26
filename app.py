@@ -1331,8 +1331,7 @@ PAGE_TEMPLATE = """
             <div class="foil-pack" id="foil-pack">
               <div class="pack-cap"></div>
               <div class="pack-emblem">TON</div>
-              <div class="pack-brand">WIKI</div>
-              <div class="pack-sub">ton domain card pack</div>
+              <div class="pack-sub">Ton Domain Card Pack</div>
             </div>
             <div class="pack-tap">▲ TAP TO OPEN ▲</div>
           </div>
