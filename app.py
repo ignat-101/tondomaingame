@@ -1181,11 +1181,13 @@ PAGE_TEMPLATE = """
     }
 
     .pack-sub {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(24px, 5vw, 34px);
-      color: rgba(26, 26, 26, 0.8);
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: clamp(52px, 10vw, 74px);
+      font-weight: 700;
+      color: rgba(20, 20, 20, 0.9);
       margin: 8px 0 0;
-      line-height: 1.1;
+      line-height: 0.94;
+      letter-spacing: 0.01em;
     }
 
     .pack-tap {
