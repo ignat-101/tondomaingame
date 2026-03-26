@@ -1494,7 +1494,7 @@ PAGE_TEMPLATE = """
           <h2>Шаг 3. Режимы игры</h2>
           <p class="muted">Бой проходит в 5 раундов по статам (атака, защита, удача, общая сила и финальный натиск). Рейтинговый и обычный режимы теперь ищут соперника автоматически среди активных игроков.</p>
 
-          <div class="team-card" style="margin-bottom:18px;">
+          <div class="team-card" id="duel-invite-panel" style="margin-bottom:18px; display:none;">
             <h3>Дуэль (персональное приглашение)</h3>
             <div class="row">
               <input id="opponent-wallet" placeholder="Домен соперника">
@@ -1775,6 +1775,7 @@ PAGE_TEMPLATE = """
     const buildMagic = document.getElementById('build-magic');
     const saveBuildBtn = document.getElementById('save-build-btn');
     const buildStatus = document.getElementById('build-status');
+    const duelInvitePanel = document.getElementById('duel-invite-panel');
 
     telegramOpenLink.href = telegramBotUsername
       ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
@@ -1826,6 +1827,9 @@ PAGE_TEMPLATE = """
       const modeGrid = document.querySelector('.mode-grid');
       if (modeGrid) {
         modeGrid.classList.add('mode-focus');
+      }
+      if (duelInvitePanel) {
+        duelInvitePanel.style.display = modeName === 'duel' ? 'block' : 'none';
       }
       document.querySelectorAll('[data-mode-card]').forEach((card) => {
         card.classList.toggle('active-mode', card.dataset.modeCard === modeName);
@@ -2521,7 +2525,7 @@ PAGE_TEMPLATE = """
             if (battleStage) {
               battleStage.classList.add('visible');
             }
-            const finalDelay = revealDisciplineRows(0, 1000);
+            const finalDelay = revealDisciplineRows(0, 0);
             const showOutcome = () => {
               battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
               animateScoreCounters(battleResult);
@@ -2571,6 +2575,9 @@ PAGE_TEMPLATE = """
     function openModes() {
       document.body.classList.remove('showdown-open');
       switchView('modes');
+      if (duelInvitePanel) {
+        duelInvitePanel.style.display = 'none';
+      }
     }
 
     function openDuelMode() {
@@ -2592,7 +2599,7 @@ PAGE_TEMPLATE = """
         return;
       }
       if (state.lastReplayMode === 'ranked' || state.lastReplayMode === 'casual') {
-        startMatchmaking(state.lastReplayMode);
+        startMatchmaking(state.lastReplayMode, state.lastResult?.opponent_wallet || null);
         return;
       }
       if (state.lastReplayMode === 'duel') {
@@ -2866,7 +2873,7 @@ PAGE_TEMPLATE = """
       }
     }
 
-    async function startMatchmaking(mode) {
+    async function startMatchmaking(mode, avoidWallet = null) {
       animateModeChoice(mode);
       state.matchmakingMode = mode;
       state.matchmakingPolling = true;
@@ -2877,7 +2884,8 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: {
             wallet: state.wallet,
-            domain: state.selectedDomain
+            domain: state.selectedDomain,
+            avoid_wallet: avoidWallet
           }
         });
         if (data.status === 'matched' && data.result) {
@@ -5825,6 +5833,9 @@ def api_deck_select():
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     domain = normalize_domain(payload.get('domain'))
+    avoid_wallet = (payload.get('avoid_wallet') or '').strip()
+    if avoid_wallet == wallet:
+        avoid_wallet = ''
     if not valid_wallet_address(wallet):
         return json_error('Некорректный адрес кошелька.')
     if not domain:
@@ -6085,15 +6096,26 @@ def api_matchmaking_search(mode):
                 conn.commit()
                 return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
 
-            opponent = conn.execute(
-                '''
-                SELECT * FROM matchmaking_queue
-                WHERE mode = ? AND status = 'searching' AND wallet != ?
-                ORDER BY created_at ASC
-                LIMIT 1
-                ''',
-                (mode, wallet),
-            ).fetchone()
+            if avoid_wallet:
+                opponent = conn.execute(
+                    '''
+                    SELECT * FROM matchmaking_queue
+                    WHERE mode = ? AND status = 'searching' AND wallet != ? AND wallet != ?
+                    ORDER BY created_at ASC
+                    LIMIT 1
+                    ''',
+                    (mode, wallet, avoid_wallet),
+                ).fetchone()
+            else:
+                opponent = conn.execute(
+                    '''
+                    SELECT * FROM matchmaking_queue
+                    WHERE mode = ? AND status = 'searching' AND wallet != ?
+                    ORDER BY created_at ASC
+                    LIMIT 1
+                    ''',
+                    (mode, wallet),
+                ).fetchone()
 
             if opponent:
                 conn.commit()
