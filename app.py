@@ -1053,10 +1053,10 @@ PAGE_TEMPLATE = """
     .pack-showcase {
       margin-top: 16px;
       border-radius: 24px;
-      border: 1px solid rgba(246, 196, 83, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       background:
-        radial-gradient(circle at top, rgba(246, 196, 83, 0.18), transparent 45%),
-        linear-gradient(170deg, rgba(7, 11, 18, 0.96), rgba(5, 9, 16, 0.92));
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.12), transparent 38%),
+        linear-gradient(180deg, rgba(8, 12, 18, 0.96), rgba(6, 10, 15, 0.94));
       padding: 16px 14px 18px;
       text-align: center;
     }
@@ -1065,33 +1065,38 @@ PAGE_TEMPLATE = """
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 46px;
+      min-height: 42px;
       min-width: 260px;
       border-radius: 999px;
-      border: 1px solid rgba(246, 196, 83, 0.9);
-      color: #f6c453;
-      letter-spacing: 0.2em;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: rgba(245, 245, 245, 0.95);
+      letter-spacing: 0.14em;
       font-weight: 700;
       padding: 0 20px;
-      box-shadow: 0 0 26px rgba(246, 196, 83, 0.24);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.12);
       margin-bottom: 10px;
+      text-transform: uppercase;
     }
 
     .pack-note {
-      color: rgba(238, 246, 255, 0.86);
+      color: rgba(245, 245, 245, 0.8);
       margin: 0 0 12px;
-      font-size: 15px;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .foil-pack {
       position: relative;
-      width: min(320px, 90%);
+      width: min(350px, 92%);
       margin: 0 auto;
       border-radius: 18px;
-      background: linear-gradient(155deg, #f8f8f8, #d8d8d8 45%, #ececec);
-      color: #212121;
-      padding: 26px 18px 28px;
-      box-shadow: 0 24px 40px rgba(0, 0, 0, 0.32);
+      border: 1px solid rgba(0, 0, 0, 0.22);
+      background:
+        radial-gradient(circle at 45% 24%, rgba(255, 255, 255, 0.84), rgba(232, 232, 232, 0.98) 52%, rgba(210, 210, 210, 1));
+      color: #1e1e1e;
+      padding: 72px 22px 58px;
+      box-shadow: 0 28px 44px rgba(0, 0, 0, 0.42);
       overflow: hidden;
       transition: transform 420ms ease, opacity 420ms ease;
     }
@@ -1103,11 +1108,12 @@ PAGE_TEMPLATE = """
       right: -1px;
       height: 16px;
       background:
-        linear-gradient(135deg, transparent 8px, #f6f6f6 0) repeat-x;
+        linear-gradient(135deg, transparent 8px, #ececec 0) repeat-x;
       background-size: 16px 16px;
     }
 
     .foil-pack::before { top: 0; }
+
     .foil-pack::after {
       bottom: 0;
       transform: rotate(180deg);
@@ -1115,12 +1121,19 @@ PAGE_TEMPLATE = """
 
     .pack-cap {
       position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      height: 58px;
-      background: linear-gradient(180deg, #ffffff, #dcdcdc);
-      border-bottom: 2px solid rgba(0, 0, 0, 0.18);
+      left: 14px;
+      right: 14px;
+      top: 18px;
+      height: 22px;
+      border-top: 2px solid rgba(0, 0, 0, 0.2);
+      border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.88),
+        rgba(255, 255, 255, 0.88) 2px,
+        rgba(228, 228, 228, 0.92) 2px,
+        rgba(228, 228, 228, 0.92) 4px
+      );
       transform-origin: top center;
       z-index: 2;
     }
@@ -1138,26 +1151,59 @@ PAGE_TEMPLATE = """
       opacity: 0.18;
     }
 
-    .pack-brand {
-      margin-top: 52px;
-      font-size: 52px;
+    .pack-emblem {
+      width: 132px;
+      height: 132px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(40, 40, 40, 0.28);
+      background:
+        radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9), rgba(217, 217, 217, 0.95));
+      box-shadow: inset 0 -10px 18px rgba(0, 0, 0, 0.1);
+      display: grid;
+      place-items: center;
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: 64px;
       font-weight: 700;
-      letter-spacing: 0.06em;
-      color: rgba(0, 0, 0, 0.72);
+      color: rgba(23, 23, 23, 0.78);
+    }
+
+    .pack-brand {
+      margin-top: 8px;
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: clamp(48px, 9vw, 68px);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: rgba(16, 16, 16, 0.9);
+      text-transform: uppercase;
+      line-height: 1;
     }
 
     .pack-sub {
-      font-size: 26px;
-      color: rgba(0, 0, 0, 0.62);
-      margin: 4px 0 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(24px, 5vw, 34px);
+      color: rgba(26, 26, 26, 0.8);
+      margin: 8px 0 0;
+      line-height: 1.1;
+    }
+
+    .pack-license {
+      margin-top: 26px;
+      font-size: 15px;
+      color: rgba(18, 18, 18, 0.72);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     .pack-tap {
       margin-top: 12px;
-      color: #f0f0f0;
-      letter-spacing: 0.08em;
-      font-size: 24px;
+      color: rgba(242, 242, 242, 0.92);
+      letter-spacing: 0.2em;
+      font-size: clamp(18px, 5vw, 26px);
       font-weight: 700;
+      text-transform: uppercase;
+      font-family: Georgia, "Times New Roman", serif;
     }
 
     .owned-decks {
@@ -1289,11 +1335,13 @@ PAGE_TEMPLATE = """
 
           <div class="pack-showcase" id="pack-showcase">
             <div class="pack-counter" id="pack-counter" style="display:none;"></div>
-            <p class="pack-note" id="pack-note">Tap to open</p>
+            <p class="pack-note" id="pack-note">TAP TO OPEN</p>
             <div class="foil-pack" id="foil-pack">
               <div class="pack-cap"></div>
-              <div class="pack-brand">TON</div>
-              <div class="pack-sub">Domain Cards</div>
+              <div class="pack-emblem">W</div>
+              <div class="pack-brand">Wiki</div>
+              <div class="pack-sub">Card Pack</div>
+              <div class="pack-license">CC BY-SA STYLE</div>
             </div>
             <div class="pack-tap">▲ TAP TO OPEN ▲</div>
           </div>
@@ -1837,7 +1885,7 @@ PAGE_TEMPLATE = """
       packScoreLabel.textContent = 'Сумма колоды: -';
       packShowcase.classList.remove('opened');
       foilPack.classList.remove('opening');
-      packNote.textContent = 'Tap to open';
+      packNote.textContent = 'TAP TO OPEN';
       refreshOneCardSelector();
       renderDomains(state.domains);
       renderProfile();
@@ -2214,7 +2262,7 @@ PAGE_TEMPLATE = """
       packScoreLabel.textContent = 'Сумма колоды: -';
       packShowcase.classList.remove('opened');
       foilPack.classList.remove('opening');
-      packNote.textContent = 'Tap to open';
+      packNote.textContent = 'TAP TO OPEN';
       battleResult.style.display = 'none';
       battleResult.className = 'result-box';
       document.body.classList.remove('showdown-open');
@@ -2321,7 +2369,7 @@ PAGE_TEMPLATE = """
         loadProfile();
       } catch (error) {
         foilPack.classList.remove('opening');
-        packNote.textContent = 'Tap to open';
+        packNote.textContent = 'TAP TO OPEN';
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
     }
@@ -2725,7 +2773,7 @@ PAGE_TEMPLATE = """
           packScoreLabel.textContent = 'Сумма колоды: -';
           packShowcase.classList.remove('opened');
           foilPack.classList.remove('opening');
-          packNote.textContent = 'Tap to open';
+          packNote.textContent = 'TAP TO OPEN';
           renderDomains([]);
         }
         previousWallet = state.wallet;
