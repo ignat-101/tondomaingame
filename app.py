@@ -1030,7 +1030,7 @@ PAGE_TEMPLATE = """
           </div>
 
           <div class="pack-showcase" id="pack-showcase">
-            <div class="pack-counter" id="pack-counter">DAILY PACKS: 9 / 10</div>
+            <div class="pack-counter" id="pack-counter" style="display:none;"></div>
             <p class="pack-note" id="pack-note">Tap to open</p>
             <div class="foil-pack" id="foil-pack">
               <div class="pack-cap"></div>
@@ -1627,7 +1627,7 @@ PAGE_TEMPLATE = """
       const rows = battleResult.querySelectorAll('.discipline-row');
       let finalDelay = 0;
       rows.forEach((row, index) => {
-        const delay = 450 + index * 1000;
+        const delay = 1500 + index * 1000;
         finalDelay = delay;
         setTimeout(() => {
           row.classList.add('visible');
@@ -1894,7 +1894,6 @@ PAGE_TEMPLATE = """
         });
         state.cards = data.cards;
         packShowcase.classList.add('opened');
-        packCounter.textContent = `DAILY PACKS: ${Math.max(1, 10 - (new Date().getUTCDate() % 5))} / 10`;
         packNote.textContent = 'Pack opened';
         renderPack(data.cards, data.total_score);
         setStatus(document.getElementById('pack-status'), `Колода готова. ${data.domain}.ton даёт ${data.total_score} очков силы.`, 'success');
