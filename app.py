@@ -71,6 +71,8 @@ TEN_K_CONFIG_URL = 'https://10kclub.com/api/clubs/10k/config'
 DAILY_FREE_PACKS = int(os.getenv('DAILY_FREE_PACKS', '1'))
 PACK_PRICE_NANO = int(os.getenv('PACK_PRICE_NANO', '1000000000'))  # 1 TON
 PACK_RECEIVER_WALLET = os.getenv('PACK_RECEIVER_WALLET', '').strip()
+APP_SETTING_GUEST_ACCESS = 'guest_access'
+ADMIN_SETTINGS_KEY = os.getenv('ADMIN_SETTINGS_KEY', '').strip()
 
 DOMAIN_CACHE = {}
 TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
@@ -2012,12 +2014,12 @@ PAGE_TEMPLATE = """
       marketplacesBox.style.display = 'none';
       container.innerHTML = domains.map((domain) => `
         <div class="domain-card ${state.selectedDomain === domain.domain ? 'selected' : ''}">
-          <h3>${domain.domain}.ton</h3>
+          <h3>${domain.domain}.ton ${domain.is_guest ? '• гостевой' : ''}</h3>
           <p>Источник: ${domain.source_label}</p>
           <p>Тир: ${domain.tier || '-'} • Удача: ${domain.luck || 0}</p>
           <p>Паттерны: ${domain.patterns.length ? domain.patterns.join(', ') : 'базовый 10K домен'}</p>
           <p>Спецколлекции: ${domain.special_collections && domain.special_collections.length ? domain.special_collections.join(', ') : 'нет'}</p>
-          <p>Счёт домена: ${domain.score} • DNS: ${domain.domain_exists ? 'активен' : 'не подтверждён'}</p>
+          <p>Счёт домена: ${domain.score} • DNS: ${domain.is_guest ? 'гостевой режим' : (domain.domain_exists ? 'активен' : 'не подтверждён')}</p>
           <button onclick="selectDomain('${domain.domain}')">Выбрать домен</button>
         </div>
       `).join('');
@@ -2534,12 +2536,24 @@ PAGE_TEMPLATE = """
         });
         state.domainsChecked = true;
         state.domains = data.domains;
-        if (data.domains.length) {
+        if (!state.domains.some((item) => item.domain === state.selectedDomain)) {
+          state.selectedDomain = null;
+          state.cards = [];
+          packCards.innerHTML = '';
+          packScoreLabel.textContent = 'Сумма колоды: -';
+          refreshOneCardSelector();
+        }
+        const guestOnly = data.domains.length === 1 && data.domains[0].is_guest;
+        if (guestOnly) {
+          setStatus(walletStatus, `Реальные домены не найдены. Доступен гостевой домен ${data.domains[0].domain}.ton.`, 'warning');
+        } else if (data.domains.length) {
           setStatus(walletStatus, `Найдено доменов: ${data.domains.length}. Выбери тот, который хочешь использовать для колоды.`, 'success');
         } else {
           setStatus(walletStatus, 'Подключение прошло успешно, но 10K Club доменов в кошельке не найдено.', 'warning');
         }
         renderDomains(data.domains);
+        renderProfile();
+        updateButtons();
         loadOwnedDecks();
       } catch (error) {
         setStatus(walletStatus, error.message, 'error');
@@ -3251,6 +3265,12 @@ def init_db():
                 created_at TEXT NOT NULL,
                 confirmed_at TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS app_settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
             '''
         )
         columns = {row['name'] for row in conn.execute("PRAGMA table_info(players)").fetchall()}
@@ -3266,6 +3286,13 @@ def json_error(message, status=400):
     return jsonify({'error': message}), status
 
 
+def require_admin_settings_key():
+    if not ADMIN_SETTINGS_KEY:
+        return False
+    provided = (request.headers.get('X-Admin-Key') or '').strip()
+    return bool(provided) and hmac.compare_digest(provided, ADMIN_SETTINGS_KEY)
+
+
 def valid_wallet_address(wallet):
     return bool(wallet) and len(wallet) >= 20 and wallet[0] in {'E', 'U', 'k', '0'}
 
@@ -3279,6 +3306,71 @@ def normalize_domain(value):
     if re.fullmatch(r'\d{4}', text):
         return text
     return None
+
+
+def get_app_setting(key, default=None):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT value FROM app_settings WHERE key = ?', (key,)).fetchone()
+    if row is None:
+        return default
+    return row['value']
+
+
+def set_app_setting(key, value):
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO app_settings (key, value, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = excluded.updated_at
+            ''',
+            (key, str(value), now_iso()),
+        )
+        conn.commit()
+
+
+def guest_access_enabled():
+    value = str(get_app_setting(APP_SETTING_GUEST_ACCESS, '0')).strip().lower()
+    return value in {'1', 'true', 'yes', 'on'}
+
+
+def set_guest_access_enabled(enabled):
+    set_app_setting(APP_SETTING_GUEST_ACCESS, '1' if enabled else '0')
+
+
+def guest_domain_for_wallet(wallet):
+    digest = hashlib.sha256(str(wallet).encode()).hexdigest()
+    return f'{int(digest[:8], 16) % 10000:04d}'
+
+
+def guest_domain_payload(wallet):
+    domain = guest_domain_for_wallet(wallet)
+    base = score_from_domain(domain)
+    return {
+        'domain': domain,
+        'domain_exists': True,
+        'source_label': 'Гостевой профиль (игра без домена)',
+        'patterns': base['patterns'],
+        'tier': base['tier'],
+        'special_collections': base.get('special_collections', []),
+        'luck': base.get('luck', 0),
+        'score': base['score'],
+        'is_guest': True,
+    }
+
+
+def wallet_domains_for_game(wallet, force_refresh=False, allow_fallback=False):
+    try:
+        domains = fetch_wallet_domains(wallet, force_refresh=force_refresh)
+    except (RuntimeError, ValueError):
+        if not (allow_fallback and guest_access_enabled()):
+            raise
+        domains = []
+    if not domains and guest_access_enabled():
+        return [guest_domain_payload(wallet)]
+    return domains
 
 
 def today_utc_str():
@@ -3705,10 +3797,9 @@ def rarity_weights_for_domain(base):
     return weights
 
 
-def materialize_card(card_template, domain, slot, domain_score, rng):
+def materialize_card(card_template, domain, slot):
     rarity = card_template['rarity']
-    rarity_boost = {'basic': 0, 'rare': 8, 'epic': 16, 'legendary': 28}[rarity]
-    primary = max(1, card_template['base_value'] + domain_score // 8 + rng.randint(-4, 7) + rarity_boost)
+    primary = max(1, int(card_template['base_value']))
     stat_type = card_template['stat_type']
     attack = 2
     defense = 2
@@ -3751,7 +3842,7 @@ def generate_pack(domain, count=5, seed_value=None):
     for slot in range(1, count + 1):
         rarity = weighted_choice(weights, rng)
         template = rng.choice(CARD_CATALOG_BY_RARITY[rarity])
-        card = materialize_card(template, domain, slot, base['score'], rng)
+        card = materialize_card(template, domain, slot)
         card['patterns'] = base.get('patterns', [])
         cards.append(card)
     return cards
@@ -4021,8 +4112,13 @@ def fetch_wallet_domains(wallet, force_refresh=False):
 
 
 def validate_wallet_owns_domain(wallet, domain):
+    normalized = normalize_domain(domain)
+    if not valid_wallet_address(wallet) or not normalized:
+        return False
+    if guest_access_enabled() and normalized == guest_domain_for_wallet(wallet):
+        return True
     domains = fetch_wallet_domains(wallet)
-    return any(item['domain'] == domain for item in domains)
+    return any(item['domain'] == normalized for item in domains)
 
 
 def upsert_telegram_user(user, chat_id):
@@ -5098,6 +5194,27 @@ def api_health():
     return jsonify({'ok': True, 'time': now_iso()})
 
 
+@app.route('/api/admin/settings/guest-access', methods=['POST'])
+def api_admin_settings_guest_access():
+    if not require_admin_settings_key():
+        return json_error('Нет доступа.', 403)
+    payload = request.get_json(silent=True) or {}
+    enabled = payload.get('enabled')
+    if isinstance(enabled, str):
+        enabled = enabled.strip().lower() in {'1', 'true', 'yes', 'on'}
+    elif not isinstance(enabled, bool):
+        return json_error('Поле enabled должно быть true/false.')
+    set_guest_access_enabled(bool(enabled))
+    return jsonify({'ok': True, 'guest_access': guest_access_enabled()})
+
+
+@app.route('/api/admin/settings/guest-access')
+def api_admin_settings_guest_access_get():
+    if not require_admin_settings_key():
+        return json_error('Нет доступа.', 403)
+    return jsonify({'guest_access': guest_access_enabled()})
+
+
 @app.route('/api/player/<wallet>')
 def api_player(wallet):
     if not valid_wallet_address(wallet):
@@ -5132,7 +5249,7 @@ def api_decks(wallet):
     if not valid_wallet_address(wallet):
         return json_error('Некорректный адрес кошелька.')
     try:
-        domains = fetch_wallet_domains(wallet)
+        domains = wallet_domains_for_game(wallet, allow_fallback=True)
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
     player = ensure_player(wallet, domains[0]['domain'] if domains else None, None)
@@ -5252,7 +5369,7 @@ def api_wallet_domains():
     if not valid_wallet_address(wallet):
         return json_error('Укажи корректный TON-кошелёк.')
     try:
-        domains = fetch_wallet_domains(wallet, force_refresh=True)
+        domains = wallet_domains_for_game(wallet, force_refresh=True, allow_fallback=True)
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
     ensure_player(wallet, domains[0]['domain'] if domains else None)
