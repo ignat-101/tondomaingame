@@ -248,7 +248,7 @@ PAGE_TEMPLATE = """
 
     .actions, .row, .stack {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
@@ -462,7 +462,7 @@ PAGE_TEMPLATE = """
     }
 
     .user-item {
-      border-radius: 18px;
+      border-radius: 20px;
       border: 1px solid var(--line);
       padding: 14px;
       background: rgba(255,255,255,0.03);
@@ -542,26 +542,41 @@ PAGE_TEMPLATE = """
       display: grid;
       grid-template-rows: auto auto auto auto;
       gap: 12px;
-      background:
-        radial-gradient(circle at 50% 10%, rgba(83, 246, 184, 0.16), transparent 38%),
-        radial-gradient(circle at 50% 90%, rgba(69, 215, 255, 0.16), transparent 38%),
-        linear-gradient(180deg, rgba(4, 11, 20, 0.98), rgba(8, 18, 34, 0.98));
+      background: linear-gradient(180deg, rgba(3, 10, 20, 1), rgba(6, 15, 28, 1));
+      position: fixed;
+      isolation: isolate;
       overflow: hidden;
+    }
+
+    .showdown-fullscreen.duel-anim::after {
+      display: none;
+    }
+
+    .showdown-fullscreen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 10%, rgba(83, 246, 184, 0.12), transparent 44%),
+        radial-gradient(circle at 50% 90%, rgba(69, 215, 255, 0.12), transparent 44%),
+        rgba(3, 10, 20, 0.94);
+      z-index: -1;
     }
 
     .showdown-header {
       border: 1px solid rgba(121, 217, 255, 0.32);
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 9px;
-      background: rgba(6, 18, 32, 0.9);
+      background: rgba(6, 18, 32, 0.96);
       backdrop-filter: blur(3px);
+      overflow: hidden;
     }
 
     .showdown-main {
       border: 1px solid rgba(121, 217, 255, 0.25);
-      border-radius: 16px;
+      border-radius: 20px;
       padding: 10px;
-      background: rgba(4, 14, 27, 0.75);
+      background: rgba(4, 14, 27, 0.94);
       overflow: auto;
       -webkit-overflow-scrolling: touch;
       min-height: auto;
