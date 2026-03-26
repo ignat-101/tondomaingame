@@ -66,6 +66,7 @@ MAX_INVITE_TIMEOUT_SECONDS = int(os.getenv('MAX_INVITE_TIMEOUT_SECONDS', '600'))
 TELEGRAM_INITDATA_MAX_AGE = int(os.getenv('TELEGRAM_INITDATA_MAX_AGE', '86400'))
 ACTIVE_USER_WINDOW_SECONDS = int(os.getenv('ACTIVE_USER_WINDOW_SECONDS', '900'))
 MATCHMAKING_SEARCH_TTL_SECONDS = int(os.getenv('MATCHMAKING_SEARCH_TTL_SECONDS', '180'))
+MATCHMAKING_REMATCH_COOLDOWN_SECONDS = int(os.getenv('MATCHMAKING_REMATCH_COOLDOWN_SECONDS', '5'))
 DB_PATH = Path(os.getenv('APP_DB_PATH', 'tondomaingame.db'))
 TEN_K_CONFIG_TTL = int(os.getenv('TEN_K_CONFIG_TTL', '900'))
 TEN_K_CONFIG_URL = 'https://10kclub.com/api/clubs/10k/config'
@@ -3513,6 +3514,13 @@ def init_db():
                 consumed_at TEXT
             );
 
+            CREATE TABLE IF NOT EXISTS matchmaking_cooldowns (
+                wallet_a TEXT NOT NULL,
+                wallet_b TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                PRIMARY KEY (wallet_a, wallet_b)
+            );
+
             CREATE TABLE IF NOT EXISTS deck_builds (
                 wallet TEXT NOT NULL,
                 domain TEXT NOT NULL,
@@ -3587,6 +3595,12 @@ def ensure_runtime_tables():
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 consumed_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS matchmaking_cooldowns (
+                wallet_a TEXT NOT NULL,
+                wallet_b TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                PRIMARY KEY (wallet_a, wallet_b)
             );
             CREATE TABLE IF NOT EXISTS deck_builds (
                 wallet TEXT NOT NULL,
@@ -5285,6 +5299,25 @@ def cleanup_matchmaking_queue(conn):
         ''',
         (now_iso(), threshold),
     )
+    conn.execute(
+        'DELETE FROM matchmaking_cooldowns WHERE expires_at <= ?',
+        (now_iso(),),
+    )
+
+
+def set_matchmaking_cooldown(conn, wallet_a, wallet_b, seconds=MATCHMAKING_REMATCH_COOLDOWN_SECONDS):
+    if not wallet_a or not wallet_b or wallet_a == wallet_b:
+        return
+    expires_at = datetime.fromtimestamp(now_utc().timestamp() + max(1, int(seconds)), tz=timezone.utc).isoformat()
+    for left, right in ((wallet_a, wallet_b), (wallet_b, wallet_a)):
+        conn.execute(
+            '''
+            INSERT INTO matchmaking_cooldowns (wallet_a, wallet_b, expires_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(wallet_a, wallet_b) DO UPDATE SET expires_at = excluded.expires_at
+            ''',
+            (left, right, expires_at),
+        )
 
 
 def latest_matchmaking_row(conn, wallet, mode):
@@ -5347,6 +5380,7 @@ def settle_matchmaking_pair(conn, mode, wallet, domain, opponent_row):
 
     own_payload = invite_result_payload({'mode': mode}, match, wallet, rating_meta=rating_meta)
     opp_payload = invite_result_payload({'mode': mode}, match, opponent_wallet, rating_meta=rating_meta)
+    set_matchmaking_cooldown(conn, wallet, opponent_wallet)
     ts = now_iso()
 
     conn.execute(
@@ -6100,21 +6134,34 @@ def api_matchmaking_search(mode):
                 opponent = conn.execute(
                     '''
                     SELECT * FROM matchmaking_queue
-                    WHERE mode = ? AND status = 'searching' AND wallet != ? AND wallet != ?
+                    WHERE mode = ?
+                      AND status = 'searching'
+                      AND wallet != ?
+                      AND wallet != ?
+                      AND NOT EXISTS (
+                          SELECT 1 FROM matchmaking_cooldowns c
+                          WHERE c.wallet_a = ? AND c.wallet_b = matchmaking_queue.wallet AND c.expires_at > ?
+                      )
                     ORDER BY created_at ASC
                     LIMIT 1
                     ''',
-                    (mode, wallet, avoid_wallet),
+                    (mode, wallet, avoid_wallet, wallet, now_iso()),
                 ).fetchone()
             else:
                 opponent = conn.execute(
                     '''
                     SELECT * FROM matchmaking_queue
-                    WHERE mode = ? AND status = 'searching' AND wallet != ?
+                    WHERE mode = ?
+                      AND status = 'searching'
+                      AND wallet != ?
+                      AND NOT EXISTS (
+                          SELECT 1 FROM matchmaking_cooldowns c
+                          WHERE c.wallet_a = ? AND c.wallet_b = matchmaking_queue.wallet AND c.expires_at > ?
+                      )
                     ORDER BY created_at ASC
                     LIMIT 1
                     ''',
-                    (mode, wallet),
+                    (mode, wallet, wallet, now_iso()),
                 ).fetchone()
 
             if opponent:
