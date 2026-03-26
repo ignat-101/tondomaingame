@@ -563,6 +563,34 @@ PAGE_TEMPLATE = """
       z-index: -1;
     }
 
+    .showdown-fullscreen::after {
+      content: "";
+      position: absolute;
+      inset: -22%;
+      background:
+        conic-gradient(from 180deg at 50% 50%, transparent, rgba(69, 215, 255, 0.08), transparent, rgba(83, 246, 184, 0.08), transparent);
+      filter: blur(6px);
+      animation: auroraRotate 16s linear infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .showdown-fullscreen.result-win {
+      box-shadow: inset 0 0 160px rgba(83, 246, 184, 0.2);
+    }
+
+    .showdown-fullscreen.result-lose {
+      box-shadow: inset 0 0 160px rgba(255, 122, 134, 0.17);
+    }
+
+    .showdown-fullscreen.result-draw {
+      box-shadow: inset 0 0 160px rgba(255, 211, 110, 0.16);
+    }
+
+    .showdown-fullscreen.battle-live .showdown-main {
+      animation: arenaShake 540ms cubic-bezier(.2,.82,.2,1);
+    }
+
     .showdown-header {
       border: 1px solid rgba(121, 217, 255, 0.32);
       border-radius: 20px;
@@ -636,6 +664,11 @@ PAGE_TEMPLATE = """
       margin-bottom: 10px;
     }
 
+    .showdown-score .count-up {
+      text-shadow: 0 0 18px rgba(83, 246, 184, 0.45);
+      animation: scorePulse 860ms cubic-bezier(.2,.82,.2,1) both;
+    }
+
     .discipline-list {
       display: grid;
       gap: 8px;
@@ -658,6 +691,7 @@ PAGE_TEMPLATE = """
     .discipline-row.visible {
       opacity: 1;
       transform: translateY(0);
+      animation: rowPop 420ms cubic-bezier(.2,.82,.2,1);
     }
 
     .discipline-row.win {
@@ -728,6 +762,7 @@ PAGE_TEMPLATE = """
       color: #d9ffe8;
       background: linear-gradient(135deg, rgba(83, 246, 184, 0.24), rgba(69, 215, 255, 0.16));
       box-shadow: 0 10px 26px rgba(83, 246, 184, 0.2);
+      animation: victoryPulse 1.1s ease-in-out infinite;
     }
 
     .team-line {
@@ -895,6 +930,49 @@ PAGE_TEMPLATE = """
       animation: vsPulse 1.2s ease-in-out infinite;
     }
 
+    .battle-fx-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 6000;
+      overflow: hidden;
+    }
+
+    .battle-flash {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.56), rgba(69, 215, 255, 0.18) 35%, transparent 65%);
+      opacity: 0;
+      animation: flashBoom 460ms cubic-bezier(.2,.82,.2,1) forwards;
+    }
+
+    .battle-ring {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      width: 28px;
+      height: 28px;
+      margin: -14px 0 0 -14px;
+      border-radius: 50%;
+      border: 2px solid rgba(83, 246, 184, 0.74);
+      box-shadow: 0 0 22px rgba(83, 246, 184, 0.45);
+      animation: ringBlast 920ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .battle-particle {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      width: 8px;
+      height: 16px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(83,246,184,0.8));
+      opacity: 0;
+      transform-origin: center center;
+      animation: particleBurst var(--dur, 900ms) cubic-bezier(.16,.84,.2,1) forwards;
+      animation-delay: var(--delay, 0ms);
+    }
+
     .count-up {
       font-variant-numeric: tabular-nums;
     }
@@ -907,6 +985,69 @@ PAGE_TEMPLATE = """
     @keyframes vsPulse {
       0%, 100% { transform: scale(1); box-shadow: 0 0 18px rgba(83, 246, 184, 0.2); }
       50% { transform: scale(1.06); box-shadow: 0 0 28px rgba(83, 246, 184, 0.38); }
+    }
+
+    @keyframes auroraRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes arenaShake {
+      0% { transform: translateX(0); }
+      15% { transform: translateX(-4px); }
+      30% { transform: translateX(4px); }
+      45% { transform: translateX(-3px); }
+      60% { transform: translateX(3px); }
+      75% { transform: translateX(-2px); }
+      100% { transform: translateX(0); }
+    }
+
+    @keyframes flashBoom {
+      0% { opacity: 0; }
+      25% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes ringBlast {
+      0% { transform: scale(0.8); opacity: 1; }
+      100% { transform: scale(20); opacity: 0; }
+    }
+
+    @keyframes particleBurst {
+      0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--rot, 0deg)); }
+      20% { opacity: 1; }
+      100% {
+        opacity: 0;
+        transform: translate3d(var(--tx, 0px), var(--ty, 0px), 0) rotate(var(--rot, 0deg));
+      }
+    }
+
+    @keyframes scorePulse {
+      0% { transform: scale(0.82); opacity: 0.55; }
+      70% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes rowPop {
+      0% { transform: translateY(12px) scale(0.98); }
+      70% { transform: translateY(-2px) scale(1.01); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    @keyframes victoryPulse {
+      0%, 100% { box-shadow: 0 10px 22px rgba(83, 246, 184, 0.2); }
+      50% { box-shadow: 0 14px 30px rgba(83, 246, 184, 0.38); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .showdown-fullscreen::after,
+      .showdown-fullscreen.battle-live .showdown-main,
+      .battle-vs-orb,
+      .showdown-score .count-up,
+      .discipline-row.visible,
+      .victory-banner {
+        animation: none !important;
+      }
     }
 
     .pack-showcase {
@@ -1754,6 +1895,61 @@ PAGE_TEMPLATE = """
       return startDelay + (rows.length - 1) * stepMs;
     }
 
+    function playBattleFx(resultKey = 'draw', phase = 'start') {
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) return;
+
+      const layer = document.createElement('div');
+      layer.className = 'battle-fx-layer';
+
+      const flash = document.createElement('div');
+      flash.className = 'battle-flash';
+      if (resultKey === 'lose') {
+        flash.style.background = 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.52), rgba(255,122,134,0.2) 35%, transparent 65%)';
+      } else if (resultKey === 'draw') {
+        flash.style.background = 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.5), rgba(255,211,110,0.2) 35%, transparent 65%)';
+      }
+      layer.appendChild(flash);
+
+      const ring = document.createElement('div');
+      ring.className = 'battle-ring';
+      if (resultKey === 'lose') {
+        ring.style.borderColor = 'rgba(255, 122, 134, 0.75)';
+        ring.style.boxShadow = '0 0 22px rgba(255, 122, 134, 0.4)';
+      } else if (resultKey === 'draw') {
+        ring.style.borderColor = 'rgba(255, 211, 110, 0.75)';
+        ring.style.boxShadow = '0 0 22px rgba(255, 211, 110, 0.4)';
+      }
+      layer.appendChild(ring);
+
+      const particleCount = phase === 'finish' ? 58 : 34;
+      for (let i = 0; i < particleCount; i += 1) {
+        const piece = document.createElement('div');
+        piece.className = 'battle-particle';
+        const angle = Math.random() * Math.PI * 2;
+        const dist = (phase === 'finish' ? 240 : 170) + Math.random() * (phase === 'finish' ? 220 : 130);
+        const tx = Math.cos(angle) * dist;
+        const ty = Math.sin(angle) * dist;
+        const rotation = `${Math.floor(Math.random() * 360)}deg`;
+        const duration = `${580 + Math.random() * 760}ms`;
+        const delay = `${Math.random() * (phase === 'finish' ? 240 : 120)}ms`;
+        if (resultKey === 'lose') {
+          piece.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,122,134,0.82))';
+        } else if (resultKey === 'draw') {
+          piece.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,211,110,0.82))';
+        }
+        piece.style.setProperty('--tx', `${tx.toFixed(1)}px`);
+        piece.style.setProperty('--ty', `${ty.toFixed(1)}px`);
+        piece.style.setProperty('--rot', rotation);
+        piece.style.setProperty('--dur', duration);
+        piece.style.setProperty('--delay', delay);
+        layer.appendChild(piece);
+      }
+
+      document.body.appendChild(layer);
+      setTimeout(() => layer.remove(), phase === 'finish' ? 1900 : 1300);
+    }
+
     function showMatchIntro(title) {
       battleResult.className = 'result-box duel-anim showdown-fullscreen';
       battleResult.style.display = 'block';
@@ -1830,6 +2026,8 @@ PAGE_TEMPLATE = """
           : '';
         state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
         battleResult.classList.add('showdown-fullscreen');
+        battleResult.classList.remove('result-win', 'result-lose', 'result-draw', 'battle-live');
+        battleResult.classList.add(resultKey === 'win' ? 'result-win' : (resultKey === 'lose' ? 'result-lose' : 'result-draw'));
         document.body.classList.add('showdown-open');
         battleResult.scrollTop = 0;
         const victoryLine = resultKey === 'win'
@@ -1907,6 +2105,9 @@ PAGE_TEMPLATE = """
           startBtn.addEventListener('click', () => {
             startBtn.disabled = true;
             startBtn.textContent = 'Бой идёт...';
+            battleResult.classList.add('battle-live');
+            setTimeout(() => battleResult.classList.remove('battle-live'), 620);
+            playBattleFx(resultKey, 'start');
             const prebattle = battleResult.querySelector('#prebattle-stage');
             const battleStage = battleResult.querySelector('#battle-stage');
             if (prebattle) {
@@ -1918,6 +2119,8 @@ PAGE_TEMPLATE = """
             const finalDelay = revealDisciplineRows(0, 1000);
             const showOutcome = () => {
               battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
+              animateScoreCounters(battleResult);
+              playBattleFx(resultKey, 'finish');
             };
             if (finalDelay > 0) {
               setTimeout(showOutcome, finalDelay);
@@ -1927,7 +2130,6 @@ PAGE_TEMPLATE = """
           });
         }
       }
-      animateScoreCounters(battleResult);
       telegramShareBtn.disabled = false;
     }
 
