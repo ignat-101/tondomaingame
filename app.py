@@ -1162,10 +1162,11 @@ PAGE_TEMPLATE = """
       box-shadow: inset 0 -10px 18px rgba(0, 0, 0, 0.1);
       display: grid;
       place-items: center;
-      font-family: "Times New Roman", Georgia, serif;
-      font-size: 64px;
-      font-weight: 700;
-      color: rgba(23, 23, 23, 0.78);
+      font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: rgba(20, 20, 20, 0.8);
     }
 
     .pack-brand {
@@ -1185,15 +1186,6 @@ PAGE_TEMPLATE = """
       color: rgba(26, 26, 26, 0.8);
       margin: 8px 0 0;
       line-height: 1.1;
-    }
-
-    .pack-license {
-      margin-top: 26px;
-      font-size: 15px;
-      color: rgba(18, 18, 18, 0.72);
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
     }
 
     .pack-tap {
@@ -1338,10 +1330,9 @@ PAGE_TEMPLATE = """
             <p class="pack-note" id="pack-note">TAP TO OPEN</p>
             <div class="foil-pack" id="foil-pack">
               <div class="pack-cap"></div>
-              <div class="pack-emblem">W</div>
-              <div class="pack-brand">Wiki</div>
-              <div class="pack-sub">Card Pack</div>
-              <div class="pack-license">CC BY-SA STYLE</div>
+              <div class="pack-emblem">TON</div>
+              <div class="pack-brand">WIKI</div>
+              <div class="pack-sub">ton domain card pack</div>
             </div>
             <div class="pack-tap">▲ TAP TO OPEN ▲</div>
           </div>
