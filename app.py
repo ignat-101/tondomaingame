@@ -948,8 +948,8 @@ PAGE_TEMPLATE = """
 
     .battle-ring {
       position: absolute;
-      left: 50%;
-      top: 52%;
+      left: var(--fx-x, 50%);
+      top: var(--fx-y, 52%);
       width: 28px;
       height: 28px;
       margin: -14px 0 0 -14px;
@@ -961,8 +961,8 @@ PAGE_TEMPLATE = """
 
     .battle-particle {
       position: absolute;
-      left: 50%;
-      top: 52%;
+      left: var(--fx-x, 50%);
+      top: var(--fx-y, 52%);
       width: 8px;
       height: 16px;
       border-radius: 3px;
@@ -1886,28 +1886,48 @@ PAGE_TEMPLATE = """
       if (!rows.length) {
         return 0;
       }
+      const mainPanel = battleResult.querySelector('.showdown-main');
+      const toResultKey = (row) => (
+        row.classList.contains('win') ? 'win' : (row.classList.contains('lose') ? 'lose' : 'draw')
+      );
       rows.forEach((row, index) => {
         const delay = startDelay + index * stepMs;
         setTimeout(() => {
           row.classList.add('visible');
+          if (mainPanel) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          }
+          playBattleFx(toResultKey(row), 'round', row);
         }, delay);
       });
       return startDelay + (rows.length - 1) * stepMs;
     }
 
-    function playBattleFx(resultKey = 'draw', phase = 'start') {
+    function playBattleFx(resultKey = 'draw', phase = 'start', anchorNode = null) {
       const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (prefersReduced) return;
 
       const layer = document.createElement('div');
       layer.className = 'battle-fx-layer';
+      let fxX = 50;
+      let fxY = 52;
+      if (anchorNode) {
+        const rect = anchorNode.getBoundingClientRect();
+        const x = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
+        const y = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
+        fxX = Math.max(8, Math.min(92, x));
+        fxY = Math.max(8, Math.min(92, y));
+      }
+      layer.style.setProperty('--fx-x', `${fxX.toFixed(2)}%`);
+      layer.style.setProperty('--fx-y', `${fxY.toFixed(2)}%`);
 
       const flash = document.createElement('div');
       flash.className = 'battle-flash';
+      flash.style.background = `radial-gradient(circle at ${fxX.toFixed(2)}% ${fxY.toFixed(2)}%, rgba(255, 255, 255, 0.56), rgba(69, 215, 255, 0.18) 35%, transparent 65%)`;
       if (resultKey === 'lose') {
-        flash.style.background = 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.52), rgba(255,122,134,0.2) 35%, transparent 65%)';
+        flash.style.background = `radial-gradient(circle at ${fxX.toFixed(2)}% ${fxY.toFixed(2)}%, rgba(255,255,255,0.52), rgba(255,122,134,0.2) 35%, transparent 65%)`;
       } else if (resultKey === 'draw') {
-        flash.style.background = 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.5), rgba(255,211,110,0.2) 35%, transparent 65%)';
+        flash.style.background = `radial-gradient(circle at ${fxX.toFixed(2)}% ${fxY.toFixed(2)}%, rgba(255,255,255,0.5), rgba(255,211,110,0.2) 35%, transparent 65%)`;
       }
       layer.appendChild(flash);
 
@@ -1922,17 +1942,19 @@ PAGE_TEMPLATE = """
       }
       layer.appendChild(ring);
 
-      const particleCount = phase === 'finish' ? 58 : 34;
+      const particleCount = phase === 'finish' ? 58 : (phase === 'round' ? 26 : 34);
       for (let i = 0; i < particleCount; i += 1) {
         const piece = document.createElement('div');
         piece.className = 'battle-particle';
         const angle = Math.random() * Math.PI * 2;
-        const dist = (phase === 'finish' ? 240 : 170) + Math.random() * (phase === 'finish' ? 220 : 130);
+        const base = phase === 'finish' ? 240 : (phase === 'round' ? 110 : 170);
+        const spread = phase === 'finish' ? 220 : (phase === 'round' ? 90 : 130);
+        const dist = base + Math.random() * spread;
         const tx = Math.cos(angle) * dist;
         const ty = Math.sin(angle) * dist;
         const rotation = `${Math.floor(Math.random() * 360)}deg`;
-        const duration = `${580 + Math.random() * 760}ms`;
-        const delay = `${Math.random() * (phase === 'finish' ? 240 : 120)}ms`;
+        const duration = `${phase === 'round' ? 460 + Math.random() * 420 : 580 + Math.random() * 760}ms`;
+        const delay = `${Math.random() * (phase === 'finish' ? 240 : (phase === 'round' ? 80 : 120))}ms`;
         if (resultKey === 'lose') {
           piece.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,122,134,0.82))';
         } else if (resultKey === 'draw') {
@@ -1947,7 +1969,7 @@ PAGE_TEMPLATE = """
       }
 
       document.body.appendChild(layer);
-      setTimeout(() => layer.remove(), phase === 'finish' ? 1900 : 1300);
+      setTimeout(() => layer.remove(), phase === 'finish' ? 1900 : (phase === 'round' ? 980 : 1300));
     }
 
     function showMatchIntro(title) {
@@ -2121,6 +2143,10 @@ PAGE_TEMPLATE = """
               battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
               animateScoreCounters(battleResult);
               playBattleFx(resultKey, 'finish');
+              const mainPanel = battleResult.querySelector('.showdown-main');
+              if (mainPanel) {
+                mainPanel.scrollTo({ top: mainPanel.scrollHeight, behavior: 'smooth' });
+              }
             };
             if (finalDelay > 0) {
               setTimeout(showOutcome, finalDelay);
