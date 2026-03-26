@@ -427,10 +427,26 @@ PAGE_TEMPLATE = """
     .card-grid.reveal .game-card:nth-child(4) { animation-delay: 0.35s; }
     .card-grid.reveal .game-card:nth-child(5) { animation-delay: 0.45s; }
 
+    .card-grid.pack-emerge.reveal .game-card {
+      animation: packCardRise 820ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .card-grid.pack-emerge.reveal .game-card:nth-child(1) { animation-delay: 0.06s; }
+    .card-grid.pack-emerge.reveal .game-card:nth-child(2) { animation-delay: 0.14s; }
+    .card-grid.pack-emerge.reveal .game-card:nth-child(3) { animation-delay: 0.22s; }
+    .card-grid.pack-emerge.reveal .game-card:nth-child(4) { animation-delay: 0.30s; }
+    .card-grid.pack-emerge.reveal .game-card:nth-child(5) { animation-delay: 0.38s; }
+
     @keyframes cardFlipIn {
       0% { opacity: 0; transform: translateY(18px) rotateY(90deg) scale(0.96); }
       60% { opacity: 1; transform: translateY(-4px) rotateY(0deg) scale(1.01); }
       100% { opacity: 1; transform: translateY(0) rotateY(0deg) scale(1); }
+    }
+
+    @keyframes packCardRise {
+      0% { opacity: 0; transform: translateY(-130px) scale(0.72) rotateX(72deg); filter: blur(1.2px); }
+      55% { opacity: 1; transform: translateY(-16px) scale(1.03) rotateX(8deg); filter: blur(0); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0deg); filter: blur(0); }
     }
 
     .duel-anim {
@@ -1139,11 +1155,11 @@ PAGE_TEMPLATE = """
     }
 
     .foil-pack.opening .pack-cap {
-      animation: tearOpen 880ms cubic-bezier(.2,.82,.2,1) forwards;
+      animation: tearOpen 860ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .foil-pack.opening {
-      animation: packShake 880ms ease-in-out;
+      animation: packShake 560ms ease-in-out;
     }
 
     .pack-showcase.opened .foil-pack {
@@ -1211,9 +1227,9 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes tearOpen {
-      0% { transform: translateY(0) rotateX(0deg); opacity: 1; }
-      55% { transform: translateY(-12px) rotateX(26deg); opacity: 1; }
-      100% { transform: translateY(-40px) rotateX(58deg); opacity: 0; }
+      0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+      40% { transform: translate3d(-18px, -16px, 0) rotate(-8deg); opacity: 1; }
+      100% { transform: translate3d(-140px, -110px, 0) rotate(-26deg); opacity: 0; }
     }
 
     @keyframes packShake {
@@ -1312,7 +1328,7 @@ PAGE_TEMPLATE = """
 
         <section class="panel view" id="view-pack">
           <h2>Шаг 2. Распаковка 5 карточек</h2>
-          <p class="muted">Карты генерируются из реально найденного домена. Колода фиксируется по связке домен + кошелёк, поэтому её можно воспроизводить и использовать в режимах игры.</p>
+          <p class="muted">Карты генерируются из реально найденного домена. Колода фиксируется только по домену, поэтому её можно воспроизводить и использовать в режимах игры.</p>
 
           <div class="stats-strip">
             <div class="stat-chip" id="selected-domain-label">Домен не выбран</div>
@@ -1367,7 +1383,7 @@ PAGE_TEMPLATE = """
                 <option value="">Выбери карту для режима одной карты</option>
               </select>
             </div>
-            <div class="tiny">Режим "Через сайт" отправляет приглашение в игру через сайт. Режим "Через Telegram" бот отправляет приглашение через Telegram. Для режима Telegram соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз.</div>
+            <div class="tiny">Режим "Через сайт" отправляет приглашение в игру через сайт. Режим "Через Telegam" бот отправляет приглашение через Telegram. Для режима Telegram соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз.</div>
           </div>
 
           <div class="mode-grid">
@@ -1890,7 +1906,7 @@ PAGE_TEMPLATE = """
     };
 
     function renderPack(cards, total) {
-      packCards.classList.remove('reveal');
+      packCards.classList.remove('reveal', 'pack-emerge');
       packCards.innerHTML = cards.map((card) => `
         <article class="game-card">
           <div class="tiny">${card.rarity}</div>
@@ -1905,7 +1921,10 @@ PAGE_TEMPLATE = """
       `).join('');
       packScoreLabel.textContent = `Сумма колоды: ${total}`;
       refreshOneCardSelector();
-      requestAnimationFrame(() => packCards.classList.add('reveal'));
+      requestAnimationFrame(() => {
+        packCards.classList.add('pack-emerge');
+        requestAnimationFrame(() => packCards.classList.add('reveal'));
+      });
     }
 
     function showdownDeckMarkup(cards, fallbackCard) {
@@ -2353,6 +2372,7 @@ PAGE_TEMPLATE = """
         state.cards = data.cards;
         packShowcase.classList.add('opened');
         packNote.textContent = 'Pack opened';
+        await new Promise((resolve) => setTimeout(resolve, 460));
         renderPack(data.cards, data.total_score);
         setStatus(document.getElementById('pack-status'), `Колода готова. ${data.domain}.ton даёт ${data.total_score} очков силы.`, 'success');
         updateButtons();
@@ -2571,7 +2591,7 @@ PAGE_TEMPLATE = """
       if (!tg || !tg.initData) {
         if (telegramBotUsername) {
           window.open(`https://t.me/${telegramBotUsername}?start=link_wallet`, '_blank');
-          telegramStatus.textContent = 'Открыл бота. Нажми /start в Telegram и потом вернись в mini app для подтверждения связи.';
+          telegramStatus.textContent = 'Открыл бота. Введи команду /link_wallet <твой_кошелёк> в Telegram для привязки.';
         } else {
           telegramStatus.textContent = 'Привязка доступна в Telegram mini app. Укажи TG_BOT_USERNAME.';
         }
@@ -3267,9 +3287,9 @@ def card_rarity(score):
     return 'Core'
 
 
-def generate_pack(domain, wallet, count=5):
+def generate_pack(domain, count=5):
     base = score_from_domain(domain)
-    rng = random.Random(hashlib.sha256(f'{wallet}:{domain}'.encode()).hexdigest())
+    rng = random.Random(hashlib.sha256(f'deck:{domain}'.encode()).hexdigest())
     cards = []
     for slot in range(1, count + 1):
         luck = max(0, base.get('luck', 0) + rng.randint(-1, 3))
@@ -3391,11 +3411,10 @@ def wikigachi_duel(cards_a, cards_b, seed_value):
     }
 
 
-def deck_summary_for_domain(domain, wallet_seed=None):
+def deck_summary_for_domain(domain):
     if not domain:
         return None
-    seed = wallet_seed or f'summary:{domain}'
-    cards = generate_pack(domain, seed)
+    cards = generate_pack(domain)
     return {
         'cards': cards,
         'average_attack': round(sum(card['attack'] for card in cards) / len(cards), 1),
@@ -3665,7 +3684,7 @@ def active_users():
         ).fetchall()
     result = []
     for row in rows:
-        summary = deck_summary_for_domain(row['current_domain'], row['wallet'])
+        summary = deck_summary_for_domain(row['current_domain'])
         result.append(
             {
                 'wallet': row['wallet'],
@@ -3697,7 +3716,7 @@ def friend_rows(owner_wallet):
         ).fetchall()
     result = []
     for row in rows:
-        summary = deck_summary_for_domain(row['current_domain'], row['wallet']) if row['current_domain'] else None
+        summary = deck_summary_for_domain(row['current_domain']) if row['current_domain'] else None
         result.append(
             {
                 'wallet': row['wallet'],
@@ -3760,7 +3779,7 @@ def ensure_player(wallet, best_domain=None, current_domain=None):
 
 def get_player(wallet):
     player = ensure_player(wallet)
-    current_deck = deck_summary_for_domain(player['current_domain'], wallet) if player['current_domain'] else None
+    current_deck = deck_summary_for_domain(player['current_domain']) if player['current_domain'] else None
     return {
         'wallet': player['wallet'],
         'rating': player['rating'],
@@ -3877,8 +3896,8 @@ def achievements_for_wallet(wallet):
 
 
 def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
-    cards_a = generate_pack(domain_a, wallet_a)
-    cards_b = generate_pack(domain_b, wallet_b)
+    cards_a = generate_pack(domain_a)
+    cards_b = generate_pack(domain_b)
     duel = wikigachi_duel(cards_a, cards_b, f'{wallet_a}:{domain_a}:{wallet_b}:{domain_b}')
     score_a = duel['score_a']
     score_b = duel['score_b']
@@ -4317,7 +4336,7 @@ def start_team_room(room_id, requester_wallet):
 
     for index, player in enumerate(snapshot['players']):
         team = teams[index % 2]
-        cards = generate_pack(player['domain'], player['wallet'])
+        cards = generate_pack(player['domain'])
         total = deck_score(cards)
         team['players'].append(
             {
@@ -4496,6 +4515,9 @@ def handle_telegram_message(message):
         return
 
     if text.startswith('/link_wallet') or text.startswith('/link'):
+        if not from_user or not from_user.get('id'):
+            telegram_send_message(chat_id, 'Не удалось определить Telegram-пользователя. Попробуй ещё раз.')
+            return
         parts = text.split(maxsplit=1)
         if len(parts) < 2:
             link = telegram_user_link(from_user.get('id')) if from_user.get('id') else None
@@ -4606,7 +4628,7 @@ def api_deck(wallet):
     domain = player['current_domain'] or player['best_domain']
     if not domain:
         return json_error('У игрока ещё нет сохранённой колоды.', 404)
-    summary = deck_summary_for_domain(domain, wallet)
+    summary = deck_summary_for_domain(domain)
     return jsonify({'wallet': wallet, 'domain': domain, 'deck': summary})
 
 
@@ -4621,7 +4643,7 @@ def api_decks(wallet):
     player = ensure_player(wallet, domains[0]['domain'] if domains else None, None)
     decks = []
     for item in domains:
-        summary = deck_summary_for_domain(item['domain'], wallet)
+        summary = deck_summary_for_domain(item['domain'])
         decks.append(
             {
                 'domain': item['domain'],
@@ -4651,7 +4673,7 @@ def api_deck_select():
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
     ensure_player(wallet, domain, domain)
-    summary = deck_summary_for_domain(domain, wallet)
+    summary = deck_summary_for_domain(domain)
     return jsonify({'ok': True, 'wallet': wallet, 'domain': domain, 'deck': summary, 'player': get_player(wallet)})
 
 
@@ -4757,7 +4779,7 @@ def api_pack():
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
 
-    cards = generate_pack(domain, wallet)
+    cards = generate_pack(domain)
     total = deck_score(cards)
     ensure_player(wallet, domain, domain)
     return jsonify({'wallet': wallet, 'domain': domain, 'cards': cards, 'total_score': total})
@@ -4832,7 +4854,7 @@ def api_match_bot():
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
 
-    player_cards = generate_pack(domain, wallet)
+    player_cards = generate_pack(domain)
     bot_cards = random_bot_cards(f'{wallet}:{domain}:{now_iso()}')
     duel = wikigachi_duel(player_cards, bot_cards, f'bot-duel:{wallet}:{domain}:{now_iso()}')
     player_score = duel['score_a']
@@ -4910,7 +4932,7 @@ def api_match_one_card():
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
 
-    cards = generate_pack(domain, wallet)
+    cards = generate_pack(domain)
     player_card = next((card for card in cards if card['slot'] == card_slot), None)
     if player_card is None:
         return json_error('Карта не найдена в колоде.', 400)
