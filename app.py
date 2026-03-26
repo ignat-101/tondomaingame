@@ -449,6 +449,17 @@ PAGE_TEMPLATE = """
       100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0deg); filter: blur(0); }
     }
 
+    .card-grid.sequence-prep .game-card {
+      opacity: 0;
+      transform: scale(0.86) translateY(18px);
+      transition: opacity 320ms ease, transform 320ms ease;
+    }
+
+    .card-grid.sequence-prep .game-card.sequence-visible {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
     .duel-anim {
       position: relative;
       overflow: hidden;
@@ -1113,7 +1124,7 @@ PAGE_TEMPLATE = """
       color: #1e1e1e;
       padding: 72px 22px 58px;
       box-shadow: 0 28px 44px rgba(0, 0, 0, 0.42);
-      overflow: hidden;
+      overflow: visible;
       transition: transform 420ms ease, opacity 420ms ease;
     }
 
@@ -1151,7 +1162,7 @@ PAGE_TEMPLATE = """
         rgba(228, 228, 228, 0.92) 4px
       );
       transform-origin: top center;
-      z-index: 2;
+      z-index: 4;
     }
 
     .foil-pack.opening .pack-cap {
@@ -1212,6 +1223,41 @@ PAGE_TEMPLATE = """
       font-weight: 700;
       text-transform: uppercase;
       font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .pack-sequence-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 7000;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .pack-preview-card {
+      position: fixed;
+      width: min(430px, 88vw);
+      max-height: 86vh;
+      border-radius: 20px;
+      border: 1px solid rgba(121, 217, 255, 0.4);
+      padding: 16px 14px;
+      background:
+        radial-gradient(circle at top right, rgba(69, 215, 255, 0.22), transparent 32%),
+        linear-gradient(180deg, rgba(18, 41, 71, 0.95), rgba(11, 18, 35, 0.98));
+      box-shadow: 0 32px 72px rgba(0, 0, 0, 0.56);
+      color: var(--text);
+      transform: translate(-50%, -50%) scale(0.44);
+      opacity: 0;
+      transition:
+        left 700ms cubic-bezier(.16,.84,.2,1),
+        top 700ms cubic-bezier(.16,.84,.2,1),
+        transform 700ms cubic-bezier(.16,.84,.2,1),
+        opacity 220ms ease;
+      overflow: hidden;
+    }
+
+    .pack-preview-card.focused {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
     }
 
     .owned-decks {
@@ -1905,8 +1951,62 @@ PAGE_TEMPLATE = """
       setStatus(document.getElementById('pack-status'), `Выбран домен ${domain}.ton. Теперь можно открыть колоду.`, 'success');
     };
 
-    function renderPack(cards, total) {
-      packCards.classList.remove('reveal', 'pack-emerge');
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function playPackSequence() {
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const targets = Array.from(packCards.querySelectorAll('.game-card'));
+      if (!targets.length || prefersReduced) {
+        packCards.classList.remove('sequence-prep');
+        requestAnimationFrame(() => packCards.classList.add('reveal'));
+        return;
+      }
+
+      const layer = document.createElement('div');
+      layer.className = 'pack-sequence-layer';
+      document.body.appendChild(layer);
+
+      const packRect = foilPack.getBoundingClientRect();
+      const startX = packRect.left + packRect.width * 0.5;
+      const startY = packRect.top + 26;
+
+      for (const target of targets) {
+        const preview = document.createElement('article');
+        preview.className = 'pack-preview-card';
+        preview.innerHTML = target.innerHTML;
+        preview.style.left = `${startX}px`;
+        preview.style.top = `${startY}px`;
+        layer.appendChild(preview);
+
+        await sleep(40);
+        preview.style.left = `${window.innerWidth * 0.5}px`;
+        preview.style.top = `${window.innerHeight * 0.5}px`;
+        preview.classList.add('focused');
+
+        await sleep(3000);
+
+        const rect = target.getBoundingClientRect();
+        const targetX = rect.left + rect.width / 2;
+        const targetY = rect.top + rect.height / 2;
+        preview.style.left = `${targetX}px`;
+        preview.style.top = `${targetY}px`;
+        preview.style.transform = 'translate(-50%, -50%) scale(0.44)';
+        preview.style.opacity = '0.94';
+
+        await sleep(780);
+        target.classList.add('sequence-visible');
+        preview.remove();
+      }
+
+      layer.remove();
+      packCards.classList.remove('sequence-prep');
+      packCards.classList.add('reveal');
+    }
+
+    async function renderPack(cards, total) {
+      packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
       packCards.innerHTML = cards.map((card) => `
         <article class="game-card">
           <div class="tiny">${card.rarity}</div>
@@ -1921,10 +2021,8 @@ PAGE_TEMPLATE = """
       `).join('');
       packScoreLabel.textContent = `Сумма колоды: ${total}`;
       refreshOneCardSelector();
-      requestAnimationFrame(() => {
-        packCards.classList.add('pack-emerge');
-        requestAnimationFrame(() => packCards.classList.add('reveal'));
-      });
+      packCards.classList.add('sequence-prep');
+      await playPackSequence();
     }
 
     function showdownDeckMarkup(cards, fallbackCard) {
@@ -2373,7 +2471,7 @@ PAGE_TEMPLATE = """
         packShowcase.classList.add('opened');
         packNote.textContent = 'Pack opened';
         await new Promise((resolve) => setTimeout(resolve, 460));
-        renderPack(data.cards, data.total_score);
+        await renderPack(data.cards, data.total_score);
         setStatus(document.getElementById('pack-status'), `Колода готова. ${data.domain}.ton даёт ${data.total_score} очков силы.`, 'success');
         updateButtons();
         showDeck();
@@ -2590,8 +2688,9 @@ PAGE_TEMPLATE = """
       }
       if (!tg || !tg.initData) {
         if (telegramBotUsername) {
-          window.open(`https://t.me/${telegramBotUsername}?start=link_wallet`, '_blank');
-          telegramStatus.textContent = 'Открыл бота. Введи команду /link_wallet <твой_кошелёк> в Telegram для привязки.';
+          const payload = encodeURIComponent(`link_${state.wallet}`);
+          window.open(`https://t.me/${telegramBotUsername}?start=${payload}`, '_blank');
+          telegramStatus.textContent = 'Открыл бота. Нажми Start в Telegram для автоматической привязки кошелька.';
         } else {
           telegramStatus.textContent = 'Привязка доступна в Telegram mini app. Укажи TG_BOT_USERNAME.';
         }
@@ -4495,6 +4594,31 @@ def handle_telegram_message(message):
         telegram_send_message(
             chat_id,
             'Получен результат из mini app:\n' + json.dumps(payload, ensure_ascii=False, indent=2),
+        )
+        return
+
+    if text.startswith('/start link_') and not text.startswith('/start link_wallet'):
+        if not from_user or not from_user.get('id'):
+            telegram_send_message(chat_id, 'Не удалось определить Telegram-пользователя. Попробуй снова.')
+            return
+        wallet = text.replace('/start', '', 1).strip()[5:].strip()
+        if not valid_wallet_address(wallet):
+            telegram_send_message(
+                chat_id,
+                'Не удалось прочитать кошелёк из ссылки. Используй команду /link_wallet <ton_wallet>.',
+                telegram_welcome_markup(),
+            )
+            return
+        try:
+            ensure_player(wallet)
+            link_wallet_to_telegram(wallet, from_user.get('id'))
+        except ValueError as exc:
+            telegram_send_message(chat_id, str(exc), telegram_welcome_markup())
+            return
+        telegram_send_message(
+            chat_id,
+            f'Кошелёк {wallet[:6]}...{wallet[-6:]} успешно привязан. Можешь возвращаться в игру.',
+            telegram_welcome_markup(),
         )
         return
 
