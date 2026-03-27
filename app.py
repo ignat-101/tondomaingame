@@ -3079,6 +3079,7 @@ PAGE_TEMPLATE = """
           <div class="final-label">${resultKey === 'draw' ? 'DRAW' : (resultKey === 'win' ? 'WIN' : 'LOSE')}</div>
           <div class="final-sub">${resultLabel || ''}</div>
           <div class="final-buttons">
+            <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
@@ -3213,6 +3214,7 @@ PAGE_TEMPLATE = """
             </div>
           `).join('')}
           <div class="result-actions">
+            <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
@@ -3390,6 +3392,7 @@ PAGE_TEMPLATE = """
             </div>
           </section>
           <div class="result-actions delayed-outcome post-actions">
+            <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
@@ -3647,6 +3650,17 @@ PAGE_TEMPLATE = """
       inviteResult.style.display = 'none';
       switchView('modes');
       resetModeChoice('');
+    }
+
+    function viewBattleFlow() {
+      clearFinalClimax();
+      const list = battleResult.querySelector('.discipline-list');
+      const row = battleResult.querySelector('.discipline-row');
+      const target = list || row || battleResult.querySelector('.showdown-main');
+      if (!target) return;
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      });
     }
 
     function openDuelMode() {
@@ -4498,6 +4512,7 @@ PAGE_TEMPLATE = """
     window.fillOpponent = fillOpponent;
     window.repeatLastMode = repeatLastMode;
     window.openModes = openModes;
+    window.viewBattleFlow = viewBattleFlow;
     window.selectDeckDomain = selectDeckDomain;
 
     initTelegram();
