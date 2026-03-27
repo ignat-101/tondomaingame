@@ -990,7 +990,7 @@ PAGE_TEMPLATE = """
       overflow: hidden;
       background: rgba(2, 6, 12, 0);
       backdrop-filter: blur(0);
-      animation: finalBackdrop 900ms ease forwards;
+      animation: finalBackdrop 1320ms ease forwards;
     }
 
     @keyframes finalBackdrop {
@@ -1043,10 +1043,10 @@ PAGE_TEMPLATE = """
       box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
       opacity: 0;
       transition:
-        left 720ms cubic-bezier(.16,.84,.2,1),
-        top 720ms cubic-bezier(.16,.84,.2,1),
-        transform 720ms cubic-bezier(.16,.84,.2,1),
-        opacity 220ms ease;
+        left 1420ms cubic-bezier(.12,.86,.12,1),
+        top 1420ms cubic-bezier(.12,.86,.12,1),
+        transform 1420ms cubic-bezier(.12,.86,.12,1),
+        opacity 320ms ease;
     }
 
     .final-chip.win {
@@ -1067,8 +1067,8 @@ PAGE_TEMPLATE = """
     .final-chip.fly {
       opacity: 1;
       left: 50% !important;
-      top: 48% !important;
-      transform: translate(-50%, -50%) scale(0.86);
+      top: 47% !important;
+      transform: translate(-50%, -50%) scale(0.34) rotate(var(--chip-rot, 540deg));
     }
 
     .final-core {
@@ -1091,7 +1091,7 @@ PAGE_TEMPLATE = """
       justify-items: center;
       gap: 14px;
       box-shadow: 0 30px 90px rgba(0, 0, 0, 0.56);
-      transition: transform 760ms cubic-bezier(.16,.84,.2,1), opacity 280ms ease;
+      transition: transform 1160ms cubic-bezier(.12,.86,.12,1), opacity 360ms ease;
       overflow: hidden;
     }
 
@@ -1153,7 +1153,7 @@ PAGE_TEMPLATE = """
     }
 
     .final-core.visible .final-boom {
-      animation: finalBoom 980ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: finalBoom 1460ms cubic-bezier(.12,.86,.12,1) forwards;
     }
 
     .final-core.visible::after {
@@ -1167,9 +1167,10 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes finalBoom {
-      0% { opacity: 0.9; transform: scale(0.12); }
-      48% { opacity: 1; transform: scale(2.4); }
-      100% { opacity: 0; transform: scale(3.2); }
+      0% { opacity: 0.92; transform: scale(0.08); }
+      38% { opacity: 1; transform: scale(1.8); }
+      72% { opacity: 0.92; transform: scale(3.2); }
+      100% { opacity: 0; transform: scale(4.4); }
     }
 
     .final-label {
@@ -2986,16 +2987,18 @@ PAGE_TEMPLATE = """
         document.body.appendChild(layer);
         requestAnimationFrame(() => {
           chips.forEach((chip, index) => {
-            setTimeout(() => chip.classList.add('fly'), index * 80);
+            const rotation = (index % 2 === 0 ? 1 : -1) * (900 + index * 130);
+            chip.style.setProperty('--chip-rot', `${rotation}deg`);
+            setTimeout(() => chip.classList.add('fly'), index * 140);
           });
         });
         setTimeout(() => {
           core.classList.add('visible');
           playBattleFx(resultKey, 'finish');
-        }, 760);
+        }, 1540);
         setTimeout(() => {
           resolve();
-        }, 1900);
+        }, 3120);
       });
     }
 
