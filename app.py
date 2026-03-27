@@ -1447,6 +1447,8 @@ PAGE_TEMPLATE = """
 
           <div class="status" id="wallet-status"></div>
           <div class="domain-grid" id="domains-list"></div>
+          <h3 style="margin-top:16px;">Уже открытые колоды</h3>
+          <div class="owned-decks" id="wallet-owned-decks-list"></div>
           <div class="result-box" id="marketplaces-box" style="display:none;">
             <strong>Доменов клуба 10K не найдено.</strong>
             <p class="muted">Можно купить 4-значный .ton на площадках и затем вернуться к игре с новым доменом.</p>
@@ -1767,6 +1769,7 @@ PAGE_TEMPLATE = """
     const mobileDeckView = document.getElementById('mobile-deck-view');
     const mobileGlobalPlayersList = document.getElementById('mobile-global-players-list');
     const ownedDecksList = document.getElementById('owned-decks-list');
+    const walletOwnedDecksList = document.getElementById('wallet-owned-decks-list');
     const globalPlayersList = document.getElementById('global-players-list');
     const packShowcase = document.getElementById('pack-showcase');
     const foilPack = document.getElementById('foil-pack');
@@ -2034,9 +2037,10 @@ PAGE_TEMPLATE = """
       state.ownedDecks = decks || [];
       if (!state.ownedDecks.length) {
         ownedDecksList.innerHTML = '<div class="user-item muted">Сначала проверь домены кошелька.</div>';
+        walletOwnedDecksList.innerHTML = '<div class="user-item muted">Сначала проверь домены кошелька.</div>';
         return;
       }
-      ownedDecksList.innerHTML = state.ownedDecks.map((item) => `
+      const markup = state.ownedDecks.map((item) => `
         <div class="user-item">
           <strong>${item.domain}.ton ${item.is_active || currentDomain === item.domain ? '(активная)' : ''}</strong>
           <div class="tiny">Тир: ${item.tier || '-'} • Удача: ${item.luck || 0}</div>
@@ -2046,6 +2050,8 @@ PAGE_TEMPLATE = """
           </div>
         </div>
       `).join('');
+      ownedDecksList.innerHTML = markup;
+      walletOwnedDecksList.innerHTML = markup;
     }
 
     function renderGlobalPlayers(items) {
