@@ -1457,6 +1457,12 @@ PAGE_TEMPLATE = """
         <section class="panel view" id="view-pack">
           <h2>Шаг 2. Распаковка 5 карточек</h2>
           <p class="muted">Карты генерируются из реально найденного домена. Колода фиксируется только по домену, поэтому её можно воспроизводить и использовать в режимах игры.</p>
+          <div class="result-box" style="margin-top:10px;">
+            <strong>Характеристики карт</strong>
+            <div class="tiny" style="margin-top:8px;">ATK — атака, DEF — защита, LUCK — удача, SPD — скорость, MAG — магия.</div>
+            <div class="tiny">У каждой карты есть базовая сила (BASE). Сумма BASE всей колоды формирует пул очков прокачки.</div>
+            <div class="tiny">Этот пул нужно распределять между 5 дисциплинами: атака, защита, удача, скорость, магия. Прокачка даёт бонусы в соответствующих раундах боя.</div>
+          </div>
 
           <div class="stats-strip">
             <div class="stat-chip" id="selected-domain-label">Домен не выбран</div>
@@ -1488,6 +1494,19 @@ PAGE_TEMPLATE = """
 
           <div class="status" id="pack-status"></div>
           <div class="card-grid" id="pack-cards"></div>
+          <h3 style="margin-top:18px;">Прокачка дисциплин</h3>
+          <div class="tiny">Распредели базовую силу колоды. Эти очки применяются в раундах и дают итоговый перевес.</div>
+          <div class="discipline-build-grid">
+            <label>Атака <input id="build-attack" type="number" min="0" step="1"></label>
+            <label>Защита <input id="build-defense" type="number" min="0" step="1"></label>
+            <label>Удача <input id="build-luck" type="number" min="0" step="1"></label>
+            <label>Скорость <input id="build-speed" type="number" min="0" step="1"></label>
+            <label>Магия <input id="build-magic" type="number" min="0" step="1"></label>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" id="save-build-btn" disabled>Сохранить прокачку</button>
+          </div>
+          <div class="status tiny" id="build-status"></div>
           <div class="actions" style="margin-top:12px;">
             <button id="continue-to-modes-btn" disabled>Продолжить</button>
           </div>
@@ -1631,19 +1650,6 @@ PAGE_TEMPLATE = """
             <button class="secondary" id="toggle-deck-btn">Скрыть</button>
           </div>
           <div class="deck-list" id="deck-view"></div>
-          <h3 style="margin-top:18px;">Прокачка дисциплин</h3>
-          <div class="tiny">Распредели базовую силу колоды между дисциплинами. Эти очки дают боевой бонус в раундах.</div>
-          <div class="discipline-build-grid">
-            <label>Атака <input id="build-attack" type="number" min="0" step="1"></label>
-            <label>Защита <input id="build-defense" type="number" min="0" step="1"></label>
-            <label>Удача <input id="build-luck" type="number" min="0" step="1"></label>
-            <label>Скорость <input id="build-speed" type="number" min="0" step="1"></label>
-            <label>Магия <input id="build-magic" type="number" min="0" step="1"></label>
-          </div>
-          <div class="actions" style="margin-top:10px;">
-            <button class="secondary" id="save-build-btn" disabled>Сохранить прокачку</button>
-          </div>
-          <div class="status tiny" id="build-status"></div>
           <h3 style="margin-top:18px;">Колоды кошелька</h3>
           <div class="owned-decks" id="owned-decks-list"></div>
         </section>
