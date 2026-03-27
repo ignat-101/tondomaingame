@@ -668,6 +668,15 @@ PAGE_TEMPLATE = """
       max-height: 68vh;
     }
 
+    .showdown-main.interactive-focus {
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 68vh;
+      max-height: 68vh;
+    }
+
     .showdown-deck {
       display: flex;
       gap: 10px;
@@ -708,6 +717,14 @@ PAGE_TEMPLATE = """
       backdrop-filter: none;
       box-shadow: none;
       overflow: visible;
+    }
+
+    .showdown-center.interactive-focus {
+      width: 100%;
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .showdown-score {
@@ -848,6 +865,18 @@ PAGE_TEMPLATE = """
       align-content: start;
     }
 
+    .battle-stage.visible.interactive-focus {
+      width: 100%;
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .battle-stage.visible.interactive-focus > :not(.interactive-battle-panel) {
+      display: none !important;
+    }
+
     .interactive-battle-panel {
       display: grid;
       gap: 12px;
@@ -860,11 +889,11 @@ PAGE_TEMPLATE = """
     }
 
     .interactive-battle-panel.floating {
-      position: sticky;
-      top: 18vh;
+      position: relative;
+      top: auto;
       z-index: 12;
       width: min(100%, 460px);
-      margin: 0 auto 14px;
+      margin: 0 auto;
       padding: 18px 16px 16px;
       border-radius: 24px;
       border-color: rgba(121, 217, 255, 0.32);
@@ -3271,6 +3300,7 @@ PAGE_TEMPLATE = """
           : '';
         const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
         const interactiveRows = Array.isArray(result.rounds) && result.rounds.length;
+        const liveInteractiveFocus = Boolean(result.interactive_session_id && result.interactive_live);
         const interactivePanel = result.interactive_session_id
           ? `
               <div class="interactive-battle-panel ${result.interactive_live ? 'floating' : ''}" id="interactive-battle-panel">
@@ -3311,8 +3341,8 @@ PAGE_TEMPLATE = """
               ${showdownDeckMarkup(result.player_cards, result.player_card)}
             </div>
           </section>
-          <section class="showdown-main">
-            <div class="showdown-center showdown-middle">
+          <section class="showdown-main ${liveInteractiveFocus ? 'interactive-focus' : ''}">
+            <div class="showdown-center showdown-middle ${liveInteractiveFocus ? 'interactive-focus' : ''}">
               <div class="prebattle-stage" id="prebattle-stage">
                 <div class="tiny" id="prebattle-ready-status">Колоды готовы. Нажми "Готов".</div>
                 <div class="row" style="margin-top:10px;">
@@ -3340,7 +3370,7 @@ PAGE_TEMPLATE = """
                   <button class="secondary" onclick="openModes()">К режимам</button>
                 </div>
               </div>
-              <div class="battle-stage" id="battle-stage">
+              <div class="battle-stage ${liveInteractiveFocus ? 'interactive-focus' : ''}" id="battle-stage">
                 <div class="match-outcome ${outcomeClass}">
                   <div class="result-flip">
                     <div class="result-flip-card ${resultClass}">
@@ -3633,10 +3663,7 @@ PAGE_TEMPLATE = """
     }
 
     function focusBattleChoiceMenu(panel) {
-      if (!panel) return;
-      requestAnimationFrame(() => {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      });
+      return panel;
     }
 
     function openModes() {
