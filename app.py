@@ -1488,6 +1488,7 @@ PAGE_TEMPLATE = """
           <div class="actions">
             <button class="secondary" id="back-to-wallet-btn">Назад</button>
             <button class="secondary" id="rebind-domain-btn">Перепривязать домен</button>
+            <button class="secondary" id="shuffle-deck-btn" disabled>Перемешать карты</button>
             <button id="open-pack-btn" disabled>Открыть ежедневный пак</button>
             <button id="buy-pack-btn" disabled>Открыть пак за 1 TON</button>
           </div>
@@ -1532,7 +1533,7 @@ PAGE_TEMPLATE = """
 
         <section class="panel view" id="view-modes">
           <h2>Шаг 3. Режимы игры</h2>
-          <p class="muted">Бой проходит в 5 раундов по статам (атака, защита, удача, общая сила и финальный натиск). Рейтинговый и обычный режимы теперь ищут соперника автоматически среди активных игроков.</p>
+          <p class="muted">Бой проходит как серия 5 карт на 5. Важны порядок колоды, размены карт, тактическая карта на матч и скиллы. Прокачка дисциплин остается как фоновая поддержка стратегии.</p>
 
           <div class="team-card" id="duel-invite-panel" style="margin-bottom:18px; display:none;">
             <h3>Дуэль (персональное приглашение)</h3>
@@ -2046,6 +2047,27 @@ PAGE_TEMPLATE = """
       }
     }
 
+    async function shuffleDeck() {
+      if (!state.wallet || !state.selectedDomain || !state.cards.length) return;
+      try {
+        setStatus(document.getElementById('pack-status'), 'Перемешиваем порядок карт для стратегии 5 на 5...', 'warning');
+        const data = await api('/api/deck/shuffle', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            domain: state.selectedDomain
+          }
+        });
+        state.cards = data.cards || [];
+        await renderPack(state.cards, data.total_score || 0);
+        refreshOneCardSelector();
+        renderDeck({ wallet: state.wallet, domain: data.domain, deck: data.deck });
+        setStatus(document.getElementById('pack-status'), 'Колода перемешана. Новый порядок карт сохранен.', 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
     function renderProfile() {
       walletBadge.textContent = state.wallet ? `Подключён: ${shortAddress(state.wallet)}` : 'Кошелёк не подключен';
       profileWallet.textContent = state.wallet ? shortAddress(state.wallet) : '-';
@@ -2176,6 +2198,7 @@ PAGE_TEMPLATE = """
       const hasCards = state.cards.length === 5;
       const searching = Boolean(state.matchmakingMode);
       document.getElementById('check-domains-btn').disabled = !connected;
+      document.getElementById('shuffle-deck-btn').disabled = !(connected && hasDomain && hasCards);
       document.getElementById('open-pack-btn').disabled = !(connected && hasDomain);
       buyPackBtn.disabled = !(connected && hasDomain && tonConnectUI);
       document.getElementById('continue-to-modes-btn').disabled = !hasCards;
@@ -2491,7 +2514,7 @@ PAGE_TEMPLATE = """
                   <div class="discipline-row ${roundClass}">
                     <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
                     <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
-                    <span class="tiny">Пул дисциплины: ${round.player_value || 0} / ${round.opponent_value || 0} • вклад карты: +${round.player_boost || 0} / +${round.opponent_boost || 0} • скилл: +${round.player_skill_bonus || 0} / +${round.opponent_skill_bonus || 0}</span>
+                    <span class="tiny">Поддержка стратегии: ${round.player_value || 0} / ${round.opponent_value || 0} • размен карты: +${round.player_boost || 0} / +${round.opponent_boost || 0} • скилл: +${round.player_skill_bonus || 0} / +${round.opponent_skill_bonus || 0}</span>
                     <span class="tiny">${round.player_skill_note || 'Без триггера'} / ${round.opponent_skill_note || 'Без триггера'}</span>
                   </div>
                 `;
@@ -3481,6 +3504,7 @@ PAGE_TEMPLATE = """
     document.getElementById('check-domains-btn').addEventListener('click', checkDomains);
     document.getElementById('back-to-wallet-btn').addEventListener('click', () => switchView('wallet'));
     document.getElementById('rebind-domain-btn').addEventListener('click', rebindDomain);
+    document.getElementById('shuffle-deck-btn').addEventListener('click', shuffleDeck);
     document.getElementById('open-pack-btn').addEventListener('click', () => openPack('daily'));
     buyPackBtn.addEventListener('click', buyPackWithTon);
     foilPack.addEventListener('click', () => {
@@ -4055,6 +4079,22 @@ def store_pack_open(wallet, domain, source, cards, total_score, payment_id=None)
     return pack_id
 
 
+def reseat_cards(cards):
+    reseated = []
+    for idx, card in enumerate(cards or [], start=1):
+        normalized = normalize_card_profile(card)
+        normalized['slot'] = idx
+        reseated.append(normalized)
+    return reseated
+
+
+def shuffle_deck_cards(cards, seed_value):
+    rng = random.Random(hashlib.sha256(str(seed_value).encode()).hexdigest())
+    shuffled = [normalize_card_profile(card) for card in (cards or [])]
+    rng.shuffle(shuffled)
+    return reseat_cards(shuffled)
+
+
 def create_pack_payment(wallet, domain):
     payment_id = uuid.uuid4().hex
     memo = f'PACK:{payment_id}:{wallet[:8]}'
@@ -4620,11 +4660,11 @@ def deck_score(cards):
 
 
 WIKIGACHI_ROUND_PLAN = [
-    ('attack', 'Раунд 1: Атака'),
-    ('defense', 'Раунд 2: Защита'),
-    ('luck', 'Раунд 3: Удача'),
-    ('speed', 'Раунд 4: Скорость'),
-    ('magic', 'Раунд 5: Магия'),
+    ('attack', 'Раунд 1: Первый размен', 'opening'),
+    ('defense', 'Раунд 2: Контр-ход', 'counter'),
+    ('luck', 'Раунд 3: Риск', 'risk'),
+    ('speed', 'Раунд 4: Перехват', 'tempo'),
+    ('magic', 'Раунд 5: Финиш', 'finisher'),
 ]
 
 
@@ -4712,6 +4752,34 @@ def apply_skill_bonus(skill_key, focus, base_self, base_opp, card_self, card_opp
     return 0, ''
 
 
+def matchup_strategy_bonus(card_self, card_opp, phase, round_index):
+    card_self = normalize_card_profile(card_self)
+    card_opp = normalize_card_profile(card_opp)
+    own_pool = int(card_self.get('pool_value', 0))
+    opp_pool = int(card_opp.get('pool_value', 0))
+    diff = own_pool - opp_pool
+    rarity_weight = {
+        'basic': 1,
+        'rare': 2,
+        'epic': 3,
+        'mythic': 4,
+        'legendary': 5,
+    }
+    own_rarity = rarity_weight.get(card_self.get('rarity_key'), 1)
+    opp_rarity = rarity_weight.get(card_opp.get('rarity_key'), 1)
+    if phase == 'opening':
+        return max(-4, min(10, diff // 18 + own_rarity - 2))
+    if phase == 'counter':
+        return max(-2, min(9, (opp_pool - own_pool) // 22 + 6))
+    if phase == 'risk':
+        return 7 if own_pool <= opp_pool else 3
+    if phase == 'tempo':
+        return max(1, 5 + round_index + (1 if own_rarity >= opp_rarity else 0))
+    if phase == 'finisher':
+        return max(0, min(12, own_pool // 30))
+    return 0
+
+
 def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, featured_slot_a=None, featured_slot_b=None):
     rounds = []
     wins_a = 0
@@ -4728,13 +4796,13 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
     prev_b = None
 
     for idx in range(rounds_count):
-        focus, label = WIKIGACHI_ROUND_PLAN[idx]
+        focus, label, phase = WIKIGACHI_ROUND_PLAN[idx]
         card_a = cards_a[idx]
         card_b = cards_b[idx]
         value_a = build_bonus_value(build_a, focus)
         value_b = build_bonus_value(build_b, focus)
-        card_boost_a = max(0, int(card_stat_value(card_a, focus) // 80))
-        card_boost_b = max(0, int(card_stat_value(card_b, focus) // 80))
+        card_boost_a = matchup_strategy_bonus(card_a, card_b, phase, idx)
+        card_boost_b = matchup_strategy_bonus(card_b, card_a, phase, idx)
         skill_bonus_a, skill_note_a = apply_skill_bonus(
             (featured_a or {}).get('skill_key'),
             focus,
@@ -4782,6 +4850,7 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
                 'round': idx + 1,
                 'label': label,
                 'focus': focus,
+                'phase': phase,
                 'card_a': {'slot': card_a.get('slot'), 'title': card_a.get('title')},
                 'card_b': {'slot': card_b.get('slot'), 'title': card_b.get('title')},
                 'value_a': value_a,
@@ -6496,6 +6565,29 @@ def api_deck_build_save():
     cards = [normalize_card_profile(card) for card in cards]
     build = save_deck_build(wallet, domain, cards, points)
     return jsonify({'ok': True, 'wallet': wallet, 'domain': domain, 'build': build})
+
+
+@app.route('/api/deck/shuffle', methods=['POST'])
+def api_deck_shuffle():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    if not domain:
+        return json_error('Нужно выбрать домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не найден в подключённом кошельке.', 403)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502)
+    cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
+    cards = shuffle_deck_cards(cards, f'shuffle:{wallet}:{domain}:{now_iso()}')
+    total = deck_score(cards)
+    store_pack_open(wallet, domain, 'shuffle', cards, total)
+    build = load_deck_build(wallet, domain, cards)
+    deck = deck_summary_for_domain(domain, wallet)
+    return jsonify({'ok': True, 'wallet': wallet, 'domain': domain, 'cards': cards, 'total_score': total, 'build': build, 'deck': deck})
 
 
 @app.route('/api/telegram/link', methods=['POST'])
