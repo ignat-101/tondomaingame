@@ -3427,7 +3427,7 @@ PAGE_TEMPLATE = """
             }
             return;
           }
-          interactiveBattlePanel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          focusBattleChoiceMenu(interactiveBattlePanel);
           interactiveActionButtons.forEach((button) => {
             button.addEventListener('click', async () => {
               const actionKey = button.dataset.actionKey;
@@ -3495,6 +3495,7 @@ PAGE_TEMPLATE = """
                 battleStage.classList.add('visible');
               }
               if (liveResult.interactive_session_id) {
+                focusBattleChoiceMenu(interactiveBattlePanel);
                 wireInteractiveBattle();
                 return;
               }
@@ -3628,6 +3629,13 @@ PAGE_TEMPLATE = """
       counters.forEach((node) => {
         const target = Number(node.dataset.countTo || '0');
         node.textContent = Number.isFinite(target) ? String(target) : '0';
+      });
+    }
+
+    function focusBattleChoiceMenu(panel) {
+      if (!panel) return;
+      requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
       });
     }
 
