@@ -863,8 +863,8 @@ PAGE_TEMPLATE = """
       position: relative;
       top: auto;
       z-index: 12;
-      width: min(100%, 460px);
-      margin: 0 auto 14px;
+      width: min(100%, 560px);
+      margin: 0 0 14px;
       padding: 18px 16px 16px;
       border-radius: 24px;
       border-color: rgba(121, 217, 255, 0.32);
@@ -3633,7 +3633,10 @@ PAGE_TEMPLATE = """
     }
 
     function focusBattleChoiceMenu(panel) {
-      return panel;
+      if (!panel) return;
+      requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      });
     }
 
     function openModes() {
