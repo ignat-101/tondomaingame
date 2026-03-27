@@ -1049,9 +1049,9 @@ PAGE_TEMPLATE = """
       box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
       opacity: 0;
       transition:
-        left 1120ms cubic-bezier(.12,.86,.12,1),
-        top 1120ms cubic-bezier(.12,.86,.12,1),
-        transform 1120ms cubic-bezier(.12,.86,.12,1),
+        left 760ms cubic-bezier(.16,.84,.2,1),
+        top 760ms cubic-bezier(.16,.84,.2,1),
+        transform 760ms cubic-bezier(.16,.84,.2,1),
         opacity 320ms ease;
     }
 
@@ -1074,7 +1074,7 @@ PAGE_TEMPLATE = """
       opacity: 1;
       left: 50% !important;
       top: 47% !important;
-      transform: translate(-50%, -50%) scale(0.34) rotate(var(--chip-rot, 540deg));
+      transform: translate(-50%, -50%) scale(0.5);
     }
 
     .final-core {
@@ -1159,7 +1159,7 @@ PAGE_TEMPLATE = """
     }
 
     .final-core.visible .final-boom {
-      animation: finalBoom 1180ms cubic-bezier(.12,.86,.12,1) forwards;
+      animation: finalBoom 1240ms cubic-bezier(.12,.86,.12,1) forwards;
     }
 
     .final-core.visible::after {
@@ -1173,10 +1173,10 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes finalBoom {
-      0% { opacity: 0.92; transform: scale(0.08); }
-      38% { opacity: 1; transform: scale(1.8); }
-      72% { opacity: 0.92; transform: scale(3.2); }
-      100% { opacity: 0; transform: scale(4.4); }
+      0% { opacity: 0.96; transform: scale(0.06); }
+      34% { opacity: 1; transform: scale(2.2); }
+      70% { opacity: 0.96; transform: scale(4.2); }
+      100% { opacity: 0; transform: scale(5.4); }
     }
 
     .final-label {
@@ -2994,23 +2994,21 @@ PAGE_TEMPLATE = """
         requestAnimationFrame(() => {
           layer.classList.add('shake');
           battleResult.classList.add('battle-live');
-          setTimeout(() => battleResult.classList.remove('battle-live'), 1280);
+          setTimeout(() => battleResult.classList.remove('battle-live'), 980);
           chips.forEach((chip, index) => {
-            const rotation = (index % 2 === 0 ? 1 : -1) * (900 + index * 130);
-            chip.style.setProperty('--chip-rot', `${rotation}deg`);
             setTimeout(() => {
               chip.classList.add('fly');
               playBattleFx(resultKey, 'round');
-            }, index * 110);
+            }, index * 80);
           });
         });
         setTimeout(() => {
           core.classList.add('visible');
           playBattleFx(resultKey, 'finish');
-        }, 1220);
+        }, 860);
         setTimeout(() => {
           resolve();
-        }, 2520);
+        }, 2140);
       });
     }
 
