@@ -1668,7 +1668,7 @@ PAGE_TEMPLATE = """
                 <option value="">Выбери тактическую карту на матч</option>
               </select>
             </div>
-            <div class="tiny">Тактическая карта даёт скилл на весь матч. Здесь как раз работает правило: размер не важен, важно как пользуешься.</div>
+            <div class="tiny">Тактическая карта даёт скилл на весь матч.</div>
             <div class="actions" style="margin-top:10px;">
               <button class="secondary" id="cancel-matchmaking-btn" disabled>Отменить поиск</button>
             </div>
@@ -2712,8 +2712,8 @@ PAGE_TEMPLATE = """
                     }).join('')}
                   </select>
                 </div>
-                <div class="tiny">Выбери тактическую карту и стиль матча перед нажатием "Готов". Стратегия влияет напрямую на исход матча.</div>
-                <div class="tiny" id="prebattle-strategy-help"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
+                <div class="tiny" style="text-align:center;">Стратегия влияет напрямую на исход матча.</div>
+                <div class="tiny" id="prebattle-strategy-help" style="text-align:center;"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
                 <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'}</div>
                 <div class="showdown-entry-actions">
                   <button id="start-battle-btn">Готов</button>
@@ -5043,15 +5043,15 @@ def matchup_strategy_bonus(card_self, card_opp, phase, round_index):
     own_rarity = rarity_weight.get(card_self.get('rarity_key'), 1)
     opp_rarity = rarity_weight.get(card_opp.get('rarity_key'), 1)
     if phase == 'opening':
-        return max(-4, min(10, diff // 18 + own_rarity - 2))
+        return max(-3, min(7, diff // 24 + own_rarity - 2))
     if phase == 'counter':
-        return max(-2, min(9, (opp_pool - own_pool) // 22 + 6))
+        return max(-2, min(7, (opp_pool - own_pool) // 28 + 4))
     if phase == 'risk':
-        return 7 if own_pool <= opp_pool else 3
+        return 5 if own_pool <= opp_pool else 2
     if phase == 'tempo':
-        return max(1, 5 + round_index + (1 if own_rarity >= opp_rarity else 0))
+        return max(1, 3 + round_index + (1 if own_rarity >= opp_rarity else 0))
     if phase == 'finisher':
-        return max(0, min(12, own_pool // 30))
+        return max(0, min(8, own_pool // 42))
     return 0
 
 
@@ -5068,33 +5068,33 @@ def featured_card_round_bonus(featured_card, opposing_featured_card, focus, phas
         'legendary': 5,
     }
     rarity_edge = rarity_weight.get(featured_card.get('rarity_key'), 1) - rarity_weight.get(opposing_featured_card.get('rarity_key'), 1)
-    base = max(16, min(42, own_pool // 9 + rarity_edge * 3))
+    base = max(10, min(26, own_pool // 14 + rarity_edge * 2))
     skill_key = featured_card.get('skill_key')
     note = 'Тактическая карта держит темп'
     if skill_key == 'underdog':
         if own_pool <= opp_pool:
-            return base + 12, 'Тактический андердог перевернул размен'
+            return base + 8, 'Тактический андердог перевернул размен'
         return base, 'Тактический андердог давит за счет тайминга'
     if skill_key == 'tempo':
         if previous_outcome == 'loss':
-            return base + 14, 'Тактический темп наказал за прошлый раунд'
-        return base + 4, 'Тактический темп разгоняет матч'
+            return base + 9, 'Тактический темп наказал за прошлый раунд'
+        return base + 3, 'Тактический темп разгоняет матч'
     if skill_key == 'mirror':
         if opp_pool >= own_pool:
-            return base + 10, 'Тактическое зеркало украло мощь соперника'
+            return base + 7, 'Тактическое зеркало украло мощь соперника'
         return base + 2, 'Тактическое зеркало держит баланс'
     if skill_key == 'attack_burst':
         if focus in {'attack', 'magic'} or phase == 'finisher':
-            return base + 12, 'Тактический пролом решает профильный раунд'
+            return base + 8, 'Тактический пролом решает профильный раунд'
         return base, 'Тактический пролом давит присутствием'
     if skill_key == 'defense_lock':
         if focus in {'defense', 'speed'} or phase == 'counter':
-            return base + 12, 'Тактический замок ломает атаку соперника'
+            return base + 8, 'Тактический замок ломает атаку соперника'
         return base, 'Тактический замок держит линию'
     if skill_key == 'wildcard':
         if focus in {'luck', 'magic'} or phase == 'risk':
-            return base + 15, 'Тактический джокер перевернул раунд'
-        return base + 3, 'Тактический джокер давит неожиданностью'
+            return base + 10, 'Тактический джокер перевернул раунд'
+        return base + 2, 'Тактический джокер давит неожиданностью'
     return base, note
 
 
@@ -5161,12 +5161,12 @@ def action_round_resolution(action_a, action_b):
     meta_a = ACTION_RULES.get(action_a) or ACTION_RULES['channel']
     meta_b = ACTION_RULES.get(action_b) or ACTION_RULES['channel']
     if meta_a['beats'] == action_b and meta_b['beats'] != action_a:
-        return 24, 6, f"{meta_a['ru_label']} контрит {meta_b['ru_label']}", f"{meta_b['ru_label']} попал под контр"
+        return 38, 4, f"{meta_a['ru_label']} контрит {meta_b['ru_label']}", f"{meta_b['ru_label']} попал под контр"
     if meta_b['beats'] == action_a and meta_a['beats'] != action_b:
-        return 6, 24, f"{meta_a['ru_label']} попал под контр", f"{meta_b['ru_label']} контрит {meta_a['ru_label']}"
+        return 4, 38, f"{meta_a['ru_label']} попал под контр", f"{meta_b['ru_label']} контрит {meta_a['ru_label']}"
     if action_a == action_b:
-        return 10, 10, 'Одинаковый ход, размен на равных', 'Одинаковый ход, размен на равных'
-    return 12, 12, 'Ходы разошлись без явного контра', 'Ходы разошлись без явного контра'
+        return 8, 8, 'Одинаковый ход, размен на равных', 'Одинаковый ход, размен на равных'
+    return 10, 10, 'Ходы разошлись без явного контра', 'Ходы разошлись без явного контра'
 
 
 def strategy_round_bonus(strategy_key, focus, phase, round_index, action_key, previous_outcome, featured_card):
@@ -5174,33 +5174,33 @@ def strategy_round_bonus(strategy_key, focus, phase, round_index, action_key, pr
     featured_card = normalize_card_profile(featured_card)
     skill_key = featured_card.get('skill_key')
     if strategy_key == 'aggressive':
-        bonus = 26 if action_key == 'burst' else 10
+        bonus = 34 if action_key == 'burst' else 12
         if phase in {'opening', 'finisher'}:
-            bonus += 8
+            bonus += 10
         if previous_outcome == 'win':
-            bonus += 5
+            bonus += 6
         if skill_key == 'attack_burst':
-            bonus += 8
+            bonus += 10
         note = 'Агрессия давит темпом'
     elif strategy_key == 'tricky':
-        bonus = 24 if action_key == 'channel' else 12
+        bonus = 32 if action_key == 'channel' else 13
         if phase in {'counter', 'risk'}:
-            bonus += 8
+            bonus += 10
         if previous_outcome == 'loss':
-            bonus += 6
-        if skill_key in {'wildcard', 'mirror'}:
             bonus += 8
+        if skill_key in {'wildcard', 'mirror'}:
+            bonus += 10
         note = 'Хитрость ищет контр-ход'
     else:
-        bonus = 18
+        bonus = 24
         if action_key == 'guard':
-            bonus += 4
+            bonus += 6
         if phase in {'counter', 'tempo'}:
-            bonus += 6
+            bonus += 8
         if previous_outcome == 'draw':
-            bonus += 4
+            bonus += 5
         if skill_key == 'defense_lock':
-            bonus += 6
+            bonus += 8
         note = 'Баланс держит ровный темп'
     return bonus, note
 
