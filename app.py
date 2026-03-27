@@ -1367,6 +1367,42 @@ PAGE_TEMPLATE = """
       margin-top: 12px;
     }
 
+    .wallet-quick-panel {
+      display: grid;
+      gap: 10px;
+      margin: 12px 0 16px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(111, 204, 255, 0.24);
+      background:
+        radial-gradient(circle at top right, rgba(69, 215, 255, 0.16), transparent 36%),
+        linear-gradient(180deg, rgba(12, 24, 38, 0.95), rgba(8, 15, 27, 0.98));
+    }
+
+    .wallet-quick-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .wallet-quick-item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(111, 204, 255, 0.16);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .wallet-quick-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .wallet-quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     .global-players-list {
       display: grid;
       gap: 10px;
@@ -1442,6 +1478,34 @@ PAGE_TEMPLATE = """
       #nav-achievements {
         font-size: 10px;
       }
+
+      .hero {
+        padding-bottom: 14px;
+      }
+
+      .hero-top p,
+      .stepper {
+        display: none;
+      }
+
+      #view-wallet > h2,
+      #view-wallet > p.muted {
+        display: none;
+      }
+
+      .wallet-quick-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wallet-quick-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .domain-grid,
+      .owned-decks {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -1477,9 +1541,26 @@ PAGE_TEMPLATE = """
           <h2>Шаг 1. Подключение кошелька и проверка доменов</h2>
           <p class="muted">Подключение происходит через настоящий TonConnect UI. После этого можно проверить NFT в кошельке и найти 4-значные домены клуба 10K.</p>
 
+          <div class="wallet-quick-panel">
+            <div class="wallet-quick-grid" id="wallet-quick-grid">
+              <div class="wallet-quick-item">
+                <strong>Кошелёк</strong>
+                <div class="tiny" id="wallet-quick-wallet">Не подключен</div>
+              </div>
+              <div class="wallet-quick-item">
+                <strong>Активный домен</strong>
+                <div class="tiny" id="wallet-quick-domain">Не выбран</div>
+              </div>
+            </div>
+            <div class="tiny">Если на домен уже открывались карты, они автоматически подтянутся как активная колода.</div>
+            <div class="wallet-quick-actions">
+              <button id="check-domains-btn" disabled>Проверить наличие доменов</button>
+              <button class="secondary" id="wallet-open-pack-btn" disabled>К распаковке</button>
+            </div>
+          </div>
+
           <div class="actions">
             <div id="ton-connect"></div>
-            <button id="check-domains-btn" disabled>Проверить наличие доменов</button>
           </div>
 
           <div class="status" id="wallet-status"></div>
@@ -1785,6 +1866,9 @@ PAGE_TEMPLATE = """
     const walletBadge = document.getElementById('wallet-badge');
     const telegramBadge = document.getElementById('telegram-badge');
     const walletStatus = document.getElementById('wallet-status');
+    const walletQuickWallet = document.getElementById('wallet-quick-wallet');
+    const walletQuickDomain = document.getElementById('wallet-quick-domain');
+    const walletOpenPackBtn = document.getElementById('wallet-open-pack-btn');
     const profileWallet = document.getElementById('profile-wallet');
     const profileDomain = document.getElementById('profile-domain');
     const profileRating = document.getElementById('profile-rating');
@@ -2122,6 +2206,8 @@ PAGE_TEMPLATE = """
 
     function renderProfile() {
       walletBadge.textContent = state.wallet ? `Подключён: ${shortAddress(state.wallet)}` : 'Кошелёк не подключен';
+      walletQuickWallet.textContent = state.wallet ? shortAddress(state.wallet) : 'Не подключен';
+      walletQuickDomain.textContent = state.selectedDomain ? `${state.selectedDomain}.ton` : 'Не выбран';
       profileWallet.textContent = state.wallet ? shortAddress(state.wallet) : '-';
       profileDomain.textContent = state.selectedDomain ? `${state.selectedDomain}.ton` : '-';
       selectedDomainLabel.textContent = state.selectedDomain ? `Домен: ${state.selectedDomain}.ton` : 'Домен не выбран';
@@ -2169,6 +2255,15 @@ PAGE_TEMPLATE = """
       `).join('');
       ownedDecksList.innerHTML = markup;
       walletOwnedDecksList.innerHTML = markup;
+    }
+
+    function preferredDeckDomain(decks, currentDomain = null) {
+      const items = Array.isArray(decks) ? decks : [];
+      if (!items.length) return null;
+      const explicitActive = items.find((item) => item.domain === currentDomain || item.is_active);
+      if (explicitActive) return explicitActive.domain;
+      const openedDeck = items.find((item) => item.deck && Array.isArray(item.deck.cards) && item.deck.cards.length === 5);
+      return openedDeck ? openedDeck.domain : items[0].domain;
     }
 
     function renderGlobalPlayers(items) {
@@ -2267,6 +2362,7 @@ PAGE_TEMPLATE = """
       refreshAchievementsBtn.disabled = !connected;
       cancelMatchmakingBtn.disabled = !searching;
       saveBuildBtn.disabled = !(connected && hasDomain);
+      walletOpenPackBtn.disabled = !(connected && hasDomain);
     }
 
     function renderDomains(domains) {
@@ -2295,21 +2391,7 @@ PAGE_TEMPLATE = """
     }
 
     window.selectDomain = function selectDomain(domain) {
-      state.selectedDomain = domain;
-      state.cards = [];
-      state.selectedBattleSlot = null;
-      packCards.innerHTML = '';
-      packScoreLabel.textContent = 'Вклад карт: -';
-      packShowcase.classList.remove('opened');
-      foilPack.classList.remove('opening');
-      packNote.textContent = 'TAP TO OPEN';
-      refreshOneCardSelector();
-      renderDomains(state.domains);
-      renderProfile();
-      updateButtons();
-      switchView('pack');
-      setStatus(document.getElementById('pack-status'), `Выбран домен ${domain}.ton. Теперь можно открыть колоду.`, 'success');
-      loadDisciplineBuild();
+      selectDeckDomain(domain);
     };
 
     function sleep(ms) {
@@ -2368,7 +2450,7 @@ PAGE_TEMPLATE = """
       packCards.classList.add('reveal');
     }
 
-    async function renderPack(cards, total) {
+    async function renderPack(cards, total, cinematic = true) {
       packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
       packCards.innerHTML = cards.map((card) => `
         <article class="game-card">
@@ -2382,8 +2464,12 @@ PAGE_TEMPLATE = """
       `).join('');
       packScoreLabel.textContent = `Вклад карт: ${total}`;
       refreshOneCardSelector();
-      packCards.classList.add('sequence-prep');
-      await playPackSequence();
+      if (cinematic) {
+        packCards.classList.add('sequence-prep');
+        await playPackSequence();
+      } else {
+        packCards.classList.add('reveal');
+      }
     }
 
     function showdownDeckMarkup(cards, fallbackCard) {
@@ -2626,9 +2712,9 @@ PAGE_TEMPLATE = """
                     }).join('')}
                   </select>
                 </div>
-                <div class="tiny">Выбери тактическую карту и стиль матча перед нажатием "Готов". Они дают основной перевес в раундах и сильнее всего влияют на итог матча.</div>
+                <div class="tiny">Выбери тактическую карту и стиль матча перед нажатием "Готов". Стратегия влияет напрямую на исход матча.</div>
                 <div class="tiny" id="prebattle-strategy-help"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
-                <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'} Контры: Натиск > Фокус, Фокус > Блок, Блок > Натиск.</div>
+                <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'}</div>
                 <div class="showdown-entry-actions">
                   <button id="start-battle-btn">Готов</button>
                   <button class="secondary" onclick="openModes()">К режимам</button>
@@ -2699,7 +2785,7 @@ PAGE_TEMPLATE = """
           prebattleTacticalSlot.addEventListener('change', () => {
             const card = (liveResult.player_cards || []).find((item) => Number(item.slot) === Number(prebattleTacticalSlot.value));
             if (prebattleActionHelp && card) {
-              prebattleActionHelp.textContent = `${skillCounterText(card)} Контры: Натиск > Фокус, Фокус > Блок, Блок > Натиск.`;
+              prebattleActionHelp.textContent = `${skillCounterText(card)}`;
             }
           });
         }
@@ -2956,6 +3042,9 @@ PAGE_TEMPLATE = """
       }
       const profile = await api(`/api/player/${encodeURIComponent(state.wallet)}`);
       state.playerProfile = profile.player;
+      if (!state.selectedDomain && state.playerProfile && state.playerProfile.current_domain) {
+        state.selectedDomain = state.playerProfile.current_domain;
+      }
       renderProfile();
       const friends = await api(`/api/friends/${encodeURIComponent(state.wallet)}`);
       renderFriends(friends.friends);
@@ -2989,8 +3078,14 @@ PAGE_TEMPLATE = """
         renderDomains(data.domains);
         renderProfile();
         updateButtons();
-        loadOwnedDecks();
-        loadDisciplineBuild();
+        const decksData = await loadOwnedDecks();
+        const preferredDomain = preferredDeckDomain((decksData && decksData.decks) || [], state.playerProfile && state.playerProfile.current_domain);
+        if (!state.selectedDomain && preferredDomain) {
+          await selectDeckDomain(preferredDomain, {silent: true, switchToPack: false});
+          setStatus(walletStatus, `Найдена готовая колода ${preferredDomain}.ton. Она выбрана автоматически.`, 'success');
+        } else {
+          loadDisciplineBuild();
+        }
       } catch (error) {
         setStatus(walletStatus, error.message, 'error');
       }
@@ -3423,17 +3518,21 @@ PAGE_TEMPLATE = """
     async function loadOwnedDecks() {
       if (!state.wallet) {
         renderOwnedDecks([], null);
-        return;
+        return null;
       }
       try {
         const data = await api(`/api/decks/${encodeURIComponent(state.wallet)}`);
         renderOwnedDecks(data.decks || [], data.current_domain);
+        return data;
       } catch (error) {
         ownedDecksList.innerHTML = `<div class="user-item error">${error.message}</div>`;
+        walletOwnedDecksList.innerHTML = `<div class="user-item error">${error.message}</div>`;
+        return null;
       }
     }
 
-    async function selectDeckDomain(domain) {
+    async function selectDeckDomain(domain, options = {}) {
+      const {silent = false, switchToPack = true} = options;
       if (!state.wallet) return;
       try {
         const data = await api('/api/deck/select', {
@@ -3443,12 +3542,22 @@ PAGE_TEMPLATE = """
         state.selectedDomain = data.domain;
         state.playerProfile = data.player;
         state.cards = data.deck.cards || [];
+        packShowcase.classList.remove('opened');
+        foilPack.classList.remove('opening');
+        packNote.textContent = 'TAP TO OPEN';
         renderProfile();
+        renderDomains(state.domains);
         renderDeck({ wallet: state.wallet, domain: data.domain, deck: data.deck });
+        await renderPack(state.cards, data.deck.total_score || 0, false);
         refreshOneCardSelector();
         updateButtons();
         await loadOwnedDecks();
-        setStatus(document.getElementById('pack-status'), `Активная колода переключена на ${data.domain}.ton.`, 'success');
+        if (switchToPack) {
+          switchView('pack');
+        }
+        if (!silent) {
+          setStatus(document.getElementById('pack-status'), `Активная колода переключена на ${data.domain}.ton.`, 'success');
+        }
         await loadDisciplineBuild();
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
@@ -3627,6 +3736,7 @@ PAGE_TEMPLATE = """
     }
 
     document.getElementById('check-domains-btn').addEventListener('click', checkDomains);
+    walletOpenPackBtn.addEventListener('click', () => switchView('pack'));
     document.getElementById('back-to-wallet-btn').addEventListener('click', () => switchView('wallet'));
     document.getElementById('rebind-domain-btn').addEventListener('click', rebindDomain);
     document.getElementById('shuffle-deck-btn').addEventListener('click', shuffleDeck);
@@ -5278,6 +5388,23 @@ def load_active_deck_cards(wallet, domain):
         except json.JSONDecodeError:
             return None
     return None
+
+
+def latest_opened_domain_for_wallet(wallet):
+    if not wallet:
+        return None
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            '''
+            SELECT domain
+            FROM pack_opens
+            WHERE wallet = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            ''',
+            (wallet,),
+        ).fetchone()
+    return row['domain'] if row and row['domain'] else None
 
 
 def deck_summary_for_domain(domain, wallet=None):
@@ -6941,6 +7068,12 @@ def api_decks(wallet):
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
     player = ensure_player(wallet, domains[0]['domain'] if domains else None, None)
+    available_domains = {item['domain'] for item in domains}
+    preferred_current = player.get('current_domain')
+    if preferred_current not in available_domains:
+        preferred_current = latest_opened_domain_for_wallet(wallet)
+    if preferred_current in available_domains and preferred_current != player.get('current_domain'):
+        player = ensure_player(wallet, player.get('best_domain') or preferred_current, preferred_current)
     decks = []
     for item in domains:
         summary = deck_summary_for_domain(item['domain'], wallet)
@@ -7123,7 +7256,11 @@ def api_wallet_domains():
         domains = wallet_domains_for_game(wallet, force_refresh=True, allow_fallback=True)
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
-    ensure_player(wallet, domains[0]['domain'] if domains else None)
+    available_domains = {item['domain'] for item in domains}
+    preferred_current = latest_opened_domain_for_wallet(wallet)
+    if preferred_current not in available_domains:
+        preferred_current = None
+    ensure_player(wallet, domains[0]['domain'] if domains else None, preferred_current)
     return jsonify({'wallet': wallet, 'domains': domains, 'marketplaces': MARKETPLACE_LINKS})
 
 
