@@ -3420,7 +3420,6 @@ PAGE_TEMPLATE = """
                 const meta = actionRuleMeta(actionKey);
                 interactiveBattleStatus.textContent = `Ты выбираешь: ${meta.ruLabel}. Считаем размен...`;
               }
-              playBattleFx(resultKey, 'start', interactiveBattlePanel);
               try {
                 const data = await api('/api/solo-battle/action', {
                   method: 'POST',
@@ -3471,9 +3470,6 @@ PAGE_TEMPLATE = """
             const launchBattle = () => {
               startBtn.disabled = true;
               startBtn.textContent = 'Бой идёт...';
-              battleResult.classList.add('battle-live');
-              setTimeout(() => battleResult.classList.remove('battle-live'), 620);
-              playBattleFx(resultKey, 'start');
               const prebattle = battleResult.querySelector('#prebattle-stage');
               const battleStage = battleResult.querySelector('#battle-stage');
               if (prebattle) {
