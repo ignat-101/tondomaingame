@@ -1014,6 +1014,12 @@ PAGE_TEMPLATE = """
       animation: finalAuraPulse 2.4s ease-in-out infinite;
     }
 
+    .final-climax.shake {
+      animation:
+        finalBackdrop 1080ms ease forwards,
+        arenaShake 620ms cubic-bezier(.2,.82,.2,1) 2;
+    }
+
     .final-climax::after {
       background:
         conic-gradient(from 0deg at 50% 50%, transparent, rgba(69, 215, 255, 0.08), transparent, rgba(83, 246, 184, 0.08), transparent);
@@ -1043,9 +1049,9 @@ PAGE_TEMPLATE = """
       box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
       opacity: 0;
       transition:
-        left 1420ms cubic-bezier(.12,.86,.12,1),
-        top 1420ms cubic-bezier(.12,.86,.12,1),
-        transform 1420ms cubic-bezier(.12,.86,.12,1),
+        left 1120ms cubic-bezier(.12,.86,.12,1),
+        top 1120ms cubic-bezier(.12,.86,.12,1),
+        transform 1120ms cubic-bezier(.12,.86,.12,1),
         opacity 320ms ease;
     }
 
@@ -1091,7 +1097,7 @@ PAGE_TEMPLATE = """
       justify-items: center;
       gap: 14px;
       box-shadow: 0 30px 90px rgba(0, 0, 0, 0.56);
-      transition: transform 1160ms cubic-bezier(.12,.86,.12,1), opacity 360ms ease;
+      transition: transform 920ms cubic-bezier(.12,.86,.12,1), opacity 320ms ease;
       overflow: hidden;
     }
 
@@ -1153,7 +1159,7 @@ PAGE_TEMPLATE = """
     }
 
     .final-core.visible .final-boom {
-      animation: finalBoom 1460ms cubic-bezier(.12,.86,.12,1) forwards;
+      animation: finalBoom 1180ms cubic-bezier(.12,.86,.12,1) forwards;
     }
 
     .final-core.visible::after {
@@ -2986,19 +2992,25 @@ PAGE_TEMPLATE = """
         layer.appendChild(core);
         document.body.appendChild(layer);
         requestAnimationFrame(() => {
+          layer.classList.add('shake');
+          battleResult.classList.add('battle-live');
+          setTimeout(() => battleResult.classList.remove('battle-live'), 1280);
           chips.forEach((chip, index) => {
             const rotation = (index % 2 === 0 ? 1 : -1) * (900 + index * 130);
             chip.style.setProperty('--chip-rot', `${rotation}deg`);
-            setTimeout(() => chip.classList.add('fly'), index * 140);
+            setTimeout(() => {
+              chip.classList.add('fly');
+              playBattleFx(resultKey, 'round');
+            }, index * 110);
           });
         });
         setTimeout(() => {
           core.classList.add('visible');
           playBattleFx(resultKey, 'finish');
-        }, 1540);
+        }, 1220);
         setTimeout(() => {
           resolve();
-        }, 3120);
+        }, 2520);
       });
     }
 
