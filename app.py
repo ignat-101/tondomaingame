@@ -863,7 +863,7 @@ PAGE_TEMPLATE = """
 
     .interactive-battle-panel.floating {
       position: sticky;
-      top: 14px;
+      top: 18vh;
       z-index: 12;
       width: min(100%, 460px);
       margin: 0 auto 14px;
@@ -878,6 +878,10 @@ PAGE_TEMPLATE = """
         0 0 0 1px rgba(121, 217, 255, 0.08);
       backdrop-filter: blur(18px);
       animation: floatingBattlePanelIn 280ms cubic-bezier(.16,.84,.2,1);
+    }
+
+    .interactive-battle-panel.live-pop {
+      animation: battleChoicePop 320ms cubic-bezier(.16,.84,.2,1);
     }
 
     .interactive-battle-title {
@@ -930,6 +934,21 @@ PAGE_TEMPLATE = """
         transform: translateY(10px) scale(0.96);
       }
       to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes battleChoicePop {
+      0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.94);
+      }
+      65% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.02);
+      }
+      100% {
         opacity: 1;
         transform: translateY(0) scale(1);
       }
@@ -3407,11 +3426,13 @@ PAGE_TEMPLATE = """
           const latestRow = rows.length ? rows[rows.length - 1] : null;
           if (latestRow && liveResult.autostart_battle) {
             const latestKey = latestRow.classList.contains('win') ? 'win' : (latestRow.classList.contains('lose') ? 'lose' : 'draw');
-            latestRow.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
             playBattleFx(latestKey, 'round', latestRow);
           }
           if (!liveResult.interactive_live || !interactiveBattlePanel || !interactiveActionButtons.length) {
             if (!liveResult.interactive_live) {
+              if (latestRow) {
+                latestRow.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+              }
               battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
               const actions = battleResult.querySelector('.result-actions');
               if (actions) {
@@ -3420,6 +3441,11 @@ PAGE_TEMPLATE = """
             }
             return;
           }
+          interactiveBattlePanel.classList.remove('live-pop');
+          void interactiveBattlePanel.offsetWidth;
+          interactiveBattlePanel.classList.add('live-pop');
+          setTimeout(() => interactiveBattlePanel.classList.remove('live-pop'), 360);
+          interactiveBattlePanel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
           interactiveActionButtons.forEach((button) => {
             button.addEventListener('click', async () => {
               const actionKey = button.dataset.actionKey;
