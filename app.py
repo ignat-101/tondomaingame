@@ -3272,16 +3272,17 @@ PAGE_TEMPLATE = """
           ? `<div class="tiny">Сила колод (тай-брейк): ${result.player_deck_power} vs ${result.opponent_deck_power}${result.tie_breaker ? ' • использован тай-брейк' : ''}</div>`
           : '';
         const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
+        const interactiveRows = Array.isArray(result.rounds) && result.rounds.length;
         const interactivePanel = result.interactive_session_id
           ? `
-              <div class="interactive-battle-panel ${result.interactive_live ? 'floating' : 'delayed-outcome'}" id="interactive-battle-panel">
+              <div class="interactive-battle-panel ${result.interactive_live ? 'floating' : ''}" id="interactive-battle-panel">
                 <div class="interactive-battle-title">
                   ${result.interactive_live
                     ? `Раунд ${Math.min((result.interactive_round_index || 0) + 1, result.interactive_total_rounds || 5)} из ${result.interactive_total_rounds || 5}`
-                    : 'Бой завершён'}
+                    : 'Результат матча'}
                 </div>
                 <div class="tiny" id="interactive-battle-status" style="text-align:center;">
-                  ${result.interactive_live ? (result.interactive_hint || 'Выбери действие и повлияй на исход боя.') : 'Все ходы сыграны. Смотрим развязку матча.'}
+                  ${result.interactive_live ? (result.interactive_hint || 'Выбери действие и повлияй на исход боя.') : `Итог: ${result.result_label}`}
                 </div>
                 ${result.interactive_live ? `
                   <div class="interactive-battle-actions">
@@ -3300,8 +3301,10 @@ PAGE_TEMPLATE = """
         battleResult.classList.add(resultKey === 'win' ? 'result-win' : (resultKey === 'lose' ? 'result-lose' : 'result-draw'));
         document.body.classList.add('showdown-open');
         battleResult.scrollTop = 0;
+        const immediateInteractiveOutcome = Boolean(result.interactive_session_id && !result.interactive_live);
+        const outcomeClass = immediateInteractiveOutcome ? '' : 'delayed-outcome';
         const victoryLine = resultKey === 'win'
-          ? `<div class="victory-banner delayed-outcome">Поздравляем! Это победный матч!</div>`
+          ? `<div class="victory-banner ${outcomeClass}">Поздравляем! Это победный матч!</div>`
           : '';
         battleResult.innerHTML = `
           <section class="showdown-header">
@@ -3340,7 +3343,7 @@ PAGE_TEMPLATE = """
                 </div>
               </div>
               <div class="battle-stage" id="battle-stage">
-                <div class="match-outcome delayed-outcome">
+                <div class="match-outcome ${outcomeClass}">
                   <div class="result-flip">
                     <div class="result-flip-card ${resultClass}">
                       <div class="result-flip-face ${frontClass}">${frontLabel}</div>
@@ -3377,7 +3380,7 @@ PAGE_TEMPLATE = """
                 ${roundsLine}
                 ${deckPowerLine}
                 ${ratingLine}
-                <p class="muted delayed-outcome">Итог: ${result.result_label}</p>
+                <p class="muted ${outcomeClass}">Итог: ${result.result_label}</p>
                 ${victoryLine}
               </div>
             </div>
@@ -3407,9 +3410,23 @@ PAGE_TEMPLATE = """
         const interactiveBattleStatus = battleResult.querySelector('#interactive-battle-status');
         const interactiveActionButtons = Array.from(battleResult.querySelectorAll('.interactive-action-btn'));
         const wireInteractiveBattle = () => {
-          battleResult.querySelectorAll('.discipline-row').forEach((row) => row.classList.add('visible'));
+          const rows = Array.from(battleResult.querySelectorAll('.discipline-row'));
+          rows.forEach((row) => row.classList.add('visible'));
           animateScoreCounters(battleResult);
+          const latestRow = rows.length ? rows[rows.length - 1] : null;
+          if (latestRow && liveResult.autostart_battle) {
+            const latestKey = latestRow.classList.contains('win') ? 'win' : (latestRow.classList.contains('lose') ? 'lose' : 'draw');
+            latestRow.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+            playBattleFx(latestKey, 'round', latestRow);
+          }
           if (!liveResult.interactive_live || !interactiveBattlePanel || !interactiveActionButtons.length) {
+            if (!liveResult.interactive_live) {
+              battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
+              const actions = battleResult.querySelector('.result-actions');
+              if (actions) {
+                actions.classList.add('visible');
+              }
+            }
             return;
           }
           interactiveActionButtons.forEach((button) => {
@@ -3480,23 +3497,6 @@ PAGE_TEMPLATE = """
               }
               if (liveResult.interactive_session_id) {
                 wireInteractiveBattle();
-                if (!liveResult.interactive_live) {
-                  const finalDelay = revealDisciplineRows(0, 1000);
-                  const showOutcome = async () => {
-                    await playFinalClimax(resultKey, result.result_label);
-                    battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
-                    animateScoreCounters(battleResult);
-                    const mainPanel = battleResult.querySelector('.showdown-main');
-                    if (mainPanel) {
-                      mainPanel.scrollTo({ top: mainPanel.scrollHeight, behavior: 'smooth' });
-                    }
-                  };
-                  if (finalDelay > 0) {
-                    setTimeout(() => { showOutcome(); }, finalDelay);
-                  } else {
-                    showOutcome();
-                  }
-                }
                 return;
               }
               const finalDelay = revealDisciplineRows(0, 1000);
