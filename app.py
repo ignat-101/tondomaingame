@@ -859,10 +859,41 @@ PAGE_TEMPLATE = """
       box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
     }
 
+    .interactive-battle-panel.floating {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 80;
+      width: min(92vw, 460px);
+      margin: 0;
+      padding: 18px 16px 16px;
+      transform: translate(-50%, -50%);
+      border-radius: 24px;
+      border-color: rgba(121, 217, 255, 0.32);
+      background:
+        linear-gradient(135deg, rgba(7, 19, 35, 0.96), rgba(10, 31, 39, 0.97)),
+        radial-gradient(circle at top, rgba(69, 215, 255, 0.16), transparent 55%);
+      box-shadow:
+        0 28px 80px rgba(0, 0, 0, 0.48),
+        0 0 0 1px rgba(121, 217, 255, 0.08);
+      backdrop-filter: blur(18px);
+      animation: floatingBattlePanelIn 280ms cubic-bezier(.16,.84,.2,1);
+    }
+
+    .interactive-battle-panel.floating::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: rgba(3, 9, 18, 0.56);
+      backdrop-filter: blur(4px);
+    }
+
     .interactive-battle-title {
       text-align: center;
       font-weight: 800;
       letter-spacing: 0.03em;
+      font-size: clamp(18px, 5vw, 24px);
     }
 
     .interactive-battle-actions {
@@ -900,6 +931,17 @@ PAGE_TEMPLATE = """
     .interactive-action-btn.channel {
       border-color: rgba(69, 215, 255, 0.42);
       background: linear-gradient(135deg, rgba(69, 215, 255, 0.18), rgba(255, 255, 255, 0.04));
+    }
+
+    @keyframes floatingBattlePanelIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -46%) scale(0.92);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
     }
 
     .showdown-entry-actions {
@@ -3232,7 +3274,7 @@ PAGE_TEMPLATE = """
         const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
         const interactivePanel = result.interactive_session_id
           ? `
-              <div class="interactive-battle-panel ${result.interactive_live ? '' : 'delayed-outcome'}" id="interactive-battle-panel">
+              <div class="interactive-battle-panel ${result.interactive_live ? 'floating' : 'delayed-outcome'}" id="interactive-battle-panel">
                 <div class="interactive-battle-title">
                   ${result.interactive_live
                     ? `Раунд ${Math.min((result.interactive_round_index || 0) + 1, result.interactive_total_rounds || 5)} из ${result.interactive_total_rounds || 5}`
