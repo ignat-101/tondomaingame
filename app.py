@@ -1461,14 +1461,14 @@ PAGE_TEMPLATE = """
           <p class="muted">Карты генерируются из реально найденного домена. Колода фиксируется только по домену, поэтому её можно воспроизводить и использовать в режимах игры.</p>
           <div class="result-box" style="margin-top:10px;">
             <strong>Характеристики карт</strong>
-            <div class="tiny" style="margin-top:8px;">ATK — атака, DEF — защита, LUCK — удача, SPD — скорость, MAG — магия.</div>
-            <div class="tiny">У каждой карты есть базовая сила (BASE). Сумма BASE всей колоды формирует пул очков прокачки.</div>
-            <div class="tiny">Этот пул нужно распределять между 5 дисциплинами: атака, защита, удача, скорость, магия. Прокачка даёт бонусы в соответствующих раундах боя.</div>
+            <div class="tiny" style="margin-top:8px;">Карты отличаются только редкостью: Basic, Rare, Epic, Mythic, Legendary.</div>
+            <div class="tiny">У карты есть только вклад в свободный пул. Личных статов у карт нет.</div>
+            <div class="tiny">У каждого игрока стартовый пул 2500 + бонусы тира/паттернов домена с 10kclub. Пул распределяется в 5 дисциплин: атака, защита, удача, скорость, магия.</div>
           </div>
 
           <div class="stats-strip">
             <div class="stat-chip" id="selected-domain-label">Домен не выбран</div>
-            <div class="stat-chip" id="pack-score-label">Сумма колоды: -</div>
+            <div class="stat-chip" id="pack-score-label">Вклад карт: -</div>
           </div>
 
           <div class="actions">
@@ -1512,7 +1512,7 @@ PAGE_TEMPLATE = """
           <div class="actions" style="margin-top:12px;">
             <button id="continue-to-modes-btn" disabled>Продолжить</button>
           </div>
-          <h3 style="margin-top:18px;">Все возможные карты (100)</h3>
+          <h3 style="margin-top:18px;">Редкости карт</h3>
           <div class="deck-list" id="card-catalog-list"></div>
         </section>
 
@@ -1888,7 +1888,7 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>${item.display_name}</strong>
           <div class="tiny">${item.domain}.ton • рейтинг ${item.rating}</div>
-          <div class="tiny">Средняя атака: ${item.average_attack} • Средняя защита: ${item.average_defense}</div>
+          <div class="tiny">Прокачка (сред.): атака ${item.average_attack} • защита ${item.average_defense}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary" onclick="fillOpponent('${item.domain}')">По домену</button>
             <button class="secondary" onclick="fillOpponent('${item.wallet}')">По кошельку</button>
@@ -1909,7 +1909,7 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>${item.display_name}</strong>
           <div class="tiny">${item.domain ? `${item.domain}.ton` : 'домен не выбран'} • рейтинг ${item.rating || '-'}</div>
-          <div class="tiny">${item.average_attack ? `Средняя атака: ${item.average_attack} • Средняя защита: ${item.average_defense}` : 'Колода ещё не сохранена'}</div>
+          <div class="tiny">${item.average_attack ? `Прокачка (сред.): атака ${item.average_attack} • защита ${item.average_defense}` : 'Колода ещё не сохранена'}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary" onclick="fillOpponent('${item.domain || item.wallet}')">Выбрать</button>
           </div>
@@ -1929,18 +1929,14 @@ PAGE_TEMPLATE = """
       const markup = `
         <div class="user-item">
           <strong>${data.domain}.ton</strong>
-          <div class="tiny">Средняя атака: ${data.deck.average_attack} • Средняя защита: ${data.deck.average_defense}</div>
-          <div class="tiny">Средняя скорость: ${data.deck.average_speed || 0} • Средняя магия: ${data.deck.average_magic || 0}</div>
-          <div class="tiny">Сумма колоды: ${data.deck.total_score}</div>
-          <div class="tiny">Пул дисциплин: ${data.deck.discipline_pool || 0}</div>
+          <div class="tiny">Свободный пул дисциплин: ${data.deck.discipline_pool || 0}</div>
+          <div class="tiny">Вклад карт в колоду: ${data.deck.total_score}</div>
         </div>
         ${data.deck.cards.map((card) => `
           <div class="user-item">
             <strong>${card.title}</strong>
             <div class="tiny">Слот ${card.slot} • ${card.rarity}</div>
-            <div class="tiny">Базовая сила ${card.base_power || card.stat_value || 0}</div>
-            <div class="tiny">Атака ${card.attack} • Защита ${card.defense} • Удача ${card.luck || 0}</div>
-            <div class="tiny">Скорость ${card.speed || 0} • Магия ${card.magic || 0} • Сила ${card.score}</div>
+            <div class="tiny">Вклад в пул: ${card.pool_value || card.base_power || 0}</div>
           </div>
         `).join('')}
       `;
@@ -2044,7 +2040,7 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>${item.domain}.ton ${item.is_active || currentDomain === item.domain ? '(активная)' : ''}</strong>
           <div class="tiny">Тир: ${item.tier || '-'} • Удача: ${item.luck || 0}</div>
-          <div class="tiny">Сила колоды: ${item.deck.total_score}</div>
+          <div class="tiny">Пул дисциплин: ${item.deck.discipline_pool || 0} • вклад карт: ${item.deck.total_score}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary" onclick="selectDeckDomain('${item.domain}')">Сделать активной</button>
           </div>
@@ -2100,8 +2096,7 @@ PAGE_TEMPLATE = """
             <article class="catalog-card ${card.rarity}">
               <strong>${card.id.toUpperCase()} • ${card.title}</strong>
               <div class="tiny">Редкость: ${card.rarity_label}</div>
-              <div class="tiny">Тип: ${card.stat_type}</div>
-              <div class="tiny">Характеристика: ${card.base_value}</div>
+              <div class="tiny">Вклад в пул: ${card.pool_min}-${card.pool_max}</div>
             </article>
           `).join('')}
         </div>
@@ -2114,7 +2109,7 @@ PAGE_TEMPLATE = """
         return;
       }
       oneCardSlot.innerHTML += state.cards.map((card) => `
-        <option value="${card.slot}">Слот ${card.slot}: ${card.title} (${card.score})</option>
+        <option value="${card.slot}">Слот ${card.slot}: ${card.title} (${card.pool_value || card.score || 0})</option>
       `).join('');
     }
 
@@ -2171,7 +2166,7 @@ PAGE_TEMPLATE = """
       state.selectedDomain = domain;
       state.cards = [];
       packCards.innerHTML = '';
-      packScoreLabel.textContent = 'Сумма колоды: -';
+      packScoreLabel.textContent = 'Вклад карт: -';
       packShowcase.classList.remove('opened');
       foilPack.classList.remove('opening');
       packNote.textContent = 'TAP TO OPEN';
@@ -2247,17 +2242,11 @@ PAGE_TEMPLATE = """
           <div class="tiny">${card.rarity}</div>
           <h3>${card.title}</h3>
           <p>${card.domain}.ton • слот ${card.slot}</p>
-          <div class="team-line"><span>Базовая сила</span><strong>${card.base_power || card.stat_value || 0}</strong></div>
-          <div class="team-line"><span>Атака</span><strong>${card.attack}</strong></div>
-          <div class="team-line"><span>Защита</span><strong>${card.defense}</strong></div>
-          <div class="team-line"><span>Удача</span><strong>${card.luck || 0}</strong></div>
-          <div class="team-line"><span>Скорость</span><strong>${card.speed || 0}</strong></div>
-          <div class="team-line"><span>Магия</span><strong>${card.magic || 0}</strong></div>
-          <div class="team-line"><span>Сила</span><strong>${card.score}</strong></div>
+          <div class="team-line"><span>Вклад в пул</span><strong>${card.pool_value || card.base_power || 0}</strong></div>
           <p>${card.ability}</p>
         </article>
       `).join('');
-      packScoreLabel.textContent = `Сумма колоды: ${total}`;
+      packScoreLabel.textContent = `Вклад карт: ${total}`;
       refreshOneCardSelector();
       packCards.classList.add('sequence-prep');
       await playPackSequence();
@@ -2273,9 +2262,8 @@ PAGE_TEMPLATE = """
       return normalized.map((card, index) => `
         <div class="showdown-card">
           <strong>${index + 1}. ${card.title || 'Карта'}</strong>
-          <div class="tiny">ATK ${card.attack ?? '-'} • DEF ${card.defense ?? '-'} • LUCK ${card.luck ?? 0}</div>
-          <div class="tiny">SPD ${card.speed ?? 0} • MAG ${card.magic ?? 0} • BASE ${card.base_power ?? card.stat_value ?? 0}</div>
-          <div class="tiny">Сила: ${card.score ?? '-'}</div>
+          <div class="tiny">${card.rarity || '-'}</div>
+          <div class="tiny">Вклад в пул: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
         </div>
       `).join('');
     }
@@ -2437,7 +2425,7 @@ PAGE_TEMPLATE = """
                   <div class="discipline-row ${roundClass}">
                     <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
                     <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
-                    <span class="tiny">Бонус дисциплины: +${round.player_boost || 0} / +${round.opponent_boost || 0}</span>
+                    <span class="tiny">Пул дисциплины: ${round.player_value || 0} / ${round.opponent_value || 0} • вклад карты: +${round.player_boost || 0} / +${round.opponent_boost || 0}</span>
                   </div>
                 `;
               }).join('')}
@@ -2688,7 +2676,7 @@ PAGE_TEMPLATE = """
       state.cards = [];
       state.lastResult = null;
       packCards.innerHTML = '';
-      packScoreLabel.textContent = 'Сумма колоды: -';
+      packScoreLabel.textContent = 'Вклад карт: -';
       packShowcase.classList.remove('opened');
       foilPack.classList.remove('opening');
       packNote.textContent = 'TAP TO OPEN';
@@ -2766,7 +2754,7 @@ PAGE_TEMPLATE = """
           state.selectedDomain = null;
           state.cards = [];
           packCards.innerHTML = '';
-          packScoreLabel.textContent = 'Сумма колоды: -';
+          packScoreLabel.textContent = 'Вклад карт: -';
           refreshOneCardSelector();
         }
         const guestOnly = data.domains.length === 1 && data.domains[0].is_guest;
@@ -2808,7 +2796,7 @@ PAGE_TEMPLATE = """
         foilPack.classList.add('vanishing');
         await sleep(1150);
         packShowcase.classList.remove('cinematic');
-        setStatus(document.getElementById('pack-status'), `Колода готова. ${data.domain}.ton даёт ${data.total_score} очков силы.`, 'success');
+        setStatus(document.getElementById('pack-status'), `Колода готова. Вклад карт: ${data.total_score}. Свободный пул пересчитан от домена.`, 'success');
         updateButtons();
         showDeck();
         await loadDisciplineBuild();
@@ -3367,7 +3355,7 @@ PAGE_TEMPLATE = """
           state.selectedDomain = null;
           state.cards = [];
           packCards.innerHTML = '';
-          packScoreLabel.textContent = 'Сумма колоды: -';
+          packScoreLabel.textContent = 'Вклад карт: -';
           packShowcase.classList.remove('opened');
           foilPack.classList.remove('opening');
           packNote.textContent = 'TAP TO OPEN';
@@ -3887,6 +3875,14 @@ def normalize_domain(value):
     return None
 
 
+def normalize_strict_ton_domain(value):
+    text = str(value or '').strip().lower()
+    match = re.fullmatch(r'(\d{4})\.ton', text)
+    if not match:
+        return None
+    return match.group(1)
+
+
 def guest_access_enabled():
     return ALLOW_GUEST_WITHOUT_DOMAIN
 
@@ -4218,31 +4214,28 @@ def detect_10k_patterns(domain):
 
 
 def score_from_domain(domain):
-    attack = sum(int(char) for char in domain) + ATTACK_BASE
-    defense = DEFENSE_BASE + (1 if domain.startswith('0') else 0)
+    attack = ATTACK_BASE
+    defense = DEFENSE_BASE
     luck = 0
     patterns = []
     tier = 'Tier-3'
     special_collections = []
+    bonus_score = 0
 
     try:
         club = classify_domain_with_10k_config(domain)
         patterns = club['patterns']
         tier = club['tier']
         special_collections = club['special_collections']
-        base_score = club['base_score']
-        bonus_score = club['bonus_score']
-        attack += base_score // 700 + bonus_score // 1200
-        defense += base_score // 900 + bonus_score // 1800
-        luck = 2 + bonus_score // 1500 + len(special_collections)
+        bonus_score = int(club.get('bonus_score') or 0)
+        luck = len(special_collections)
+        attack += bonus_score // 1500
+        defense += bonus_score // 1900
     except (requests.RequestException, RuntimeError, ValueError, KeyError):
         patterns = detect_10k_patterns(domain)
-        for pattern in patterns:
-            bonus = PATTERN_BONUSES.get(pattern, {'attack': 0, 'defense': 0})
-            attack += bonus['attack']
-            defense += bonus['defense']
+        bonus_score = 0
 
-    score = attack + defense + luck
+    score = 2500 + bonus_score
     if tier == 'Tier-3':
         for tier_config in TIERS:
             if score >= tier_config['min_score']:
@@ -4257,6 +4250,9 @@ def score_from_domain(domain):
         'patterns': patterns,
         'tier': tier,
         'special_collections': special_collections,
+        'bonus_score': bonus_score,
+        'pool_base': 2500,
+        'pool_total': 2500 + bonus_score,
         'score': score,
     }
 
@@ -4271,44 +4267,26 @@ def card_rarity(score):
     return 'Core'
 
 
-RARITY_ORDER = ('basic', 'rare', 'epic', 'legendary')
-RARITY_LABELS = {'basic': 'Basic', 'rare': 'Rare', 'epic': 'Epic', 'legendary': 'Legendary'}
-STAT_TYPES = ('attack', 'defense', 'luck', 'power')
-CARD_TYPES = ('Pulse', 'Shield', 'Cipher', 'Nova', 'Relay')
-CARD_POOL_SIZE = 100
+RARITY_ORDER = ('basic', 'rare', 'epic', 'mythic', 'legendary')
+RARITY_LABELS = {
+    'basic': 'Basic',
+    'rare': 'Rare',
+    'epic': 'Epic',
+    'mythic': 'Mythic',
+    'legendary': 'Legendary',
+}
+CARD_POOL_SIZE = 5
 DISCIPLINE_KEYS = ('attack', 'defense', 'luck', 'speed', 'magic')
 
 
 def build_card_catalog():
-    rng = random.Random('ton-card-catalog-v1')
-    rarity_counts = {'basic': 52, 'rare': 26, 'epic': 14, 'legendary': 8}
-    cards = []
-    cursor = 1
-    for rarity in RARITY_ORDER:
-        for idx in range(rarity_counts[rarity]):
-            stat_type = STAT_TYPES[(cursor + idx) % len(STAT_TYPES)]
-            card_type = CARD_TYPES[(cursor * 3 + idx) % len(CARD_TYPES)]
-            base_value = (
-                rng.randint(14, 38)
-                if rarity == 'basic'
-                else rng.randint(30, 58)
-                if rarity == 'rare'
-                else rng.randint(52, 86)
-                if rarity == 'epic'
-                else rng.randint(78, 120)
-            )
-            cards.append(
-                {
-                    'id': f'c{cursor:03d}',
-                    'title': f'{card_type} {cursor:03d}',
-                    'rarity': rarity,
-                    'rarity_label': RARITY_LABELS[rarity],
-                    'stat_type': stat_type,
-                    'base_value': base_value,
-                }
-            )
-            cursor += 1
-    return cards
+    return [
+        {'id': 'basic', 'title': 'Basic Card', 'rarity': 'basic', 'rarity_label': 'Basic', 'pool_min': 60, 'pool_max': 95},
+        {'id': 'rare', 'title': 'Rare Card', 'rarity': 'rare', 'rarity_label': 'Rare', 'pool_min': 90, 'pool_max': 130},
+        {'id': 'epic', 'title': 'Epic Card', 'rarity': 'epic', 'rarity_label': 'Epic', 'pool_min': 125, 'pool_max': 175},
+        {'id': 'mythic', 'title': 'Mythic Card', 'rarity': 'mythic', 'rarity_label': 'Mythic', 'pool_min': 170, 'pool_max': 240},
+        {'id': 'legendary', 'title': 'Legendary Card', 'rarity': 'legendary', 'rarity_label': 'Legendary', 'pool_min': 230, 'pool_max': 320},
+    ]
 
 
 CARD_CATALOG = build_card_catalog()
@@ -4331,48 +4309,52 @@ def weighted_choice(weights, rng):
 
 
 def rarity_weights_for_domain(base):
-    weights = {'basic': 72, 'rare': 20, 'epic': 6, 'legendary': 2}
+    weights = {'basic': 70, 'rare': 19, 'epic': 7, 'mythic': 3, 'legendary': 1}
     tier = (base.get('tier') or '').lower()
     if 'tier-0' in tier:
-        weights = {'basic': 42, 'rare': 30, 'epic': 18, 'legendary': 10}
+        weights = {'basic': 30, 'rare': 28, 'epic': 21, 'mythic': 13, 'legendary': 8}
     elif 'tier-1' in tier:
-        weights = {'basic': 50, 'rare': 29, 'epic': 15, 'legendary': 6}
+        weights = {'basic': 40, 'rare': 29, 'epic': 18, 'mythic': 9, 'legendary': 4}
     elif 'tier-2' in tier:
-        weights = {'basic': 58, 'rare': 26, 'epic': 12, 'legendary': 4}
+        weights = {'basic': 52, 'rare': 27, 'epic': 14, 'mythic': 5, 'legendary': 2}
 
     patterns = set(base.get('patterns') or [])
     weights['rare'] += min(12, len(patterns) * 2)
     weights['epic'] += min(8, len(patterns))
+    weights['mythic'] += min(5, len(patterns))
     if patterns.intersection({'mirror', 'all_same', 'first_100', 'zero_frames'}):
-        weights['legendary'] += 3
-        weights['basic'] -= 6
+        weights['legendary'] += 2
+        weights['mythic'] += 2
+        weights['basic'] -= 5
     return weights
 
 
 def normalize_card_profile(card):
     normalized = dict(card or {})
-    normalized['attack'] = int(normalized.get('attack', 0))
-    normalized['defense'] = int(normalized.get('defense', 0))
-    normalized['luck'] = int(normalized.get('luck', 0))
-    normalized['speed'] = int(normalized.get('speed', max(1, normalized['attack'] // 3)))
-    normalized['magic'] = int(normalized.get('magic', max(1, normalized['defense'] // 3)))
-    normalized['base_power'] = int(
-        normalized.get('base_power')
-        or normalized.get('stat_value')
-        or max(1, normalized['attack'] + normalized['defense'] + normalized['luck'])
-    )
-    normalized['score'] = int(
-        normalized.get('score')
-        or (normalized['attack'] + normalized['defense'] + normalized['luck'] + normalized['speed'] + normalized['magic'])
-    )
+    rarity_key = str(normalized.get('rarity_key') or normalized.get('rarity') or 'basic').strip().lower()
+    if rarity_key not in RARITY_LABELS:
+        rarity_key = 'basic'
+    normalized['rarity_key'] = rarity_key
+    normalized['rarity'] = RARITY_LABELS[rarity_key]
+    normalized['pool_value'] = int(normalized.get('pool_value') or normalized.get('base_power') or normalized.get('score') or 0)
+    normalized['base_power'] = normalized['pool_value']
+    normalized['score'] = normalized['pool_value']
     return normalized
 
 
-def deck_power_pool(cards):
-    normalized = [normalize_card_profile(card) for card in (cards or [])]
+def domain_bonus_pool(domain):
+    normalized = normalize_domain(domain)
     if not normalized:
         return 0
-    return sum(card['base_power'] for card in normalized)
+    try:
+        club = classify_domain_with_10k_config(normalized)
+        return max(0, int(club.get('bonus_score') or 0))
+    except (requests.RequestException, RuntimeError, ValueError, KeyError):
+        return 0
+
+
+def deck_power_pool(cards, domain=None):
+    return 2500 + domain_bonus_pool(domain)
 
 
 def default_discipline_build(pool):
@@ -4422,7 +4404,7 @@ def sanitize_discipline_build(payload, pool):
 
 def load_deck_build(wallet, domain, cards):
     ensure_runtime_tables()
-    pool = deck_power_pool(cards)
+    pool = deck_power_pool(cards, domain)
     default_build = default_discipline_build(pool)
     if not wallet or not domain:
         return {'pool': pool, 'points': default_build}
@@ -4442,7 +4424,7 @@ def load_deck_build(wallet, domain, cards):
 
 def save_deck_build(wallet, domain, cards, payload):
     ensure_runtime_tables()
-    pool = deck_power_pool(cards)
+    pool = deck_power_pool(cards, domain)
     points = sanitize_discipline_build(payload, pool)
     with closing(get_db()) as conn:
         conn.execute(
@@ -4474,49 +4456,19 @@ def save_deck_build(wallet, domain, cards, payload):
 
 def materialize_card(card_template, domain, slot):
     rarity = card_template['rarity']
-    primary = max(1, int(card_template['base_value']))
-    stat_type = card_template['stat_type']
-    attack = 2
-    defense = 2
-    luck = 1
-    speed = 2
-    magic = 2
-    if stat_type == 'attack':
-        attack = primary
-        speed = max(2, primary // 3)
-        magic = max(2, primary // 5)
-    elif stat_type == 'defense':
-        defense = primary
-        speed = max(2, primary // 5)
-        magic = max(2, primary // 3)
-    elif stat_type == 'luck':
-        luck = max(1, primary // 5)
-        speed = max(2, primary // 4)
-        magic = max(2, primary // 4)
-    else:  # power
-        attack = max(4, primary // 3)
-        defense = max(4, primary // 3)
-        luck = max(1, primary // 10)
-        speed = max(3, primary // 5)
-        magic = max(3, primary // 5)
-    score = attack + defense + luck + speed + magic
+    pool_value = random.randint(int(card_template['pool_min']), int(card_template['pool_max']))
+    score = pool_value
     return {
-        'id': card_template['id'],
+        'id': f"{card_template['id']}-{slot}",
         'slot': slot,
         'title': card_template['title'],
-        'ability': f'Тип: {stat_type}',
+        'ability': 'Даёт очки в свободный пул колоды.',
         'domain': domain,
-        'base_power': primary,
-        'attack': attack,
-        'defense': defense,
-        'luck': luck,
-        'speed': speed,
-        'magic': magic,
+        'pool_value': pool_value,
+        'base_power': pool_value,
         'score': score,
         'rarity': card_template['rarity_label'],
         'rarity_key': rarity,
-        'stat_type': stat_type,
-        'stat_value': primary,
         'patterns': [],
     }
 
@@ -4537,7 +4489,7 @@ def generate_pack(domain, count=5, seed_value=None):
 
 
 def deck_score(cards):
-    return sum(normalize_card_profile(card)['score'] for card in cards)
+    return sum(normalize_card_profile(card)['pool_value'] for card in cards)
 
 
 WIKIGACHI_ROUND_PLAN = [
@@ -4550,18 +4502,7 @@ WIKIGACHI_ROUND_PLAN = [
 
 
 def card_stat_value(card, stat_name):
-    card = normalize_card_profile(card)
-    if stat_name == 'attack':
-        return int(card.get('attack', 0))
-    if stat_name == 'defense':
-        return int(card.get('defense', 0))
-    if stat_name == 'luck':
-        return int(card.get('luck', 0))
-    if stat_name == 'speed':
-        return int(card.get('speed', 0))
-    if stat_name == 'magic':
-        return int(card.get('magic', 0))
-    return int(card.get('score', 0))
+    return int(normalize_card_profile(card).get('pool_value', 0))
 
 
 def build_bonus_value(build_points, focus):
@@ -4584,16 +4525,16 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None):
         focus, label = WIKIGACHI_ROUND_PLAN[idx]
         card_a = cards_a[idx]
         card_b = cards_b[idx]
-        value_a = card_stat_value(card_a, focus)
-        value_b = card_stat_value(card_b, focus)
-        boost_a = build_bonus_value(build_a, focus)
-        boost_b = build_bonus_value(build_b, focus)
+        value_a = build_bonus_value(build_a, focus)
+        value_b = build_bonus_value(build_b, focus)
+        card_boost_a = max(0, int(card_stat_value(card_a, focus) // 80))
+        card_boost_b = max(0, int(card_stat_value(card_b, focus) // 80))
 
         # Small deterministic swing for a less predictable duel flow.
         swing_a = rng.randint(0, 2)
         swing_b = rng.randint(0, 2)
-        total_a = value_a + boost_a + swing_a
-        total_b = value_b + boost_b + swing_b
+        total_a = value_a + card_boost_a + swing_a
+        total_b = value_b + card_boost_b + swing_b
 
         if total_a > total_b:
             round_winner = 'a'
@@ -4613,8 +4554,8 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None):
                 'card_b': {'slot': card_b.get('slot'), 'title': card_b.get('title')},
                 'value_a': value_a,
                 'value_b': value_b,
-                'boost_a': boost_a,
-                'boost_b': boost_b,
+                'boost_a': card_boost_a,
+                'boost_b': card_boost_b,
                 'swing_a': swing_a,
                 'swing_b': swing_b,
                 'total_a': total_a,
@@ -4679,13 +4620,14 @@ def deck_summary_for_domain(domain, wallet=None):
     if not cards:
         cards = generate_pack(domain)
     cards = [normalize_card_profile(card) for card in cards]
-    build = load_deck_build(wallet, domain, cards) if wallet else {'pool': deck_power_pool(cards), 'points': default_discipline_build(deck_power_pool(cards))}
+    pool = deck_power_pool(cards, domain)
+    build = load_deck_build(wallet, domain, cards) if wallet else {'pool': pool, 'points': default_discipline_build(pool)}
     return {
         'cards': cards,
-        'average_attack': round(sum(card['attack'] for card in cards) / len(cards), 1),
-        'average_defense': round(sum(card['defense'] for card in cards) / len(cards), 1),
-        'average_speed': round(sum(card['speed'] for card in cards) / len(cards), 1),
-        'average_magic': round(sum(card['magic'] for card in cards) / len(cards), 1),
+        'average_attack': round(build['points'].get('attack', 0) / max(1, len(cards)), 1),
+        'average_defense': round(build['points'].get('defense', 0) / max(1, len(cards)), 1),
+        'average_speed': round(build['points'].get('speed', 0) / max(1, len(cards)), 1),
+        'average_magic': round(build['points'].get('magic', 0) / max(1, len(cards)), 1),
         'discipline_build': build['points'],
         'discipline_pool': build['pool'],
         'total_score': deck_score(cards),
@@ -4694,26 +4636,22 @@ def deck_summary_for_domain(domain, wallet=None):
 
 def random_bot_cards(seed_value, count=5):
     rng = random.Random(hashlib.sha256(f'bot:{seed_value}'.encode()).hexdigest())
+    rarity_keys = list(RARITY_ORDER)
     cards = []
     for slot in range(1, count + 1):
-        attack = rng.randint(12, 48)
-        defense = rng.randint(10, 42)
-        luck = rng.randint(0, 12)
-        speed = rng.randint(8, 38)
-        magic = rng.randint(8, 38)
+        rarity_key = rarity_keys[rng.randrange(len(rarity_keys))]
+        template = CARD_CATALOG_BY_RARITY[rarity_key][0]
+        pool_value = rng.randint(int(template['pool_min']), int(template['pool_max']))
         cards.append(
             {
                 'slot': slot,
                 'title': CARD_TITLES[rng.randrange(len(CARD_TITLES))],
                 'ability': CARD_ABILITIES[rng.randrange(len(CARD_ABILITIES))],
-                'base_power': attack + defense,
-                'attack': attack,
-                'defense': defense,
-                'luck': luck,
-                'speed': speed,
-                'magic': magic,
-                'score': attack + defense + luck + speed + magic,
-                'rarity': card_rarity(attack + defense + luck + speed + magic),
+                'pool_value': pool_value,
+                'base_power': pool_value,
+                'score': pool_value,
+                'rarity': RARITY_LABELS[rarity_key],
+                'rarity_key': rarity_key,
             }
         )
     return cards
@@ -4729,28 +4667,20 @@ def bot_cards_slightly_weaker_than_player(player_cards, seed_value):
     for slot, source in enumerate(normalized_cards[:5], start=1):
         # Keep bot close to player power but a bit weaker on average.
         scale = rng.uniform(0.86, 0.94)
-        jitter = lambda x: max(1, int(round(x * scale + rng.uniform(-1.5, 1.5))))
-
-        attack = jitter(source.get('attack', 10))
-        defense = jitter(source.get('defense', 10))
-        luck = max(0, int(round(source.get('luck', 0) * rng.uniform(0.82, 0.95))))
-        speed = jitter(source.get('speed', max(1, attack // 3)))
-        magic = jitter(source.get('magic', max(1, defense // 3)))
-
-        score = attack + defense + luck + speed + magic
+        score = max(1, int(round(source.get('pool_value', source.get('score', 100)) * scale + rng.uniform(-4.0, 4.0))))
+        rarity_key = str(source.get('rarity_key') or 'basic').lower()
+        if rarity_key not in RARITY_LABELS:
+            rarity_key = 'basic'
         cards.append(
             {
                 'slot': slot,
                 'title': CARD_TITLES[rng.randrange(len(CARD_TITLES))],
                 'ability': CARD_ABILITIES[rng.randrange(len(CARD_ABILITIES))],
-                'base_power': max(1, int(round(source.get('base_power', score // 2) * scale))),
-                'attack': attack,
-                'defense': defense,
-                'luck': luck,
-                'speed': speed,
-                'magic': magic,
+                'pool_value': score,
+                'base_power': score,
                 'score': score,
-                'rarity': card_rarity(score),
+                'rarity': RARITY_LABELS[rarity_key],
+                'rarity_key': rarity_key,
             }
         )
     return cards
@@ -4794,9 +4724,6 @@ def extract_domain_candidates_from_nft(item):
         text = json.dumps(field, ensure_ascii=False) if isinstance(field, (dict, list)) else str(field)
         for direct_match in re.findall(r'(?<!\d)(\d{4})\.ton(?!\d)', text.lower()):
             candidates.add(direct_match)
-        stripped = normalize_domain(text)
-        if stripped:
-            candidates.add(stripped)
 
     return sorted(candidates)
 
@@ -4867,8 +4794,11 @@ def validate_wallet_owns_domain(wallet, domain):
         return False
     if guest_access_enabled() and normalized == guest_domain_for_wallet(wallet):
         return True
-    domains = fetch_wallet_domains(wallet)
-    return any(item['domain'] == normalized for item in domains)
+    first_pass = fetch_wallet_domains(wallet, force_refresh=False)
+    if not any(item['domain'] == normalized for item in first_pass):
+        return False
+    second_pass = fetch_wallet_domains(wallet, force_refresh=True)
+    return any(item['domain'] == normalized for item in second_pass)
 
 
 def upsert_telegram_user(user, chat_id):
@@ -4959,15 +4889,15 @@ def validate_telegram_init_data(init_data):
 
 
 def resolve_player_reference(reference):
-    ref = (reference or '').strip().lower()
+    ref = (reference or '').strip()
     if not ref:
-        raise ValueError('Укажи кошелёк или домен соперника.')
+        raise ValueError('Укажи кошелёк или .ton домен соперника.')
     if valid_wallet_address(reference):
         return reference.strip()
 
-    domain = normalize_domain(ref)
+    domain = normalize_strict_ton_domain(ref)
     if not domain:
-        raise ValueError('Поле соперника принимает только полный кошелёк или 4-значный .ton домен.')
+        raise ValueError('Поле соперника принимает только полный кошелёк или 4-значный домен вида 1234.ton.')
 
     with closing(get_db()) as conn:
         row = conn.execute(
@@ -6717,7 +6647,8 @@ def api_match_bot():
     player_build = load_deck_build(wallet, domain, player_cards)
     base_seed = f'bot-duel:{wallet}:{domain}:{now_iso()}'
     bot_cards = bot_cards_slightly_weaker_than_player(player_cards, base_seed)
-    bot_build = {'pool': deck_power_pool(bot_cards), 'points': default_discipline_build(deck_power_pool(bot_cards))}
+    bot_pool = max(1800, int(round(player_build['pool'] * 0.92)))
+    bot_build = {'pool': bot_pool, 'points': default_discipline_build(bot_pool)}
     duel = wikigachi_duel(
         player_cards,
         bot_cards,
