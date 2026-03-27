@@ -723,7 +723,6 @@ PAGE_TEMPLATE = """
 
     .showdown-score .count-up {
       text-shadow: 0 0 18px rgba(83, 246, 184, 0.45);
-      animation: scorePulse 860ms cubic-bezier(.2,.82,.2,1) both;
     }
 
     .discipline-list {
@@ -748,7 +747,6 @@ PAGE_TEMPLATE = """
     .discipline-row.visible {
       opacity: 1;
       transform: translateY(0);
-      animation: rowPop 420ms cubic-bezier(.2,.82,.2,1);
     }
 
     .discipline-row.win {
@@ -877,11 +875,6 @@ PAGE_TEMPLATE = """
         0 20px 54px rgba(0, 0, 0, 0.38),
         0 0 0 1px rgba(121, 217, 255, 0.08);
       backdrop-filter: blur(18px);
-      animation: floatingBattlePanelIn 280ms cubic-bezier(.16,.84,.2,1);
-    }
-
-    .interactive-battle-panel.live-pop {
-      animation: battleChoicePop 320ms cubic-bezier(.16,.84,.2,1);
     }
 
     .interactive-battle-title {
@@ -939,20 +932,6 @@ PAGE_TEMPLATE = """
       }
     }
 
-    @keyframes battleChoicePop {
-      0% {
-        opacity: 0;
-        transform: translateY(18px) scale(0.94);
-      }
-      65% {
-        opacity: 1;
-        transform: translateY(-4px) scale(1.02);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
 
     .showdown-entry-actions {
       display: flex;
@@ -3061,14 +3040,10 @@ PAGE_TEMPLATE = """
       if (!rows.length) {
         return 0;
       }
-      const toResultKey = (row) => (
-        row.classList.contains('win') ? 'win' : (row.classList.contains('lose') ? 'lose' : 'draw')
-      );
       rows.forEach((row, index) => {
         const delay = startDelay + index * stepMs;
         setTimeout(() => {
           row.classList.add('visible');
-          playBattleFx(toResultKey(row), 'round', row);
         }, delay);
       });
       return startDelay + (rows.length - 1) * stepMs;
@@ -3437,10 +3412,7 @@ PAGE_TEMPLATE = """
           rows.forEach((row) => row.classList.add('visible'));
           animateScoreCounters(battleResult);
           const latestRow = rows.length ? rows[rows.length - 1] : null;
-          if (latestRow && liveResult.autostart_battle) {
-            const latestKey = latestRow.classList.contains('win') ? 'win' : (latestRow.classList.contains('lose') ? 'lose' : 'draw');
-            playBattleFx(latestKey, 'round', latestRow);
-          }
+          setScoreCountersInstant(battleResult);
           if (!liveResult.interactive_live || !interactiveBattlePanel || !interactiveActionButtons.length) {
             if (!liveResult.interactive_live) {
               const showInteractiveOutcome = async () => {
@@ -3455,10 +3427,6 @@ PAGE_TEMPLATE = """
             }
             return;
           }
-          interactiveBattlePanel.classList.remove('live-pop');
-          void interactiveBattlePanel.offsetWidth;
-          interactiveBattlePanel.classList.add('live-pop');
-          setTimeout(() => interactiveBattlePanel.classList.remove('live-pop'), 360);
           interactiveBattlePanel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
           interactiveActionButtons.forEach((button) => {
             button.addEventListener('click', async () => {
@@ -3651,6 +3619,15 @@ PAGE_TEMPLATE = """
           if (progress < 1) requestAnimationFrame(step);
         }
         requestAnimationFrame(step);
+      });
+    }
+
+    function setScoreCountersInstant(container) {
+      const counters = container.querySelectorAll('.count-up');
+      if (!counters.length) return;
+      counters.forEach((node) => {
+        const target = Number(node.dataset.countTo || '0');
+        node.textContent = Number.isFinite(target) ? String(target) : '0';
       });
     }
 
