@@ -766,31 +766,14 @@ PAGE_TEMPLATE = """
       background: rgba(255, 211, 110, 0.1);
     }
 
-    .action-plan-grid {
-      display: grid;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .action-plan-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 150px;
-      gap: 10px;
-      align-items: center;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(121, 217, 255, 0.18);
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .mana-strip {
+    .strategy-note-strip {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       margin-top: 10px;
     }
 
-    .mana-chip, .action-chip {
+    .action-chip {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1875,9 +1858,9 @@ PAGE_TEMPLATE = """
 
     function actionRuleMeta(actionKey) {
       return {
-        burst: {ruLabel: 'Натиск', cost: 4, beats: 'Фокус', losesTo: 'Блок'},
-        guard: {ruLabel: 'Блок', cost: 3, beats: 'Натиск', losesTo: 'Фокус'},
-        channel: {ruLabel: 'Фокус', cost: 2, beats: 'Блок', losesTo: 'Натиск'},
+        burst: {ruLabel: 'Натиск', beats: 'Фокус', losesTo: 'Блок'},
+        guard: {ruLabel: 'Блок', beats: 'Натиск', losesTo: 'Фокус'},
+        channel: {ruLabel: 'Фокус', beats: 'Блок', losesTo: 'Натиск'},
       }[actionKey] || {ruLabel: actionKey || '-', cost: 0, beats: '-', losesTo: '-'};
     }
 
@@ -1892,6 +1875,14 @@ PAGE_TEMPLATE = """
         wildcard: 'Сильнее в рисковых раундах и при нестандартном размене. Слабее, когда бой идет слишком предсказуемо.',
       };
       return mapping[key] || 'Скилл дает ситуативный бонус в зависимости от темпа и контр-хода.';
+    }
+
+    function strategyMeta(strategyKey) {
+      return {
+        aggressive: {label: 'Агрессия', description: 'Больше натиска и давления по раундам.'},
+        balanced: {label: 'Баланс', description: 'Ровная стратегия без явных дыр.'},
+        tricky: {label: 'Хитрость', description: 'Больше контров и неожиданных разменов.'},
+      }[strategyKey] || {label: 'Баланс', description: 'Ровная стратегия без явных дыр.'};
     }
 
     function api(path, options = {}) {
@@ -2573,14 +2564,18 @@ PAGE_TEMPLATE = """
                 const opponentSlot = round.opponent_card?.slot || '-';
                 const playerAction = actionRuleMeta(round.player_action || 'channel');
                 const opponentAction = actionRuleMeta(round.opponent_action || 'channel');
+                const playerStrategy = strategyMeta(round.player_strategy_key || 'balanced');
+                const opponentStrategy = strategyMeta(round.opponent_strategy_key || 'balanced');
                 return `
                   <div class="discipline-row ${roundClass}">
                     <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
                     <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
                     <span class="tiny">Ходы: ${playerAction.ruLabel} / ${opponentAction.ruLabel} • контр-бонус: +${round.player_action_bonus || 0} / +${round.opponent_action_bonus || 0}</span>
+                    <span class="tiny">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label} • бонус: +${round.player_strategy_bonus || 0} / +${round.opponent_strategy_bonus || 0}</span>
                     <span class="tiny">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
                     <span class="tiny">Поддержка: ${round.player_value || 0} / ${round.opponent_value || 0} • размен: +${round.player_boost || 0} / +${round.opponent_boost || 0} • скилл: +${round.player_skill_bonus || 0} / +${round.opponent_skill_bonus || 0}</span>
                     <span class="tiny">${round.player_action_note || 'Ход без контра'} / ${round.opponent_action_note || 'Ход без контра'}</span>
+                    <span class="tiny">${round.player_strategy_note || 'Стратегия без всплеска'} / ${round.opponent_strategy_note || 'Стратегия без всплеска'}</span>
                     <span class="tiny">${round.player_featured_note || round.player_skill_note || 'Без триггера'} / ${round.opponent_featured_note || round.opponent_skill_note || 'Без триггера'}</span>
                   </div>
                 `;
@@ -2593,23 +2588,7 @@ PAGE_TEMPLATE = """
         const deckPowerLine = result.player_deck_power !== undefined && result.opponent_deck_power !== undefined
           ? `<div class="tiny">Сила колод (тай-брейк): ${result.player_deck_power} vs ${result.opponent_deck_power}${result.tie_breaker ? ' • использован тай-брейк' : ''}</div>`
           : '';
-        const prebattleActionRows = Array.from({length: 5}, (_, idx) => {
-          const currentAction = (result.action_plan && result.action_plan[idx]) || ['burst', 'guard', 'channel', 'burst', 'guard'][idx];
-          return `
-            <div class="action-plan-row">
-              <div>
-                <strong>Раунд ${idx + 1}</strong>
-                <div class="tiny">Натиск > Фокус, Фокус > Блок, Блок > Натиск</div>
-              </div>
-              <select data-action-round="${idx}">
-                ${['burst', 'guard', 'channel'].map((key) => {
-                  const meta = actionRuleMeta(key);
-                  return `<option value="${key}" ${currentAction === key ? 'selected' : ''}>${meta.ruLabel} • ${meta.cost} маны</option>`;
-                }).join('')}
-              </select>
-            </div>
-          `;
-        }).join('');
+        const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
         state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
         battleResult.classList.add('showdown-fullscreen');
         battleResult.classList.remove('result-win', 'result-lose', 'result-draw', 'battle-live');
@@ -2639,11 +2618,17 @@ PAGE_TEMPLATE = """
                     `).join('')}
                   </select>
                 </div>
-                <div class="tiny">Выбери тактическую карту перед нажатием "Готов". Именно она теперь сильнее всего влияет на раунды и на исход тай-брейка матча.</div>
-                <div class="tiny">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'}</div>
-                <div class="mana-strip" id="prebattle-mana-strip"></div>
-                <div class="action-plan-grid" id="prebattle-action-plan">${prebattleActionRows}</div>
-                <div class="tiny" id="prebattle-action-help">Контры: Натиск бьет Фокус, Фокус бьет Блок, Блок бьет Натиск. На все дорогие ходы маны не хватит.</div>
+                <div class="row" style="margin-top:10px;">
+                  <select id="prebattle-strategy">
+                    ${['aggressive', 'balanced', 'tricky'].map((key) => {
+                      const meta = strategyMeta(key);
+                      return `<option value="${key}" ${String(result.strategy_key || 'balanced') === key ? 'selected' : ''}>${meta.label}</option>`;
+                    }).join('')}
+                  </select>
+                </div>
+                <div class="tiny">Выбери тактическую карту и стиль матча перед нажатием "Готов". Они дают основной перевес в раундах и сильнее всего влияют на итог матча.</div>
+                <div class="tiny" id="prebattle-strategy-help"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
+                <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'} Контры: Натиск > Фокус, Фокус > Блок, Блок > Натиск.</div>
                 <div class="showdown-entry-actions">
                   <button id="start-battle-btn">Готов</button>
                   <button class="secondary" onclick="openModes()">К режимам</button>
@@ -2707,25 +2692,9 @@ PAGE_TEMPLATE = """
         const startBtn = battleResult.querySelector('#start-battle-btn');
         const prebattleReadyStatus = battleResult.querySelector('#prebattle-ready-status');
         const prebattleTacticalSlot = battleResult.querySelector('#prebattle-tactical-slot');
-        const prebattleManaStrip = battleResult.querySelector('#prebattle-mana-strip');
+        const prebattleStrategy = battleResult.querySelector('#prebattle-strategy');
+        const prebattleStrategyHelp = battleResult.querySelector('#prebattle-strategy-help');
         const prebattleActionHelp = battleResult.querySelector('#prebattle-action-help');
-        const prebattleActionSelects = Array.from(battleResult.querySelectorAll('[data-action-round]'));
-        const collectActionPlan = () => prebattleActionSelects.map((node) => node.value);
-        const refreshManaPreview = () => {
-          const plan = collectActionPlan();
-          let spent = 0;
-          prebattleManaStrip.innerHTML = plan.map((key) => {
-            const meta = actionRuleMeta(key);
-            spent += meta.cost;
-            return `<span class="action-chip ${key}">${meta.ruLabel} • ${meta.cost}</span>`;
-          }).join('') + `<span class="mana-chip">Мана: ${Math.max(0, (liveResult.action_mana_pool || 12) - spent)} / ${liveResult.action_mana_pool || 12}</span>`;
-          if (prebattleActionHelp) {
-            prebattleActionHelp.textContent = spent > (liveResult.action_mana_pool || 12)
-              ? 'План дороже лимита. Сервер автоматически заменит лишние дорогие ходы на более дешевые.'
-              : 'Контры: Натиск бьет Фокус, Фокус бьет Блок, Блок бьет Натиск. План укладывается в ману.';
-          }
-        };
-        prebattleActionSelects.forEach((node) => node.addEventListener('change', refreshManaPreview));
         if (prebattleTacticalSlot) {
           prebattleTacticalSlot.addEventListener('change', () => {
             const card = (liveResult.player_cards || []).find((item) => Number(item.slot) === Number(prebattleTacticalSlot.value));
@@ -2734,7 +2703,14 @@ PAGE_TEMPLATE = """
             }
           });
         }
-        refreshManaPreview();
+        if (prebattleStrategy) {
+          prebattleStrategy.addEventListener('change', () => {
+            const meta = strategyMeta(prebattleStrategy.value);
+            if (prebattleStrategyHelp) {
+              prebattleStrategyHelp.innerHTML = `<strong>${meta.label}:</strong> ${meta.description}`;
+            }
+          });
+        }
         if (startBtn) {
           startBtn.addEventListener('click', () => {
             const launchBattle = () => {
@@ -2816,7 +2792,7 @@ PAGE_TEMPLATE = """
                 wallet: state.wallet,
                 session_id: sessionId,
                 selected_slot: Number(prebattleTacticalSlot && prebattleTacticalSlot.value ? prebattleTacticalSlot.value : 0),
-                action_plan: collectActionPlan()
+                strategy_key: prebattleStrategy && prebattleStrategy.value ? prebattleStrategy.value : (liveResult.strategy_key || 'balanced')
               }
             }).then((readyData) => {
               const st = readyData.status || {};
@@ -4568,12 +4544,10 @@ CARD_SKILLS = [
     {'key': 'defense_lock', 'name': 'Замок', 'description': 'Особенно хороша в защите и скорости.'},
     {'key': 'wildcard', 'name': 'Джокер', 'description': 'Может резко перевернуть удачу и магию.'},
 ]
-ACTION_MANA_POOL = 12
 ACTION_RULES = {
     'burst': {
         'label': 'Burst',
         'ru_label': 'Натиск',
-        'cost': 4,
         'beats': 'channel',
         'color': 'rgba(255, 122, 134, 0.9)',
         'description': 'Силен против накопления. Слабее против блока.',
@@ -4581,7 +4555,6 @@ ACTION_RULES = {
     'guard': {
         'label': 'Guard',
         'ru_label': 'Блок',
-        'cost': 3,
         'beats': 'burst',
         'color': 'rgba(83, 246, 184, 0.9)',
         'description': 'Сдерживает натиск. Слабее против подготовки.',
@@ -4589,10 +4562,26 @@ ACTION_RULES = {
     'channel': {
         'label': 'Channel',
         'ru_label': 'Фокус',
-        'cost': 2,
         'beats': 'guard',
         'color': 'rgba(69, 215, 255, 0.9)',
         'description': 'Наказывает блок. Слабее против прямого натиска.',
+    },
+}
+STRATEGY_PRESETS = {
+    'aggressive': {
+        'label': 'Агрессия',
+        'description': 'Сразу давит, лучше на добивании и против пассивной игры.',
+        'plan': ['burst', 'burst', 'channel', 'burst', 'guard'],
+    },
+    'balanced': {
+        'label': 'Баланс',
+        'description': 'Самая ровная стратегия, меньше провалов по матчапам.',
+        'plan': ['burst', 'guard', 'channel', 'guard', 'burst'],
+    },
+    'tricky': {
+        'label': 'Хитрость',
+        'description': 'Чаще ловит соперника на контрах и неожиданных сменах темпа.',
+        'plan': ['channel', 'guard', 'channel', 'burst', 'channel'],
     },
 }
 
@@ -5012,45 +5001,48 @@ def featured_match_bonus(featured_card):
 
 
 def default_action_plan():
-    return ['burst', 'guard', 'channel', 'burst', 'guard']
+    return list(STRATEGY_PRESETS['balanced']['plan'])
 
 
-def auto_action_plan(cards, featured_slot=None):
+def normalize_strategy_key(strategy_key):
+    key = str(strategy_key or '').strip().lower()
+    return key if key in STRATEGY_PRESETS else 'balanced'
+
+
+def auto_action_plan(cards, featured_slot=None, strategy_key='balanced'):
+    strategy = STRATEGY_PRESETS.get(normalize_strategy_key(strategy_key)) or STRATEGY_PRESETS['balanced']
+    plan = list(strategy['plan'])
     featured = find_card_by_slot(cards, featured_slot)
     skill_key = (featured or {}).get('skill_key')
     if skill_key == 'defense_lock':
-        return ['guard', 'channel', 'guard', 'burst', 'guard']
+        plan[1] = 'guard'
+        plan[3] = 'guard'
     if skill_key == 'attack_burst':
-        return ['burst', 'burst', 'channel', 'burst', 'guard']
+        plan[0] = 'burst'
+        plan[4] = 'burst'
     if skill_key == 'wildcard':
-        return ['channel', 'guard', 'channel', 'burst', 'channel']
+        plan[2] = 'channel'
     if skill_key == 'tempo':
-        return ['channel', 'burst', 'guard', 'burst', 'burst']
+        plan[1] = 'burst'
+        plan[3] = 'burst'
     if skill_key == 'mirror':
-        return ['guard', 'channel', 'burst', 'guard', 'channel']
+        plan[0] = 'guard'
+        plan[2] = 'channel'
     if skill_key == 'underdog':
-        return ['channel', 'guard', 'burst', 'channel', 'burst']
-    return default_action_plan()
+        plan[2] = 'burst'
+        plan[4] = 'channel'
+    return plan
 
 
 def sanitize_action_plan(plan):
     plan = list(plan or [])
     while len(plan) < len(WIKIGACHI_ROUND_PLAN):
         plan.append(default_action_plan()[len(plan)])
-    mana_left = ACTION_MANA_POOL
     normalized = []
     for key in plan[:len(WIKIGACHI_ROUND_PLAN)]:
         action_key = str(key or '').strip().lower()
         if action_key not in ACTION_RULES:
             action_key = 'channel'
-        cost = ACTION_RULES[action_key]['cost']
-        if cost > mana_left:
-            action_key = 'channel' if ACTION_RULES['channel']['cost'] <= mana_left else 'guard' if ACTION_RULES['guard']['cost'] <= mana_left else 'burst'
-            cost = ACTION_RULES[action_key]['cost']
-            if cost > mana_left:
-                action_key = 'channel'
-                cost = 0
-        mana_left = max(0, mana_left - cost)
         normalized.append(action_key)
     return normalized
 
@@ -5059,15 +5051,51 @@ def action_round_resolution(action_a, action_b):
     meta_a = ACTION_RULES.get(action_a) or ACTION_RULES['channel']
     meta_b = ACTION_RULES.get(action_b) or ACTION_RULES['channel']
     if meta_a['beats'] == action_b and meta_b['beats'] != action_a:
-        return 18, 4, f"{meta_a['ru_label']} контрит {meta_b['ru_label']}", f"{meta_b['ru_label']} попал под контр"
+        return 24, 6, f"{meta_a['ru_label']} контрит {meta_b['ru_label']}", f"{meta_b['ru_label']} попал под контр"
     if meta_b['beats'] == action_a and meta_a['beats'] != action_b:
-        return 4, 18, f"{meta_a['ru_label']} попал под контр", f"{meta_b['ru_label']} контрит {meta_a['ru_label']}"
+        return 6, 24, f"{meta_a['ru_label']} попал под контр", f"{meta_b['ru_label']} контрит {meta_a['ru_label']}"
     if action_a == action_b:
-        return 8, 8, 'Одинаковый ход, размен на равных', 'Одинаковый ход, размен на равных'
-    return 10, 10, 'Ходы разошлись без явного контра', 'Ходы разошлись без явного контра'
+        return 10, 10, 'Одинаковый ход, размен на равных', 'Одинаковый ход, размен на равных'
+    return 12, 12, 'Ходы разошлись без явного контра', 'Ходы разошлись без явного контра'
 
 
-def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, featured_slot_a=None, featured_slot_b=None, action_plan_a=None, action_plan_b=None):
+def strategy_round_bonus(strategy_key, focus, phase, round_index, action_key, previous_outcome, featured_card):
+    strategy_key = normalize_strategy_key(strategy_key)
+    featured_card = normalize_card_profile(featured_card)
+    skill_key = featured_card.get('skill_key')
+    if strategy_key == 'aggressive':
+        bonus = 26 if action_key == 'burst' else 10
+        if phase in {'opening', 'finisher'}:
+            bonus += 8
+        if previous_outcome == 'win':
+            bonus += 5
+        if skill_key == 'attack_burst':
+            bonus += 8
+        note = 'Агрессия давит темпом'
+    elif strategy_key == 'tricky':
+        bonus = 24 if action_key == 'channel' else 12
+        if phase in {'counter', 'risk'}:
+            bonus += 8
+        if previous_outcome == 'loss':
+            bonus += 6
+        if skill_key in {'wildcard', 'mirror'}:
+            bonus += 8
+        note = 'Хитрость ищет контр-ход'
+    else:
+        bonus = 18
+        if action_key == 'guard':
+            bonus += 4
+        if phase in {'counter', 'tempo'}:
+            bonus += 6
+        if previous_outcome == 'draw':
+            bonus += 4
+        if skill_key == 'defense_lock':
+            bonus += 6
+        note = 'Баланс держит ровный темп'
+    return bonus, note
+
+
+def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, featured_slot_a=None, featured_slot_b=None, strategy_key_a='balanced', strategy_key_b='balanced'):
     rounds = []
     wins_a = 0
     wins_b = 0
@@ -5077,8 +5105,10 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
 
     featured_a = find_card_by_slot(cards_a, featured_slot_a)
     featured_b = find_card_by_slot(cards_b, featured_slot_b)
-    action_plan_a = sanitize_action_plan(action_plan_a or auto_action_plan(cards_a, featured_slot_a))
-    action_plan_b = sanitize_action_plan(action_plan_b or auto_action_plan(cards_b, featured_slot_b))
+    strategy_key_a = normalize_strategy_key(strategy_key_a)
+    strategy_key_b = normalize_strategy_key(strategy_key_b)
+    action_plan_a = auto_action_plan(cards_a, featured_slot_a, strategy_key_a)
+    action_plan_b = auto_action_plan(cards_b, featured_slot_b, strategy_key_b)
     rng = random.Random(hashlib.sha256(f'wikigachi:{seed_value}'.encode()).hexdigest())
     rounds_count = min(len(cards_a), len(cards_b), len(WIKIGACHI_ROUND_PLAN))
     prev_a = None
@@ -5090,11 +5120,13 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
         card_b = cards_b[idx]
         action_a = action_plan_a[idx]
         action_b = action_plan_b[idx]
-        value_a = max(0, round(build_bonus_value(build_a, focus) / 3))
-        value_b = max(0, round(build_bonus_value(build_b, focus) / 3))
+        value_a = max(0, round(build_bonus_value(build_a, focus) / 7))
+        value_b = max(0, round(build_bonus_value(build_b, focus) / 7))
         card_boost_a = matchup_strategy_bonus(card_a, card_b, phase, idx)
         card_boost_b = matchup_strategy_bonus(card_b, card_a, phase, idx)
         action_bonus_a, action_bonus_b, action_note_a, action_note_b = action_round_resolution(action_a, action_b)
+        strategy_bonus_a, strategy_note_a = strategy_round_bonus(strategy_key_a, focus, phase, idx, action_a, prev_a, featured_a or card_a)
+        strategy_bonus_b, strategy_note_b = strategy_round_bonus(strategy_key_b, focus, phase, idx, action_b, prev_b, featured_b or card_b)
         skill_bonus_a, skill_note_a = apply_skill_bonus(
             (featured_a or {}).get('skill_key'),
             focus,
@@ -5135,8 +5167,8 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
         # Small deterministic swing for a less predictable duel flow.
         swing_a = rng.randint(0, 2)
         swing_b = rng.randint(0, 2)
-        total_a = value_a + card_boost_a + action_bonus_a + skill_bonus_a + featured_bonus_a + swing_a
-        total_b = value_b + card_boost_b + action_bonus_b + skill_bonus_b + featured_bonus_b + swing_b
+        total_a = value_a + card_boost_a + action_bonus_a + strategy_bonus_a + skill_bonus_a + featured_bonus_a + swing_a
+        total_b = value_b + card_boost_b + action_bonus_b + strategy_bonus_b + skill_bonus_b + featured_bonus_b + swing_b
 
         if total_a > total_b:
             round_winner = 'a'
@@ -5165,6 +5197,12 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
                 'action_bonus_b': action_bonus_b,
                 'action_note_a': action_note_a,
                 'action_note_b': action_note_b,
+                'strategy_key_a': strategy_key_a,
+                'strategy_key_b': strategy_key_b,
+                'strategy_bonus_a': strategy_bonus_a,
+                'strategy_bonus_b': strategy_bonus_b,
+                'strategy_note_a': strategy_note_a,
+                'strategy_note_b': strategy_note_b,
                 'card_a': {'slot': card_a.get('slot'), 'title': card_a.get('title')},
                 'card_b': {'slot': card_b.get('slot'), 'title': card_b.get('title')},
                 'value_a': value_a,
@@ -5213,6 +5251,8 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
         'featured_b': featured_b,
         'action_plan_a': action_plan_a,
         'action_plan_b': action_plan_b,
+        'strategy_key_a': strategy_key_a,
+        'strategy_key_b': strategy_key_b,
     }
 
 
@@ -5778,7 +5818,7 @@ def achievements_for_wallet(wallet):
     ]
 
 
-def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b, selected_slot_a=None, selected_slot_b=None, action_plan_a=None, action_plan_b=None):
+def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b, selected_slot_a=None, selected_slot_b=None, strategy_key_a='balanced', strategy_key_b='balanced'):
     cards_a = load_active_deck_cards(wallet_a, domain_a) or generate_pack(domain_a)
     cards_b = load_active_deck_cards(wallet_b, domain_b) or generate_pack(domain_b)
     cards_a = [normalize_card_profile(card) for card in cards_a]
@@ -5795,8 +5835,8 @@ def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b, selected_slot_a=
         build_b=build_b['points'],
         featured_slot_a=selected_slot_a,
         featured_slot_b=selected_slot_b,
-        action_plan_a=action_plan_a,
-        action_plan_b=action_plan_b,
+        strategy_key_a=strategy_key_a,
+        strategy_key_b=strategy_key_b,
     )
     score_a = duel['score_a']
     score_b = duel['score_b']
@@ -5827,6 +5867,8 @@ def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b, selected_slot_a=
         'featured_card_b': duel.get('featured_b'),
         'action_plan_a': duel.get('action_plan_a'),
         'action_plan_b': duel.get('action_plan_b'),
+        'strategy_key_a': duel.get('strategy_key_a'),
+        'strategy_key_b': duel.get('strategy_key_b'),
         'winner': winner,
     }
 
@@ -5980,6 +6022,12 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
                 'opponent_action_bonus': item.get('action_bonus_b', 0) if viewer_is_a else item.get('action_bonus_a', 0),
                 'player_action_note': item.get('action_note_a', '') if viewer_is_a else item.get('action_note_b', ''),
                 'opponent_action_note': item.get('action_note_b', '') if viewer_is_a else item.get('action_note_a', ''),
+                'player_strategy_key': item.get('strategy_key_a', 'balanced') if viewer_is_a else item.get('strategy_key_b', 'balanced'),
+                'opponent_strategy_key': item.get('strategy_key_b', 'balanced') if viewer_is_a else item.get('strategy_key_a', 'balanced'),
+                'player_strategy_bonus': item.get('strategy_bonus_a', 0) if viewer_is_a else item.get('strategy_bonus_b', 0),
+                'opponent_strategy_bonus': item.get('strategy_bonus_b', 0) if viewer_is_a else item.get('strategy_bonus_a', 0),
+                'player_strategy_note': item.get('strategy_note_a', '') if viewer_is_a else item.get('strategy_note_b', ''),
+                'opponent_strategy_note': item.get('strategy_note_b', '') if viewer_is_a else item.get('strategy_note_a', ''),
                 'player_card': item['card_a'] if viewer_is_a else item['card_b'],
                 'opponent_card': item['card_b'] if viewer_is_a else item['card_a'],
                 'player_value': item['value_a'] if viewer_is_a else item['value_b'],
@@ -6040,7 +6088,8 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
         'selected_slot': (own_featured or {}).get('slot'),
         'action_plan': match.get('action_plan_a') if viewer_is_a else match.get('action_plan_b'),
         'opponent_action_plan': match.get('action_plan_b') if viewer_is_a else match.get('action_plan_a'),
-        'action_mana_pool': ACTION_MANA_POOL,
+        'strategy_key': match.get('strategy_key_a', 'balanced') if viewer_is_a else match.get('strategy_key_b', 'balanced'),
+        'opponent_strategy_key': match.get('strategy_key_b', 'balanced') if viewer_is_a else match.get('strategy_key_a', 'balanced'),
         'player_build': (own_build or {}).get('points') if isinstance(own_build, dict) else {},
         'player_build_pool': (own_build or {}).get('pool') if isinstance(own_build, dict) else 0,
         'opponent_build': (opp_build or {}).get('points') if isinstance(opp_build, dict) else {},
@@ -6288,8 +6337,8 @@ def finalize_battle_session(conn, row):
     mode = payload_a.get('mode') or payload_b.get('mode') or 'casual'
     selected_slot_a = payload_a.get('selected_slot')
     selected_slot_b = payload_b.get('selected_slot')
-    action_plan_a = payload_a.get('action_plan')
-    action_plan_b = payload_b.get('action_plan')
+    strategy_key_a = payload_a.get('strategy_key') or 'balanced'
+    strategy_key_b = payload_b.get('strategy_key') or 'balanced'
     match = head_to_head_result(
         wallet_a,
         domain_a,
@@ -6297,8 +6346,8 @@ def finalize_battle_session(conn, row):
         domain_b,
         selected_slot_a=selected_slot_a,
         selected_slot_b=selected_slot_b,
-        action_plan_a=action_plan_a,
-        action_plan_b=action_plan_b,
+        strategy_key_a=strategy_key_a,
+        strategy_key_b=strategy_key_b,
     )
     rating_meta = None
     if mode == 'ranked':
@@ -6331,7 +6380,7 @@ def finalize_battle_session(conn, row):
     return fresh_a, fresh_b
 
 
-def mark_battle_ready(session_id, wallet, selected_slot=None, action_plan=None):
+def mark_battle_ready(session_id, wallet, selected_slot=None, strategy_key=None):
     with closing(get_db()) as conn:
         row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
         if row is None:
@@ -6343,9 +6392,9 @@ def mark_battle_ready(session_id, wallet, selected_slot=None, action_plan=None):
         current_payload = json.loads(row[payload_key]) if row[payload_key] else {}
         if selected_slot:
             current_payload['selected_slot'] = int(selected_slot)
-        if action_plan is not None:
-            current_payload['action_plan'] = sanitize_action_plan(action_plan)
-        if selected_slot or action_plan is not None:
+        if strategy_key is not None:
+            current_payload['strategy_key'] = normalize_strategy_key(strategy_key)
+        if selected_slot or strategy_key is not None:
             conn.execute(
                 f'UPDATE battle_sessions SET {payload_key} = ?, updated_at = ? WHERE id = ?',
                 (json.dumps(current_payload, ensure_ascii=False), now_iso(), session_id),
@@ -7323,13 +7372,13 @@ def api_battle_ready():
     wallet = (payload.get('wallet') or '').strip()
     session_id = (payload.get('session_id') or '').strip()
     selected_slot = int(payload.get('selected_slot') or 0) or None
-    action_plan = payload.get('action_plan') or None
+    strategy_key = payload.get('strategy_key') or 'balanced'
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
     if not session_id:
         return json_error('Не указан session_id.')
     try:
-        status = mark_battle_ready(session_id, wallet, selected_slot=selected_slot, action_plan=action_plan)
+        status = mark_battle_ready(session_id, wallet, selected_slot=selected_slot, strategy_key=strategy_key)
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'status': status})
