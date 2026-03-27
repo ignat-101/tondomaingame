@@ -3459,6 +3459,7 @@ PAGE_TEMPLATE = """
           void interactiveBattlePanel.offsetWidth;
           interactiveBattlePanel.classList.add('live-pop');
           setTimeout(() => interactiveBattlePanel.classList.remove('live-pop'), 360);
+          interactiveBattlePanel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
           interactiveActionButtons.forEach((button) => {
             button.addEventListener('click', async () => {
               const actionKey = button.dataset.actionKey;
