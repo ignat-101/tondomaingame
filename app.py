@@ -1488,11 +1488,11 @@ PAGE_TEMPLATE = """
 
           <div class="status" id="pack-status"></div>
           <div class="card-grid" id="pack-cards"></div>
-          <h3 style="margin-top:18px;">Все возможные карты (100)</h3>
-          <div class="deck-list" id="card-catalog-list"></div>
-          <div class="actions">
+          <div class="actions" style="margin-top:12px;">
             <button id="continue-to-modes-btn" disabled>Продолжить</button>
           </div>
+          <h3 style="margin-top:18px;">Все возможные карты (100)</h3>
+          <div class="deck-list" id="card-catalog-list"></div>
         </section>
 
         <section class="panel view" id="view-modes">
