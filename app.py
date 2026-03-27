@@ -2844,13 +2844,30 @@ PAGE_TEMPLATE = """
       `).join('');
     }
 
-    function renderCardCatalog(cards) {
+    function renderCardCatalog(cards, skills = []) {
       state.cardCatalog = cards || [];
       if (!state.cardCatalog.length) {
         cardCatalogList.innerHTML = '<div class="user-item muted">Каталог карт загружается...</div>';
         return;
       }
+      const tacticalGuide = (skills || []).length
+        ? `
+          <div class="panel" style="margin-bottom:14px; padding:16px;">
+            <h3 style="margin-bottom:10px;">Тактические карты</h3>
+            <div class="catalog-grid">
+              ${skills.map((skill) => `
+                <article class="catalog-card">
+                  <strong>${skill.name}</strong>
+                  <div class="tiny">${skill.description}</div>
+                  <div class="tiny" style="margin-top:8px;">Сильна: ${skill.strong_against}</div>
+                </article>
+              `).join('')}
+            </div>
+          </div>
+        `
+        : '';
       cardCatalogList.innerHTML = `
+        ${tacticalGuide}
         <div class="catalog-grid">
           ${state.cardCatalog.map((card) => `
             <article class="catalog-card ${card.rarity}">
@@ -3881,7 +3898,7 @@ PAGE_TEMPLATE = """
     async function loadCardCatalog() {
       try {
         const data = await api('/api/cards/catalog');
-        renderCardCatalog(data.cards || []);
+        renderCardCatalog(data.cards || [], data.skills || []);
       } catch (error) {
         cardCatalogList.innerHTML = `<div class="user-item error">${error.message}</div>`;
       }
@@ -8334,7 +8351,24 @@ def api_pack():
 
 @app.route('/api/cards/catalog')
 def api_cards_catalog():
-    return jsonify({'cards': CARD_CATALOG, 'total': len(CARD_CATALOG)})
+    skill_strengths = {
+        'underdog': 'когда твоя карта слабее или бой идет тяжело',
+        'tempo': 'после проигранного раунда и в длинных сериях',
+        'mirror': 'против более сильной карты соперника',
+        'attack_burst': 'в агрессивных разменах и на добивании',
+        'defense_lock': 'против натиска и быстрых атак',
+        'wildcard': 'в рискованных и непредсказуемых раундах',
+    }
+    skills = [
+        {
+            'key': skill['key'],
+            'name': skill['name'],
+            'description': skill['description'],
+            'strong_against': skill_strengths.get(skill['key'], 'в ситуативных разменах'),
+        }
+        for skill in CARD_SKILLS
+    ]
+    return jsonify({'cards': CARD_CATALOG, 'skills': skills, 'total': len(CARD_CATALOG)})
 
 
 @app.route('/api/pack/payment-intent', methods=['POST'])
