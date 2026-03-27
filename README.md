@@ -1,83 +1,69 @@
-# TON 10K Club Domain Game
+# TON Domain Game
 
-Игра в стиле Викигачи для TON DNS-доменов (0000-9999.ton).
+Flask-игра для TON-доменов с колодами, матчмейкингом, Telegram Mini App и PvP.
 
-## Особенности
+## Быстрый запуск
 
-- Flask-приложение в одном основном файле
-- Подключение кошелька через TonConnect или TonAPI
-- Проверка домена на dns.ton.org
-- Генерация карт на основе 10K Club паттернов
-- Wiki gachi процесс боя: 5 раундов по статам с детальным логом раундов
-- Интеграция с Telegram Mini App
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 app.py
+```
 
-## Установка
+Открыть: `http://127.0.0.1:5000`
 
-1. `python3 -m venv .venv`
-2. `source .venv/bin/activate`
-3. `pip install -r requirements.txt`
+## Запуск под хостинг (Play2Go style)
 
-## Запуск локально
+Проект готов для процесса через `gunicorn` и переменные окружения.
 
-`python3 app.py`
+```bash
+./run.sh
+```
 
-Открыть: http://127.0.0.1:5000
+Используемые переменные:
+- `PORT` (по умолчанию `5000`)
+- `WEB_CONCURRENCY` (по умолчанию `2`)
+- `GUNICORN_THREADS` (по умолчанию `4`)
+- `GUNICORN_TIMEOUT` (по умолчанию `90`)
 
-## Развертывание на PythonAnywhere (бесплатно)
+Команда запуска без скрипта:
 
-### Шаг 1: Регистрация
-- Перейдите на [pythonanywhere.com](https://www.pythonanywhere.com/)
-- Зарегистрируйтесь (бесплатный тариф: Beginner)
+```bash
+gunicorn --bind 0.0.0.0:${PORT:-5000} app:app
+```
 
-### Шаг 2: Загрузка кода
-- В панели: "Files" → "Upload a file" или "Open bash console"
-- Загрузите все файлы проекта в `/home/yourusername/ton-domain-game`
-- Или: `git clone https://github.com/yourrepo/ton-domain-game.git`
+## Настройки через терминал
 
-### Шаг 3: Установка зависимостей
-- Откройте Bash console
-- `cd ton-domain-game`
-- `python3 -m venv venv`
-- `source venv/bin/activate`
-- `pip install -r requirements.txt`
+Теперь настройки можно менять прямо из терминала без ручного редактирования кода:
 
-### Шаг 4: Настройка веб-приложения
-- В панели: "Web" → "Add a new web app"
-- Выберите: "Flask" → "Python 3.10"
-- Source code: `/home/yourusername/ton-domain-game`
-- Working directory: `/home/yourusername/ton-domain-game`
-- WSGI configuration file: `/home/yourusername/ton-domain-game/wsgi.py`
+```bash
+./run.sh settings list
+./run.sh settings get PORT
+./run.sh settings set PORT 5000
+./run.sh settings set ALLOW_GUEST_WITHOUT_DOMAIN 1
+./run.sh settings unset TG_BOT_TOKEN
+```
 
-### Шаг 5: Переменные окружения
-- В "Web" → "Environment variables"
-- Добавьте:
-  - `TONAPI_KEY=your_tonapi_key`
-  - `TG_WEBAPP_URL=https://yourusername.pythonanywhere.com`
-  - `FLASK_ENV=production`
+Аналогично:
 
-### Шаг 6: Перезагрузка
-- Нажмите "Reload" в панели Web
+```bash
+python3 app.py settings list
+python3 app.py settings set MATCHMAKING_REMATCH_COOLDOWN_SECONDS 5
+```
 
-### Шаг 7: Проверка
-- Откройте `https://yourusername.pythonanywhere.com`
-- Должен работать TonConnect и API
+Изменения записываются в `.env`.
 
-## Настройка характеристик
+## Основные переменные
 
-В `config.py`:
-- ATTACK_BASE, DEFENSE_BASE
-- PATTERN_BONUSES (бонусы за паттерны)
-- TIERS (пороги редкости)
-- TONAPI_KEY через `.env` или переменные окружения
+- `TONAPI_KEY`
+- `TG_WEBAPP_URL`
+- `TG_BOT_TOKEN`
+- `TG_BOT_USERNAME`
+- `APP_DB_PATH`
+- `ALLOW_GUEST_WITHOUT_DOMAIN`
+- `MATCHMAKING_SEARCH_TTL_SECONDS`
+- `MATCHMAKING_REMATCH_COOLDOWN_SECONDS`
+- `PACK_PRICE_NANO`
+- `PACK_RECEIVER_WALLET`
 
-## API Endpoints
-
-- `/` - Главная страница
-- `/api/nft-domains/<wallet>` - Получить домен из NFT
-- `/api/check-domain/<domain>` - Проверить домен на dns.ton.org
-- `/api/domain/<domain>` - Статистика домена
-- `/api/open-pack/<domain>` - Открыть пак с 5 картами
-
-## Telegram Mini App
-
-Для Telegram Mini App разверните это Flask-приложение и укажите его URL в BotFather как Web App URL.

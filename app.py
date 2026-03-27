@@ -5,6 +5,7 @@ import os
 import random
 import re
 import sqlite3
+import sys
 import uuid
 import calendar
 import base64
@@ -37,11 +38,13 @@ from config import (
 load_dotenv()
 
 app = Flask(__name__)
+RATELIMIT_STORAGE_URI = os.getenv('RATELIMIT_STORAGE_URI', 'memory://').strip()
 
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
     default_limits=[RATE_LIMIT],
+    storage_uri=RATELIMIT_STORAGE_URI,
 )
 
 HTTP = requests.Session()
@@ -74,6 +77,7 @@ DAILY_FREE_PACKS = int(os.getenv('DAILY_FREE_PACKS', '1'))
 PACK_PRICE_NANO = int(os.getenv('PACK_PRICE_NANO', '1000000000'))  # 1 TON
 PACK_RECEIVER_WALLET = os.getenv('PACK_RECEIVER_WALLET', '').strip()
 ALLOW_GUEST_WITHOUT_DOMAIN = os.getenv('ALLOW_GUEST_WITHOUT_DOMAIN', '0').strip().lower() in {'1', 'true', 'yes', 'on'}
+ENV_FILE_PATH = Path(os.getenv('ENV_FILE_PATH', '.env'))
 
 DOMAIN_CACHE = {}
 TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
@@ -3709,6 +3713,153 @@ def json_error(message, status=400):
     return jsonify({'error': message}), status
 
 
+MANAGED_ENV_KEYS = {
+    'HOST': {'type': 'str', 'description': 'Хост для Flask/Gunicorn'},
+    'PORT': {'type': 'int', 'description': 'Порт приложения'},
+    'DEBUG': {'type': 'bool', 'description': 'Режим отладки'},
+    'APP_DB_PATH': {'type': 'str', 'description': 'Путь к SQLite базе'},
+    'TONAPI_KEY': {'type': 'str', 'description': 'API ключ TonAPI'},
+    'TG_WEBAPP_URL': {'type': 'str', 'description': 'URL Telegram mini app'},
+    'TG_BOT_TOKEN': {'type': 'str', 'description': 'Telegram bot token'},
+    'TG_BOT_USERNAME': {'type': 'str', 'description': 'Username Telegram-бота'},
+    'PACK_RECEIVER_WALLET': {'type': 'str', 'description': 'Кошелек получателя оплаты пака'},
+    'PACK_PRICE_NANO': {'type': 'int', 'description': 'Цена пака в nanoTON'},
+    'DAILY_FREE_PACKS': {'type': 'int', 'description': 'Лимит бесплатных паков в сутки'},
+    'ALLOW_GUEST_WITHOUT_DOMAIN': {'type': 'bool', 'description': 'Разрешить игру без домена'},
+    'MATCHMAKING_SEARCH_TTL_SECONDS': {'type': 'int', 'description': 'TTL поиска матчмейкинга'},
+    'MATCHMAKING_REMATCH_COOLDOWN_SECONDS': {'type': 'int', 'description': 'Кулдаун повторного матча пары'},
+}
+
+ENV_DEFAULT_VALUES = {
+    'HOST': str(HOST),
+    'PORT': str(PORT),
+    'DEBUG': '1' if DEBUG else '0',
+    'APP_DB_PATH': str(DB_PATH),
+    'TONAPI_KEY': str(TONAPI_KEY or ''),
+    'TG_WEBAPP_URL': str(TG_WEBAPP_URL),
+    'TG_BOT_TOKEN': str(TG_BOT_TOKEN or ''),
+    'TG_BOT_USERNAME': str(TG_BOT_USERNAME or ''),
+    'PACK_RECEIVER_WALLET': str(PACK_RECEIVER_WALLET or ''),
+    'PACK_PRICE_NANO': str(PACK_PRICE_NANO),
+    'DAILY_FREE_PACKS': str(DAILY_FREE_PACKS),
+    'ALLOW_GUEST_WITHOUT_DOMAIN': '1' if ALLOW_GUEST_WITHOUT_DOMAIN else '0',
+    'MATCHMAKING_SEARCH_TTL_SECONDS': str(MATCHMAKING_SEARCH_TTL_SECONDS),
+    'MATCHMAKING_REMATCH_COOLDOWN_SECONDS': str(MATCHMAKING_REMATCH_COOLDOWN_SECONDS),
+}
+
+
+def parse_bool_text(value):
+    return str(value).strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def cast_env_value(key, value):
+    meta = MANAGED_ENV_KEYS.get(key, {'type': 'str'})
+    value_type = meta.get('type', 'str')
+    if value_type == 'bool':
+        return '1' if parse_bool_text(value) else '0'
+    if value_type == 'int':
+        return str(int(value))
+    return str(value)
+
+
+def read_env_lines():
+    if not ENV_FILE_PATH.exists():
+        return []
+    return ENV_FILE_PATH.read_text(encoding='utf-8').splitlines()
+
+
+def set_env_key(key, value):
+    lines = read_env_lines()
+    rendered = f'{key}={value}'
+    pattern = re.compile(rf'^\s*{re.escape(key)}\s*=')
+    replaced = False
+    updated = []
+    for line in lines:
+        if pattern.match(line):
+            updated.append(rendered)
+            replaced = True
+        else:
+            updated.append(line)
+    if not replaced:
+        updated.append(rendered)
+    ENV_FILE_PATH.write_text('\n'.join(updated).strip() + '\n', encoding='utf-8')
+
+
+def unset_env_key(key):
+    lines = read_env_lines()
+    pattern = re.compile(rf'^\s*{re.escape(key)}\s*=')
+    updated = [line for line in lines if not pattern.match(line)]
+    ENV_FILE_PATH.write_text(('\n'.join(updated).strip() + '\n') if updated else '', encoding='utf-8')
+
+
+def get_env_value(key):
+    lines = read_env_lines()
+    pattern = re.compile(rf'^\s*{re.escape(key)}\s*=\s*(.*)\s*$')
+    for line in reversed(lines):
+        match = pattern.match(line)
+        if match:
+            return match.group(1)
+    return os.getenv(key, ENV_DEFAULT_VALUES.get(key))
+
+
+def settings_snapshot():
+    data = {}
+    for key in MANAGED_ENV_KEYS:
+        data[key] = get_env_value(key)
+    return data
+
+
+def handle_settings_cli(args):
+    if not args or args[0] in {'help', '--help', '-h'}:
+        print('Usage:')
+        print('  python3 app.py settings list')
+        print('  python3 app.py settings get <KEY>')
+        print('  python3 app.py settings set <KEY> <VALUE>')
+        print('  python3 app.py settings unset <KEY>')
+        print('\nManaged keys:')
+        for key, meta in MANAGED_ENV_KEYS.items():
+            print(f'  {key:<34} ({meta["type"]}) - {meta["description"]}')
+        return 0
+
+    command = args[0]
+    if command == 'list':
+        for key, value in settings_snapshot().items():
+            print(f'{key}={value if value is not None else ""}')
+        return 0
+
+    if command == 'get':
+        if len(args) < 2:
+            print('Missing KEY for settings get')
+            return 1
+        key = args[1]
+        value = get_env_value(key)
+        print(value if value is not None else '')
+        return 0
+
+    if command == 'set':
+        if len(args) < 3:
+            print('Missing KEY/VALUE for settings set')
+            return 1
+        key = args[1]
+        value = ' '.join(args[2:])
+        normalized = cast_env_value(key, value)
+        set_env_key(key, normalized)
+        print(f'Set {key}={normalized} in {ENV_FILE_PATH}')
+        return 0
+
+    if command == 'unset':
+        if len(args) < 2:
+            print('Missing KEY for settings unset')
+            return 1
+        key = args[1]
+        unset_env_key(key)
+        print(f'Removed {key} from {ENV_FILE_PATH}')
+        return 0
+
+    print(f'Unknown settings command: {command}')
+    return 1
+
+
 def valid_wallet_address(wallet):
     return bool(wallet) and len(wallet) >= 20 and wallet[0] in {'E', 'U', 'k', '0'}
 
@@ -6790,4 +6941,6 @@ init_db()
 
 
 if __name__ == '__main__':
+    if len(sys.argv) >= 2 and sys.argv[1] == 'settings':
+        raise SystemExit(handle_settings_cli(sys.argv[2:]))
     app.run(host=HOST, port=PORT, debug=DEBUG)

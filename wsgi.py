@@ -1,13 +1,8 @@
-import sys
 import os
+import sys
 
-# Add your project directory to the sys.path
-project_home = u'/home/yourusername/ton-domain-game'
+project_home = os.path.dirname(os.path.abspath(__file__))
 if project_home not in sys.path:
-    sys.path = [project_home] + sys.path
+    sys.path.insert(0, project_home)
 
-# Set environment variable for config
-os.environ['FLASK_ENV'] = 'production'
-
-# Import the Flask app
 from app import app as application
