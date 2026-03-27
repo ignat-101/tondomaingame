@@ -3061,7 +3061,6 @@ PAGE_TEMPLATE = """
       if (!rows.length) {
         return 0;
       }
-      const mainPanel = battleResult.querySelector('.showdown-main');
       const toResultKey = (row) => (
         row.classList.contains('win') ? 'win' : (row.classList.contains('lose') ? 'lose' : 'draw')
       );
@@ -3069,9 +3068,6 @@ PAGE_TEMPLATE = """
         const delay = startDelay + index * stepMs;
         setTimeout(() => {
           row.classList.add('visible');
-          if (mainPanel) {
-            row.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-          }
           playBattleFx(toResultKey(row), 'round', row);
         }, delay);
       });
@@ -3448,9 +3444,6 @@ PAGE_TEMPLATE = """
           if (!liveResult.interactive_live || !interactiveBattlePanel || !interactiveActionButtons.length) {
             if (!liveResult.interactive_live) {
               const showInteractiveOutcome = async () => {
-                if (latestRow) {
-                  latestRow.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-                }
                 await playFinalClimax(resultKey, result.result_label);
                 battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
                 const actions = battleResult.querySelector('.result-actions');
@@ -3466,7 +3459,6 @@ PAGE_TEMPLATE = """
           void interactiveBattlePanel.offsetWidth;
           interactiveBattlePanel.classList.add('live-pop');
           setTimeout(() => interactiveBattlePanel.classList.remove('live-pop'), 360);
-          interactiveBattlePanel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
           interactiveActionButtons.forEach((button) => {
             button.addEventListener('click', async () => {
               const actionKey = button.dataset.actionKey;
@@ -3542,10 +3534,6 @@ PAGE_TEMPLATE = """
                 await playFinalClimax(resultKey, result.result_label);
                 battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
                 animateScoreCounters(battleResult);
-                const mainPanel = battleResult.querySelector('.showdown-main');
-                if (mainPanel) {
-                  mainPanel.scrollTo({ top: mainPanel.scrollHeight, behavior: 'smooth' });
-                }
               };
               if (finalDelay > 0) {
                 setTimeout(() => { showOutcome(); }, finalDelay);
