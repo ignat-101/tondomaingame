@@ -848,6 +848,60 @@ PAGE_TEMPLATE = """
       display: block;
     }
 
+    .interactive-battle-panel {
+      display: grid;
+      gap: 12px;
+      margin: 14px 0 10px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.2);
+      background: linear-gradient(135deg, rgba(8, 23, 43, 0.82), rgba(10, 29, 34, 0.88));
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+    }
+
+    .interactive-battle-title {
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+    }
+
+    .interactive-battle-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .interactive-action-btn {
+      min-height: 54px;
+      border-radius: 16px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-weight: 800;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .interactive-action-btn:hover,
+    .interactive-action-btn:active {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 12px 28px rgba(69, 215, 255, 0.18);
+    }
+
+    .interactive-action-btn.burst {
+      border-color: rgba(255, 122, 134, 0.42);
+      background: linear-gradient(135deg, rgba(255, 122, 134, 0.18), rgba(255, 255, 255, 0.04));
+    }
+
+    .interactive-action-btn.guard {
+      border-color: rgba(83, 246, 184, 0.42);
+      background: linear-gradient(135deg, rgba(83, 246, 184, 0.18), rgba(255, 255, 255, 0.04));
+    }
+
+    .interactive-action-btn.channel {
+      border-color: rgba(69, 215, 255, 0.42);
+      background: linear-gradient(135deg, rgba(69, 215, 255, 0.18), rgba(255, 255, 255, 0.04));
+    }
+
     .showdown-entry-actions {
       display: flex;
       gap: 10px;
@@ -3176,6 +3230,28 @@ PAGE_TEMPLATE = """
           ? `<div class="tiny">Сила колод (тай-брейк): ${result.player_deck_power} vs ${result.opponent_deck_power}${result.tie_breaker ? ' • использован тай-брейк' : ''}</div>`
           : '';
         const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
+        const interactivePanel = result.interactive_session_id
+          ? `
+              <div class="interactive-battle-panel ${result.interactive_live ? '' : 'delayed-outcome'}" id="interactive-battle-panel">
+                <div class="interactive-battle-title">
+                  ${result.interactive_live
+                    ? `Раунд ${Math.min((result.interactive_round_index || 0) + 1, result.interactive_total_rounds || 5)} из ${result.interactive_total_rounds || 5}`
+                    : 'Бой завершён'}
+                </div>
+                <div class="tiny" id="interactive-battle-status" style="text-align:center;">
+                  ${result.interactive_live ? (result.interactive_hint || 'Выбери действие и повлияй на исход боя.') : 'Все ходы сыграны. Смотрим развязку матча.'}
+                </div>
+                ${result.interactive_live ? `
+                  <div class="interactive-battle-actions">
+                    ${['burst', 'guard', 'channel'].map((key) => {
+                      const meta = actionRuleMeta(key);
+                      return `<button class="interactive-action-btn ${key}" data-action-key="${key}">${meta.ruLabel}</button>`;
+                    }).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `
+          : '';
         state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
         battleResult.classList.add('showdown-fullscreen');
         battleResult.classList.remove('result-win', 'result-lose', 'result-draw', 'battle-live');
@@ -3255,6 +3331,7 @@ PAGE_TEMPLATE = """
                 ${featuredCardLine}
                 ${oppFeaturedCardLine}
                 ${buildLine}
+                ${interactivePanel}
                 ${roundsLine}
                 ${deckPowerLine}
                 ${ratingLine}
@@ -3284,6 +3361,46 @@ PAGE_TEMPLATE = """
         const prebattleActionHelp = battleResult.querySelector('#prebattle-action-help');
         const prebattleStage = battleResult.querySelector('#prebattle-stage');
         const showdownMain = battleResult.querySelector('.showdown-main');
+        const interactiveBattlePanel = battleResult.querySelector('#interactive-battle-panel');
+        const interactiveBattleStatus = battleResult.querySelector('#interactive-battle-status');
+        const interactiveActionButtons = Array.from(battleResult.querySelectorAll('.interactive-action-btn'));
+        const wireInteractiveBattle = () => {
+          battleResult.querySelectorAll('.discipline-row').forEach((row) => row.classList.add('visible'));
+          animateScoreCounters(battleResult);
+          if (!liveResult.interactive_live || !interactiveBattlePanel || !interactiveActionButtons.length) {
+            return;
+          }
+          interactiveActionButtons.forEach((button) => {
+            button.addEventListener('click', async () => {
+              const actionKey = button.dataset.actionKey;
+              interactiveActionButtons.forEach((node) => { node.disabled = true; });
+              if (interactiveBattleStatus) {
+                const meta = actionRuleMeta(actionKey);
+                interactiveBattleStatus.textContent = `Ты выбираешь: ${meta.ruLabel}. Считаем размен...`;
+              }
+              playBattleFx(resultKey, 'start', interactiveBattlePanel);
+              try {
+                const data = await api('/api/solo-battle/action', {
+                  method: 'POST',
+                  body: {
+                    wallet: state.wallet,
+                    session_id: liveResult.interactive_session_id,
+                    action: actionKey
+                  }
+                });
+                const nextResult = data.result || {};
+                nextResult.autostart_battle = true;
+                state.lastResult = nextResult;
+                renderBattleResult(nextResult);
+              } catch (error) {
+                interactiveActionButtons.forEach((node) => { node.disabled = false; });
+                if (interactiveBattleStatus) {
+                  interactiveBattleStatus.textContent = error.message;
+                }
+              }
+            });
+          });
+        };
         if (result.battle_session_id && prebattleStage) {
           prebattleStage.classList.add('accept-pop');
           setTimeout(() => prebattleStage.classList.remove('accept-pop'), 760);
@@ -3322,6 +3439,27 @@ PAGE_TEMPLATE = """
               }
               if (battleStage) {
                 battleStage.classList.add('visible');
+              }
+              if (liveResult.interactive_session_id) {
+                wireInteractiveBattle();
+                if (!liveResult.interactive_live) {
+                  const finalDelay = revealDisciplineRows(0, 1000);
+                  const showOutcome = async () => {
+                    await playFinalClimax(resultKey, result.result_label);
+                    battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
+                    animateScoreCounters(battleResult);
+                    const mainPanel = battleResult.querySelector('.showdown-main');
+                    if (mainPanel) {
+                      mainPanel.scrollTo({ top: mainPanel.scrollHeight, behavior: 'smooth' });
+                    }
+                  };
+                  if (finalDelay > 0) {
+                    setTimeout(() => { showOutcome(); }, finalDelay);
+                  } else {
+                    showOutcome();
+                  }
+                }
+                return;
               }
               const finalDelay = revealDisciplineRows(0, 1000);
               const showOutcome = async () => {
@@ -3417,6 +3555,9 @@ PAGE_TEMPLATE = """
               }
             });
           });
+        }
+        if (result.autostart_battle && startBtn) {
+          setTimeout(() => startBtn.click(), 120);
         }
       }
       telegramShareBtn.disabled = false;
@@ -4458,6 +4599,15 @@ def init_db():
                 updated_at TEXT NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS solo_battles (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                mode TEXT NOT NULL,
+                state_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS deck_builds (
                 wallet TEXT NOT NULL,
                 domain TEXT NOT NULL,
@@ -4552,6 +4702,14 @@ def ensure_runtime_tables():
                 ready_a INTEGER NOT NULL DEFAULT 0,
                 ready_b INTEGER NOT NULL DEFAULT 0,
                 started_at TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS solo_battles (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                mode TEXT NOT NULL,
+                state_json TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
@@ -6512,6 +6670,307 @@ def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b, selected_slot_a=
     }
 
 
+def solo_round_payload(item):
+    return {
+        'round': item['round'],
+        'label': item['label'],
+        'focus': item['focus'],
+        'phase': item.get('phase'),
+        'player_action': item.get('action_a'),
+        'opponent_action': item.get('action_b'),
+        'player_action_bonus': item.get('action_bonus_a', 0),
+        'opponent_action_bonus': item.get('action_bonus_b', 0),
+        'player_action_note': item.get('action_note_a', ''),
+        'opponent_action_note': item.get('action_note_b', ''),
+        'player_strategy_key': item.get('strategy_key_a', 'balanced'),
+        'opponent_strategy_key': item.get('strategy_key_b', 'balanced'),
+        'player_strategy_bonus': item.get('strategy_bonus_a', 0),
+        'opponent_strategy_bonus': item.get('strategy_bonus_b', 0),
+        'player_strategy_note': item.get('strategy_note_a', ''),
+        'opponent_strategy_note': item.get('strategy_note_b', ''),
+        'player_card': item.get('card_a'),
+        'opponent_card': item.get('card_b'),
+        'player_value': item.get('value_a', 0),
+        'opponent_value': item.get('value_b', 0),
+        'player_boost': item.get('boost_a', 0),
+        'opponent_boost': item.get('boost_b', 0),
+        'player_skill_bonus': item.get('skill_bonus_a', 0),
+        'opponent_skill_bonus': item.get('skill_bonus_b', 0),
+        'player_skill_note': item.get('skill_note_a', ''),
+        'opponent_skill_note': item.get('skill_note_b', ''),
+        'player_featured_bonus': item.get('featured_bonus_a', 0),
+        'opponent_featured_bonus': item.get('featured_bonus_b', 0),
+        'player_featured_note': item.get('featured_note_a', ''),
+        'opponent_featured_note': item.get('featured_note_b', ''),
+        'player_total': item.get('total_a', 0),
+        'opponent_total': item.get('total_b', 0),
+        'winner': 'draw' if item.get('winner') == 'draw' else ('player' if item.get('winner') == 'a' else 'opponent'),
+    }
+
+
+def build_solo_live_payload(state):
+    result_code = state.get('result')
+    result_label = state.get('result_label')
+    if not result_code:
+        if state.get('score_a', 0) > state.get('score_b', 0):
+            result_code = 'win'
+            result_label = 'Победа'
+        elif state.get('score_b', 0) > state.get('score_a', 0):
+            result_code = 'lose'
+            result_label = 'Поражение'
+        else:
+            result_code = 'draw'
+            result_label = 'Ничья'
+    return {
+        'kind': 'solo',
+        'mode': state['mode'],
+        'mode_title': state['mode_title'],
+        'player_wallet': state['wallet'],
+        'opponent_wallet': state.get('opponent_wallet'),
+        'player_domain': state['domain'],
+        'opponent_domain': state.get('opponent_domain'),
+        'player_score': int(state.get('score_a', 0)),
+        'opponent_score': int(state.get('score_b', 0)),
+        'player_deck_power': state['deck_power_a'],
+        'opponent_deck_power': state['deck_power_b'],
+        'tie_breaker': bool(state.get('tie_breaker')),
+        'rounds': [solo_round_payload(item) for item in state.get('rounds', [])],
+        'player_cards': state['player_cards'],
+        'opponent_cards': state['opponent_cards'],
+        'player_featured_card': state.get('featured_a'),
+        'opponent_featured_card': state.get('featured_b'),
+        'selected_slot': state.get('selected_slot_a'),
+        'strategy_key': state.get('strategy_key_a', 'balanced'),
+        'opponent_strategy_key': state.get('strategy_key_b', 'balanced'),
+        'player_build': state.get('build_a', {}),
+        'player_build_pool': state.get('build_pool_a', 0),
+        'opponent_build': state.get('build_b', {}),
+        'result': result_code,
+        'result_label': result_label,
+        'interactive_live': not bool(state.get('complete')),
+        'interactive_session_id': state['id'],
+        'interactive_round_index': int(state.get('current_round', 0)),
+        'interactive_total_rounds': int(state.get('rounds_total', len(WIKIGACHI_ROUND_PLAN))),
+        'interactive_available_actions': list(ACTION_RULES.keys()),
+        'interactive_hint': 'Выбирай действие на каждый раунд. Ход и карта теперь реально двигают матч.',
+    }
+
+
+def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, opponent_domain, player_cards, opponent_cards, build_a, build_b, selected_slot_a, selected_slot_b, strategy_key_a='balanced', strategy_key_b='balanced'):
+    ensure_runtime_tables()
+    player_cards = [normalize_card_profile(card) for card in (player_cards or [])]
+    opponent_cards = [normalize_card_profile(card) for card in (opponent_cards or [])]
+    featured_a = find_card_by_slot(player_cards, selected_slot_a)
+    featured_b = find_card_by_slot(opponent_cards, selected_slot_b)
+    session_id = uuid.uuid4().hex
+    action_plan_b = auto_action_plan(opponent_cards, selected_slot_b, strategy_key_b)
+    rng = random.Random(hashlib.sha256(f'solo-live:{mode}:{wallet}:{domain}:{opponent_domain}:{session_id}'.encode()).hexdigest())
+    rounds_total = min(len(player_cards), len(opponent_cards), len(WIKIGACHI_ROUND_PLAN))
+    state = {
+        'id': session_id,
+        'wallet': wallet,
+        'domain': domain,
+        'mode': mode,
+        'mode_title': mode_title,
+        'opponent_wallet': opponent_wallet,
+        'opponent_domain': opponent_domain,
+        'player_cards': player_cards,
+        'opponent_cards': opponent_cards,
+        'build_a': build_a or {},
+        'build_b': build_b or {},
+        'build_pool_a': int(sum(int((build_a or {}).get(key, 0)) for key in DISCIPLINE_KEYS)),
+        'build_pool_b': int(sum(int((build_b or {}).get(key, 0)) for key in DISCIPLINE_KEYS)),
+        'selected_slot_a': selected_slot_a,
+        'selected_slot_b': selected_slot_b,
+        'featured_a': featured_a,
+        'featured_b': featured_b,
+        'strategy_key_a': normalize_strategy_key(strategy_key_a),
+        'strategy_key_b': normalize_strategy_key(strategy_key_b),
+        'opponent_action_plan': action_plan_b,
+        'current_round': 0,
+        'rounds_total': rounds_total,
+        'score_a': 0,
+        'score_b': 0,
+        'prev_a': None,
+        'prev_b': None,
+        'rounds': [],
+        'swing_pairs': [[rng.randint(0, 2), rng.randint(0, 2)] for _ in range(rounds_total)],
+        'deck_power_a': deck_score(player_cards),
+        'deck_power_b': deck_score(opponent_cards),
+        'complete': False,
+        'tie_breaker': False,
+    }
+    ts = now_iso()
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO solo_battles (id, wallet, mode, state_json, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''',
+            (session_id, wallet, mode, json.dumps(state, ensure_ascii=False), ts, ts),
+        )
+        conn.commit()
+    return build_solo_live_payload(state)
+
+
+def load_solo_battle(session_id):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM solo_battles WHERE id = ?', (session_id,)).fetchone()
+    if row is None:
+        raise ValueError('Бой не найден.')
+    try:
+        state = json.loads(row['state_json'])
+    except json.JSONDecodeError as exc:
+        raise ValueError('Повреждено состояние боя.') from exc
+    return state
+
+
+def save_solo_battle(state):
+    with closing(get_db()) as conn:
+        conn.execute(
+            'UPDATE solo_battles SET state_json = ?, updated_at = ? WHERE id = ?',
+            (json.dumps(state, ensure_ascii=False), now_iso(), state['id']),
+        )
+        conn.commit()
+
+
+def finalize_solo_battle_state(state):
+    if state.get('score_a', 0) > state.get('score_b', 0):
+        state['winner'] = 'a'
+        state['result'] = 'win'
+        state['result_label'] = 'Победа'
+        return
+    if state.get('score_b', 0) > state.get('score_a', 0):
+        state['winner'] = 'b'
+        state['result'] = 'lose'
+        state['result_label'] = 'Поражение'
+        return
+    state['tie_breaker'] = True
+    total_a = featured_match_bonus(state.get('featured_a')) * 2 + state['deck_power_a']
+    total_b = featured_match_bonus(state.get('featured_b')) * 2 + state['deck_power_b']
+    if total_a > total_b:
+        state['winner'] = 'a'
+        state['result'] = 'win'
+        state['result_label'] = 'Победа'
+    elif total_b > total_a:
+        state['winner'] = 'b'
+        state['result'] = 'lose'
+        state['result_label'] = 'Поражение'
+    else:
+        state['winner'] = None
+        state['result'] = 'draw'
+        state['result_label'] = 'Ничья'
+
+
+def apply_solo_battle_action(session_id, wallet, action_key):
+    state = load_solo_battle(session_id)
+    if wallet != state.get('wallet'):
+        raise ValueError('Нет доступа к этому бою.')
+    if state.get('complete'):
+        payload = build_solo_live_payload(state)
+        payload['interactive_live'] = False
+        return payload
+
+    action_key = sanitize_action_plan([action_key])[0]
+    idx = int(state.get('current_round', 0))
+    rounds_total = int(state.get('rounds_total', 0))
+    if idx >= rounds_total:
+        state['complete'] = True
+        finalize_solo_battle_state(state)
+        save_solo_battle(state)
+        return build_solo_live_payload(state)
+
+    focus, label, phase = WIKIGACHI_ROUND_PLAN[idx]
+    player_cards = [normalize_card_profile(card) for card in state.get('player_cards', [])]
+    opponent_cards = [normalize_card_profile(card) for card in state.get('opponent_cards', [])]
+    card_a = player_cards[idx]
+    card_b = opponent_cards[idx]
+    action_b = (state.get('opponent_action_plan') or default_action_plan())[idx]
+    build_a = state.get('build_a') or {}
+    build_b = state.get('build_b') or {}
+    featured_a = normalize_card_profile(state.get('featured_a') or card_a)
+    featured_b = normalize_card_profile(state.get('featured_b') or card_b)
+    prev_a = state.get('prev_a')
+    prev_b = state.get('prev_b')
+    value_a = max(0, round(build_bonus_value(build_a, focus) / 7))
+    value_b = max(0, round(build_bonus_value(build_b, focus) / 7))
+    card_boost_a = matchup_strategy_bonus(card_a, card_b, phase, idx)
+    card_boost_b = matchup_strategy_bonus(card_b, card_a, phase, idx)
+    action_bonus_a, action_bonus_b, action_note_a, action_note_b = action_round_resolution(action_key, action_b)
+    strategy_bonus_a, strategy_note_a = strategy_round_bonus(state.get('strategy_key_a'), focus, phase, idx, action_key, prev_a, featured_a or card_a)
+    strategy_bonus_b, strategy_note_b = strategy_round_bonus(state.get('strategy_key_b'), focus, phase, idx, action_b, prev_b, featured_b or card_b)
+    skill_bonus_a, skill_note_a = apply_skill_bonus((featured_a or {}).get('skill_key'), focus, value_a, value_b, featured_a or card_a, featured_b or card_b, idx, prev_a)
+    skill_bonus_b, skill_note_b = apply_skill_bonus((featured_b or {}).get('skill_key'), focus, value_b, value_a, featured_b or card_b, featured_a or card_a, idx, prev_b)
+    featured_bonus_a, featured_note_a = featured_card_round_bonus(featured_a or card_a, featured_b or card_b, focus, phase, idx, prev_a)
+    featured_bonus_b, featured_note_b = featured_card_round_bonus(featured_b or card_b, featured_a or card_a, focus, phase, idx, prev_b)
+    swing_a, swing_b = (state.get('swing_pairs') or [[0, 0]])[idx]
+    total_a = value_a + card_boost_a + action_bonus_a + strategy_bonus_a + skill_bonus_a + featured_bonus_a + swing_a
+    total_b = value_b + card_boost_b + action_bonus_b + strategy_bonus_b + skill_bonus_b + featured_bonus_b + swing_b
+
+    if total_a > total_b:
+        winner = 'a'
+        state['score_a'] = int(state.get('score_a', 0)) + 1
+        state['prev_a'] = 'win'
+        state['prev_b'] = 'loss'
+    elif total_b > total_a:
+        winner = 'b'
+        state['score_b'] = int(state.get('score_b', 0)) + 1
+        state['prev_a'] = 'loss'
+        state['prev_b'] = 'win'
+    else:
+        winner = 'draw'
+        state['prev_a'] = 'draw'
+        state['prev_b'] = 'draw'
+
+    state.setdefault('rounds', []).append(
+        {
+            'round': idx + 1,
+            'label': label,
+            'focus': focus,
+            'phase': phase,
+            'action_a': action_key,
+            'action_b': action_b,
+            'action_bonus_a': action_bonus_a,
+            'action_bonus_b': action_bonus_b,
+            'action_note_a': action_note_a,
+            'action_note_b': action_note_b,
+            'strategy_key_a': state.get('strategy_key_a', 'balanced'),
+            'strategy_key_b': state.get('strategy_key_b', 'balanced'),
+            'strategy_bonus_a': strategy_bonus_a,
+            'strategy_bonus_b': strategy_bonus_b,
+            'strategy_note_a': strategy_note_a,
+            'strategy_note_b': strategy_note_b,
+            'card_a': {'slot': card_a.get('slot'), 'title': card_a.get('title')},
+            'card_b': {'slot': card_b.get('slot'), 'title': card_b.get('title')},
+            'value_a': value_a,
+            'value_b': value_b,
+            'boost_a': card_boost_a,
+            'boost_b': card_boost_b,
+            'skill_bonus_a': skill_bonus_a,
+            'skill_bonus_b': skill_bonus_b,
+            'skill_note_a': skill_note_a,
+            'skill_note_b': skill_note_b,
+            'featured_bonus_a': featured_bonus_a,
+            'featured_bonus_b': featured_bonus_b,
+            'featured_note_a': featured_note_a,
+            'featured_note_b': featured_note_b,
+            'swing_a': swing_a,
+            'swing_b': swing_b,
+            'total_a': total_a,
+            'total_b': total_b,
+            'winner': winner,
+        }
+    )
+    state['current_round'] = idx + 1
+    if state['current_round'] >= rounds_total:
+        state['complete'] = True
+        finalize_solo_battle_state(state)
+        record_non_ranked_game(state['wallet'], state['domain'])
+    save_solo_battle(state)
+    return build_solo_live_payload(state)
+
+
 def apply_ranked_result_duel(match):
     player_a = ensure_player(match['wallet_a'], best_domain=match['domain_a'], current_domain=match['domain_a'])
     player_b = ensure_player(match['wallet_b'], best_domain=match['domain_b'], current_domain=match['domain_b'])
@@ -8116,80 +8575,26 @@ def api_match_bot():
     bot_cards = bot_cards_slightly_weaker_than_player(player_cards, base_seed)
     bot_pool = max(1800, int(round(player_build['pool'] * 0.92)))
     bot_build = {'pool': bot_pool, 'points': default_discipline_build(bot_pool)}
-    duel = wikigachi_duel(
-        player_cards,
-        bot_cards,
-        f'{base_seed}:duel',
+    selected_slot = selected_slot or auto_tactical_slot(player_cards, player_build['points'])
+    result = create_solo_battle(
+        wallet=wallet,
+        domain=domain,
+        mode='bot',
+        mode_title='Матч с ботом',
+        opponent_wallet='bot',
+        opponent_domain=None,
+        player_cards=player_cards,
+        opponent_cards=bot_cards,
         build_a=player_build['points'],
         build_b=bot_build['points'],
-        featured_slot_a=selected_slot,
-        featured_slot_b=auto_tactical_slot(bot_cards, bot_build['points']),
+        selected_slot_a=selected_slot,
+        selected_slot_b=auto_tactical_slot(bot_cards, bot_build['points']),
+        strategy_key_a='balanced',
+        strategy_key_b='tricky',
     )
-    player_score = duel['score_a']
-    bot_score = duel['score_b']
-    player_deck_power = deck_score(player_cards)
-    bot_deck_power = deck_score(bot_cards)
-    if duel['winner'] == 'a':
-        result_code = 'win'
-        result_label = 'Победа'
-    elif duel['winner'] == 'b':
-        result_code = 'lose'
-        result_label = 'Поражение'
-    else:
-        result_code = 'draw'
-        result_label = 'Ничья'
-
-    rounds = []
-    for item in duel['rounds']:
-        rounds.append(
-            {
-                'round': item['round'],
-                'label': item['label'],
-                'focus': item['focus'],
-                'player_card': item['card_a'],
-                'opponent_card': item['card_b'],
-                'player_value': item['value_a'],
-                'opponent_value': item['value_b'],
-                'player_total': item['total_a'],
-                'opponent_total': item['total_b'],
-                'player_boost': item.get('boost_a', 0),
-                'opponent_boost': item.get('boost_b', 0),
-                'player_skill_bonus': item.get('skill_bonus_a', 0),
-                'opponent_skill_bonus': item.get('skill_bonus_b', 0),
-                'player_skill_note': item.get('skill_note_a', ''),
-                'opponent_skill_note': item.get('skill_note_b', ''),
-                'player_featured_bonus': item.get('featured_bonus_a', 0),
-                'opponent_featured_bonus': item.get('featured_bonus_b', 0),
-                'player_featured_note': item.get('featured_note_a', ''),
-                'opponent_featured_note': item.get('featured_note_b', ''),
-                'winner': 'draw' if item['winner'] == 'draw' else ('player' if item['winner'] == 'a' else 'opponent'),
-            }
-        )
-
-    record_non_ranked_game(wallet, domain)
     return jsonify(
         {
-            'result': {
-                'kind': 'solo',
-                'mode': 'bot',
-                'mode_title': 'Матч с ботом',
-                'player_domain': domain,
-                'opponent_domain': None,
-                'player_score': player_score,
-                'opponent_score': bot_score,
-                'player_deck_power': player_deck_power,
-                'opponent_deck_power': bot_deck_power,
-                'tie_breaker': duel['tie_breaker'],
-                'rounds': rounds,
-                'player_cards': player_cards,
-                'opponent_cards': bot_cards,
-                'player_featured_card': duel.get('featured_a'),
-                'opponent_featured_card': duel.get('featured_b'),
-                'player_build': player_build['points'],
-                'player_build_pool': player_build['pool'],
-                'result': result_code,
-                'result_label': result_label,
-            },
+            'result': result,
             'bot_cards': bot_cards,
             'player': get_player(wallet),
         }
@@ -8221,65 +8626,47 @@ def api_match_one_card():
         return json_error('Карта не найдена в колоде.', 400)
     bot_card = normalize_card_profile(random_bot_single_card(f'onecard:{wallet}:{domain}:{now_iso()}'))
     player_build = load_deck_build(wallet, domain, cards)
-    player_bonus = max(0, round(sum(player_build['points'].values()) / 15))
-    bot_base = max(0, round(sum(default_discipline_build(2200).values()) / 18))
-    player_skill_bonus, player_skill_note = apply_skill_bonus(player_card.get('skill_key'), 'attack', player_bonus, bot_base, player_card, bot_card, 0, None)
-    bot_skill_bonus, bot_skill_note = apply_skill_bonus(bot_card.get('skill_key'), 'attack', bot_base, player_bonus, bot_card, player_card, 0, None)
-    player_score = player_card['score'] + player_bonus + player_skill_bonus
-    bot_score = bot_card['score'] + bot_skill_bonus
-    if player_score > bot_score:
-        result_code = 'win'
-        result_label = 'Победа'
-    elif player_score < bot_score:
-        result_code = 'lose'
-        result_label = 'Поражение'
-    else:
-        result_code = 'draw'
-        result_label = 'Ничья'
-
-    record_non_ranked_game(wallet, domain)
+    bot_pool = 2200
+    bot_build = {'pool': bot_pool, 'points': default_discipline_build(bot_pool)}
+    result = create_solo_battle(
+        wallet=wallet,
+        domain=domain,
+        mode='onecard',
+        mode_title='Дуэль одной картой',
+        opponent_wallet='bot',
+        opponent_domain=None,
+        player_cards=[player_card],
+        opponent_cards=[bot_card],
+        build_a=player_build['points'],
+        build_b=bot_build['points'],
+        selected_slot_a=player_card['slot'],
+        selected_slot_b=bot_card['slot'],
+        strategy_key_a='balanced',
+        strategy_key_b='balanced',
+    )
     return jsonify(
         {
-            'result': {
-                'kind': 'solo',
-                'mode': 'onecard',
-                'mode_title': 'Дуэль одной картой',
-                'player_domain': domain,
-                'opponent_domain': None,
-                'player_score': player_score,
-                'opponent_score': bot_score,
-                'player_build': player_build['points'],
-                'player_build_pool': player_build['pool'],
-                'result': result_code,
-                'result_label': result_label,
-                'player_card': player_card,
-                'opponent_card': bot_card,
-                'player_featured_card': player_card,
-                'opponent_featured_card': bot_card,
-                'rounds': [{
-                    'round': 1,
-                    'label': 'Раунд 1: Тактический размен',
-                    'focus': 'attack',
-                    'player_card': {'slot': player_card.get('slot'), 'title': player_card.get('title')},
-                    'opponent_card': {'slot': bot_card.get('slot'), 'title': bot_card.get('title')},
-                    'player_value': player_bonus,
-                    'opponent_value': bot_base,
-                    'player_boost': 0,
-                    'opponent_boost': 0,
-                    'player_skill_bonus': player_skill_bonus,
-                    'opponent_skill_bonus': bot_skill_bonus,
-                    'player_skill_note': player_skill_note,
-                    'opponent_skill_note': bot_skill_note,
-                    'player_total': player_score,
-                    'opponent_total': bot_score,
-                    'winner': 'draw' if result_code == 'draw' else ('player' if result_code == 'win' else 'opponent'),
-                }],
-                'player_cards': [player_card],
-                'opponent_cards': [bot_card],
-            },
+            'result': result,
             'player': get_player(wallet),
         }
     )
+
+
+@app.route('/api/solo-battle/action', methods=['POST'])
+def api_solo_battle_action():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    session_id = (payload.get('session_id') or '').strip()
+    action_key = payload.get('action') or 'channel'
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        result = apply_solo_battle_action(session_id, wallet, action_key)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'result': result})
 
 
 @app.route('/api/match-invite/<invite_id>')
