@@ -988,6 +988,42 @@ PAGE_TEMPLATE = """
       z-index: 6200;
       pointer-events: none;
       overflow: hidden;
+      background: rgba(2, 6, 12, 0);
+      backdrop-filter: blur(0);
+      animation: finalBackdrop 900ms ease forwards;
+    }
+
+    @keyframes finalBackdrop {
+      from { background: rgba(2, 6, 12, 0); backdrop-filter: blur(0); }
+      to { background: rgba(2, 6, 12, 0.86); backdrop-filter: blur(8px); }
+    }
+
+    .final-climax::before,
+    .final-climax::after {
+      content: "";
+      position: absolute;
+      inset: -18%;
+      pointer-events: none;
+    }
+
+    .final-climax::before {
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12), transparent 16%),
+        radial-gradient(circle at 50% 50%, rgba(69, 215, 255, 0.18), transparent 36%),
+        radial-gradient(circle at 50% 50%, rgba(83, 246, 184, 0.12), transparent 56%);
+      animation: finalAuraPulse 2.4s ease-in-out infinite;
+    }
+
+    .final-climax::after {
+      background:
+        conic-gradient(from 0deg at 50% 50%, transparent, rgba(69, 215, 255, 0.08), transparent, rgba(83, 246, 184, 0.08), transparent);
+      filter: blur(8px);
+      animation: auroraRotate 10s linear infinite;
+    }
+
+    @keyframes finalAuraPulse {
+      0%, 100% { transform: scale(0.94); opacity: 0.72; }
+      50% { transform: scale(1.08); opacity: 1; }
     }
 
     .final-chip {
@@ -1082,6 +1118,17 @@ PAGE_TEMPLATE = """
       transform: scale(1.28);
     }
 
+    .final-core::after {
+      content: "";
+      position: absolute;
+      inset: -28%;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.12), transparent, rgba(69, 215, 255, 0.18), transparent);
+      filter: blur(6px);
+      opacity: 0;
+      transform: rotate(0deg) scale(0.7);
+    }
+
     .final-core.win {
       box-shadow: 0 0 140px rgba(83, 246, 184, 0.3), 0 30px 90px rgba(0, 0, 0, 0.56);
     }
@@ -1107,6 +1154,16 @@ PAGE_TEMPLATE = """
 
     .final-core.visible .final-boom {
       animation: finalBoom 980ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .final-core.visible::after {
+      opacity: 1;
+      animation: finalOrbit 4.4s linear infinite;
+    }
+
+    @keyframes finalOrbit {
+      from { transform: rotate(0deg) scale(0.74); }
+      to { transform: rotate(360deg) scale(1); }
     }
 
     @keyframes finalBoom {
@@ -1674,6 +1731,30 @@ PAGE_TEMPLATE = """
       margin-top: 2px;
     }
 
+    .wallet-domain-mainline {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.42;
+    }
+
+    .wallet-domain-more {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .wallet-domain-more summary {
+      cursor: pointer;
+      color: #dff7ff;
+      font-size: 13px;
+      list-style: none;
+    }
+
+    .wallet-domain-more summary::-webkit-details-marker {
+      display: none;
+    }
+
     .global-players-list {
       display: grid;
       gap: 10px;
@@ -1779,13 +1860,10 @@ PAGE_TEMPLATE = """
       }
 
       .wallet-quick-panel {
-        position: sticky;
-        top: calc(8px + env(safe-area-inset-top));
-        z-index: 8;
         margin: 0;
-        padding: 16px;
-        border-radius: 20px;
-        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2);
+        padding: 14px;
+        border-radius: 18px;
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
       }
 
       .wallet-quick-item {
@@ -1804,7 +1882,7 @@ PAGE_TEMPLATE = """
       }
 
       #view-wallet .actions {
-        margin-top: 0;
+        margin-top: -2px;
       }
 
       #ton-connect {
@@ -1817,13 +1895,26 @@ PAGE_TEMPLATE = """
 
       .wallet-section {
         margin-top: 0;
-        padding: 14px;
-        border-radius: 20px;
+        padding: 12px;
+        border-radius: 18px;
       }
 
       .domain-grid,
       .owned-decks {
         grid-template-columns: 1fr;
+      }
+
+      .wallet-domain-chip {
+        min-height: 26px;
+        padding: 0 8px;
+        font-size: 11px;
+      }
+
+      .wallet-domain-mainline,
+      .wallet-domain-more summary,
+      .wallet-section .tiny,
+      .wallet-flow-note {
+        font-size: 12px;
       }
     }
   </style>
@@ -2587,7 +2678,7 @@ PAGE_TEMPLATE = """
             <span class="wallet-domain-chip">Удача: ${item.luck || 0}</span>
             <span class="wallet-domain-chip">Пул: ${item.deck.discipline_pool || 0}</span>
           </div>
-          <div class="tiny">Вклад карт: ${item.deck.total_score} • ${item.deck.cards && item.deck.cards.length ? `карт в колоде: ${item.deck.cards.length}` : 'колода еще не открыта'}</div>
+          <div class="wallet-domain-mainline">Вклад карт: ${item.deck.total_score} • ${item.deck.cards && item.deck.cards.length ? `карт: ${item.deck.cards.length}` : 'колода еще не открыта'}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary wallet-domain-action" onclick="selectDeckDomain('${item.domain}')">Играть этим доменом</button>
           </div>
@@ -2725,9 +2816,12 @@ PAGE_TEMPLATE = """
             <span class="wallet-domain-chip">Тир: ${domain.tier || '-'}</span>
             <span class="wallet-domain-chip">Удача: ${domain.luck || 0}</span>
           </div>
-          <p>Паттерны: ${domain.patterns.length ? domain.patterns.join(', ') : 'базовый 10K домен'}</p>
-          <p>Спецколлекции: ${domain.special_collections && domain.special_collections.length ? domain.special_collections.join(', ') : 'нет'}</p>
-          <p>Счёт домена: ${domain.score} • DNS: ${domain.is_guest ? 'гостевой режим' : (domain.domain_exists ? 'активен' : 'не подтверждён')}</p>
+          <div class="wallet-domain-mainline">Счёт домена: ${domain.score} • DNS: ${domain.is_guest ? 'гостевой режим' : (domain.domain_exists ? 'активен' : 'не подтверждён')}</div>
+          <details class="wallet-domain-more">
+            <summary>Подробнее</summary>
+            <div class="tiny">Паттерны: ${domain.patterns.length ? domain.patterns.join(', ') : 'базовый 10K домен'}</div>
+            <div class="tiny">Спецколлекции: ${domain.special_collections && domain.special_collections.length ? domain.special_collections.join(', ') : 'нет'}</div>
+          </details>
           <button class="wallet-domain-action" onclick="selectDomain('${domain.domain}')">${state.selectedDomain === domain.domain ? 'Открыть колоду' : 'Выбрать домен'}</button>
         </div>
       `).join('');
