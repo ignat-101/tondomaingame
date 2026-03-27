@@ -3430,14 +3430,18 @@ PAGE_TEMPLATE = """
           }
           if (!liveResult.interactive_live || !interactiveBattlePanel || !interactiveActionButtons.length) {
             if (!liveResult.interactive_live) {
-              if (latestRow) {
-                latestRow.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-              }
-              battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
-              const actions = battleResult.querySelector('.result-actions');
-              if (actions) {
-                actions.classList.add('visible');
-              }
+              const showInteractiveOutcome = async () => {
+                if (latestRow) {
+                  latestRow.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                }
+                await playFinalClimax(resultKey, result.result_label);
+                battleResult.querySelectorAll('.delayed-outcome').forEach((node) => node.classList.add('visible'));
+                const actions = battleResult.querySelector('.result-actions');
+                if (actions) {
+                  actions.classList.add('visible');
+                }
+              };
+              showInteractiveOutcome();
             }
             return;
           }
