@@ -2514,8 +2514,9 @@ PAGE_TEMPLATE = """
                   <div class="discipline-row ${roundClass}">
                     <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
                     <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
-                    <span class="tiny">Поддержка стратегии: ${round.player_value || 0} / ${round.opponent_value || 0} • размен карты: +${round.player_boost || 0} / +${round.opponent_boost || 0} • скилл: +${round.player_skill_bonus || 0} / +${round.opponent_skill_bonus || 0}</span>
-                    <span class="tiny">${round.player_skill_note || 'Без триггера'} / ${round.opponent_skill_note || 'Без триггера'}</span>
+                    <span class="tiny">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
+                    <span class="tiny">Поддержка: ${round.player_value || 0} / ${round.opponent_value || 0} • размен: +${round.player_boost || 0} / +${round.opponent_boost || 0} • скилл: +${round.player_skill_bonus || 0} / +${round.opponent_skill_bonus || 0}</span>
+                    <span class="tiny">${round.player_featured_note || round.player_skill_note || 'Без триггера'} / ${round.opponent_featured_note || round.opponent_skill_note || 'Без триггера'}</span>
                   </div>
                 `;
               }).join('')}
@@ -2547,6 +2548,16 @@ PAGE_TEMPLATE = """
             <div class="showdown-center showdown-middle">
               <div class="prebattle-stage" id="prebattle-stage">
                 <div class="tiny" id="prebattle-ready-status">Колоды готовы. Нажми "Готов".</div>
+                <div class="row" style="margin-top:10px;">
+                  <select id="prebattle-tactical-slot">
+                    ${(result.player_cards || []).map((card) => `
+                      <option value="${card.slot}" ${Number((result.selected_slot || result.player_featured_card?.slot || 0)) === Number(card.slot) ? 'selected' : ''}>
+                        Слот ${card.slot}: ${card.title} • ${card.skill_name || 'скилл'}
+                      </option>
+                    `).join('')}
+                  </select>
+                </div>
+                <div class="tiny">Выбери тактическую карту перед нажатием "Готов". Именно она теперь сильнее всего влияет на раунды и на исход тай-брейка матча.</div>
                 <div class="showdown-entry-actions">
                   <button id="start-battle-btn">Готов</button>
                   <button class="secondary" onclick="openModes()">К режимам</button>
@@ -2606,8 +2617,10 @@ PAGE_TEMPLATE = """
           </div>
         `;
 
+        let liveResult = result;
         const startBtn = battleResult.querySelector('#start-battle-btn');
         const prebattleReadyStatus = battleResult.querySelector('#prebattle-ready-status');
+        const prebattleTacticalSlot = battleResult.querySelector('#prebattle-tactical-slot');
         if (startBtn) {
           startBtn.addEventListener('click', () => {
             const launchBattle = () => {
@@ -2641,7 +2654,7 @@ PAGE_TEMPLATE = """
               }
             };
 
-            if (!result.requires_ready || !result.battle_session_id || !result.opponent_wallet || !state.wallet) {
+            if (!liveResult.requires_ready || !liveResult.battle_session_id || !liveResult.opponent_wallet || !state.wallet) {
               launchBattle();
               return;
             }
@@ -2652,7 +2665,7 @@ PAGE_TEMPLATE = """
               prebattleReadyStatus.textContent = 'Ты готов. Ожидание соперника...';
             }
 
-            const sessionId = result.battle_session_id;
+            const sessionId = liveResult.battle_session_id;
             const pollReadyStatus = async () => {
               try {
                 const poll = await api(`/api/battle-ready/status?wallet=${encodeURIComponent(state.wallet)}&session_id=${encodeURIComponent(sessionId)}`);
@@ -2661,6 +2674,15 @@ PAGE_TEMPLATE = """
                   prebattleReadyStatus.textContent = `Готовы: ${st.ready_count || 1}/2`;
                 }
                 if (st.started) {
+                  if (st.payload) {
+                    state.lastResult = st.payload;
+                    renderBattleResult(st.payload);
+                    const autoStartBtn = battleResult.querySelector('#start-battle-btn');
+                    if (autoStartBtn) {
+                      autoStartBtn.click();
+                    }
+                    return;
+                  }
                   launchBattle();
                   return;
                 }
@@ -2676,13 +2698,26 @@ PAGE_TEMPLATE = """
 
             api('/api/battle-ready', {
               method: 'POST',
-              body: { wallet: state.wallet, session_id: sessionId }
+              body: {
+                wallet: state.wallet,
+                session_id: sessionId,
+                selected_slot: Number(prebattleTacticalSlot && prebattleTacticalSlot.value ? prebattleTacticalSlot.value : 0)
+              }
             }).then((readyData) => {
               const st = readyData.status || {};
               if (prebattleReadyStatus) {
                 prebattleReadyStatus.textContent = `Готовы: ${st.ready_count || 1}/2`;
               }
               if (st.started) {
+                if (st.payload) {
+                  state.lastResult = st.payload;
+                  renderBattleResult(st.payload);
+                  const autoStartBtn = battleResult.querySelector('#start-battle-btn');
+                  if (autoStartBtn) {
+                    autoStartBtn.click();
+                  }
+                  return;
+                }
                 launchBattle();
                 return;
               }
@@ -3050,8 +3085,7 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: {
             wallet: state.wallet,
-            domain: state.selectedDomain,
-            selected_slot: Number(battleCardSlot.value || state.selectedBattleSlot || 0)
+            domain: state.selectedDomain
           }
         });
         if (data.status === 'matched' && data.result) {
@@ -4780,6 +4814,61 @@ def matchup_strategy_bonus(card_self, card_opp, phase, round_index):
     return 0
 
 
+def featured_card_round_bonus(featured_card, opposing_featured_card, focus, phase, round_index, previous_outcome):
+    featured_card = normalize_card_profile(featured_card)
+    opposing_featured_card = normalize_card_profile(opposing_featured_card)
+    own_pool = int(featured_card.get('pool_value', 0))
+    opp_pool = int(opposing_featured_card.get('pool_value', 0))
+    rarity_weight = {
+        'basic': 1,
+        'rare': 2,
+        'epic': 3,
+        'mythic': 4,
+        'legendary': 5,
+    }
+    rarity_edge = rarity_weight.get(featured_card.get('rarity_key'), 1) - rarity_weight.get(opposing_featured_card.get('rarity_key'), 1)
+    base = max(16, min(42, own_pool // 9 + rarity_edge * 3))
+    skill_key = featured_card.get('skill_key')
+    note = 'Тактическая карта держит темп'
+    if skill_key == 'underdog':
+        if own_pool <= opp_pool:
+            return base + 12, 'Тактический андердог перевернул размен'
+        return base, 'Тактический андердог давит за счет тайминга'
+    if skill_key == 'tempo':
+        if previous_outcome == 'loss':
+            return base + 14, 'Тактический темп наказал за прошлый раунд'
+        return base + 4, 'Тактический темп разгоняет матч'
+    if skill_key == 'mirror':
+        if opp_pool >= own_pool:
+            return base + 10, 'Тактическое зеркало украло мощь соперника'
+        return base + 2, 'Тактическое зеркало держит баланс'
+    if skill_key == 'attack_burst':
+        if focus in {'attack', 'magic'} or phase == 'finisher':
+            return base + 12, 'Тактический пролом решает профильный раунд'
+        return base, 'Тактический пролом давит присутствием'
+    if skill_key == 'defense_lock':
+        if focus in {'defense', 'speed'} or phase == 'counter':
+            return base + 12, 'Тактический замок ломает атаку соперника'
+        return base, 'Тактический замок держит линию'
+    if skill_key == 'wildcard':
+        if focus in {'luck', 'magic'} or phase == 'risk':
+            return base + 15, 'Тактический джокер перевернул раунд'
+        return base + 3, 'Тактический джокер давит неожиданностью'
+    return base, note
+
+
+def featured_match_bonus(featured_card):
+    featured_card = normalize_card_profile(featured_card)
+    rarity_weight = {
+        'basic': 20,
+        'rare': 40,
+        'epic': 70,
+        'mythic': 95,
+        'legendary': 130,
+    }
+    return int(featured_card.get('pool_value', 0)) + rarity_weight.get(featured_card.get('rarity_key'), 20)
+
+
 def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, featured_slot_a=None, featured_slot_b=None):
     rounds = []
     wins_a = 0
@@ -4799,8 +4888,8 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
         focus, label, phase = WIKIGACHI_ROUND_PLAN[idx]
         card_a = cards_a[idx]
         card_b = cards_b[idx]
-        value_a = build_bonus_value(build_a, focus)
-        value_b = build_bonus_value(build_b, focus)
+        value_a = max(0, round(build_bonus_value(build_a, focus) / 3))
+        value_b = max(0, round(build_bonus_value(build_b, focus) / 3))
         card_boost_a = matchup_strategy_bonus(card_a, card_b, phase, idx)
         card_boost_b = matchup_strategy_bonus(card_b, card_a, phase, idx)
         skill_bonus_a, skill_note_a = apply_skill_bonus(
@@ -4823,12 +4912,28 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
             idx,
             prev_b,
         )
+        featured_bonus_a, featured_note_a = featured_card_round_bonus(
+            featured_a or card_a,
+            featured_b or card_b,
+            focus,
+            phase,
+            idx,
+            prev_a,
+        )
+        featured_bonus_b, featured_note_b = featured_card_round_bonus(
+            featured_b or card_b,
+            featured_a or card_a,
+            focus,
+            phase,
+            idx,
+            prev_b,
+        )
 
         # Small deterministic swing for a less predictable duel flow.
         swing_a = rng.randint(0, 2)
         swing_b = rng.randint(0, 2)
-        total_a = value_a + card_boost_a + skill_bonus_a + swing_a
-        total_b = value_b + card_boost_b + skill_bonus_b + swing_b
+        total_a = value_a + card_boost_a + skill_bonus_a + featured_bonus_a + swing_a
+        total_b = value_b + card_boost_b + skill_bonus_b + featured_bonus_b + swing_b
 
         if total_a > total_b:
             round_winner = 'a'
@@ -4861,6 +4966,10 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
                 'skill_bonus_b': skill_bonus_b,
                 'skill_note_a': skill_note_a,
                 'skill_note_b': skill_note_b,
+                'featured_bonus_a': featured_bonus_a,
+                'featured_bonus_b': featured_bonus_b,
+                'featured_note_a': featured_note_a,
+                'featured_note_b': featured_note_b,
                 'swing_a': swing_a,
                 'swing_b': swing_b,
                 'total_a': total_a,
@@ -4876,8 +4985,8 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
         winner = 'b'
     else:
         tie_breaker = True
-        total_a = deck_score(cards_a)
-        total_b = deck_score(cards_b)
+        total_a = featured_match_bonus(featured_a) * 2 + deck_score(cards_a)
+        total_b = featured_match_bonus(featured_b) * 2 + deck_score(cards_b)
         if total_a > total_b:
             winner = 'a'
         elif total_b > total_a:
@@ -5660,6 +5769,10 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
                 'opponent_skill_bonus': item.get('skill_bonus_b', 0) if viewer_is_a else item.get('skill_bonus_a', 0),
                 'player_skill_note': item.get('skill_note_a', '') if viewer_is_a else item.get('skill_note_b', ''),
                 'opponent_skill_note': item.get('skill_note_b', '') if viewer_is_a else item.get('skill_note_a', ''),
+                'player_featured_bonus': item.get('featured_bonus_a', 0) if viewer_is_a else item.get('featured_bonus_b', 0),
+                'opponent_featured_bonus': item.get('featured_bonus_b', 0) if viewer_is_a else item.get('featured_bonus_a', 0),
+                'player_featured_note': item.get('featured_note_a', '') if viewer_is_a else item.get('featured_note_b', ''),
+                'opponent_featured_note': item.get('featured_note_b', '') if viewer_is_a else item.get('featured_note_a', ''),
                 'player_total': item['total_a'] if viewer_is_a else item['total_b'],
                 'opponent_total': item['total_b'] if viewer_is_a else item['total_a'],
                 'winner': (
@@ -5703,6 +5816,7 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
         'opponent_cards': opp_cards,
         'player_featured_card': own_featured,
         'opponent_featured_card': opp_featured,
+        'selected_slot': (own_featured or {}).get('slot'),
         'player_build': (own_build or {}).get('points') if isinstance(own_build, dict) else {},
         'player_build_pool': (own_build or {}).get('pool') if isinstance(own_build, dict) else 0,
         'opponent_build': (opp_build or {}).get('points') if isinstance(opp_build, dict) else {},
@@ -5914,11 +6028,20 @@ def create_battle_session(conn, wallet_a, wallet_b, payload_a, payload_b):
     return session_id, payload_a, payload_b
 
 
+def battle_session_payload(row, viewer_wallet):
+    is_a = viewer_wallet == row['wallet_a']
+    raw = row['payload_a_json'] if is_a else row['payload_b_json']
+    try:
+        return json.loads(raw) if raw else None
+    except json.JSONDecodeError:
+        return None
+
+
 def battle_session_snapshot(row, viewer_wallet):
     is_a = viewer_wallet == row['wallet_a']
     self_ready = bool(row['ready_a']) if is_a else bool(row['ready_b'])
     opp_ready = bool(row['ready_b']) if is_a else bool(row['ready_a'])
-    return {
+    snapshot = {
         'id': row['id'],
         'ready_self': self_ready,
         'ready_opponent': opp_ready,
@@ -5926,9 +6049,61 @@ def battle_session_snapshot(row, viewer_wallet):
         'started': bool(row['started_at']),
         'started_at': row['started_at'],
     }
+    if row['started_at']:
+        snapshot['payload'] = battle_session_payload(row, viewer_wallet)
+    return snapshot
 
 
-def mark_battle_ready(session_id, wallet):
+def finalize_battle_session(conn, row):
+    payload_a = json.loads(row['payload_a_json']) if row['payload_a_json'] else {}
+    payload_b = json.loads(row['payload_b_json']) if row['payload_b_json'] else {}
+    wallet_a = row['wallet_a']
+    wallet_b = row['wallet_b']
+    domain_a = payload_a.get('player_domain')
+    domain_b = payload_b.get('player_domain')
+    mode = payload_a.get('mode') or payload_b.get('mode') or 'casual'
+    selected_slot_a = payload_a.get('selected_slot')
+    selected_slot_b = payload_b.get('selected_slot')
+    match = head_to_head_result(
+        wallet_a,
+        domain_a,
+        wallet_b,
+        domain_b,
+        selected_slot_a=selected_slot_a,
+        selected_slot_b=selected_slot_b,
+    )
+    rating_meta = None
+    if mode == 'ranked':
+        _, _, rating_a_before, rating_a_after, rating_b_before, rating_b_after = apply_ranked_result_duel(match)
+        rating_meta = {
+            'rating_a_before': rating_a_before,
+            'rating_a_after': rating_a_after,
+            'rating_b_before': rating_b_before,
+            'rating_b_after': rating_b_after,
+        }
+    else:
+        record_non_ranked_game(wallet_a, domain_a)
+        record_non_ranked_game(wallet_b, domain_b)
+    fresh_a = invite_result_payload({'mode': mode}, match, wallet_a, rating_meta=rating_meta)
+    fresh_b = invite_result_payload({'mode': mode}, match, wallet_b, rating_meta=rating_meta)
+    fresh_a['battle_session_id'] = row['id']
+    fresh_b['battle_session_id'] = row['id']
+    fresh_a['requires_ready'] = False
+    fresh_b['requires_ready'] = False
+    conn.execute(
+        'UPDATE battle_sessions SET payload_a_json = ?, payload_b_json = ?, started_at = ?, updated_at = ? WHERE id = ?',
+        (
+            json.dumps(fresh_a, ensure_ascii=False),
+            json.dumps(fresh_b, ensure_ascii=False),
+            now_iso(),
+            now_iso(),
+            row['id'],
+        ),
+    )
+    return fresh_a, fresh_b
+
+
+def mark_battle_ready(session_id, wallet, selected_slot=None):
     with closing(get_db()) as conn:
         row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
         if row is None:
@@ -5936,13 +6111,21 @@ def mark_battle_ready(session_id, wallet):
         if wallet not in {row['wallet_a'], row['wallet_b']}:
             raise ValueError('Нет доступа к этой сессии.')
         is_a = wallet == row['wallet_a']
+        payload_key = 'payload_a_json' if is_a else 'payload_b_json'
+        current_payload = json.loads(row[payload_key]) if row[payload_key] else {}
+        if selected_slot:
+            current_payload['selected_slot'] = int(selected_slot)
+            conn.execute(
+                f'UPDATE battle_sessions SET {payload_key} = ?, updated_at = ? WHERE id = ?',
+                (json.dumps(current_payload, ensure_ascii=False), now_iso(), session_id),
+            )
         if is_a:
             conn.execute('UPDATE battle_sessions SET ready_a = 1, updated_at = ? WHERE id = ?', (now_iso(), session_id))
         else:
             conn.execute('UPDATE battle_sessions SET ready_b = 1, updated_at = ? WHERE id = ?', (now_iso(), session_id))
         row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
         if row and row['started_at'] is None and row['ready_a'] and row['ready_b']:
-            conn.execute('UPDATE battle_sessions SET started_at = ?, updated_at = ? WHERE id = ?', (now_iso(), now_iso(), session_id))
+            finalize_battle_session(conn, row)
             row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
         conn.commit()
     return battle_session_snapshot(row, wallet)
@@ -6010,21 +6193,8 @@ def settle_matchmaking_pair(conn, mode, wallet, domain, opponent_row, selected_s
         selected_slot_a=selected_slot,
         selected_slot_b=opponent_row['selected_slot'],
     )
-    rating_meta = None
-    if mode == 'ranked':
-        _, _, rating_a_before, rating_a_after, rating_b_before, rating_b_after = apply_ranked_result_duel(match)
-        rating_meta = {
-            'rating_a_before': rating_a_before,
-            'rating_a_after': rating_a_after,
-            'rating_b_before': rating_b_before,
-            'rating_b_after': rating_b_after,
-        }
-    else:
-        record_non_ranked_game(wallet, domain)
-        record_non_ranked_game(opponent_wallet, opponent_domain)
-
-    own_payload = invite_result_payload({'mode': mode}, match, wallet, rating_meta=rating_meta)
-    opp_payload = invite_result_payload({'mode': mode}, match, opponent_wallet, rating_meta=rating_meta)
+    own_payload = invite_result_payload({'mode': mode}, match, wallet, rating_meta=None)
+    opp_payload = invite_result_payload({'mode': mode}, match, opponent_wallet, rating_meta=None)
     _, own_payload, opp_payload = create_battle_session(conn, wallet, opponent_wallet, own_payload, opp_payload)
     set_matchmaking_cooldown(conn, wallet, opponent_wallet)
     ts = now_iso()
@@ -6921,12 +7091,13 @@ def api_battle_ready():
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     session_id = (payload.get('session_id') or '').strip()
+    selected_slot = int(payload.get('selected_slot') or 0) or None
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
     if not session_id:
         return json_error('Не указан session_id.')
     try:
-        status = mark_battle_ready(session_id, wallet)
+        status = mark_battle_ready(session_id, wallet, selected_slot=selected_slot)
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'status': status})
@@ -7057,6 +7228,10 @@ def api_match_bot():
                 'opponent_skill_bonus': item.get('skill_bonus_b', 0),
                 'player_skill_note': item.get('skill_note_a', ''),
                 'opponent_skill_note': item.get('skill_note_b', ''),
+                'player_featured_bonus': item.get('featured_bonus_a', 0),
+                'opponent_featured_bonus': item.get('featured_bonus_b', 0),
+                'player_featured_note': item.get('featured_note_a', ''),
+                'opponent_featured_note': item.get('featured_note_b', ''),
                 'winner': 'draw' if item['winner'] == 'draw' else ('player' if item['winner'] == 'a' else 'opponent'),
             }
         )
