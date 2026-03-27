@@ -812,6 +812,30 @@ PAGE_TEMPLATE = """
       padding: 8px 4px;
     }
 
+    .prebattle-stage.accept-pop,
+    .showdown-main.accept-pop {
+      animation: acceptGamePop 720ms cubic-bezier(.16,.84,.2,1);
+      transform-origin: center center;
+    }
+
+    @keyframes acceptGamePop {
+      0% {
+        opacity: 0;
+        transform: scale(0.72) translateY(26px);
+        filter: blur(4px);
+      }
+      55% {
+        opacity: 1;
+        transform: scale(1.04) translateY(-6px);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+      }
+    }
+
     .prebattle-stage.hidden {
       display: none;
     }
@@ -1730,8 +1754,8 @@ PAGE_TEMPLATE = """
           <div class="result-box" style="margin-top:10px;">
             <strong>Характеристики карт</strong>
             <div class="tiny" style="margin-top:8px;">Карты отличаются только редкостью: Basic, Rare, Epic, Mythic, Legendary.</div>
-            <div class="tiny">У карты есть только вклад в свободный пул. Личных статов у карт нет.</div>
-            <div class="tiny">У каждого игрока стартовый пул 2500 + бонусы тира/паттернов домена с 10kclub. Пул распределяется в 5 дисциплин: атака, защита, удача, скорость, магия.</div>
+            <div class="tiny">Карты вносят вклад в пул, который потом можно распределять по 5 дисциплинам: атака, защита, удача, скорость, магия.</div>
+            <div class="tiny">У каждого игрока стартовый пул 2500 + бонусы тира/паттернов домена с 10kclub.</div>
           </div>
 
           <div class="stats-strip">
@@ -2805,21 +2829,17 @@ PAGE_TEMPLATE = """
                 const opponentCardTitle = round.opponent_card?.title || 'Карта соперника';
                 const playerSlot = round.player_card?.slot || '-';
                 const opponentSlot = round.opponent_card?.slot || '-';
-                const playerAction = actionRuleMeta(round.player_action || 'channel');
-                const opponentAction = actionRuleMeta(round.opponent_action || 'channel');
                 const playerStrategy = strategyMeta(round.player_strategy_key || 'balanced');
                 const opponentStrategy = strategyMeta(round.opponent_strategy_key || 'balanced');
+                const playerCardPower = Number(round.player_value || 0) + Number(round.player_boost || 0) + Number(round.player_skill_bonus || 0);
+                const opponentCardPower = Number(round.opponent_value || 0) + Number(round.opponent_boost || 0) + Number(round.opponent_skill_bonus || 0);
                 return `
                   <div class="discipline-row ${roundClass}">
                     <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
                     <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
-                    <span class="tiny">Ходы: ${playerAction.ruLabel} / ${opponentAction.ruLabel} • контр-бонус: +${round.player_action_bonus || 0} / +${round.opponent_action_bonus || 0}</span>
                     <span class="tiny">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label} • бонус: +${round.player_strategy_bonus || 0} / +${round.opponent_strategy_bonus || 0}</span>
                     <span class="tiny">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
-                    <span class="tiny">Поддержка: ${round.player_value || 0} / ${round.opponent_value || 0} • размен: +${round.player_boost || 0} / +${round.opponent_boost || 0} • скилл: +${round.player_skill_bonus || 0} / +${round.opponent_skill_bonus || 0}</span>
-                    <span class="tiny">${round.player_action_note || 'Ход без контра'} / ${round.opponent_action_note || 'Ход без контра'}</span>
-                    <span class="tiny">${round.player_strategy_note || 'Стратегия без всплеска'} / ${round.opponent_strategy_note || 'Стратегия без всплеска'}</span>
-                    <span class="tiny">${round.player_featured_note || round.player_skill_note || 'Без триггера'} / ${round.opponent_featured_note || round.opponent_skill_note || 'Без триггера'}</span>
+                    <span class="tiny">Сила карт: +${playerCardPower} / +${opponentCardPower}</span>
                   </div>
                 `;
               }).join('')}
@@ -2938,6 +2958,15 @@ PAGE_TEMPLATE = """
         const prebattleStrategy = battleResult.querySelector('#prebattle-strategy');
         const prebattleStrategyHelp = battleResult.querySelector('#prebattle-strategy-help');
         const prebattleActionHelp = battleResult.querySelector('#prebattle-action-help');
+        const prebattleStage = battleResult.querySelector('#prebattle-stage');
+        const showdownMain = battleResult.querySelector('.showdown-main');
+        if (result.battle_session_id && prebattleStage) {
+          prebattleStage.classList.add('accept-pop');
+          setTimeout(() => prebattleStage.classList.remove('accept-pop'), 760);
+        } else if (result.battle_session_id && showdownMain) {
+          showdownMain.classList.add('accept-pop');
+          setTimeout(() => showdownMain.classList.remove('accept-pop'), 760);
+        }
         if (prebattleTacticalSlot) {
           prebattleTacticalSlot.addEventListener('change', () => {
             const card = (liveResult.player_cards || []).find((item) => Number(item.slot) === Number(prebattleTacticalSlot.value));
@@ -5318,12 +5347,12 @@ def action_round_resolution(action_a, action_b):
     meta_a = ACTION_RULES.get(action_a) or ACTION_RULES['channel']
     meta_b = ACTION_RULES.get(action_b) or ACTION_RULES['channel']
     if meta_a['beats'] == action_b and meta_b['beats'] != action_a:
-        return 38, 4, f"{meta_a['ru_label']} контрит {meta_b['ru_label']}", f"{meta_b['ru_label']} попал под контр"
+        return 44, 2, f"{meta_a['ru_label']} контрит {meta_b['ru_label']}", f"{meta_b['ru_label']} попал под контр"
     if meta_b['beats'] == action_a and meta_a['beats'] != action_b:
-        return 4, 38, f"{meta_a['ru_label']} попал под контр", f"{meta_b['ru_label']} контрит {meta_a['ru_label']}"
+        return 2, 44, f"{meta_a['ru_label']} попал под контр", f"{meta_b['ru_label']} контрит {meta_a['ru_label']}"
     if action_a == action_b:
-        return 8, 8, 'Одинаковый ход, размен на равных', 'Одинаковый ход, размен на равных'
-    return 10, 10, 'Ходы разошлись без явного контра', 'Ходы разошлись без явного контра'
+        return 6, 6, 'Одинаковый ход, размен на равных', 'Одинаковый ход, размен на равных'
+    return 8, 8, 'Ходы разошлись без явного контра', 'Ходы разошлись без явного контра'
 
 
 def strategy_round_bonus(strategy_key, focus, phase, round_index, action_key, previous_outcome, featured_card):
