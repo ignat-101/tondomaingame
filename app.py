@@ -515,6 +515,7 @@ PAGE_TEMPLATE = """
     .catalog-card.basic { border-color: rgba(180, 180, 180, 0.35); }
     .catalog-card.rare { border-color: rgba(69, 215, 255, 0.42); }
     .catalog-card.epic { border-color: rgba(255, 122, 134, 0.5); }
+    .catalog-card.mythic { border-color: rgba(188, 126, 255, 0.56); }
     .catalog-card.legendary { border-color: rgba(255, 211, 110, 0.56); }
 
     .user-item {
@@ -1372,6 +1373,19 @@ PAGE_TEMPLATE = """
       body { padding-bottom: 84px; }
       .layout { grid-template-columns: 1fr; }
       .side { display: none; }
+      .mode-grid.mode-focus::before {
+        inset: -4px;
+        background: rgba(2, 8, 16, 0.38);
+        backdrop-filter: blur(2px);
+      }
+      .mode-card:hover {
+        transform: none;
+        box-shadow: none;
+      }
+      .mode-card.active-mode {
+        transform: translateY(-4px) scale(1.01);
+        box-shadow: 0 12px 30px rgba(69, 215, 255, 0.16);
+      }
       .mobile-nav {
         position: fixed;
         left: 12px;
@@ -1544,6 +1558,12 @@ PAGE_TEMPLATE = """
           <div class="team-card" style="margin-bottom:18px;">
             <h3>Автопоиск соперника</h3>
             <div class="tiny">Нажми кнопку рейтингового или обычного режима. Если соперник уже ищет матч, бой стартует мгновенно.</div>
+            <div class="row" style="margin-top:10px;">
+              <select id="battle-card-slot">
+                <option value="">Выбери тактическую карту на матч</option>
+              </select>
+            </div>
+            <div class="tiny">Тактическая карта даёт скилл на весь матч. Здесь как раз работает правило: размер не важен, важно как пользуешься.</div>
             <div class="actions" style="margin-top:10px;">
               <button class="secondary" id="cancel-matchmaking-btn" disabled>Отменить поиск</button>
             </div>
@@ -1718,6 +1738,7 @@ PAGE_TEMPLATE = """
       domainsChecked: false,
       selectedDomain: null,
       cards: [],
+      selectedBattleSlot: null,
       playerProfile: null,
       lastResult: null,
       roomId: null,
@@ -1778,6 +1799,7 @@ PAGE_TEMPLATE = """
     const buyPackBtn = document.getElementById('buy-pack-btn');
     const cardCatalogList = document.getElementById('card-catalog-list');
     const oneCardSlot = document.getElementById('one-card-slot');
+    const battleCardSlot = document.getElementById('battle-card-slot');
     const achievementsList = document.getElementById('achievements-list');
     const refreshAchievementsBtn = document.getElementById('refresh-achievements-btn');
     const matchmakingStatus = document.getElementById('matchmaking-status');
@@ -1797,6 +1819,8 @@ PAGE_TEMPLATE = """
     telegramOpenLink.textContent = telegramBotUsername ? `@${telegramBotUsername}` : 'Открыть мини-апп';
 
     let tonConnectUI = null;
+    let matchmakingPollTimer = null;
+    let modeFocusTimer = null;
 
     function shortAddress(value) {
       if (!value) return '-';
@@ -1826,6 +1850,9 @@ PAGE_TEMPLATE = """
     }
 
     function switchView(name) {
+      if (name !== 'modes') {
+        resetModeChoice('');
+      }
       document.querySelectorAll('.view').forEach((view) => {
         view.classList.toggle('active', view.id === `view-${name}`);
       });
@@ -1848,12 +1875,30 @@ PAGE_TEMPLATE = """
       document.querySelectorAll('[data-mode-card]').forEach((card) => {
         card.classList.toggle('active-mode', card.dataset.modeCard === modeName);
       });
-      window.clearTimeout(window.__modeFocusTimer);
-      window.__modeFocusTimer = window.setTimeout(() => {
+      window.clearTimeout(modeFocusTimer);
+      modeFocusTimer = window.setTimeout(() => {
         if (modeGrid) {
           modeGrid.classList.remove('mode-focus');
         }
       }, 2200);
+    }
+
+    function resetModeChoice(message = '') {
+      const modeGrid = document.querySelector('.mode-grid');
+      if (modeGrid) {
+        modeGrid.classList.remove('mode-focus');
+      }
+      document.querySelectorAll('[data-mode-card]').forEach((card) => {
+        card.classList.remove('active-mode');
+      });
+      if (duelInvitePanel) {
+        duelInvitePanel.style.display = 'none';
+      }
+      document.getElementById('team-panel').style.display = 'none';
+      window.clearTimeout(modeFocusTimer);
+      if (message) {
+        matchmakingStatus.textContent = message;
+      }
     }
 
     function renderLeaderBoard(items) {
@@ -1937,6 +1982,8 @@ PAGE_TEMPLATE = """
             <strong>${card.title}</strong>
             <div class="tiny">Слот ${card.slot} • ${card.rarity}</div>
             <div class="tiny">Вклад в пул: ${card.pool_value || card.base_power || 0}</div>
+            <div class="tiny">Скилл: ${card.skill_name || '-'} </div>
+            <div class="tiny">${card.skill_description || card.ability || ''}</div>
           </div>
         `).join('')}
       `;
@@ -2097,6 +2144,7 @@ PAGE_TEMPLATE = """
               <strong>${card.id.toUpperCase()} • ${card.title}</strong>
               <div class="tiny">Редкость: ${card.rarity_label}</div>
               <div class="tiny">Вклад в пул: ${card.pool_min}-${card.pool_max}</div>
+              <div class="tiny">Скиллы в бою распределяются по картам при открытии пака.</div>
             </article>
           `).join('')}
         </div>
@@ -2106,11 +2154,20 @@ PAGE_TEMPLATE = """
     function refreshOneCardSelector() {
       oneCardSlot.innerHTML = '<option value="">Выбери карту для режима одной карты</option>';
       if (!state.cards.length) {
+        battleCardSlot.innerHTML = '<option value="">Выбери тактическую карту на матч</option>';
+        state.selectedBattleSlot = null;
         return;
       }
       oneCardSlot.innerHTML += state.cards.map((card) => `
         <option value="${card.slot}">Слот ${card.slot}: ${card.title} (${card.pool_value || card.score || 0})</option>
       `).join('');
+      battleCardSlot.innerHTML = '<option value="">Выбери тактическую карту на матч</option>' + state.cards.map((card) => `
+        <option value="${card.slot}">Слот ${card.slot}: ${card.title} • ${card.skill_name || 'скилл'} </option>
+      `).join('');
+      if (!state.selectedBattleSlot || !state.cards.some((card) => Number(card.slot) === Number(state.selectedBattleSlot))) {
+        state.selectedBattleSlot = state.cards[0].slot;
+      }
+      battleCardSlot.value = String(state.selectedBattleSlot);
     }
 
     function updateButtons() {
@@ -2165,6 +2222,7 @@ PAGE_TEMPLATE = """
     window.selectDomain = function selectDomain(domain) {
       state.selectedDomain = domain;
       state.cards = [];
+      state.selectedBattleSlot = null;
       packCards.innerHTML = '';
       packScoreLabel.textContent = 'Вклад карт: -';
       packShowcase.classList.remove('opened');
@@ -2243,6 +2301,7 @@ PAGE_TEMPLATE = """
           <h3>${card.title}</h3>
           <p>${card.domain}.ton • слот ${card.slot}</p>
           <div class="team-line"><span>Вклад в пул</span><strong>${card.pool_value || card.base_power || 0}</strong></div>
+          <div class="team-line"><span>Скилл</span><strong>${card.skill_name || '-'}</strong></div>
           <p>${card.ability}</p>
         </article>
       `).join('');
@@ -2264,6 +2323,7 @@ PAGE_TEMPLATE = """
           <strong>${index + 1}. ${card.title || 'Карта'}</strong>
           <div class="tiny">${card.rarity || '-'}</div>
           <div class="tiny">Вклад в пул: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
+          <div class="tiny">Скилл: ${card.skill_name || '-'}</div>
         </div>
       `).join('');
     }
@@ -2412,6 +2472,12 @@ PAGE_TEMPLATE = """
         const oppCardLine = result.opponent_card
           ? `<div class="tiny">Карта соперника: ${result.opponent_card.title} • сила ${result.opponent_card.score}</div>`
           : '';
+        const featuredCardLine = result.player_featured_card
+          ? `<div class="tiny">Тактическая карта: слот ${result.player_featured_card.slot} • ${result.player_featured_card.title} • ${result.player_featured_card.skill_name || 'скилл'}</div>`
+          : '';
+        const oppFeaturedCardLine = result.opponent_featured_card
+          ? `<div class="tiny">Тактическая карта соперника: слот ${result.opponent_featured_card.slot} • ${result.opponent_featured_card.title} • ${result.opponent_featured_card.skill_name || 'скилл'}</div>`
+          : '';
         const roundsLine = Array.isArray(result.rounds) && result.rounds.length
           ? `<div class="discipline-list">
               ${result.rounds.map((round) => {
@@ -2425,7 +2491,8 @@ PAGE_TEMPLATE = """
                   <div class="discipline-row ${roundClass}">
                     <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
                     <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
-                    <span class="tiny">Пул дисциплины: ${round.player_value || 0} / ${round.opponent_value || 0} • вклад карты: +${round.player_boost || 0} / +${round.opponent_boost || 0}</span>
+                    <span class="tiny">Пул дисциплины: ${round.player_value || 0} / ${round.opponent_value || 0} • вклад карты: +${round.player_boost || 0} / +${round.opponent_boost || 0} • скилл: +${round.player_skill_bonus || 0} / +${round.opponent_skill_bonus || 0}</span>
+                    <span class="tiny">${round.player_skill_note || 'Без триггера'} / ${round.opponent_skill_note || 'Без триггера'}</span>
                   </div>
                 `;
               }).join('')}
@@ -2474,14 +2541,14 @@ PAGE_TEMPLATE = """
                   <div class="battle-cinematic">
                     <div class="battle-fighter player">
                       <div class="tiny">Твоя карта</div>
-                      <strong>${result.player_card ? result.player_card.title : `${result.player_domain}.ton`}</strong>
-                      <div class="tiny">Сила: ${result.player_card ? result.player_card.score : result.player_score}</div>
+                      <strong>${result.player_featured_card ? result.player_featured_card.title : (result.player_card ? result.player_card.title : `${result.player_domain}.ton`)}</strong>
+                      <div class="tiny">Скилл: ${result.player_featured_card ? result.player_featured_card.skill_name : 'без тактики'}</div>
                     </div>
                     <div class="battle-vs-orb">VS</div>
                     <div class="battle-fighter enemy">
                       <div class="tiny">Карта соперника</div>
-                      <strong>${result.opponent_card ? result.opponent_card.title : opponentLabel}</strong>
-                      <div class="tiny">Сила: ${result.opponent_card ? result.opponent_card.score : result.opponent_score}</div>
+                      <strong>${result.opponent_featured_card ? result.opponent_featured_card.title : (result.opponent_card ? result.opponent_card.title : opponentLabel)}</strong>
+                      <div class="tiny">Скилл: ${result.opponent_featured_card ? result.opponent_featured_card.skill_name : 'без тактики'}</div>
                     </div>
                   </div>
                   <div class="showdown-score">
@@ -2493,6 +2560,8 @@ PAGE_TEMPLATE = """
                 </div>
                 ${cardLine}
                 ${oppCardLine}
+                ${featuredCardLine}
+                ${oppFeaturedCardLine}
                 ${buildLine}
                 ${roundsLine}
                 ${deckPowerLine}
@@ -2636,10 +2705,11 @@ PAGE_TEMPLATE = """
 
     function openModes() {
       document.body.classList.remove('showdown-open');
+      battleResult.className = 'result-box';
+      battleResult.style.display = 'none';
+      inviteResult.style.display = 'none';
       switchView('modes');
-      if (duelInvitePanel) {
-        duelInvitePanel.style.display = 'none';
-      }
+      resetModeChoice('');
     }
 
     function openDuelMode() {
@@ -2674,6 +2744,7 @@ PAGE_TEMPLATE = """
     function rebindDomain() {
       state.selectedDomain = null;
       state.cards = [];
+      state.selectedBattleSlot = null;
       state.lastResult = null;
       packCards.innerHTML = '';
       packScoreLabel.textContent = 'Вклад карт: -';
@@ -2753,6 +2824,7 @@ PAGE_TEMPLATE = """
         if (!state.domains.some((item) => item.domain === state.selectedDomain)) {
           state.selectedDomain = null;
           state.cards = [];
+          state.selectedBattleSlot = null;
           packCards.innerHTML = '';
           packScoreLabel.textContent = 'Вклад карт: -';
           refreshOneCardSelector();
@@ -2895,6 +2967,11 @@ PAGE_TEMPLATE = """
     function stopMatchmakingUI(message = '') {
       state.matchmakingPolling = false;
       state.matchmakingMode = null;
+      if (matchmakingPollTimer) {
+        window.clearTimeout(matchmakingPollTimer);
+        matchmakingPollTimer = null;
+      }
+      resetModeChoice(message);
       if (message) {
         matchmakingStatus.textContent = message;
       }
@@ -2913,7 +2990,7 @@ PAGE_TEMPLATE = """
           } else {
             matchmakingStatus.textContent = `Идёт поиск соперника (${waited} сек)...`;
           }
-          setTimeout(() => pollMatchmaking(mode), 2500);
+          matchmakingPollTimer = window.setTimeout(() => pollMatchmaking(mode), 2500);
           return;
         }
         if (data.status === 'matched' && data.result) {
@@ -2933,7 +3010,7 @@ PAGE_TEMPLATE = """
           stopMatchmakingUI('Поиск остановлен.');
           return;
         }
-        setTimeout(() => pollMatchmaking(mode), 2500);
+        matchmakingPollTimer = window.setTimeout(() => pollMatchmaking(mode), 2500);
       } catch (error) {
         stopMatchmakingUI(error.message);
       }
@@ -2950,7 +3027,8 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: {
             wallet: state.wallet,
-            domain: state.selectedDomain
+            domain: state.selectedDomain,
+            selected_slot: Number(battleCardSlot.value || state.selectedBattleSlot || 0)
           }
         });
         if (data.status === 'matched' && data.result) {
@@ -2969,7 +3047,7 @@ PAGE_TEMPLATE = """
         matchmakingStatus.textContent = data.cooldown_seconds
           ? `Повтор с тем же соперником через ${data.cooldown_seconds} сек. Идёт поиск...`
           : 'Идёт поиск соперника...';
-        setTimeout(() => pollMatchmaking(mode), 2200);
+        matchmakingPollTimer = window.setTimeout(() => pollMatchmaking(mode), 2200);
       } catch (error) {
         stopMatchmakingUI(error.message);
       }
@@ -3001,7 +3079,8 @@ PAGE_TEMPLATE = """
             domain: state.selectedDomain,
             opponent_wallet: opponentWallet,
             timeout_seconds: timeoutSeconds,
-            delivery
+            delivery,
+            selected_slot: Number(battleCardSlot.value || state.selectedBattleSlot || 0)
           }
         });
 
@@ -3046,7 +3125,8 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: {
             wallet: state.wallet,
-            domain: state.selectedDomain
+            domain: state.selectedDomain,
+            selected_slot: Number(battleCardSlot.value || state.selectedBattleSlot || 0)
           }
         });
         state.lastResult = data.result;
@@ -3354,6 +3434,7 @@ PAGE_TEMPLATE = """
           state.domains = [];
           state.selectedDomain = null;
           state.cards = [];
+          state.selectedBattleSlot = null;
           packCards.innerHTML = '';
           packScoreLabel.textContent = 'Вклад карт: -';
           packShowcase.classList.remove('opened');
@@ -3378,6 +3459,7 @@ PAGE_TEMPLATE = """
           state.domains = [];
           state.selectedDomain = null;
           state.cards = [];
+          state.selectedBattleSlot = null;
           renderDomains([]);
           renderProfile();
           renderFriends([]);
@@ -3416,6 +3498,10 @@ PAGE_TEMPLATE = """
     document.getElementById('play-bot-btn').addEventListener('click', playBotMatch);
     document.getElementById('play-onecard-btn').addEventListener('click', playOneCardMatch);
     oneCardSlot.addEventListener('change', updateButtons);
+    battleCardSlot.addEventListener('change', () => {
+      state.selectedBattleSlot = Number(battleCardSlot.value || 0) || null;
+      updateButtons();
+    });
     refreshAchievementsBtn.addEventListener('click', loadAchievements);
     document.getElementById('show-team-btn').addEventListener('click', () => {
       animateModeChoice('team');
@@ -3572,6 +3658,7 @@ def init_db():
                 mode TEXT NOT NULL,
                 wallet TEXT NOT NULL,
                 domain TEXT NOT NULL,
+                selected_slot INTEGER,
                 status TEXT NOT NULL,
                 opponent_wallet TEXT,
                 result_json TEXT,
@@ -3656,6 +3743,9 @@ def init_db():
         if 'first_seen' not in columns:
             conn.execute('ALTER TABLE players ADD COLUMN first_seen TEXT')
             conn.execute('UPDATE players SET first_seen = COALESCE(first_seen, updated_at)')
+        matchmaking_columns = {row['name'] for row in conn.execute("PRAGMA table_info(matchmaking_queue)").fetchall()}
+        if 'selected_slot' not in matchmaking_columns:
+            conn.execute('ALTER TABLE matchmaking_queue ADD COLUMN selected_slot INTEGER')
         conn.commit()
 
 
@@ -3668,6 +3758,7 @@ def ensure_runtime_tables():
                 mode TEXT NOT NULL,
                 wallet TEXT NOT NULL,
                 domain TEXT NOT NULL,
+                selected_slot INTEGER,
                 status TEXT NOT NULL,
                 opponent_wallet TEXT,
                 result_json TEXT,
@@ -3706,6 +3797,9 @@ def ensure_runtime_tables():
             );
             '''
         )
+        matchmaking_columns = {row['name'] for row in conn.execute("PRAGMA table_info(matchmaking_queue)").fetchall()}
+        if 'selected_slot' not in matchmaking_columns:
+            conn.execute('ALTER TABLE matchmaking_queue ADD COLUMN selected_slot INTEGER')
         conn.commit()
 
 
@@ -4277,6 +4371,14 @@ RARITY_LABELS = {
 }
 CARD_POOL_SIZE = 5
 DISCIPLINE_KEYS = ('attack', 'defense', 'luck', 'speed', 'magic')
+CARD_SKILLS = [
+    {'key': 'underdog', 'name': 'Андердог', 'description': 'Если ты отстаешь, карта резко добирает силу.'},
+    {'key': 'tempo', 'name': 'Темп', 'description': 'После проигранного раунда усиливает следующий ход.'},
+    {'key': 'mirror', 'name': 'Зеркало', 'description': 'Лучше работает против более прокачанного соперника.'},
+    {'key': 'attack_burst', 'name': 'Пролом', 'description': 'Сильно давит в атаке и магии.'},
+    {'key': 'defense_lock', 'name': 'Замок', 'description': 'Особенно хороша в защите и скорости.'},
+    {'key': 'wildcard', 'name': 'Джокер', 'description': 'Может резко перевернуть удачу и магию.'},
+]
 
 
 def build_card_catalog():
@@ -4287,6 +4389,14 @@ def build_card_catalog():
         {'id': 'mythic', 'title': 'Mythic Card', 'rarity': 'mythic', 'rarity_label': 'Mythic', 'pool_min': 170, 'pool_max': 240},
         {'id': 'legendary', 'title': 'Legendary Card', 'rarity': 'legendary', 'rarity_label': 'Legendary', 'pool_min': 230, 'pool_max': 320},
     ]
+
+
+def skill_for_card(rarity_key, domain, slot, title=''):
+    seed = f'{rarity_key}:{domain}:{slot}:{title}'
+    digest = hashlib.sha256(seed.encode()).hexdigest()
+    idx = int(digest[:8], 16) % len(CARD_SKILLS)
+    skill = CARD_SKILLS[idx]
+    return dict(skill)
 
 
 CARD_CATALOG = build_card_catalog()
@@ -4339,6 +4449,18 @@ def normalize_card_profile(card):
     normalized['pool_value'] = int(normalized.get('pool_value') or normalized.get('base_power') or normalized.get('score') or 0)
     normalized['base_power'] = normalized['pool_value']
     normalized['score'] = normalized['pool_value']
+    skill = normalized.get('skill')
+    if not isinstance(skill, dict) or not skill.get('key'):
+        skill = skill_for_card(
+            rarity_key,
+            normalized.get('domain') or 'deck',
+            int(normalized.get('slot') or 0),
+            normalized.get('title') or '',
+        )
+    normalized['skill'] = skill
+    normalized['skill_key'] = skill['key']
+    normalized['skill_name'] = skill['name']
+    normalized['skill_description'] = skill['description']
     return normalized
 
 
@@ -4458,17 +4580,22 @@ def materialize_card(card_template, domain, slot):
     rarity = card_template['rarity']
     pool_value = random.randint(int(card_template['pool_min']), int(card_template['pool_max']))
     score = pool_value
+    skill = skill_for_card(rarity, domain, slot, card_template['title'])
     return {
         'id': f"{card_template['id']}-{slot}",
         'slot': slot,
         'title': card_template['title'],
-        'ability': 'Даёт очки в свободный пул колоды.',
+        'ability': skill['description'],
         'domain': domain,
         'pool_value': pool_value,
         'base_power': pool_value,
         'score': score,
         'rarity': card_template['rarity_label'],
         'rarity_key': rarity,
+        'skill': skill,
+        'skill_key': skill['key'],
+        'skill_name': skill['name'],
+        'skill_description': skill['description'],
         'patterns': [],
     }
 
@@ -4510,7 +4637,82 @@ def build_bonus_value(build_points, focus):
     return max(0, round(points / 2))
 
 
-def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None):
+def find_card_by_slot(cards, slot):
+    try:
+        slot_value = int(slot or 0)
+    except (TypeError, ValueError):
+        slot_value = 0
+    normalized = [normalize_card_profile(card) for card in (cards or [])]
+    if slot_value > 0:
+        selected = next((card for card in normalized if int(card.get('slot') or 0) == slot_value), None)
+        if selected:
+            return selected
+    return normalized[0] if normalized else None
+
+
+def auto_tactical_slot(cards, build_points=None):
+    normalized = [normalize_card_profile(card) for card in (cards or [])]
+    if not normalized:
+        return 1
+    build_points = build_points or {}
+    focus_rank = sorted(
+        DISCIPLINE_KEYS,
+        key=lambda key: int((build_points or {}).get(key, 0)),
+        reverse=True,
+    )
+    preferred = {
+        'attack_burst': {'attack', 'magic'},
+        'defense_lock': {'defense', 'speed'},
+        'wildcard': {'luck', 'magic'},
+        'mirror': {focus_rank[0] if focus_rank else 'attack'},
+        'tempo': {focus_rank[1] if len(focus_rank) > 1 else focus_rank[0] if focus_rank else 'speed'},
+        'underdog': {'luck', 'speed'},
+    }
+    def score(card):
+        skill_key = card.get('skill_key')
+        return (
+            len(preferred.get(skill_key, set()).intersection(focus_rank[:2])),
+            int(card.get('pool_value', 0)),
+        )
+    return max(normalized, key=score).get('slot', 1)
+
+
+def apply_skill_bonus(skill_key, focus, base_self, base_opp, card_self, card_opp, round_index, previous_outcome):
+    card_self = normalize_card_profile(card_self)
+    card_opp = normalize_card_profile(card_opp)
+    diff = base_opp - base_self
+    own_pool = int(card_self.get('pool_value', 0))
+    opp_pool = int(card_opp.get('pool_value', 0))
+    if skill_key == 'underdog':
+        if diff > 0:
+            return min(18, 8 + diff // 18), 'Андердог включился'
+        if own_pool < opp_pool:
+            return 6, 'Меньшая карта выжала максимум'
+    if skill_key == 'tempo':
+        if previous_outcome == 'loss':
+            return 14, 'Темп после проигранного раунда'
+        if round_index == 0:
+            return 4, 'Разгон темпа'
+    if skill_key == 'mirror':
+        if base_opp > base_self:
+            return 10, 'Зеркало украло перевес'
+        if own_pool < opp_pool:
+            return 6, 'Зеркало сыграло от меньшей карты'
+    if skill_key == 'attack_burst':
+        if focus in {'attack', 'magic'}:
+            return 12, 'Пролом попал в профильный раунд'
+    if skill_key == 'defense_lock':
+        if focus in {'defense', 'speed'}:
+            return 12, 'Замок закрыл линию'
+    if skill_key == 'wildcard':
+        if focus in {'luck', 'magic'}:
+            return 15, 'Джокер перевернул ход'
+        if diff > 6:
+            return 5, 'Джокер вытянул минимум'
+    return 0, ''
+
+
+def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, featured_slot_a=None, featured_slot_b=None):
     rounds = []
     wins_a = 0
     wins_b = 0
@@ -4518,8 +4720,12 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None):
     if not cards_a or not cards_b:
         return {'rounds': rounds, 'score_a': 0, 'score_b': 0, 'winner': None, 'tie_breaker': False}
 
+    featured_a = find_card_by_slot(cards_a, featured_slot_a)
+    featured_b = find_card_by_slot(cards_b, featured_slot_b)
     rng = random.Random(hashlib.sha256(f'wikigachi:{seed_value}'.encode()).hexdigest())
     rounds_count = min(len(cards_a), len(cards_b), len(WIKIGACHI_ROUND_PLAN))
+    prev_a = None
+    prev_b = None
 
     for idx in range(rounds_count):
         focus, label = WIKIGACHI_ROUND_PLAN[idx]
@@ -4529,21 +4735,47 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None):
         value_b = build_bonus_value(build_b, focus)
         card_boost_a = max(0, int(card_stat_value(card_a, focus) // 80))
         card_boost_b = max(0, int(card_stat_value(card_b, focus) // 80))
+        skill_bonus_a, skill_note_a = apply_skill_bonus(
+            (featured_a or {}).get('skill_key'),
+            focus,
+            value_a,
+            value_b,
+            featured_a or card_a,
+            featured_b or card_b,
+            idx,
+            prev_a,
+        )
+        skill_bonus_b, skill_note_b = apply_skill_bonus(
+            (featured_b or {}).get('skill_key'),
+            focus,
+            value_b,
+            value_a,
+            featured_b or card_b,
+            featured_a or card_a,
+            idx,
+            prev_b,
+        )
 
         # Small deterministic swing for a less predictable duel flow.
         swing_a = rng.randint(0, 2)
         swing_b = rng.randint(0, 2)
-        total_a = value_a + card_boost_a + swing_a
-        total_b = value_b + card_boost_b + swing_b
+        total_a = value_a + card_boost_a + skill_bonus_a + swing_a
+        total_b = value_b + card_boost_b + skill_bonus_b + swing_b
 
         if total_a > total_b:
             round_winner = 'a'
             wins_a += 1
+            prev_a = 'win'
+            prev_b = 'loss'
         elif total_b > total_a:
             round_winner = 'b'
             wins_b += 1
+            prev_a = 'loss'
+            prev_b = 'win'
         else:
             round_winner = 'draw'
+            prev_a = 'draw'
+            prev_b = 'draw'
 
         rounds.append(
             {
@@ -4556,6 +4788,10 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None):
                 'value_b': value_b,
                 'boost_a': card_boost_a,
                 'boost_b': card_boost_b,
+                'skill_bonus_a': skill_bonus_a,
+                'skill_bonus_b': skill_bonus_b,
+                'skill_note_a': skill_note_a,
+                'skill_note_b': skill_note_b,
                 'swing_a': swing_a,
                 'swing_b': swing_b,
                 'total_a': total_a,
@@ -4586,6 +4822,8 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None):
         'score_b': wins_b,
         'winner': winner,
         'tie_breaker': tie_breaker,
+        'featured_a': featured_a,
+        'featured_b': featured_b,
     }
 
 
@@ -4642,16 +4880,21 @@ def random_bot_cards(seed_value, count=5):
         rarity_key = rarity_keys[rng.randrange(len(rarity_keys))]
         template = CARD_CATALOG_BY_RARITY[rarity_key][0]
         pool_value = rng.randint(int(template['pool_min']), int(template['pool_max']))
+        skill = skill_for_card(rarity_key, f'bot-{seed_value}', slot, template['title'])
         cards.append(
             {
                 'slot': slot,
                 'title': CARD_TITLES[rng.randrange(len(CARD_TITLES))],
-                'ability': CARD_ABILITIES[rng.randrange(len(CARD_ABILITIES))],
+                'ability': skill['description'],
                 'pool_value': pool_value,
                 'base_power': pool_value,
                 'score': pool_value,
                 'rarity': RARITY_LABELS[rarity_key],
                 'rarity_key': rarity_key,
+                'skill': skill,
+                'skill_key': skill['key'],
+                'skill_name': skill['name'],
+                'skill_description': skill['description'],
             }
         )
     return cards
@@ -4671,16 +4914,21 @@ def bot_cards_slightly_weaker_than_player(player_cards, seed_value):
         rarity_key = str(source.get('rarity_key') or 'basic').lower()
         if rarity_key not in RARITY_LABELS:
             rarity_key = 'basic'
+        skill = skill_for_card(rarity_key, f'bot-{seed_value}', slot, source.get('title', 'Bot Card'))
         cards.append(
             {
                 'slot': slot,
                 'title': CARD_TITLES[rng.randrange(len(CARD_TITLES))],
-                'ability': CARD_ABILITIES[rng.randrange(len(CARD_ABILITIES))],
+                'ability': skill['description'],
                 'pool_value': score,
                 'base_power': score,
                 'score': score,
                 'rarity': RARITY_LABELS[rarity_key],
                 'rarity_key': rarity_key,
+                'skill': skill,
+                'skill_key': skill['key'],
+                'skill_name': skill['name'],
+                'skill_description': skill['description'],
             }
         )
     return cards
@@ -5141,19 +5389,23 @@ def achievements_for_wallet(wallet):
     ]
 
 
-def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
+def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b, selected_slot_a=None, selected_slot_b=None):
     cards_a = load_active_deck_cards(wallet_a, domain_a) or generate_pack(domain_a)
     cards_b = load_active_deck_cards(wallet_b, domain_b) or generate_pack(domain_b)
     cards_a = [normalize_card_profile(card) for card in cards_a]
     cards_b = [normalize_card_profile(card) for card in cards_b]
     build_a = load_deck_build(wallet_a, domain_a, cards_a)
     build_b = load_deck_build(wallet_b, domain_b, cards_b)
+    selected_slot_a = selected_slot_a or auto_tactical_slot(cards_a, build_a['points'])
+    selected_slot_b = selected_slot_b or auto_tactical_slot(cards_b, build_b['points'])
     duel = wikigachi_duel(
         cards_a,
         cards_b,
         f'{wallet_a}:{domain_a}:{wallet_b}:{domain_b}',
         build_a=build_a['points'],
         build_b=build_b['points'],
+        featured_slot_a=selected_slot_a,
+        featured_slot_b=selected_slot_b,
     )
     score_a = duel['score_a']
     score_b = duel['score_b']
@@ -5178,6 +5430,10 @@ def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b):
         'deck_power_b': deck_score(cards_b),
         'build_a': build_a,
         'build_b': build_b,
+        'featured_slot_a': selected_slot_a,
+        'featured_slot_b': selected_slot_b,
+        'featured_card_a': duel.get('featured_a'),
+        'featured_card_b': duel.get('featured_b'),
         'winner': winner,
     }
 
@@ -5331,6 +5587,10 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
                 'opponent_value': item['value_b'] if viewer_is_a else item['value_a'],
                 'player_boost': item.get('boost_a', 0) if viewer_is_a else item.get('boost_b', 0),
                 'opponent_boost': item.get('boost_b', 0) if viewer_is_a else item.get('boost_a', 0),
+                'player_skill_bonus': item.get('skill_bonus_a', 0) if viewer_is_a else item.get('skill_bonus_b', 0),
+                'opponent_skill_bonus': item.get('skill_bonus_b', 0) if viewer_is_a else item.get('skill_bonus_a', 0),
+                'player_skill_note': item.get('skill_note_a', '') if viewer_is_a else item.get('skill_note_b', ''),
+                'opponent_skill_note': item.get('skill_note_b', '') if viewer_is_a else item.get('skill_note_a', ''),
                 'player_total': item['total_a'] if viewer_is_a else item['total_b'],
                 'opponent_total': item['total_b'] if viewer_is_a else item['total_a'],
                 'winner': (
@@ -5347,6 +5607,8 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
     opp_cards = match['cards_b'] if viewer_is_a else match['cards_a']
     own_build = match.get('build_a') if viewer_is_a else match.get('build_b')
     opp_build = match.get('build_b') if viewer_is_a else match.get('build_a')
+    own_featured = match.get('featured_card_a') if viewer_is_a else match.get('featured_card_b')
+    opp_featured = match.get('featured_card_b') if viewer_is_a else match.get('featured_card_a')
 
     mode_title = 'Дуэль'
     if invite['mode'] == 'ranked':
@@ -5370,6 +5632,8 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
         'rounds': rounds,
         'player_cards': own_cards,
         'opponent_cards': opp_cards,
+        'player_featured_card': own_featured,
+        'opponent_featured_card': opp_featured,
         'player_build': (own_build or {}).get('points') if isinstance(own_build, dict) else {},
         'player_build_pool': (own_build or {}).get('pool') if isinstance(own_build, dict) else 0,
         'opponent_build': (opp_build or {}).get('points') if isinstance(opp_build, dict) else {},
@@ -5637,7 +5901,7 @@ def latest_matchmaking_row(conn, wallet, mode):
     ).fetchone()
 
 
-def upsert_searching_matchmaking(conn, wallet, domain, mode):
+def upsert_searching_matchmaking(conn, wallet, domain, mode, selected_slot=None):
     ts = now_iso()
     existing = conn.execute(
         '''
@@ -5650,26 +5914,33 @@ def upsert_searching_matchmaking(conn, wallet, domain, mode):
     ).fetchone()
     if existing:
         conn.execute(
-            'UPDATE matchmaking_queue SET domain = ?, updated_at = ? WHERE id = ?',
-            (domain, ts, existing['id']),
+            'UPDATE matchmaking_queue SET domain = ?, selected_slot = ?, updated_at = ? WHERE id = ?',
+            (domain, selected_slot, ts, existing['id']),
         )
         return existing['id']
     queue_id = uuid.uuid4().hex
     conn.execute(
         '''
         INSERT INTO matchmaking_queue (
-            id, mode, wallet, domain, status, opponent_wallet, result_json, created_at, updated_at, consumed_at
-        ) VALUES (?, ?, ?, ?, 'searching', NULL, NULL, ?, ?, NULL)
+            id, mode, wallet, domain, selected_slot, status, opponent_wallet, result_json, created_at, updated_at, consumed_at
+        ) VALUES (?, ?, ?, ?, ?, 'searching', NULL, NULL, ?, ?, NULL)
         ''',
-        (queue_id, mode, wallet, domain, ts, ts),
+        (queue_id, mode, wallet, domain, selected_slot, ts, ts),
     )
     return queue_id
 
 
-def settle_matchmaking_pair(conn, mode, wallet, domain, opponent_row):
+def settle_matchmaking_pair(conn, mode, wallet, domain, opponent_row, selected_slot=None):
     opponent_wallet = opponent_row['wallet']
     opponent_domain = opponent_row['domain']
-    match = head_to_head_result(wallet, domain, opponent_wallet, opponent_domain)
+    match = head_to_head_result(
+        wallet,
+        domain,
+        opponent_wallet,
+        opponent_domain,
+        selected_slot_a=selected_slot,
+        selected_slot_b=opponent_row['selected_slot'],
+    )
     rating_meta = None
     if mode == 'ranked':
         _, _, rating_a_before, rating_a_after, rating_b_before, rating_b_after = apply_ranked_result_duel(match)
@@ -5701,8 +5972,8 @@ def settle_matchmaking_pair(conn, mode, wallet, domain, opponent_row):
     conn.execute(
         '''
         INSERT INTO matchmaking_queue (
-            id, mode, wallet, domain, status, opponent_wallet, result_json, created_at, updated_at, consumed_at
-        ) VALUES (?, ?, ?, ?, 'matched', ?, ?, ?, ?, NULL)
+            id, mode, wallet, domain, selected_slot, status, opponent_wallet, result_json, created_at, updated_at, consumed_at
+        ) VALUES (?, ?, ?, ?, NULL, 'matched', ?, ?, ?, ?, NULL)
         ''',
         (queue_id, mode, wallet, domain, opponent_wallet, json.dumps(own_payload, ensure_ascii=False), ts, ts),
     )
@@ -6409,6 +6680,7 @@ def api_matchmaking_search(mode):
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     domain = normalize_domain(payload.get('domain'))
+    selected_slot = int(payload.get('selected_slot') or 0) or None
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
     if not domain:
@@ -6457,7 +6729,7 @@ def api_matchmaking_search(mode):
 
             if opponent:
                 conn.commit()
-                queue_id, own_payload, opponent_wallet = settle_matchmaking_pair(conn, mode, wallet, domain, opponent)
+                queue_id, own_payload, opponent_wallet = settle_matchmaking_pair(conn, mode, wallet, domain, opponent, selected_slot=selected_slot)
                 conn.commit()
                 return jsonify(
                     {
@@ -6469,7 +6741,7 @@ def api_matchmaking_search(mode):
                     }
                 )
 
-            queue_id = upsert_searching_matchmaking(conn, wallet, domain, mode)
+            queue_id = upsert_searching_matchmaking(conn, wallet, domain, mode, selected_slot=selected_slot)
             conn.commit()
             response = {'status': 'searching', 'queue_id': queue_id, 'player': get_player(wallet)}
             if min_cooldown > 0:
@@ -6595,6 +6867,7 @@ def api_match(mode):
     opponent_reference = (payload.get('opponent_wallet') or '').strip()
     timeout_seconds = payload.get('timeout_seconds') or DEFAULT_INVITE_TIMEOUT_SECONDS
     delivery = (payload.get('delivery') or 'site').strip().lower()
+    selected_slot = int(payload.get('selected_slot') or 0) or None
 
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
@@ -6614,7 +6887,7 @@ def api_match(mode):
             return json_error('У соперника ещё нет выбранного домена для боя.', 400)
 
         if delivery == 'site':
-            match = head_to_head_result(wallet, domain, opponent_wallet, opponent_domain)
+            match = head_to_head_result(wallet, domain, opponent_wallet, opponent_domain, selected_slot_a=selected_slot)
             record_non_ranked_game(wallet, domain)
             record_non_ranked_game(opponent_wallet, opponent_domain)
             result = invite_result_payload({'mode': 'duel'}, match, wallet)
@@ -6632,6 +6905,7 @@ def api_match_bot():
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     domain = normalize_domain(payload.get('domain'))
+    selected_slot = int(payload.get('selected_slot') or 0) or None
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
     if not domain:
@@ -6655,6 +6929,8 @@ def api_match_bot():
         f'{base_seed}:duel',
         build_a=player_build['points'],
         build_b=bot_build['points'],
+        featured_slot_a=selected_slot,
+        featured_slot_b=auto_tactical_slot(bot_cards, bot_build['points']),
     )
     player_score = duel['score_a']
     bot_score = duel['score_b']
@@ -6685,6 +6961,10 @@ def api_match_bot():
                 'opponent_total': item['total_b'],
                 'player_boost': item.get('boost_a', 0),
                 'opponent_boost': item.get('boost_b', 0),
+                'player_skill_bonus': item.get('skill_bonus_a', 0),
+                'opponent_skill_bonus': item.get('skill_bonus_b', 0),
+                'player_skill_note': item.get('skill_note_a', ''),
+                'opponent_skill_note': item.get('skill_note_b', ''),
                 'winner': 'draw' if item['winner'] == 'draw' else ('player' if item['winner'] == 'a' else 'opponent'),
             }
         )
@@ -6706,6 +6986,8 @@ def api_match_bot():
                 'rounds': rounds,
                 'player_cards': player_cards,
                 'opponent_cards': bot_cards,
+                'player_featured_card': duel.get('featured_a'),
+                'opponent_featured_card': duel.get('featured_b'),
                 'player_build': player_build['points'],
                 'player_build_pool': player_build['pool'],
                 'result': result_code,
@@ -6740,11 +7022,14 @@ def api_match_one_card():
     player_card = next((card for card in cards if card['slot'] == card_slot), None)
     if player_card is None:
         return json_error('Карта не найдена в колоде.', 400)
-    bot_card = random_bot_single_card(f'onecard:{wallet}:{domain}:{now_iso()}')
+    bot_card = normalize_card_profile(random_bot_single_card(f'onecard:{wallet}:{domain}:{now_iso()}'))
     player_build = load_deck_build(wallet, domain, cards)
     player_bonus = max(0, round(sum(player_build['points'].values()) / 15))
-    player_score = player_card['score'] + player_bonus
-    bot_score = bot_card['score']
+    bot_base = max(0, round(sum(default_discipline_build(2200).values()) / 18))
+    player_skill_bonus, player_skill_note = apply_skill_bonus(player_card.get('skill_key'), 'attack', player_bonus, bot_base, player_card, bot_card, 0, None)
+    bot_skill_bonus, bot_skill_note = apply_skill_bonus(bot_card.get('skill_key'), 'attack', bot_base, player_bonus, bot_card, player_card, 0, None)
+    player_score = player_card['score'] + player_bonus + player_skill_bonus
+    bot_score = bot_card['score'] + bot_skill_bonus
     if player_score > bot_score:
         result_code = 'win'
         result_label = 'Победа'
@@ -6772,6 +7057,26 @@ def api_match_one_card():
                 'result_label': result_label,
                 'player_card': player_card,
                 'opponent_card': bot_card,
+                'player_featured_card': player_card,
+                'opponent_featured_card': bot_card,
+                'rounds': [{
+                    'round': 1,
+                    'label': 'Раунд 1: Тактический размен',
+                    'focus': 'attack',
+                    'player_card': {'slot': player_card.get('slot'), 'title': player_card.get('title')},
+                    'opponent_card': {'slot': bot_card.get('slot'), 'title': bot_card.get('title')},
+                    'player_value': player_bonus,
+                    'opponent_value': bot_base,
+                    'player_boost': 0,
+                    'opponent_boost': 0,
+                    'player_skill_bonus': player_skill_bonus,
+                    'opponent_skill_bonus': bot_skill_bonus,
+                    'player_skill_note': player_skill_note,
+                    'opponent_skill_note': bot_skill_note,
+                    'player_total': player_score,
+                    'opponent_total': bot_score,
+                    'winner': 'draw' if result_code == 'draw' else ('player' if result_code == 'win' else 'opponent'),
+                }],
                 'player_cards': [player_card],
                 'opponent_cards': [bot_card],
             },
