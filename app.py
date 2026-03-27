@@ -1403,6 +1403,91 @@ PAGE_TEMPLATE = """
       gap: 10px;
     }
 
+    .wallet-flow-note {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .wallet-section {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .wallet-section h3 {
+      margin: 0 0 6px;
+    }
+
+    .wallet-section .tiny {
+      line-height: 1.45;
+    }
+
+    .wallet-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .wallet-section-kicker {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background: rgba(69, 215, 255, 0.08);
+      color: #dff7ff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .wallet-domain-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .wallet-domain-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(69, 215, 255, 0.12), transparent 38%);
+      pointer-events: none;
+    }
+
+    .wallet-domain-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .wallet-domain-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .wallet-domain-action {
+      width: 100%;
+      margin-top: 2px;
+    }
+
     .global-players-list {
       display: grid;
       gap: 10px;
@@ -1502,6 +1587,54 @@ PAGE_TEMPLATE = """
         grid-template-columns: 1fr;
       }
 
+      #view-wallet {
+        display: grid;
+        gap: 12px;
+      }
+
+      .wallet-quick-panel {
+        position: sticky;
+        top: calc(8px + env(safe-area-inset-top));
+        z-index: 8;
+        margin: 0;
+        padding: 16px;
+        border-radius: 20px;
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2);
+      }
+
+      .wallet-quick-item {
+        padding: 12px 14px;
+      }
+
+      .wallet-quick-item strong {
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+
+      .wallet-quick-actions button,
+      .wallet-domain-action {
+        min-height: 50px;
+        font-size: 14px;
+      }
+
+      #view-wallet .actions {
+        margin-top: 0;
+      }
+
+      #ton-connect {
+        width: 100%;
+      }
+
+      #ton-connect > div {
+        width: 100%;
+      }
+
+      .wallet-section {
+        margin-top: 0;
+        padding: 14px;
+        border-radius: 20px;
+      }
+
       .domain-grid,
       .owned-decks {
         grid-template-columns: 1fr;
@@ -1552,7 +1685,7 @@ PAGE_TEMPLATE = """
                 <div class="tiny" id="wallet-quick-domain">Не выбран</div>
               </div>
             </div>
-            <div class="tiny">Если на домен уже открывались карты, они автоматически подтянутся как активная колода.</div>
+            <div class="wallet-flow-note">Подключи кошелёк, проверь свои `.ton` домены и сразу переходи к готовой колоде. Если карты для домена уже были открыты, они подтянутся автоматически.</div>
             <div class="wallet-quick-actions">
               <button id="check-domains-btn" disabled>Проверить наличие доменов</button>
               <button class="secondary" id="wallet-open-pack-btn" disabled>К распаковке</button>
@@ -1564,9 +1697,26 @@ PAGE_TEMPLATE = """
           </div>
 
           <div class="status" id="wallet-status"></div>
-          <div class="domain-grid" id="domains-list"></div>
-          <h3 style="margin-top:16px;">Уже открытые колоды</h3>
-          <div class="owned-decks" id="wallet-owned-decks-list"></div>
+          <div class="wallet-section">
+            <div class="wallet-section-head">
+              <div>
+                <h3>Домены для игры</h3>
+                <div class="tiny">Выбери домен, которым хочешь играть прямо сейчас.</div>
+              </div>
+              <div class="wallet-section-kicker">TON</div>
+            </div>
+            <div class="domain-grid" id="domains-list"></div>
+          </div>
+          <div class="wallet-section">
+            <div class="wallet-section-head">
+              <div>
+                <h3>Уже открытые колоды</h3>
+                <div class="tiny">Если колода уже есть в базе, можно сразу продолжать игру.</div>
+              </div>
+              <div class="wallet-section-kicker">DECK</div>
+            </div>
+            <div class="owned-decks" id="wallet-owned-decks-list"></div>
+          </div>
           <div class="result-box" id="marketplaces-box" style="display:none;">
             <strong>Доменов клуба 10K не найдено.</strong>
             <p class="muted">Можно купить 4-значный .ton на площадках и затем вернуться к игре с новым доменом.</p>
@@ -2244,12 +2394,16 @@ PAGE_TEMPLATE = """
         return;
       }
       const markup = state.ownedDecks.map((item) => `
-        <div class="user-item">
+        <div class="user-item wallet-domain-card">
           <strong>${item.domain}.ton ${item.is_active || currentDomain === item.domain ? '(активная)' : ''}</strong>
-          <div class="tiny">Тир: ${item.tier || '-'} • Удача: ${item.luck || 0}</div>
-          <div class="tiny">Пул дисциплин: ${item.deck.discipline_pool || 0} • вклад карт: ${item.deck.total_score}</div>
+          <div class="wallet-domain-stats">
+            <span class="wallet-domain-chip">Тир: ${item.tier || '-'}</span>
+            <span class="wallet-domain-chip">Удача: ${item.luck || 0}</span>
+            <span class="wallet-domain-chip">Пул: ${item.deck.discipline_pool || 0}</span>
+          </div>
+          <div class="tiny">Вклад карт: ${item.deck.total_score} • ${item.deck.cards && item.deck.cards.length ? `карт в колоде: ${item.deck.cards.length}` : 'колода еще не открыта'}</div>
           <div class="actions" style="margin-top:10px;">
-            <button class="secondary" onclick="selectDeckDomain('${item.domain}')">Сделать активной</button>
+            <button class="secondary wallet-domain-action" onclick="selectDeckDomain('${item.domain}')">Играть этим доменом</button>
           </div>
         </div>
       `).join('');
@@ -2378,14 +2532,17 @@ PAGE_TEMPLATE = """
 
       marketplacesBox.style.display = 'none';
       container.innerHTML = domains.map((domain) => `
-        <div class="domain-card ${state.selectedDomain === domain.domain ? 'selected' : ''}">
+        <div class="domain-card user-item wallet-domain-card ${state.selectedDomain === domain.domain ? 'selected' : ''}">
           <h3>${domain.domain}.ton ${domain.is_guest ? '• гостевой' : ''}</h3>
-          <p>Источник: ${domain.source_label}</p>
-          <p>Тир: ${domain.tier || '-'} • Удача: ${domain.luck || 0}</p>
+          <div class="wallet-domain-stats">
+            <span class="wallet-domain-chip">Источник: ${domain.source_label}</span>
+            <span class="wallet-domain-chip">Тир: ${domain.tier || '-'}</span>
+            <span class="wallet-domain-chip">Удача: ${domain.luck || 0}</span>
+          </div>
           <p>Паттерны: ${domain.patterns.length ? domain.patterns.join(', ') : 'базовый 10K домен'}</p>
           <p>Спецколлекции: ${domain.special_collections && domain.special_collections.length ? domain.special_collections.join(', ') : 'нет'}</p>
           <p>Счёт домена: ${domain.score} • DNS: ${domain.is_guest ? 'гостевой режим' : (domain.domain_exists ? 'активен' : 'не подтверждён')}</p>
-          <button onclick="selectDomain('${domain.domain}')">Выбрать домен</button>
+          <button class="wallet-domain-action" onclick="selectDomain('${domain.domain}')">${state.selectedDomain === domain.domain ? 'Открыть колоду' : 'Выбрать домен'}</button>
         </div>
       `).join('');
     }
