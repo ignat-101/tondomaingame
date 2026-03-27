@@ -664,8 +664,8 @@ PAGE_TEMPLATE = """
       background: rgba(4, 14, 27, 0.94);
       overflow: auto;
       -webkit-overflow-scrolling: touch;
-      min-height: auto;
-      max-height: 46vh;
+      min-height: 54vh;
+      max-height: 68vh;
     }
 
     .showdown-deck {
@@ -845,7 +845,9 @@ PAGE_TEMPLATE = """
     }
 
     .battle-stage.visible {
-      display: block;
+      display: grid;
+      gap: 12px;
+      align-content: start;
     }
 
     .interactive-battle-panel {
@@ -860,33 +862,22 @@ PAGE_TEMPLATE = """
     }
 
     .interactive-battle-panel.floating {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      z-index: 80;
-      width: min(92vw, 460px);
-      margin: 0;
+      position: sticky;
+      top: 14px;
+      z-index: 12;
+      width: min(100%, 460px);
+      margin: 0 auto 14px;
       padding: 18px 16px 16px;
-      transform: translate(-50%, -50%);
       border-radius: 24px;
       border-color: rgba(121, 217, 255, 0.32);
       background:
         linear-gradient(135deg, rgba(7, 19, 35, 0.96), rgba(10, 31, 39, 0.97)),
         radial-gradient(circle at top, rgba(69, 215, 255, 0.16), transparent 55%);
       box-shadow:
-        0 28px 80px rgba(0, 0, 0, 0.48),
+        0 20px 54px rgba(0, 0, 0, 0.38),
         0 0 0 1px rgba(121, 217, 255, 0.08);
       backdrop-filter: blur(18px);
       animation: floatingBattlePanelIn 280ms cubic-bezier(.16,.84,.2,1);
-    }
-
-    .interactive-battle-panel.floating::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      background: rgba(3, 9, 18, 0.56);
-      backdrop-filter: blur(4px);
     }
 
     .interactive-battle-title {
@@ -936,11 +927,11 @@ PAGE_TEMPLATE = """
     @keyframes floatingBattlePanelIn {
       from {
         opacity: 0;
-        transform: translate(-50%, -46%) scale(0.92);
+        transform: translateY(10px) scale(0.96);
       }
       to {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
+        transform: translateY(0) scale(1);
       }
     }
 
