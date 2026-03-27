@@ -70,6 +70,7 @@ TELEGRAM_INITDATA_MAX_AGE = int(os.getenv('TELEGRAM_INITDATA_MAX_AGE', '86400'))
 ACTIVE_USER_WINDOW_SECONDS = int(os.getenv('ACTIVE_USER_WINDOW_SECONDS', '900'))
 MATCHMAKING_SEARCH_TTL_SECONDS = int(os.getenv('MATCHMAKING_SEARCH_TTL_SECONDS', '180'))
 MATCHMAKING_REMATCH_COOLDOWN_SECONDS = int(os.getenv('MATCHMAKING_REMATCH_COOLDOWN_SECONDS', '5'))
+BOT_PLAYER_WINRATE_TARGET = max(0.0, min(1.0, float(os.getenv('BOT_PLAYER_WINRATE_TARGET', '0.60'))))
 DB_PATH = Path(os.getenv('APP_DB_PATH', 'tondomaingame.db'))
 TEN_K_CONFIG_TTL = int(os.getenv('TEN_K_CONFIG_TTL', '900'))
 TEN_K_CONFIG_URL = 'https://10kclub.com/api/clubs/10k/config'
@@ -3728,6 +3729,7 @@ MANAGED_ENV_KEYS = {
     'ALLOW_GUEST_WITHOUT_DOMAIN': {'type': 'bool', 'description': 'Разрешить игру без домена'},
     'MATCHMAKING_SEARCH_TTL_SECONDS': {'type': 'int', 'description': 'TTL поиска матчмейкинга'},
     'MATCHMAKING_REMATCH_COOLDOWN_SECONDS': {'type': 'int', 'description': 'Кулдаун повторного матча пары'},
+    'BOT_PLAYER_WINRATE_TARGET': {'type': 'str', 'description': 'Целевой шанс победы игрока против бота (0..1)'},
 }
 
 ENV_DEFAULT_VALUES = {
@@ -3745,6 +3747,7 @@ ENV_DEFAULT_VALUES = {
     'ALLOW_GUEST_WITHOUT_DOMAIN': '1' if ALLOW_GUEST_WITHOUT_DOMAIN else '0',
     'MATCHMAKING_SEARCH_TTL_SECONDS': str(MATCHMAKING_SEARCH_TTL_SECONDS),
     'MATCHMAKING_REMATCH_COOLDOWN_SECONDS': str(MATCHMAKING_REMATCH_COOLDOWN_SECONDS),
+    'BOT_PLAYER_WINRATE_TARGET': str(BOT_PLAYER_WINRATE_TARGET),
 }
 
 
@@ -6665,16 +6668,33 @@ def api_match_bot():
 
     player_cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
     player_cards = [normalize_card_profile(card) for card in player_cards]
-    bot_cards = random_bot_cards(f'{wallet}:{domain}:{now_iso()}')
-    bot_build = {'pool': deck_power_pool(bot_cards), 'points': default_discipline_build(deck_power_pool(bot_cards))}
     player_build = load_deck_build(wallet, domain, player_cards)
-    duel = wikigachi_duel(
-        player_cards,
-        bot_cards,
-        f'bot-duel:{wallet}:{domain}:{now_iso()}',
-        build_a=player_build['points'],
-        build_b=bot_build['points'],
-    )
+
+    base_seed = f'bot-duel:{wallet}:{domain}:{now_iso()}'
+    target_rng = random.Random(hashlib.sha256(f'{base_seed}:target'.encode()).hexdigest())
+    desired_winner = 'a' if target_rng.random() < BOT_PLAYER_WINRATE_TARGET else 'b'
+
+    bot_cards = None
+    bot_build = None
+    duel = None
+    for attempt in range(1, 10):
+        candidate_bot = random_bot_cards(f'{base_seed}:bot:{attempt}')
+        candidate_bot_build = {
+            'pool': deck_power_pool(candidate_bot),
+            'points': default_discipline_build(deck_power_pool(candidate_bot)),
+        }
+        candidate_duel = wikigachi_duel(
+            player_cards,
+            candidate_bot,
+            f'{base_seed}:duel:{attempt}',
+            build_a=player_build['points'],
+            build_b=candidate_bot_build['points'],
+        )
+        bot_cards = candidate_bot
+        bot_build = candidate_bot_build
+        duel = candidate_duel
+        if candidate_duel.get('winner') == desired_winner:
+            break
     player_score = duel['score_a']
     bot_score = duel['score_b']
     player_deck_power = deck_score(player_cards)
