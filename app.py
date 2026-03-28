@@ -718,8 +718,8 @@ PAGE_TEMPLATE = """
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
-      min-height: 54vh;
-      max-height: 68vh;
+      min-height: 74vh;
+      max-height: 88vh;
     }
 
     .showdown-main.arena-board {
@@ -738,8 +738,8 @@ PAGE_TEMPLATE = """
 
     .arena-rail {
       display: grid;
-      gap: 10px;
-      padding: 10px 12px;
+      gap: 8px;
+      padding: 8px 10px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background: rgba(8, 20, 36, 0.88);
@@ -753,7 +753,7 @@ PAGE_TEMPLATE = """
     .arena-deck-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
     }
 
     .arena-slot-card {
@@ -761,7 +761,7 @@ PAGE_TEMPLATE = """
       min-width: 0;
       border-radius: 16px;
       border: 1px solid rgba(121, 217, 255, 0.22);
-      padding: 12px;
+      padding: 10px 10px 9px;
       background: linear-gradient(180deg, rgba(19, 34, 56, 0.96), rgba(9, 18, 31, 0.98));
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
       transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
@@ -794,21 +794,21 @@ PAGE_TEMPLATE = """
 
     .arena-slot-card strong {
       display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-      line-height: 1.25;
+      margin-bottom: 4px;
+      font-size: 12px;
+      line-height: 1.18;
       word-break: break-word;
     }
 
     .arena-slot-meta {
       color: rgba(213, 235, 255, 0.8);
-      font-size: 12px;
-      line-height: 1.35;
+      font-size: 11px;
+      line-height: 1.22;
     }
 
     .arena-core {
       position: relative;
-      min-height: 500px;
+      min-height: 540px;
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background:
@@ -869,10 +869,10 @@ PAGE_TEMPLATE = """
     .arena-choice-hub {
       position: relative;
       z-index: 1;
-      min-height: 500px;
+      min-height: 540px;
       display: grid;
       place-items: center;
-      padding: 18px 18px 22px;
+      padding: 14px 14px 18px;
     }
 
     .arena-choice-panel {
@@ -908,7 +908,7 @@ PAGE_TEMPLATE = """
     .arena-round-choice-strip {
       position: absolute;
       inset: 0;
-      pointer-events: none;
+      pointer-events: auto;
       z-index: 2;
     }
 
@@ -920,6 +920,7 @@ PAGE_TEMPLATE = """
       justify-items: center;
       gap: 10px;
       min-width: 52px;
+      pointer-events: none;
     }
 
     .arena-round-choice-slot.active {
@@ -3209,12 +3210,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-core {
-        min-height: 320px;
+        min-height: 380px;
       }
 
       .arena-choice-hub {
-        min-height: 320px;
-        padding: 14px 8px 18px;
+        min-height: 380px;
+        padding: 12px 6px 16px;
       }
 
       .arena-choice-panel {
@@ -3233,7 +3234,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot {
-        top: 64px;
+        top: 54px;
       }
 
       .arena-round-marker {
@@ -3250,8 +3251,8 @@ PAGE_TEMPLATE = """
       }
 
       .arena-lane-choice-panel {
-        width: min(170px, 42vw);
-        padding: 10px 10px 9px;
+        width: min(160px, 40vw);
+        padding: 9px 8px 8px;
         border-radius: 14px;
       }
 
