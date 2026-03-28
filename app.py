@@ -3039,6 +3039,47 @@ PAGE_TEMPLATE = """
       .layout { grid-template-columns: 1fr; }
       .side { display: none; }
 
+      .showdown-fullscreen {
+        width: 100vw;
+        max-width: 100vw;
+        padding:
+          calc(8px + env(safe-area-inset-top))
+          8px
+          calc(10px + env(safe-area-inset-bottom));
+        gap: 8px;
+        overflow-x: hidden;
+      }
+
+      .showdown-header,
+      .showdown-main,
+      .showdown-main.arena-board,
+      .arena-shell,
+      .arena-rail,
+      .arena-core,
+      .arena-choice-hub,
+      .arena-deck-grid {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      .showdown-main.arena-board {
+        padding: 10px 8px;
+      }
+
+      .arena-shell {
+        gap: 10px;
+      }
+
+      .arena-rail {
+        padding: 8px;
+      }
+
+      .arena-rail .tiny {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
       .hero,
       .panel {
         border-radius: 20px;
@@ -3422,6 +3463,7 @@ PAGE_TEMPLATE = """
         grid-template-columns: repeat(5, minmax(56px, 1fr));
         gap: 6px;
         --arena-gap: 6px;
+        align-items: stretch;
       }
 
       .arena-slot-card {
@@ -3483,6 +3525,7 @@ PAGE_TEMPLATE = """
         width: min(116px, 21vw);
         padding: 7px 5px 6px;
         border-radius: 14px;
+        max-width: 100%;
       }
 
       .arena-lane-choice-panel .interactive-battle-title {
