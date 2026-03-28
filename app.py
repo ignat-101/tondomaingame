@@ -4882,6 +4882,8 @@ PAGE_TEMPLATE = """
     }
 
     function showMatchIntro(title) {
+      clearInteractiveChoiceTimer();
+      clearFinalClimax();
       battleResult.className = 'result-box duel-anim showdown-fullscreen';
       battleResult.style.display = 'block';
       document.body.classList.add('showdown-open');
@@ -4893,6 +4895,19 @@ PAGE_TEMPLATE = """
           <p class="muted">Подготавливаем колоды и дисциплины. Сейчас начнётся разбор по раундам.</p>
         </section>
       `;
+    }
+
+    function resetBattleStage() {
+      clearInteractiveChoiceTimer();
+      clearFinalClimax();
+      battleResult.className = 'result-box';
+      battleResult.style.display = 'none';
+      battleResult.innerHTML = '';
+      inviteResult.className = 'result-box';
+      inviteResult.style.display = 'none';
+      inviteResult.innerHTML = '';
+      document.body.classList.remove('showdown-open');
+      document.querySelectorAll('.battle-fx-layer').forEach((node) => node.remove());
     }
 
     function renderBattleResult(result) {
@@ -5400,13 +5415,13 @@ PAGE_TEMPLATE = """
     }
 
     function repeatLastMode() {
-      clearFinalClimax();
+      resetBattleStage();
       if (state.lastReplayMode === 'bot') {
-        playBotMatch();
+        setTimeout(() => playBotMatch(), 40);
         return;
       }
       if (state.lastReplayMode === 'ranked' || state.lastReplayMode === 'casual') {
-        startMatchmaking(state.lastReplayMode);
+        setTimeout(() => startMatchmaking(state.lastReplayMode), 40);
         return;
       }
       switchView('modes');
