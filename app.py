@@ -1482,6 +1482,8 @@ PAGE_TEMPLATE = """
     .pack-showcase {
       position: relative;
       margin-top: 16px;
+      display: grid;
+      justify-items: center;
       border-radius: 28px;
       border: 1px solid rgba(255, 212, 92, 0.28);
       background:
@@ -1599,7 +1601,7 @@ PAGE_TEMPLATE = """
       border-radius: 0 0 26px 26px;
       background-image: url('/static/pack-10k-club.png');
       background-size: cover;
-      background-position: center bottom;
+      background-position: center center;
       clip-path: inset(0 0 0 0 round 0 0 26px 26px);
       z-index: 1;
       transform-origin: top center;
