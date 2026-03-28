@@ -3542,7 +3542,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot.active .arena-lane-choice-panel {
-        margin-top: 34px;
+        margin-top: 22px;
         transform: none;
       }
 
