@@ -1599,7 +1599,15 @@ PAGE_TEMPLATE = """
       align-items: center;
       gap: 14px;
       margin: 12px 0 18px;
-      padding: 18px 10px 14px;
+      padding: 24px 14px 20px;
+      border-radius: 26px;
+      border: 1px solid rgba(255, 211, 110, 0.14);
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255, 211, 110, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(10, 22, 38, 0.96), rgba(4, 12, 23, 0.98));
+      box-shadow:
+        inset 0 0 0 1px rgba(121, 217, 255, 0.04),
+        0 22px 40px rgba(0, 0, 0, 0.24);
       isolation: isolate;
     }
 
@@ -1628,6 +1636,40 @@ PAGE_TEMPLATE = """
       z-index: -1;
     }
 
+    .battle-cinematic-floor {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      bottom: 10px;
+      height: 56px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255, 211, 110, 0.16), rgba(69, 215, 255, 0.08) 45%, transparent 72%);
+      filter: blur(16px);
+      opacity: 0.92;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .battle-cinematic-label {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0 12px;
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 211, 110, 0.24);
+      background: rgba(255, 211, 110, 0.08);
+      color: #ffe59d;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
     .battle-fighter {
       position: relative;
       border-radius: 16px;
@@ -1640,6 +1682,7 @@ PAGE_TEMPLATE = """
       opacity: 0;
       transform-style: preserve-3d;
       animation: fighterIn 460ms cubic-bezier(.2,.82,.2,1) forwards;
+      overflow: hidden;
     }
 
     .battle-fighter.player {
@@ -1653,6 +1696,21 @@ PAGE_TEMPLATE = """
       margin: 4px 0;
       font-size: 18px;
       line-height: 1.2;
+    }
+
+    .battle-fighter-cardline {
+      display: grid;
+      gap: 4px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .battle-fighter-slot {
+      color: #ffe59d;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .battle-fighter.enemy {
@@ -1713,13 +1771,15 @@ PAGE_TEMPLATE = """
       display: grid;
       gap: 10px;
       margin: 0 0 16px;
-      padding: 14px;
-      border-radius: 20px;
-      border: 1px solid rgba(121, 217, 255, 0.14);
+      padding: 16px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 211, 110, 0.14);
       background:
-        linear-gradient(135deg, rgba(7, 18, 33, 0.92), rgba(9, 27, 42, 0.9)),
-        radial-gradient(circle at top, rgba(69, 215, 255, 0.12), transparent 60%);
-      box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.04);
+        radial-gradient(circle at 50% 0%, rgba(255, 211, 110, 0.1), transparent 28%),
+        linear-gradient(180deg, rgba(9, 19, 32, 0.96), rgba(4, 12, 23, 0.98));
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 211, 110, 0.03),
+        0 16px 32px rgba(0, 0, 0, 0.16);
     }
 
     .arena-decision-headline {
@@ -1739,9 +1799,9 @@ PAGE_TEMPLATE = """
       display: grid;
       gap: 8px;
       padding: 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.03);
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
       opacity: 0;
       transform: translateY(12px) scale(0.97);
       animation: decisionTrackRise 520ms cubic-bezier(.16,.84,.2,1) forwards;
@@ -1778,6 +1838,81 @@ PAGE_TEMPLATE = """
     .arena-decision-score {
       color: #ffe59d;
       white-space: nowrap;
+    }
+
+    .arena-clash-lane {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+    }
+
+    .arena-clash-card {
+      display: grid;
+      gap: 4px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(121, 217, 255, 0.14);
+      background: rgba(255, 255, 255, 0.035);
+      min-width: 0;
+    }
+
+    .arena-clash-card.player {
+      border-color: rgba(69, 215, 255, 0.24);
+      box-shadow: inset 0 0 18px rgba(69, 215, 255, 0.05);
+    }
+
+    .arena-clash-card.enemy {
+      border-color: rgba(255, 122, 134, 0.22);
+      box-shadow: inset 0 0 18px rgba(255, 122, 134, 0.05);
+      text-align: right;
+    }
+
+    .arena-clash-slot {
+      color: rgba(213, 235, 255, 0.68);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .arena-clash-title {
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .arena-clash-meta {
+      color: rgba(213, 235, 255, 0.78);
+      font-size: 12px;
+    }
+
+    .arena-clash-versus {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      min-width: 72px;
+    }
+
+    .arena-clash-badge {
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 211, 110, 0.26);
+      background: rgba(255, 211, 110, 0.09);
+      color: #ffe59d;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .arena-clash-winner {
+      font-size: 11px;
+      text-align: center;
+      color: rgba(213, 235, 255, 0.72);
+      line-height: 1.25;
     }
 
     .arena-decision-chips {
@@ -2641,7 +2776,7 @@ PAGE_TEMPLATE = """
       .battle-cinematic {
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
         gap: 8px;
-        padding: 12px 4px 10px;
+        padding: 20px 8px 14px;
       }
 
       .battle-vs-orb {
@@ -2673,6 +2808,19 @@ PAGE_TEMPLATE = """
 
       .arena-decision-track {
         padding: 12px;
+      }
+
+      .arena-clash-lane {
+        grid-template-columns: 1fr;
+      }
+
+      .arena-clash-versus {
+        order: 2;
+        min-width: 0;
+      }
+
+      .arena-clash-card.enemy {
+        text-align: left;
       }
 
       .arena-decision-roundline {
@@ -4127,12 +4275,35 @@ PAGE_TEMPLATE = """
                   const roundOutcome = round.winner === 'player'
                     ? 'Раунд за тобой'
                     : (round.winner === 'opponent' ? 'Раунд забрал соперник' : 'Раунд вничью');
+                  const roundOutcomeShort = round.winner === 'player'
+                    ? 'Победа'
+                    : (round.winner === 'opponent' ? 'Поражение' : 'Ничья');
+                  const playerCardTitle = round.player_card?.title || 'Твоя карта';
+                  const opponentCardTitle = round.opponent_card?.title || 'Карта соперника';
+                  const playerSlot = round.player_card?.slot || '-';
+                  const opponentSlot = round.opponent_card?.slot || '-';
                   const chipDelayBase = index * 140;
                   return `
                     <div class="arena-decision-burst ${roundClass} ${index === result.rounds.length - 1 ? 'latest' : ''}" style="animation-delay:${Math.min(index * 120, 480)}ms;">
                       <div class="arena-decision-roundline">
                         <strong>${round.label}</strong>
                         <span class="arena-decision-score">${round.player_total} : ${round.opponent_total}</span>
+                      </div>
+                      <div class="arena-clash-lane">
+                        <div class="arena-clash-card player">
+                          <span class="arena-clash-slot">Твоя карта • слот ${playerSlot}</span>
+                          <strong class="arena-clash-title">${playerCardTitle}</strong>
+                          <span class="arena-clash-meta">База ${round.player_value || 0} • сила раунда ${round.player_total || 0}</span>
+                        </div>
+                        <div class="arena-clash-versus">
+                          <div class="arena-clash-badge">VS</div>
+                          <div class="arena-clash-winner">${roundOutcomeShort}</div>
+                        </div>
+                        <div class="arena-clash-card enemy">
+                          <span class="arena-clash-slot">Карта соперника • слот ${opponentSlot}</span>
+                          <strong class="arena-clash-title">${opponentCardTitle}</strong>
+                          <span class="arena-clash-meta">База ${round.opponent_value || 0} • сила раунда ${round.opponent_total || 0}</span>
+                        </div>
                       </div>
                       <div class="arena-decision-chips">
                         ${decisionChipMarkup(`Ты: ${playerAction.ruLabel} ${Number(round.player_action_bonus || 0) ? `+${round.player_action_bonus}` : ''}`.trim(), 'player', `action ${round.player_action || 'channel'}`, chipDelayBase + 40)}
@@ -4235,16 +4406,24 @@ PAGE_TEMPLATE = """
                   </div>
                   <h3>${result.mode_title}</h3>
                   <div class="battle-cinematic">
+                    <div class="battle-cinematic-label">Arena Clash</div>
+                    <div class="battle-cinematic-floor"></div>
                     <div class="battle-fighter player">
                       <div class="tiny">Твоя карта</div>
                       <strong>${result.player_featured_card ? result.player_featured_card.title : (result.player_card ? result.player_card.title : `${result.player_domain}.ton`)}</strong>
-                      <div class="tiny">Скилл: ${result.player_featured_card ? result.player_featured_card.skill_name : 'без тактики'}</div>
+                      <div class="battle-fighter-cardline">
+                        <div class="battle-fighter-slot">Слот ${result.player_featured_card?.slot || result.player_card?.slot || '-'}</div>
+                        <div class="tiny">Скилл: ${result.player_featured_card ? result.player_featured_card.skill_name : 'без тактики'}</div>
+                      </div>
                     </div>
                     <div class="battle-vs-orb">VS</div>
                     <div class="battle-fighter enemy">
                       <div class="tiny">Карта соперника</div>
                       <strong>${result.opponent_featured_card ? result.opponent_featured_card.title : (result.opponent_card ? result.opponent_card.title : opponentLabel)}</strong>
-                      <div class="tiny">Скилл: ${result.opponent_featured_card ? result.opponent_featured_card.skill_name : 'без тактики'}</div>
+                      <div class="battle-fighter-cardline">
+                        <div class="battle-fighter-slot">Слот ${result.opponent_featured_card?.slot || result.opponent_card?.slot || '-'}</div>
+                        <div class="tiny">Скилл: ${result.opponent_featured_card ? result.opponent_featured_card.skill_name : 'без тактики'}</div>
+                      </div>
                     </div>
                   </div>
                   <div class="showdown-score">
