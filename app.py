@@ -3518,6 +3518,7 @@ PAGE_TEMPLATE = """
 
       .arena-round-choice-slot.active {
         gap: 18px;
+        left: 50% !important;
       }
 
       .arena-round-marker {
@@ -3542,6 +3543,7 @@ PAGE_TEMPLATE = """
 
       .arena-round-choice-slot.active .arena-lane-choice-panel {
         margin-top: 34px;
+        transform: translateX(-50%);
       }
 
       .arena-round-choice-slot:first-child .arena-lane-choice-panel {
@@ -3550,6 +3552,11 @@ PAGE_TEMPLATE = """
 
       .arena-round-choice-slot:last-child .arena-lane-choice-panel {
         transform: translateX(-10%);
+      }
+
+      .arena-round-choice-slot.active:first-child .arena-lane-choice-panel,
+      .arena-round-choice-slot.active:last-child .arena-lane-choice-panel {
+        transform: translateX(-50%);
       }
 
       .arena-lane-choice-panel .interactive-battle-title {
