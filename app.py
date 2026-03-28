@@ -548,6 +548,28 @@ PAGE_TEMPLATE = """
     .catalog-card.mythic { border-color: rgba(188, 126, 255, 0.56); }
     .catalog-card.legendary { border-color: rgba(255, 211, 110, 0.56); }
 
+    .catalog-card.skill-card {
+      border-color: rgba(255, 211, 110, 0.34);
+      background:
+        radial-gradient(circle at top right, rgba(255, 211, 110, 0.12), transparent 38%),
+        linear-gradient(180deg, rgba(24, 23, 14, 0.9), rgba(12, 16, 24, 0.96));
+    }
+
+    .catalog-kicker {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 211, 110, 0.28);
+      background: rgba(255, 211, 110, 0.08);
+      color: #ffe6a0;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
     .user-item {
       border-radius: 20px;
       border: 1px solid var(--line);
@@ -3084,13 +3106,16 @@ PAGE_TEMPLATE = """
       const tacticalGuide = (skills || []).length
         ? `
           <div class="panel" style="margin-bottom:14px; padding:16px;">
-            <h3 style="margin-bottom:10px;">Тактические карты</h3>
+            <h3 style="margin-bottom:10px;">Все стратегические карты</h3>
+            <div class="tiny" style="margin-bottom:12px;">Это полный набор стратегических эффектов, который может выпасть на карту в бою.</div>
             <div class="catalog-grid">
               ${skills.map((skill) => `
-                <article class="catalog-card">
+                <article class="catalog-card skill-card">
+                  <div class="catalog-kicker">Strategic Card</div>
                   <strong>${skill.name}</strong>
                   <div class="tiny">${skill.description}</div>
-                  <div class="tiny" style="margin-top:8px;">Сильна: ${skill.strong_against}</div>
+                  <div class="tiny" style="margin-top:8px;">Сильнее всего: ${skill.strong_against}</div>
+                  <div class="tiny" style="margin-top:8px;">Может появиться на любой карте колоды как её стратегический эффект.</div>
                 </article>
               `).join('')}
             </div>
