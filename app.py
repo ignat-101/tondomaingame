@@ -3887,7 +3887,8 @@ PAGE_TEMPLATE = """
       cardCatalog: [],
       matchmakingMode: null,
       matchmakingPolling: false,
-      disciplineBuild: null
+      disciplineBuild: null,
+      battleLaunchInFlight: false
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -4920,6 +4921,15 @@ PAGE_TEMPLATE = """
       `;
     }
 
+    function setBattleLaunchInFlight(active) {
+      state.battleLaunchInFlight = Boolean(active);
+      battleResult.querySelectorAll('.result-actions button').forEach((button) => {
+        if ((button.textContent || '').includes('Играть ещё раз')) {
+          button.disabled = Boolean(active);
+        }
+      });
+    }
+
     function resetBattleStage() {
       clearInteractiveChoiceTimer();
       clearFinalClimax();
@@ -4935,6 +4945,7 @@ PAGE_TEMPLATE = """
 
     function renderBattleResult(result) {
       clearInteractiveChoiceTimer();
+      setBattleLaunchInFlight(false);
       battleResult.className = 'result-box';
       battleResult.style.display = 'block';
       battleResult.classList.add('duel-anim');
@@ -5438,15 +5449,18 @@ PAGE_TEMPLATE = """
     }
 
     function repeatLastMode() {
+      if (state.battleLaunchInFlight) return;
+      setBattleLaunchInFlight(true);
       resetBattleStage();
       if (state.lastReplayMode === 'bot') {
-        setTimeout(() => playBotMatch(), 40);
+        setTimeout(() => playBotMatch(true), 40);
         return;
       }
       if (state.lastReplayMode === 'ranked' || state.lastReplayMode === 'casual') {
-        setTimeout(() => startMatchmaking(state.lastReplayMode), 40);
+        setTimeout(() => startMatchmaking(state.lastReplayMode, true), 40);
         return;
       }
+      setBattleLaunchInFlight(false);
       switchView('modes');
     }
 
@@ -5748,7 +5762,9 @@ PAGE_TEMPLATE = """
       }
     }
 
-    async function startMatchmaking(mode) {
+    async function startMatchmaking(mode, forceLaunch = false) {
+      if (state.battleLaunchInFlight && !forceLaunch) return;
+      setBattleLaunchInFlight(true);
       bumpUsage(`mode:${mode}`);
       animateModeChoice(mode);
       state.matchmakingMode = mode;
@@ -5776,11 +5792,13 @@ PAGE_TEMPLATE = """
           await loadActiveUsers();
           return;
         }
+        setBattleLaunchInFlight(false);
         matchmakingStatus.textContent = data.cooldown_seconds
           ? `Повтор с тем же соперником через ${data.cooldown_seconds} сек. Идёт поиск...`
           : 'Идёт поиск соперника...';
         matchmakingPollTimer = window.setTimeout(() => pollMatchmaking(mode), 2200);
       } catch (error) {
+        setBattleLaunchInFlight(false);
         stopMatchmakingUI(error.message);
       }
     }
@@ -5850,7 +5868,9 @@ PAGE_TEMPLATE = """
       }
     }
 
-    async function playBotMatch() {
+    async function playBotMatch(forceLaunch = false) {
+      if (state.battleLaunchInFlight && !forceLaunch) return;
+      setBattleLaunchInFlight(true);
       bumpUsage('mode:bot');
       animateModeChoice('bot');
       showMatchIntro('Запуск матча с ботом');
@@ -5871,6 +5891,7 @@ PAGE_TEMPLATE = """
         }
         await loadAchievements();
       } catch (error) {
+        setBattleLaunchInFlight(false);
         battleResult.className = 'result-box duel-anim';
         battleResult.style.display = 'block';
         document.body.classList.remove('showdown-open');
