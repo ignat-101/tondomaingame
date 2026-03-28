@@ -4115,6 +4115,18 @@ PAGE_TEMPLATE = """
       document.body.classList.toggle('tma-app', active);
       document.documentElement.classList.toggle('tma-app', active);
       document.body.dataset.appMode = active ? 'tma' : 'site';
+      return active;
+    }
+
+    let tmaSyncRaf = null;
+    function queueTmaModeSync() {
+      if (tmaSyncRaf) {
+        return;
+      }
+      tmaSyncRaf = window.requestAnimationFrame(() => {
+        tmaSyncRaf = null;
+        syncTmaMode();
+      });
     }
 
     function setStatus(element, text, kind = '') {
@@ -6466,6 +6478,15 @@ PAGE_TEMPLATE = """
       tgWebApp.onEvent('viewportChanged', syncTmaMode);
       tgWebApp.onEvent('themeChanged', syncTmaMode);
     }
+    ['pointerdown', 'touchstart', 'click', 'submit', 'change', 'focusin'].forEach((eventName) => {
+      document.addEventListener(eventName, queueTmaModeSync, true);
+    });
+    window.addEventListener('pageshow', syncTmaMode);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        syncTmaMode();
+      }
+    });
     window.addEventListener('orientationchange', syncTmaMode);
     window.addEventListener('resize', syncTmaMode);
     initTonConnect().catch((error) => {
