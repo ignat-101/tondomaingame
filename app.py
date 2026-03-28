@@ -4221,21 +4221,32 @@ PAGE_TEMPLATE = """
       if (!control) {
         return;
       }
+      if (control.dataset.domainActionBusy === '1') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
       event.preventDefault();
       event.stopImmediatePropagation();
       const domain = (control.dataset.domainAction || '').trim();
       if (!domain) {
         return;
       }
+      control.dataset.domainActionBusy = '1';
       control.disabled = true;
       control.dataset.loading = '1';
-      await prepareFunctionalInteraction();
-      await new Promise((resolve) => window.setTimeout(resolve, 90));
-      syncTmaMode();
-      syncTmaViewport();
-      await selectDeckDomain(domain, {skipSync: true});
-      delete control.dataset.loading;
-      control.disabled = false;
+      try {
+        await prepareFunctionalInteraction();
+        await new Promise((resolve) => window.setTimeout(resolve, 110));
+        syncTmaMode();
+        syncTmaViewport();
+        await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+        await selectDeckDomain(domain, {skipSync: true});
+      } finally {
+        delete control.dataset.loading;
+        delete control.dataset.domainActionBusy;
+        control.disabled = false;
+      }
     }
 
     function setStatus(element, text, kind = '') {
@@ -4706,6 +4717,23 @@ PAGE_TEMPLATE = """
                   <div class="tiny" style="margin-top:8px;">Может появиться на любой карте колоды как её стратегический эффект.</div>
                 </article>
               `).join('')}
+            </div>
+          </div>
+          <div class="panel" style="margin-bottom:14px; padding:16px;">
+            <h3 style="margin-bottom:10px;">Когда выгоден Натиск и Блок</h3>
+            <div class="catalog-grid">
+              <article class="catalog-card skill-card">
+                <div class="catalog-kicker">Battle Choice</div>
+                <strong>Натиск</strong>
+                <div class="tiny">Выгоден, когда хочешь продавить раунд силой и поймать соперника на пассивной игре.</div>
+                <div class="tiny" style="margin-top:8px;">Лучше всего: когда твоя карта сильнее по темпу, нужно добить перевес или закончить серию в свою пользу.</div>
+              </article>
+              <article class="catalog-card skill-card">
+                <div class="catalog-kicker">Battle Choice</div>
+                <strong>Блок</strong>
+                <div class="tiny">Выгоден, когда ждёшь агрессию соперника и хочешь пережить его сильный заход.</div>
+                <div class="tiny" style="margin-top:8px;">Лучше всего: когда раунд надо стабилизировать, у соперника выглядит очевидный пуш или нужно сохранить преимущество.</div>
+              </article>
             </div>
           </div>
         `
@@ -6611,6 +6639,9 @@ PAGE_TEMPLATE = """
       tgWebApp.onEvent('viewportChanged', queueTmaModeSync);
       tgWebApp.onEvent('themeChanged', queueTmaModeSync);
     }
+    document.addEventListener('pointerdown', (event) => {
+      interceptDeckDomainAction(event).catch(() => {});
+    }, true);
     document.addEventListener('click', (event) => {
       interceptDeckDomainAction(event).catch(() => {});
     }, true);
