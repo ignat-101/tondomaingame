@@ -4263,6 +4263,14 @@ PAGE_TEMPLATE = """
       }).join('');
     }
 
+    async function syncSoloBattleState(sessionId) {
+      if (!sessionId || !state.wallet) {
+        return null;
+      }
+      const data = await api(`/api/solo-battle/status?wallet=${encodeURIComponent(state.wallet)}&session_id=${encodeURIComponent(sessionId)}`);
+      return data.result || null;
+    }
+
     function revealDisciplineRows(startDelay = 0, stepMs = 1000) {
       const rows = battleResult.querySelectorAll('.discipline-row');
       if (!rows.length) {
@@ -4617,6 +4625,24 @@ PAGE_TEMPLATE = """
           let actionLocked = false;
           const submitInteractiveAction = async (actionKey, activeButton = null, byTimeout = false) => {
             if (actionLocked) return;
+            if (!liveResult.interactive_session_id) {
+              if (interactiveBattleStatus) {
+                interactiveBattleStatus.textContent = 'Сессия боя потеряна. Обновляю состояние...';
+              }
+              try {
+                const synced = await syncSoloBattleState(liveResult.battle_session_id || '');
+                if (synced) {
+                  synced.autostart_battle = true;
+                  state.lastResult = synced;
+                  renderBattleResult(synced);
+                }
+              } catch (error) {
+                if (interactiveBattleStatus) {
+                  interactiveBattleStatus.textContent = error.message;
+                }
+              }
+              return;
+            }
             actionLocked = true;
             clearInteractiveChoiceTimer();
             interactiveActionButtons.forEach((node) => {
@@ -4647,6 +4673,19 @@ PAGE_TEMPLATE = """
               state.lastResult = nextResult;
               renderBattleResult(nextResult);
             } catch (error) {
+              try {
+                const synced = await syncSoloBattleState(liveResult.interactive_session_id);
+                if (synced) {
+                  synced.autostart_battle = true;
+                  state.lastResult = synced;
+                  renderBattleResult(synced);
+                  return;
+                }
+              } catch (syncError) {
+                if (interactiveBattleStatus) {
+                  interactiveBattleStatus.textContent = syncError.message || error.message;
+                }
+              }
               interactiveActionButtons.forEach((node) => {
                 node.disabled = false;
               });
@@ -4654,7 +4693,7 @@ PAGE_TEMPLATE = """
                 interactiveBattleStatus.textContent = error.message;
               }
               actionLocked = false;
-              startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true));
+              startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true), 350);
             }
           };
           startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true), 850);
@@ -10046,6 +10085,23 @@ def api_solo_battle_action():
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'result': result})
+
+
+@app.route('/api/solo-battle/status')
+def api_solo_battle_status():
+    wallet = (request.args.get('wallet') or '').strip()
+    session_id = (request.args.get('session_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        state = load_solo_battle(session_id)
+    except ValueError as exc:
+        return json_error(str(exc), 404)
+    if wallet != state.get('wallet'):
+        return json_error('Нет доступа к этому бою.', 403)
+    return jsonify({'result': build_solo_live_payload(state)})
 
 
 @app.route('/api/match-invite/<invite_id>')
