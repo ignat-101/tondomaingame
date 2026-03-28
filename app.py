@@ -736,6 +736,29 @@ PAGE_TEMPLATE = """
       gap: 14px;
     }
 
+    @media (min-width: 1080px) {
+      .arena-shell {
+        grid-template-columns: minmax(220px, 1fr) minmax(420px, 1.55fr) minmax(220px, 1fr);
+        align-items: stretch;
+      }
+
+      .arena-rail.player {
+        grid-column: 1;
+      }
+
+      .arena-core {
+        grid-column: 2;
+      }
+
+      .arena-rail.enemy {
+        grid-column: 3;
+      }
+
+      .arena-deck-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .arena-rail {
       display: grid;
       gap: 10px;
@@ -1045,12 +1068,37 @@ PAGE_TEMPLATE = """
       letter-spacing: 0.05em;
     }
 
+    .arena-core.flash-focus {
+      animation: arenaFocusPulse 920ms cubic-bezier(.16,.84,.2,1);
+    }
+
     @keyframes arenaDashFlow {
       0% {
         stroke-dashoffset: 0;
       }
       100% {
         stroke-dashoffset: -120;
+      }
+    }
+
+    @keyframes arenaFocusPulse {
+      0% {
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+          inset 0 0 90px rgba(0, 0, 0, 0.18),
+          0 0 0 0 rgba(83, 246, 184, 0);
+      }
+      45% {
+        box-shadow:
+          inset 0 0 0 1px rgba(83, 246, 184, 0.08),
+          inset 0 0 90px rgba(0, 0, 0, 0.18),
+          0 0 0 8px rgba(83, 246, 184, 0.12);
+      }
+      100% {
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+          inset 0 0 90px rgba(0, 0, 0, 0.18),
+          0 0 0 0 rgba(83, 246, 184, 0);
       }
     }
 
@@ -5123,12 +5171,21 @@ PAGE_TEMPLATE = """
 
     function viewBattleFlow() {
       clearFinalClimax();
+      const arenaCore = battleResult.querySelector('.arena-core');
+      const livePanel = battleResult.querySelector('#interactive-battle-panel');
+      const battleStage = battleResult.querySelector('#battle-stage');
       const list = battleResult.querySelector('.discipline-list');
       const row = battleResult.querySelector('.discipline-row');
-      const target = list || row || battleResult.querySelector('.showdown-main');
+      const target = livePanel || battleStage || arenaCore || list || row || battleResult.querySelector('.showdown-main');
       if (!target) return;
       requestAnimationFrame(() => {
         target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        if (arenaCore) {
+          arenaCore.classList.remove('flash-focus');
+          void arenaCore.offsetWidth;
+          arenaCore.classList.add('flash-focus');
+          setTimeout(() => arenaCore.classList.remove('flash-focus'), 980);
+        }
       });
     }
 
