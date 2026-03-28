@@ -866,25 +866,6 @@ PAGE_TEMPLATE = """
       filter: drop-shadow(0 0 10px rgba(83, 246, 184, 0.24));
     }
 
-    .arena-route-node {
-      fill: rgba(9, 18, 31, 0.96);
-      stroke: rgba(255, 211, 110, 0.72);
-      stroke-width: 2;
-      filter: drop-shadow(0 0 8px rgba(255, 211, 110, 0.18));
-      animation: arenaNodePulse 2.1s ease-in-out infinite;
-    }
-
-    .arena-route-node.alt {
-      stroke: rgba(69, 215, 255, 0.62);
-      filter: drop-shadow(0 0 8px rgba(69, 215, 255, 0.18));
-    }
-
-    .arena-route-node.active {
-      stroke: rgba(83, 246, 184, 0.94);
-      stroke-width: 2.4;
-      filter: drop-shadow(0 0 10px rgba(83, 246, 184, 0.28));
-    }
-
     .arena-choice-hub {
       position: relative;
       z-index: 1;
@@ -921,6 +902,109 @@ PAGE_TEMPLATE = """
       padding: 0 10px;
       font-size: 13px;
       line-height: 1.15;
+      text-align: center;
+    }
+
+    .arena-round-choice-strip {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .arena-round-choice-slot {
+      position: absolute;
+      top: 86px;
+      transform: translateX(-50%);
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      min-width: 52px;
+    }
+
+    .arena-round-choice-slot.active {
+      z-index: 3;
+    }
+
+    .arena-round-marker {
+      min-width: 42px;
+      height: 42px;
+      padding: 0 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background: rgba(8, 19, 34, 0.94);
+      color: #dff7ff;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+    }
+
+    .arena-round-choice-slot.resolved .arena-round-marker {
+      border-color: rgba(255, 211, 110, 0.24);
+      color: #ffe59d;
+    }
+
+    .arena-round-choice-slot.active .arena-round-marker {
+      border-color: rgba(83, 246, 184, 0.42);
+      color: #e9fff8;
+      box-shadow: 0 0 0 1px rgba(83, 246, 184, 0.12), 0 10px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    .arena-round-state {
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      color: rgba(213, 235, 255, 0.72);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .arena-lane-choice-panel {
+      width: min(240px, 24vw);
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background:
+        linear-gradient(180deg, rgba(8, 21, 37, 0.98), rgba(8, 17, 29, 0.99)),
+        radial-gradient(circle at top, rgba(69, 215, 255, 0.12), transparent 62%);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(14px);
+      pointer-events: auto;
+    }
+
+    .arena-lane-choice-panel .interactive-battle-title {
+      font-size: 14px;
+    }
+
+    .arena-lane-choice-panel .interactive-timer {
+      min-width: 74px;
+      min-height: 30px;
+      font-size: 12px;
+    }
+
+    .arena-lane-choice-panel .interactive-battle-actions {
+      grid-template-columns: repeat(3, minmax(0, 58px));
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .arena-lane-choice-panel .interactive-action-btn {
+      min-height: 58px;
+      border-radius: 50%;
+      aspect-ratio: 1 / 1;
+      padding: 0 6px;
+      font-size: 11px;
+      line-height: 1.1;
       text-align: center;
     }
 
@@ -967,15 +1051,6 @@ PAGE_TEMPLATE = """
       }
       100% {
         stroke-dashoffset: -120;
-      }
-    }
-
-    @keyframes arenaNodePulse {
-      0%, 100% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.12);
       }
     }
 
@@ -3132,6 +3207,43 @@ PAGE_TEMPLATE = """
         font-size: 11px;
       }
 
+      .arena-round-choice-slot {
+        top: 64px;
+      }
+
+      .arena-round-marker {
+        min-width: 30px;
+        height: 30px;
+        padding: 0 6px;
+        font-size: 10px;
+      }
+
+      .arena-round-state {
+        min-height: 22px;
+        padding: 0 8px;
+        font-size: 10px;
+      }
+
+      .arena-lane-choice-panel {
+        width: min(170px, 42vw);
+        padding: 10px 10px 9px;
+        border-radius: 14px;
+      }
+
+      .arena-lane-choice-panel .interactive-battle-title {
+        font-size: 11px;
+      }
+
+      .arena-lane-choice-panel .interactive-battle-actions {
+        grid-template-columns: repeat(3, minmax(0, 42px));
+        gap: 6px;
+      }
+
+      .arena-lane-choice-panel .interactive-action-btn {
+        min-height: 42px;
+        font-size: 9px;
+      }
+
       .interactive-battle-actions {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
@@ -4557,26 +4669,38 @@ PAGE_TEMPLATE = """
         const opponentLabel = result.opponent_domain ? `${result.opponent_domain}.ton` : 'бот';
         const resultKey = result.result || (result.result_label === 'Победа' ? 'win' : (result.result_label === 'Поражение' ? 'lose' : 'draw'));
         const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
+        const totalRounds = result.interactive_total_rounds || 5;
+        const activeRoundNumber = Math.min((result.interactive_round_index || 0) + 1, totalRounds);
+        const arenaLanePercents = [10, 30, 50, 70, 90];
         const interactivePanel = result.interactive_session_id
           ? `
-              <div class="interactive-battle-panel arena-choice-panel ${result.interactive_live ? 'floating' : ''}" id="interactive-battle-panel">
-                <div class="interactive-battle-title">
-                  ${result.interactive_live
-                    ? `Раунд ${Math.min((result.interactive_round_index || 0) + 1, result.interactive_total_rounds || 5)} из ${result.interactive_total_rounds || 5}`
-                    : 'Выбор завершён'}
-                </div>
-                ${result.interactive_live ? `<div class="interactive-timer" id="interactive-timer">5 c</div>` : ''}
-                <div class="tiny" id="interactive-battle-status" style="text-align:center;">
-                  ${result.interactive_live ? (result.interactive_hint || 'У тебя 5 секунд на выбор. После выбора или таймаута раунд раскрывается синхронно.') : 'Все решения зафиксированы.'}
-                </div>
-                ${result.interactive_live ? `
-                  <div class="interactive-battle-actions">
-                    ${['burst', 'guard', 'channel'].map((key) => {
-                      const meta = actionRuleMeta(key);
-                      return `<button class="interactive-action-btn ${key}" data-action-key="${key}">${meta.ruLabel}</button>`;
-                    }).join('')}
-                  </div>
-                ` : ''}
+              <div class="arena-round-choice-strip">
+                ${Array.from({ length: totalRounds }, (_, index) => {
+                  const roundNumber = index + 1;
+                  const isActive = result.interactive_live && roundNumber === activeRoundNumber;
+                  const isResolved = !result.interactive_live || roundNumber < activeRoundNumber;
+                  const left = arenaLanePercents[index] || 50;
+                  return `
+                    <div class="arena-round-choice-slot ${isActive ? 'active' : ''} ${isResolved ? 'resolved' : ''}" style="left:${left}%;">
+                      <div class="arena-round-marker">R${roundNumber}</div>
+                      ${isActive ? `
+                        <div class="interactive-battle-panel arena-lane-choice-panel" id="interactive-battle-panel">
+                          <div class="interactive-battle-title">Раунд ${roundNumber}</div>
+                          <div class="interactive-timer" id="interactive-timer">5 c</div>
+                          <div class="tiny" id="interactive-battle-status" style="text-align:center;">
+                            ${result.interactive_hint || 'Выбери действие для этого раунда.'}
+                          </div>
+                          <div class="interactive-battle-actions">
+                            ${['burst', 'guard', 'channel'].map((key) => {
+                              const meta = actionRuleMeta(key);
+                              return `<button class="interactive-action-btn ${key}" data-action-key="${key}">${meta.ruLabel}</button>`;
+                            }).join('')}
+                          </div>
+                        </div>
+                      ` : `<div class="arena-round-state">${isResolved ? 'Готов' : 'Ждёт'}</div>`}
+                    </div>
+                  `;
+                }).join('')}
               </div>
             `
           : '';
@@ -4596,12 +4720,9 @@ PAGE_TEMPLATE = """
                 const slot = index + 1;
                 const isActive = slot === playerActiveSlot || slot === opponentActiveSlot;
                 const laneClass = `arena-route-path ${slot % 2 === 0 ? 'alt' : ''} ${isActive ? 'active' : ''}`.trim();
-                const nodeClass = `arena-route-node ${slot % 2 === 0 ? 'alt' : ''} ${isActive ? 'active' : ''}`.trim();
                 return `
                   <path class="${laneClass}" d="M ${x} 0 L ${x} 146" />
-                  <circle class="${nodeClass}" cx="${x}" cy="168" r="11" />
                   <path class="${laneClass}" d="M ${x} 272 L ${x} 440" />
-                  <circle class="${nodeClass}" cx="${x}" cy="250" r="11" />
                 `;
               }).join('')}
             </svg>
