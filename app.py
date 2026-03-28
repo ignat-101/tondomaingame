@@ -3064,15 +3064,15 @@ PAGE_TEMPLATE = """
       }
 
       .showdown-main.arena-board {
-        padding: 10px 8px;
+        padding: 8px 6px;
       }
 
       .arena-shell {
-        gap: 10px;
+        gap: 8px;
       }
 
       .arena-rail {
-        padding: 8px;
+        padding: 7px 6px;
       }
 
       .arena-rail .tiny {
@@ -3487,7 +3487,7 @@ PAGE_TEMPLATE = """
 
       .arena-choice-hub {
         min-height: 214px;
-        padding: 4px 2px 6px;
+        padding: 4px 0 6px;
       }
 
       .arena-choice-panel {
@@ -3506,7 +3506,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot {
-        top: 40px;
+        top: 36px;
       }
 
       .arena-round-marker {
@@ -3522,10 +3522,18 @@ PAGE_TEMPLATE = """
       }
 
       .arena-lane-choice-panel {
-        width: min(116px, 21vw);
+        width: min(108px, 20vw);
         padding: 7px 5px 6px;
         border-radius: 14px;
         max-width: 100%;
+      }
+
+      .arena-round-choice-slot:first-child .arena-lane-choice-panel {
+        transform: translateX(10%);
+      }
+
+      .arena-round-choice-slot:last-child .arena-lane-choice-panel {
+        transform: translateX(-10%);
       }
 
       .arena-lane-choice-panel .interactive-battle-title {
@@ -3729,11 +3737,6 @@ PAGE_TEMPLATE = """
                 <option value="telegram">Через Telegram</option>
               </select>
             </div>
-            <div class="row">
-              <select id="one-card-slot">
-                <option value="">Выбери карту для режима одной карты</option>
-              </select>
-            </div>
             <div class="tiny">Режим "Через сайт" отправляет персональное приглашение в игру через сайт. Режим "Через Telegram" бот отправляет приглашение через Telegram. Для режима Telegram соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз.</div>
             <div class="actions" style="margin-top:10px;">
               <button id="play-duel-btn" disabled>Отправить дуэль</button>
@@ -3762,12 +3765,6 @@ PAGE_TEMPLATE = """
               <p>Автопоиск соперника среди активных игроков. После матча рейтинг пересчитывается по ELO.</p>
               <button id="play-ranked-btn" disabled>Найти рейтинговый матч</button>
             </div>
-            <div class="mode-card" data-mode-card="team">
-              <div class="mode-burst"></div>
-              <h3>Командный</h3>
-              <p>Создай комнату или войди по коду. Поддерживается от 2 до 4 игроков.</p>
-              <button id="show-team-btn">Открыть комнату</button>
-            </div>
             <div class="mode-card" data-mode-card="casual">
               <div class="mode-burst"></div>
               <h3>Обычный</h3>
@@ -3786,41 +3783,10 @@ PAGE_TEMPLATE = """
               <p>Тестовый 5-раундовый бой против бота с рандомной колодой.</p>
               <button id="play-bot-btn" disabled>Играть с ботом</button>
             </div>
-            <div class="mode-card" data-mode-card="onecard">
-              <div class="mode-burst"></div>
-              <h3>Одна карта</h3>
-              <p>Выбери одну карту из своей колоды и сыграй дуэль 1x1 против случайной карты соперника.</p>
-              <button id="play-onecard-btn" disabled>Играть 1 картой</button>
-            </div>
           </div>
 
           <div class="result-box" id="battle-result" style="display:none;"></div>
           <div class="result-box" id="invite-result" style="display:none;"></div>
-
-          <div class="panel team-card" id="team-panel" style="margin-top:18px; display:none;">
-            <h3>Командная комната</h3>
-            <div class="team-grid">
-              <div class="row">
-                <input id="team-username" placeholder="Имя игрока">
-                <select id="team-room-size">
-                  <option value="2">2 игрока</option>
-                  <option value="3">3 игрока</option>
-                  <option value="4">4 игрока</option>
-                </select>
-              </div>
-              <div class="actions">
-                <button id="create-room-btn" disabled>Создать комнату</button>
-                <input id="room-code-input" placeholder="Код комнаты">
-                <button class="secondary" id="join-room-btn" disabled>Войти</button>
-              </div>
-              <div class="actions">
-                <button class="secondary" id="refresh-room-btn" disabled>Обновить комнату</button>
-                <button id="start-room-btn" disabled>Старт командного матча</button>
-              </div>
-            </div>
-            <div class="status" id="team-status"></div>
-            <div class="team-grid" id="team-room-view"></div>
-          </div>
         </section>
 
         <section class="panel view" id="view-battleflow">
@@ -3998,6 +3964,13 @@ PAGE_TEMPLATE = """
     const cardCatalogList = document.getElementById('card-catalog-list');
     const oneCardSlot = document.getElementById('one-card-slot');
     const battleCardSlot = document.getElementById('battle-card-slot');
+    const teamPanel = document.getElementById('team-panel');
+    const playOnecardBtn = document.getElementById('play-onecard-btn');
+    const createRoomBtn = document.getElementById('create-room-btn');
+    const joinRoomBtn = document.getElementById('join-room-btn');
+    const refreshRoomBtn = document.getElementById('refresh-room-btn');
+    const startRoomBtn = document.getElementById('start-room-btn');
+    const showTeamBtn = document.getElementById('show-team-btn');
     const achievementsList = document.getElementById('achievements-list');
     const refreshAchievementsBtn = document.getElementById('refresh-achievements-btn');
     const matchmakingStatus = document.getElementById('matchmaking-status');
@@ -4143,7 +4116,7 @@ PAGE_TEMPLATE = """
 
     function mostUsedMode() {
       const usage = loadUsageMap();
-      const modes = ['ranked', 'casual', 'duel', 'bot', 'onecard', 'team'];
+      const modes = ['ranked', 'casual', 'duel', 'bot'];
       const sorted = modes
         .map((mode) => ({ mode, count: Number(usage[`mode:${mode}`] || 0) }))
         .sort((a, b) => b.count - a.count);
@@ -4221,7 +4194,9 @@ PAGE_TEMPLATE = """
       if (duelInvitePanel) {
         duelInvitePanel.style.display = 'none';
       }
-      document.getElementById('team-panel').style.display = 'none';
+      if (teamPanel) {
+        teamPanel.style.display = 'none';
+      }
       window.clearTimeout(modeFocusTimer);
       if (message) {
         matchmakingStatus.textContent = message;
@@ -4535,15 +4510,19 @@ PAGE_TEMPLATE = """
     }
 
     function refreshOneCardSelector() {
-      oneCardSlot.innerHTML = '<option value="">Выбери карту для режима одной карты</option>';
+      if (oneCardSlot) {
+        oneCardSlot.innerHTML = '<option value="">Выбери карту для режима одной карты</option>';
+      }
       if (!state.cards.length) {
         battleCardSlot.innerHTML = '<option value="">Выбери тактическую карту на матч</option>';
         state.selectedBattleSlot = null;
         return;
       }
-      oneCardSlot.innerHTML += state.cards.map((card) => `
-        <option value="${card.slot}">Слот ${card.slot}: ${card.title} (${card.pool_value || card.score || 0})</option>
-      `).join('');
+      if (oneCardSlot) {
+        oneCardSlot.innerHTML += state.cards.map((card) => `
+          <option value="${card.slot}">Слот ${card.slot}: ${card.title} (${card.pool_value || card.score || 0})</option>
+        `).join('');
+      }
       battleCardSlot.innerHTML = '<option value="">Выбери тактическую карту на матч</option>' + state.cards.map((card) => `
         <option value="${card.slot}">Слот ${card.slot}: ${card.title} • ${card.skill_name || 'скилл'} </option>
       `).join('');
@@ -4568,9 +4547,15 @@ PAGE_TEMPLATE = """
       document.getElementById('play-duel-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-duel-mode-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-bot-btn').disabled = !(connected && hasCards) || searching;
-      document.getElementById('play-onecard-btn').disabled = !(connected && hasCards && oneCardSlot.value) || searching;
-      document.getElementById('create-room-btn').disabled = !(connected && hasCards) || searching;
-      document.getElementById('join-room-btn').disabled = !(connected && hasCards) || searching;
+      if (playOnecardBtn && oneCardSlot) {
+        playOnecardBtn.disabled = !(connected && hasCards && oneCardSlot.value) || searching;
+      }
+      if (createRoomBtn) {
+        createRoomBtn.disabled = !(connected && hasCards) || searching;
+      }
+      if (joinRoomBtn) {
+        joinRoomBtn.disabled = !(connected && hasCards) || searching;
+      }
       telegramLinkBtn.disabled = !connected;
       addFriendBtn.disabled = !connected;
       refreshAchievementsBtn.disabled = !connected;
@@ -5043,13 +5028,22 @@ PAGE_TEMPLATE = """
         const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
         const totalRounds = result.interactive_total_rounds || 5;
         const activeRoundNumber = Math.min((result.interactive_round_index || 0) + 1, totalRounds);
-        const arenaLanes = [
-          { percent: 10, x: 100 },
-          { percent: 30, x: 300 },
-          { percent: 50, x: 500 },
-          { percent: 70, x: 700 },
-          { percent: 90, x: 900 },
-        ];
+        const compactArena = window.innerWidth <= 920;
+        const arenaLanes = compactArena
+          ? [
+              { percent: 16, x: 160 },
+              { percent: 33, x: 330 },
+              { percent: 50, x: 500 },
+              { percent: 67, x: 670 },
+              { percent: 84, x: 840 },
+            ]
+          : [
+              { percent: 10, x: 100 },
+              { percent: 30, x: 300 },
+              { percent: 50, x: 500 },
+              { percent: 70, x: 700 },
+              { percent: 90, x: 900 },
+            ];
         const interactivePanel = result.interactive_session_id
           ? `
               <div class="arena-round-choice-strip">
@@ -5520,10 +5514,6 @@ PAGE_TEMPLATE = """
         playBotMatch();
         return;
       }
-      if (state.lastReplayMode === 'onecard') {
-        playOneCardMatch();
-        return;
-      }
       if (state.lastReplayMode === 'ranked' || state.lastReplayMode === 'casual') {
         startMatchmaking(state.lastReplayMode);
         return;
@@ -5564,12 +5554,17 @@ PAGE_TEMPLATE = """
     }
 
     function renderRoom(room) {
+      if (!teamPanel || !refreshRoomBtn || !startRoomBtn) return;
       const view = document.getElementById('team-room-view');
+      if (!view) return;
       state.room = room;
       state.roomId = room.id;
-      document.getElementById('room-code-input').value = room.id;
-      document.getElementById('refresh-room-btn').disabled = false;
-      document.getElementById('start-room-btn').disabled = !(room.is_owner && room.players.length >= 2 && room.status === 'waiting');
+      const roomCodeInput = document.getElementById('room-code-input');
+      if (roomCodeInput) {
+        roomCodeInput.value = room.id;
+      }
+      refreshRoomBtn.disabled = false;
+      startRoomBtn.disabled = !(room.is_owner && room.players.length >= 2 && room.status === 'waiting');
       view.innerHTML = `
         <div class="team-card">
           <div class="team-line"><strong>Комната ${room.id}</strong><span>${room.players.length}/${room.max_players}</span></div>
@@ -5962,8 +5957,13 @@ PAGE_TEMPLATE = """
     }
 
     async function createRoom() {
+      if (!teamPanel) return;
+      const teamUsername = document.getElementById('team-username');
+      const teamRoomSize = document.getElementById('team-room-size');
+      const teamStatus = document.getElementById('team-status');
+      if (!teamUsername || !teamRoomSize || !teamStatus) return;
       bumpUsage('mode:team');
-      const username = document.getElementById('team-username').value.trim() || shortAddress(state.wallet);
+      const username = teamUsername.value.trim() || shortAddress(state.wallet);
       try {
         const data = await api('/api/team-room/create', {
           method: 'POST',
@@ -5971,20 +5971,25 @@ PAGE_TEMPLATE = """
             wallet: state.wallet,
             domain: state.selectedDomain,
             username,
-            max_players: Number(document.getElementById('team-room-size').value)
+            max_players: Number(teamRoomSize.value)
           }
         });
-        setStatus(document.getElementById('team-status'), `Комната ${data.room.id} создана. Приглашай игроков по коду.`, 'success');
+        setStatus(teamStatus, `Комната ${data.room.id} создана. Приглашай игроков по коду.`, 'success');
         renderRoom(data.room);
       } catch (error) {
-        setStatus(document.getElementById('team-status'), error.message, 'error');
+        setStatus(teamStatus, error.message, 'error');
       }
     }
 
     async function joinRoom() {
+      if (!teamPanel) return;
+      const teamUsername = document.getElementById('team-username');
+      const roomCodeInput = document.getElementById('room-code-input');
+      const teamStatus = document.getElementById('team-status');
+      if (!teamUsername || !roomCodeInput || !teamStatus) return;
       bumpUsage('mode:team');
-      const username = document.getElementById('team-username').value.trim() || shortAddress(state.wallet);
-      const roomId = document.getElementById('room-code-input').value.trim().toUpperCase();
+      const username = teamUsername.value.trim() || shortAddress(state.wallet);
+      const roomId = roomCodeInput.value.trim().toUpperCase();
       try {
         const data = await api('/api/team-room/join', {
           method: 'POST',
@@ -5995,24 +6000,30 @@ PAGE_TEMPLATE = """
             room_id: roomId
           }
         });
-        setStatus(document.getElementById('team-status'), `Ты вошёл в комнату ${roomId}.`, 'success');
+        setStatus(teamStatus, `Ты вошёл в комнату ${roomId}.`, 'success');
         renderRoom(data.room);
       } catch (error) {
-        setStatus(document.getElementById('team-status'), error.message, 'error');
+        setStatus(teamStatus, error.message, 'error');
       }
     }
 
     async function refreshRoom() {
+      if (!teamPanel) return;
+      const teamStatus = document.getElementById('team-status');
       if (!state.roomId) return;
       try {
         const data = await api(`/api/team-room/${state.roomId}?wallet=${encodeURIComponent(state.wallet)}`);
         renderRoom(data.room);
       } catch (error) {
-        setStatus(document.getElementById('team-status'), error.message, 'error');
+        if (teamStatus) {
+          setStatus(teamStatus, error.message, 'error');
+        }
       }
     }
 
     async function startRoom() {
+      if (!teamPanel) return;
+      const teamStatus = document.getElementById('team-status');
       if (!state.roomId) return;
       bumpUsage('mode:team');
       try {
@@ -6026,9 +6037,13 @@ PAGE_TEMPLATE = """
         renderRoom(data.room);
         state.lastResult = data.result;
         renderBattleResult(data.result);
-        setStatus(document.getElementById('team-status'), 'Командный матч завершён.', 'success');
+        if (teamStatus) {
+          setStatus(teamStatus, 'Командный матч завершён.', 'success');
+        }
       } catch (error) {
-        setStatus(document.getElementById('team-status'), error.message, 'error');
+        if (teamStatus) {
+          setStatus(teamStatus, error.message, 'error');
+        }
       }
     }
 
@@ -6178,6 +6193,10 @@ PAGE_TEMPLATE = """
     }
 
     async function playOneCardMatch() {
+      if (!oneCardSlot) {
+        setStatus(matchmakingStatus, 'Режим одной карты скрыт из интерфейса.', 'warning');
+        return;
+      }
       const slot = Number(oneCardSlot.value || 0);
       if (!slot) {
         setStatus(document.getElementById('pack-status'), 'Для режима одной карты выбери карту из колоды.', 'warning');
@@ -6349,23 +6368,42 @@ PAGE_TEMPLATE = """
     cancelMatchmakingBtn.addEventListener('click', cancelMatchmaking);
     saveBuildBtn.addEventListener('click', saveDisciplineBuild);
     document.getElementById('play-bot-btn').addEventListener('click', playBotMatch);
-    document.getElementById('play-onecard-btn').addEventListener('click', playOneCardMatch);
-    oneCardSlot.addEventListener('change', updateButtons);
+    if (playOnecardBtn) {
+      playOnecardBtn.addEventListener('click', playOneCardMatch);
+    }
+    if (oneCardSlot) {
+      oneCardSlot.addEventListener('change', updateButtons);
+    }
     battleCardSlot.addEventListener('change', () => {
       state.selectedBattleSlot = Number(battleCardSlot.value || 0) || null;
       updateButtons();
     });
     refreshAchievementsBtn.addEventListener('click', loadAchievements);
-    document.getElementById('show-team-btn').addEventListener('click', () => {
-      bumpUsage('mode:team');
-      animateModeChoice('team');
-      document.getElementById('team-panel').style.display = 'block';
-      setStatus(document.getElementById('team-status'), 'Создай командную комнату или войди по коду.', 'warning');
-    });
-    document.getElementById('create-room-btn').addEventListener('click', createRoom);
-    document.getElementById('join-room-btn').addEventListener('click', joinRoom);
-    document.getElementById('refresh-room-btn').addEventListener('click', refreshRoom);
-    document.getElementById('start-room-btn').addEventListener('click', startRoom);
+    if (showTeamBtn) {
+      showTeamBtn.addEventListener('click', () => {
+        bumpUsage('mode:team');
+        animateModeChoice('team');
+        if (teamPanel) {
+          teamPanel.style.display = 'block';
+        }
+        const teamStatus = document.getElementById('team-status');
+        if (teamStatus) {
+          setStatus(teamStatus, 'Создай командную комнату или войди по коду.', 'warning');
+        }
+      });
+    }
+    if (createRoomBtn) {
+      createRoomBtn.addEventListener('click', createRoom);
+    }
+    if (joinRoomBtn) {
+      joinRoomBtn.addEventListener('click', joinRoom);
+    }
+    if (refreshRoomBtn) {
+      refreshRoomBtn.addEventListener('click', refreshRoom);
+    }
+    if (startRoomBtn) {
+      startRoomBtn.addEventListener('click', startRoom);
+    }
     telegramLinkBtn.addEventListener('click', linkTelegramWallet);
     telegramShareBtn.addEventListener('click', shareTelegram);
     showDeckBtn.addEventListener('click', showDeck);
