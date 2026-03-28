@@ -811,7 +811,7 @@ PAGE_TEMPLATE = """
 
     .arena-core {
       position: relative;
-      min-height: 430px;
+      min-height: 392px;
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background:
@@ -872,10 +872,10 @@ PAGE_TEMPLATE = """
     .arena-choice-hub {
       position: relative;
       z-index: 1;
-      min-height: 430px;
+      min-height: 392px;
       display: grid;
       place-items: center;
-      padding: 14px 14px 18px;
+      padding: 12px 12px 14px;
     }
 
     .arena-choice-panel {
@@ -917,7 +917,7 @@ PAGE_TEMPLATE = """
 
     .arena-round-choice-slot {
       position: absolute;
-      top: 72px;
+      top: 68px;
       transform: translateX(-50%);
       display: grid;
       justify-items: center;
@@ -955,8 +955,8 @@ PAGE_TEMPLATE = """
     }
 
     .arena-round-state {
-      min-height: 26px;
-      padding: 0 10px;
+      min-height: 24px;
+      padding: 0 8px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
@@ -970,11 +970,29 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
+    .arena-round-state.win {
+      border-color: rgba(83, 246, 184, 0.34);
+      background: rgba(83, 246, 184, 0.12);
+      color: #dfffee;
+    }
+
+    .arena-round-state.lose {
+      border-color: rgba(255, 122, 134, 0.34);
+      background: rgba(255, 122, 134, 0.12);
+      color: #ffe0e5;
+    }
+
+    .arena-round-state.draw {
+      border-color: rgba(255, 211, 110, 0.34);
+      background: rgba(255, 211, 110, 0.12);
+      color: #ffe9ad;
+    }
+
     .arena-lane-choice-panel {
       width: var(--arena-card-width);
       max-width: 160px;
       min-width: 108px;
-      padding: 12px 10px 10px;
+      padding: 10px 8px 8px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.22);
       background:
@@ -986,17 +1004,17 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-choice-panel .interactive-battle-title {
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .arena-lane-choice-panel .interactive-timer {
-      min-width: 74px;
-      min-height: 30px;
-      font-size: 12px;
+      min-width: 64px;
+      min-height: 28px;
+      font-size: 11px;
     }
 
     .arena-lane-choice-panel .interactive-battle-actions {
-      grid-template-columns: repeat(3, minmax(0, 46px));
+      grid-template-columns: repeat(2, minmax(0, 46px));
       gap: 6px;
       justify-content: center;
     }
@@ -3229,12 +3247,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-core {
-        min-height: 330px;
+        min-height: 300px;
       }
 
       .arena-choice-hub {
-        min-height: 330px;
-        padding: 12px 6px 16px;
+        min-height: 300px;
+        padding: 10px 4px 12px;
       }
 
       .arena-choice-panel {
@@ -3253,7 +3271,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot {
-        top: 54px;
+        top: 48px;
       }
 
       .arena-round-marker {
@@ -3270,7 +3288,7 @@ PAGE_TEMPLATE = """
 
       .arena-lane-choice-panel {
         width: min(124px, 22vw);
-        padding: 9px 8px 8px;
+        padding: 8px 6px 7px;
         border-radius: 14px;
       }
 
@@ -3279,8 +3297,8 @@ PAGE_TEMPLATE = """
       }
 
       .arena-lane-choice-panel .interactive-battle-actions {
-        grid-template-columns: repeat(3, minmax(0, 42px));
-        gap: 6px;
+        grid-template-columns: repeat(2, minmax(0, 42px));
+        gap: 5px;
       }
 
       .arena-lane-choice-panel .interactive-action-btn {
@@ -4790,6 +4808,9 @@ PAGE_TEMPLATE = """
                   const roundNumber = index + 1;
                   const isActive = result.interactive_live && roundNumber === activeRoundNumber;
                   const isResolved = !result.interactive_live || roundNumber < activeRoundNumber;
+                  const roundResult = Array.isArray(result.rounds) ? result.rounds[index] : null;
+                  const roundOutcomeClass = roundResult?.winner === 'player' ? 'win' : (roundResult?.winner === 'opponent' ? 'lose' : 'draw');
+                  const roundOutcomeLabel = roundResult?.winner === 'player' ? 'WIN' : (roundResult?.winner === 'opponent' ? 'LOSE' : (roundResult ? 'DRAW' : 'Ждёт'));
                   const left = (arenaLanes[index] && arenaLanes[index].percent) || 50;
                   return `
                     <div class="arena-round-choice-slot ${isActive ? 'active' : ''} ${isResolved ? 'resolved' : ''}" style="left:${left}%;">
@@ -4798,17 +4819,14 @@ PAGE_TEMPLATE = """
                         <div class="interactive-battle-panel arena-lane-choice-panel" id="interactive-battle-panel">
                           <div class="interactive-battle-title">Раунд ${roundNumber}</div>
                           <div class="interactive-timer" id="interactive-timer">5 c</div>
-                          <div class="tiny" id="interactive-battle-status" style="text-align:center;">
-                            ${result.interactive_hint || 'Выбери действие для этого раунда.'}
-                          </div>
                           <div class="interactive-battle-actions">
-                            ${['burst', 'guard', 'channel'].map((key) => {
+                            ${['burst', 'guard'].map((key) => {
                               const meta = actionRuleMeta(key);
                               return `<button class="interactive-action-btn ${key}" data-action-key="${key}">${meta.ruLabel}</button>`;
                             }).join('')}
                           </div>
                         </div>
-                      ` : `<div class="arena-round-state">${isResolved ? 'Готов' : 'Ждёт'}</div>`}
+                      ` : `<div class="arena-round-state ${isResolved ? roundOutcomeClass : ''}">${roundOutcomeLabel}</div>`}
                     </div>
                   `;
                 }).join('')}
@@ -4969,6 +4987,7 @@ PAGE_TEMPLATE = """
             }
             actionLocked = true;
             clearInteractiveChoiceTimer();
+            const actionPanel = interactiveBattlePanel;
             interactiveActionButtons.forEach((node) => {
               node.disabled = true;
               node.classList.remove('choice-ready');
@@ -4993,6 +5012,9 @@ PAGE_TEMPLATE = """
                 }
               });
               const nextResult = data.result || {};
+              const latestRound = Array.isArray(nextResult.rounds) && nextResult.rounds.length ? nextResult.rounds[nextResult.rounds.length - 1] : null;
+              const fxKey = latestRound?.winner === 'player' ? 'win' : (latestRound?.winner === 'opponent' ? 'lose' : 'draw');
+              playBattleFx(fxKey, 'round', actionPanel || battleResult.querySelector('.arena-core'));
               nextResult.autostart_battle = true;
               state.lastResult = nextResult;
               renderBattleResult(nextResult);
@@ -5017,10 +5039,10 @@ PAGE_TEMPLATE = """
                 interactiveBattleStatus.textContent = error.message;
               }
               actionLocked = false;
-              startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true), 350);
+              startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('guard', null, true), 350);
             }
           };
-          startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true), 850);
+          startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('guard', null, true), 850);
           interactiveActionButtons.forEach((button) => {
             button.addEventListener('click', async () => {
               const actionKey = button.dataset.actionKey;
