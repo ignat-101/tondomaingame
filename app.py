@@ -880,6 +880,10 @@ PAGE_TEMPLATE = """
       box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
     }
 
+    .interactive-battle-panel.menu-live {
+      animation: battleMenuRise 560ms cubic-bezier(.16,.84,.2,1);
+    }
+
     .interactive-battle-panel.floating {
       position: relative;
       top: auto;
@@ -918,7 +922,9 @@ PAGE_TEMPLATE = """
       background: rgba(255, 255, 255, 0.04);
       color: var(--text);
       font-weight: 800;
-      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      opacity: 0;
+      transform: translateY(12px) scale(0.94);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, opacity 220ms ease;
     }
 
     .interactive-action-btn:hover,
@@ -940,6 +946,59 @@ PAGE_TEMPLATE = """
     .interactive-action-btn.channel {
       border-color: rgba(69, 215, 255, 0.42);
       background: linear-gradient(135deg, rgba(69, 215, 255, 0.18), rgba(255, 255, 255, 0.04));
+    }
+
+    .interactive-action-btn.choice-ready {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      animation: choiceBreath 1.7s ease-in-out infinite;
+    }
+
+    .interactive-action-btn.choice-picked {
+      opacity: 1;
+      animation: choiceConfirm 520ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    @keyframes battleMenuRise {
+      0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+        filter: blur(4px);
+      }
+      60% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.01);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes choiceBreath {
+      0%, 100% {
+        box-shadow: 0 0 0 rgba(69, 215, 255, 0);
+      }
+      50% {
+        box-shadow: 0 14px 30px rgba(69, 215, 255, 0.18);
+      }
+    }
+
+    @keyframes choiceConfirm {
+      0% {
+        transform: translateY(0) scale(1);
+        box-shadow: 0 0 0 rgba(255,255,255,0);
+      }
+      45% {
+        transform: translateY(-3px) scale(1.08);
+        box-shadow: 0 0 0 10px rgba(255,255,255,0.08);
+      }
+      100% {
+        transform: translateY(0) scale(1);
+        box-shadow: 0 0 0 0 rgba(255,255,255,0);
+      }
     }
 
     @keyframes floatingBattlePanelIn {
@@ -3653,11 +3712,16 @@ PAGE_TEMPLATE = """
           interactiveActionButtons.forEach((button) => {
             button.addEventListener('click', async () => {
               const actionKey = button.dataset.actionKey;
-              interactiveActionButtons.forEach((node) => { node.disabled = true; });
+              interactiveActionButtons.forEach((node) => {
+                node.disabled = true;
+                node.classList.remove('choice-ready');
+              });
+              button.classList.add('choice-picked');
               if (interactiveBattleStatus) {
                 const meta = actionRuleMeta(actionKey);
                 interactiveBattleStatus.textContent = `Ты выбираешь: ${meta.ruLabel}. Считаем размен...`;
               }
+              await sleep(260);
               try {
                 const data = await api('/api/solo-battle/action', {
                   method: 'POST',
@@ -3858,6 +3922,16 @@ PAGE_TEMPLATE = """
       if (!panel) return;
       requestAnimationFrame(() => {
         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      });
+      panel.classList.remove('menu-live');
+      void panel.offsetWidth;
+      panel.classList.add('menu-live');
+      const buttons = Array.from(panel.querySelectorAll('.interactive-action-btn'));
+      buttons.forEach((button, index) => {
+        button.classList.remove('choice-ready', 'choice-picked');
+        window.setTimeout(() => {
+          button.classList.add('choice-ready');
+        }, 110 + index * 90);
       });
     }
 
