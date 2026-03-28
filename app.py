@@ -1584,14 +1584,14 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 50%;
       width: 80%;
-      top: 11%;
-      bottom: 5.6%;
-      border-radius: 0 0 26px 26px;
+      top: 0;
+      bottom: 0;
+      border-radius: 26px;
       background-image: url('/static/pack-10k-club.png');
-      background-size: 100% auto;
-      background-position: center 100%;
+      background-size: 100% 100%;
+      background-position: center center;
       background-repeat: no-repeat;
-      clip-path: inset(14% 0 0 0 round 0 0 26px 26px);
+      clip-path: inset(0 0 0 0 round 26px);
       z-index: 1;
       transform-origin: top center;
       transform: translateX(-50%);
@@ -1612,6 +1612,7 @@ PAGE_TEMPLATE = """
       transform-origin: right bottom;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.36);
       transform: translateX(-50%);
+      opacity: 0;
     }
 
     .pack-cap {
@@ -1892,6 +1893,10 @@ PAGE_TEMPLATE = """
     @keyframes packRipAway {
       0% {
         transform: translateX(-50%) translate3d(0, 0, 0) rotate(0deg);
+        opacity: 0;
+      }
+      8% {
+        transform: translateX(-50%) translate3d(0, 0, 0) rotate(0deg);
         opacity: 1;
       }
       28% {
@@ -1906,7 +1911,7 @@ PAGE_TEMPLATE = """
 
     @keyframes packBodyOpen {
       0% {
-        clip-path: inset(0 0 0 0 round 0 0 26px 26px);
+        clip-path: inset(0 0 0 0 round 26px);
         transform: translateX(-50%) perspective(1200px) rotateX(0deg) scaleY(1);
       }
       54% {
