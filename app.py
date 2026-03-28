@@ -1583,7 +1583,7 @@ PAGE_TEMPLATE = """
     .pack-face {
       position: absolute;
       left: 50%;
-      width: 80%;
+      width: 100%;
       top: 0;
       bottom: 0;
       border-radius: 26px;
@@ -1600,7 +1600,7 @@ PAGE_TEMPLATE = """
     .pack-rip-strip {
       position: absolute;
       left: 50%;
-      width: 80%;
+      width: 100%;
       top: 0;
       height: 15%;
       border-radius: 26px 26px 0 0;
