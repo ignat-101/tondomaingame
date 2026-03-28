@@ -811,7 +811,7 @@ PAGE_TEMPLATE = """
 
     .arena-core {
       position: relative;
-      min-height: 392px;
+      min-height: 360px;
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background:
@@ -872,10 +872,10 @@ PAGE_TEMPLATE = """
     .arena-choice-hub {
       position: relative;
       z-index: 1;
-      min-height: 392px;
+      min-height: 360px;
       display: grid;
       place-items: center;
-      padding: 12px 12px 14px;
+      padding: 10px 10px 12px;
     }
 
     .arena-choice-panel {
@@ -1014,17 +1014,17 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-choice-panel .interactive-battle-actions {
-      grid-template-columns: repeat(2, minmax(0, 46px));
-      gap: 6px;
+      grid-template-columns: repeat(2, minmax(0, 40px));
+      gap: 12px;
       justify-content: center;
     }
 
     .arena-lane-choice-panel .interactive-action-btn {
-      min-height: 46px;
+      min-height: 40px;
       border-radius: 50%;
       aspect-ratio: 1 / 1;
       padding: 0 4px;
-      font-size: 9px;
+      font-size: 8px;
       line-height: 1.1;
       text-align: center;
     }
@@ -3247,12 +3247,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-core {
-        min-height: 300px;
+        min-height: 276px;
       }
 
       .arena-choice-hub {
-        min-height: 300px;
-        padding: 10px 4px 12px;
+        min-height: 276px;
+        padding: 8px 4px 10px;
       }
 
       .arena-choice-panel {
@@ -3297,13 +3297,13 @@ PAGE_TEMPLATE = """
       }
 
       .arena-lane-choice-panel .interactive-battle-actions {
-        grid-template-columns: repeat(2, minmax(0, 42px));
-        gap: 5px;
+        grid-template-columns: repeat(2, minmax(0, 34px));
+        gap: 10px;
       }
 
       .arena-lane-choice-panel .interactive-action-btn {
-        min-height: 42px;
-        font-size: 9px;
+        min-height: 34px;
+        font-size: 7px;
       }
 
       .interactive-battle-actions {
