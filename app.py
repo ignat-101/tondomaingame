@@ -1065,6 +1065,12 @@ PAGE_TEMPLATE = """
       margin: 0;
     }
 
+    .arena-score-card.prestart-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
     .arena-score-pips {
       display: flex;
       flex-wrap: wrap;
@@ -5176,6 +5182,7 @@ PAGE_TEMPLATE = """
         document.body.classList.add('showdown-open');
         battleResult.scrollTop = 0;
         const immediateInteractiveOutcome = Boolean(result.interactive_session_id && !result.interactive_live);
+        const hideLiveScoreCard = Boolean(result.interactive_live && (!Array.isArray(result.rounds) || !result.rounds.length));
         const outcomeClass = immediateInteractiveOutcome ? '' : 'delayed-outcome';
         battleResult.innerHTML = `
           <section class="showdown-main arena-board">
@@ -5217,7 +5224,7 @@ PAGE_TEMPLATE = """
                   </div>
                   <div class="battle-stage" id="battle-stage">
                     ${interactivePanel}
-                    <div class="arena-score-card ${outcomeClass}">
+                    <div class="arena-score-card ${outcomeClass} ${hideLiveScoreCard ? 'prestart-hidden' : ''}">
                       <div class="showdown-score">
                         <span class="count-up" data-count-to="${result.player_score}">0</span>
                         <span>:</span>
