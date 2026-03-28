@@ -1588,10 +1588,10 @@ PAGE_TEMPLATE = """
       bottom: 5.6%;
       border-radius: 0 0 26px 26px;
       background-image: url('/static/pack-10k-club.png');
-      background-size: 100% 100%;
-      background-position: center center;
+      background-size: 100% auto;
+      background-position: center 100%;
       background-repeat: no-repeat;
-      clip-path: inset(0 0 0 0 round 0 0 26px 26px);
+      clip-path: inset(14% 0 0 0 round 0 0 26px 26px);
       z-index: 1;
       transform-origin: top center;
       transform: translateX(-50%);
