@@ -3036,6 +3036,13 @@ PAGE_TEMPLATE = """
       return new Promise((resolve) => requestAnimationFrame(() => resolve()));
     }
 
+    function animateElement(element, keyframes, options) {
+      return new Promise((resolve) => {
+        const animation = element.animate(keyframes, options);
+        animation.addEventListener('finish', resolve, { once: true });
+      });
+    }
+
     async function playPackSequence() {
       const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const targets = Array.from(packCards.querySelectorAll('.game-card'));
@@ -3064,30 +3071,61 @@ PAGE_TEMPLATE = """
         preview.appendChild(previewCard);
         preview.style.left = `${startX}px`;
         preview.style.top = `${startY}px`;
-        preview.style.transform = `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? 92 : -92}deg) scale(0.24)`;
-        preview.style.opacity = '0';
+        preview.style.transform = 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1)';
+        preview.style.opacity = '1';
         layer.appendChild(preview);
 
         await nextFrame();
-        await nextFrame();
-        preview.style.left = `${centerX}px`;
-        preview.style.top = `${centerY}px`;
-        preview.style.transform = 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.02)';
         preview.classList.add('focused');
         layer.classList.add('dimmed');
+        await animateElement(preview, [
+          {
+            left: `${startX}px`,
+            top: `${startY}px`,
+            opacity: 0,
+            transform: `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? 92 : -92}deg) scale(0.24)`
+          },
+          {
+            left: `${centerX}px`,
+            top: `${centerY}px`,
+            opacity: 1,
+            transform: 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.02)'
+          }
+        ], {
+          duration: 900,
+          easing: 'cubic-bezier(.16,.84,.2,1)',
+          fill: 'forwards'
+        });
 
-        await sleep(820);
+        preview.style.left = `${centerX}px`;
+        preview.style.top = `${centerY}px`;
+        preview.style.opacity = '1';
+        preview.style.transform = 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.02)';
+
         await sleep(1000);
 
         const rect = target.getBoundingClientRect();
         const targetX = rect.left + rect.width / 2;
         const targetY = rect.top + rect.height / 2;
-        preview.style.left = `${targetX}px`;
-        preview.style.top = `${targetY}px`;
-        preview.style.transform = `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? -72 : 72}deg) scale(0.44)`;
-        preview.style.opacity = '0.94';
+        await animateElement(preview, [
+          {
+            left: `${centerX}px`,
+            top: `${centerY}px`,
+            opacity: 1,
+            transform: 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.02)'
+          },
+          {
+            left: `${targetX}px`,
+            top: `${targetY}px`,
+            opacity: 0.94,
+            transform: `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? -72 : 72}deg) scale(0.44)`
+          }
+        ], {
+          duration: 620,
+          easing: 'cubic-bezier(.16,.84,.2,1)',
+          fill: 'forwards'
+        });
 
-        await sleep(560);
         target.classList.add('sequence-visible');
         preview.remove();
       }
