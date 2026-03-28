@@ -3603,6 +3603,99 @@ PAGE_TEMPLATE = """
         gap: 8px;
       }
     }
+
+    body.tma-app {
+      padding-bottom: calc(116px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app .shell {
+      overflow-x: hidden;
+      padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app .layout {
+      grid-template-columns: 1fr;
+    }
+
+    body.tma-app .side {
+      display: none;
+    }
+
+    body.tma-app .hero,
+    body.tma-app .panel {
+      border-radius: 20px;
+    }
+
+    body.tma-app .panel,
+    body.tma-app .domain-card,
+    body.tma-app .game-card,
+    body.tma-app .mode-card,
+    body.tma-app .leaderboard-item,
+    body.tma-app .team-card,
+    body.tma-app .user-item,
+    body.tma-app .catalog-card {
+      padding: 12px;
+    }
+
+    body.tma-app .hero {
+      padding: 14px;
+    }
+
+    body.tma-app .hero-top p,
+    body.tma-app .stepper {
+      display: none;
+    }
+
+    body.tma-app #view-wallet > h2,
+    body.tma-app #view-wallet > p.muted {
+      display: none;
+    }
+
+    body.tma-app .domain-grid,
+    body.tma-app .owned-decks,
+    body.tma-app .card-grid,
+    body.tma-app .catalog-grid,
+    body.tma-app .mode-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    body.tma-app .mobile-nav {
+      position: fixed;
+      left: 8px;
+      right: 8px;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      padding: 8px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(7, 16, 25, 0.96);
+      backdrop-filter: blur(16px);
+      z-index: 40;
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.34);
+    }
+
+    body.tma-app .mobile-nav button {
+      min-height: 40px;
+      height: 40px;
+      padding: 6px 3px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1;
+      white-space: normal;
+      word-break: break-word;
+      min-width: 0;
+      border-radius: 12px;
+    }
+
+    body.tma-app #nav-achievements {
+      font-size: 9px;
+    }
   </style>
 </head>
 <body>
@@ -3962,6 +4055,18 @@ PAGE_TEMPLATE = """
     function shortAddress(value) {
       if (!value) return '-';
       return `${value.slice(0, 6)}...${value.slice(-6)}`;
+    }
+
+    function isTelegramMiniApp() {
+      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      if (!tg) return false;
+      return Boolean(tg.initData || (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length) || tg.platform);
+    }
+
+    function syncTmaMode() {
+      const active = isTelegramMiniApp();
+      document.body.classList.toggle('tma-app', active);
+      document.documentElement.classList.toggle('tma-app', active);
     }
 
     function setStatus(element, text, kind = '') {
@@ -6306,6 +6411,8 @@ PAGE_TEMPLATE = """
     window.viewBattleFlow = viewBattleFlow;
     window.selectDeckDomain = selectDeckDomain;
 
+    syncTmaMode();
+    window.addEventListener('resize', syncTmaMode);
     initTonConnect().catch((error) => {
       setStatus(walletStatus, `Ошибка TonConnect: ${error.message}`, 'error');
     });
