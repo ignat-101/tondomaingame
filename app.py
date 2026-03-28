@@ -4162,6 +4162,21 @@ PAGE_TEMPLATE = """
       }
     }
 
+    async function prepareFunctionalInteraction() {
+      queueTmaModeSync();
+      await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+    }
+
+    function bindFunctionalControl(node, handler, eventName = 'click') {
+      if (!node) {
+        return;
+      }
+      node.addEventListener(eventName, async (event) => {
+        await prepareFunctionalInteraction();
+        return handler(event);
+      });
+    }
+
     function setStatus(element, text, kind = '') {
       element.className = `status ${kind}`.trim();
       element.textContent = text;
@@ -6421,14 +6436,14 @@ PAGE_TEMPLATE = """
       await applyConnection();
     }
 
-    document.getElementById('check-domains-btn').addEventListener('click', checkDomains);
-    walletOpenPackBtn.addEventListener('click', () => switchView('pack'));
-    document.getElementById('back-to-wallet-btn').addEventListener('click', () => switchView('wallet'));
-    document.getElementById('rebind-domain-btn').addEventListener('click', rebindDomain);
-    document.getElementById('shuffle-deck-btn').addEventListener('click', shuffleDeck);
-    document.getElementById('open-pack-btn').addEventListener('click', () => openPack('daily'));
-    buyPackBtn.addEventListener('click', buyPackWithTon);
-    foilPack.addEventListener('click', () => {
+    bindFunctionalControl(document.getElementById('check-domains-btn'), checkDomains);
+    bindFunctionalControl(walletOpenPackBtn, () => switchView('pack'));
+    bindFunctionalControl(document.getElementById('back-to-wallet-btn'), () => switchView('wallet'));
+    bindFunctionalControl(document.getElementById('rebind-domain-btn'), rebindDomain);
+    bindFunctionalControl(document.getElementById('shuffle-deck-btn'), shuffleDeck);
+    bindFunctionalControl(document.getElementById('open-pack-btn'), () => openPack('daily'));
+    bindFunctionalControl(buyPackBtn, buyPackWithTon);
+    bindFunctionalControl(foilPack, () => {
       if (state.packOpening) {
         return;
       }
@@ -6440,14 +6455,14 @@ PAGE_TEMPLATE = """
         openPack('daily');
       }
     });
-    document.getElementById('continue-to-modes-btn').addEventListener('click', () => switchView('modes'));
-    document.getElementById('play-ranked-btn').addEventListener('click', () => startMatchmaking('ranked'));
-    document.getElementById('play-casual-btn').addEventListener('click', () => startMatchmaking('casual'));
-    cancelMatchmakingBtn.addEventListener('click', cancelMatchmaking);
-    saveBuildBtn.addEventListener('click', saveDisciplineBuild);
-    document.getElementById('play-bot-btn').addEventListener('click', playBotMatch);
+    bindFunctionalControl(document.getElementById('continue-to-modes-btn'), () => switchView('modes'));
+    bindFunctionalControl(document.getElementById('play-ranked-btn'), () => startMatchmaking('ranked'));
+    bindFunctionalControl(document.getElementById('play-casual-btn'), () => startMatchmaking('casual'));
+    bindFunctionalControl(cancelMatchmakingBtn, cancelMatchmaking);
+    bindFunctionalControl(saveBuildBtn, saveDisciplineBuild);
+    bindFunctionalControl(document.getElementById('play-bot-btn'), playBotMatch);
     if (playOnecardBtn) {
-      playOnecardBtn.addEventListener('click', playOneCardMatch);
+      bindFunctionalControl(playOnecardBtn, playOneCardMatch);
     }
     if (oneCardSlot) {
       oneCardSlot.addEventListener('change', updateButtons);
@@ -6482,14 +6497,14 @@ PAGE_TEMPLATE = """
     if (startRoomBtn) {
       startRoomBtn.addEventListener('click', startRoom);
     }
-    showDeckBtn.addEventListener('click', showDeck);
-    toggleDeckBtn.addEventListener('click', toggleDeck);
-    document.getElementById('mobile-show-deck-btn').addEventListener('click', showDeck);
-    document.getElementById('nav-wallet').addEventListener('click', () => switchView('wallet'));
-    document.getElementById('nav-pack').addEventListener('click', () => switchView('pack'));
-    document.getElementById('nav-modes').addEventListener('click', () => switchView('modes'));
-    document.getElementById('nav-profile').addEventListener('click', () => switchView('profile'));
-    document.getElementById('nav-achievements').addEventListener('click', () => switchView('achievements'));
+    bindFunctionalControl(showDeckBtn, showDeck);
+    bindFunctionalControl(toggleDeckBtn, toggleDeck);
+    bindFunctionalControl(document.getElementById('mobile-show-deck-btn'), showDeck);
+    bindFunctionalControl(document.getElementById('nav-wallet'), () => switchView('wallet'));
+    bindFunctionalControl(document.getElementById('nav-pack'), () => switchView('pack'));
+    bindFunctionalControl(document.getElementById('nav-modes'), () => switchView('modes'));
+    bindFunctionalControl(document.getElementById('nav-profile'), () => switchView('profile'));
+    bindFunctionalControl(document.getElementById('nav-achievements'), () => switchView('achievements'));
     [buildAttack, buildDefense, buildLuck, buildSpeed, buildMagic].forEach((node) => {
       node.addEventListener('input', () => {
         const pool = Number((state.disciplineBuild && state.disciplineBuild.pool) || 0);
