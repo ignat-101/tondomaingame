@@ -3595,7 +3595,6 @@ PAGE_TEMPLATE = """
         </div>
         <div class="badge-row">
           <div class="badge" id="wallet-badge">Кошелёк не подключен</div>
-          <div class="badge" id="telegram-badge">Telegram: ожидание</div>
         </div>
       </div>
 
@@ -3727,22 +3726,6 @@ PAGE_TEMPLATE = """
           <h2>Шаг 3. Режимы игры</h2>
           <p class="muted">Бой проходит как серия 5 карт на 5. Важны порядок колоды, размены карт, тактическая карта на матч и скиллы. Прокачка дисциплин остается как фоновая поддержка стратегии.</p>
 
-          <div class="team-card" id="duel-invite-panel" style="margin-bottom:18px; display:none;">
-            <h3>Дуэль (персональное приглашение)</h3>
-            <div class="row">
-              <input id="opponent-wallet" placeholder="Домен соперника">
-              <input id="invite-timeout" type="number" min="30" max="600" step="30" value="60" placeholder="Время ответа, сек">
-              <select id="match-delivery">
-                <option value="site">Через сайт</option>
-                <option value="telegram">Через Telegram</option>
-              </select>
-            </div>
-            <div class="tiny">Режим "Через сайт" отправляет персональное приглашение в игру через сайт. Режим "Через Telegram" бот отправляет приглашение через Telegram. Для режима Telegram соперник должен заранее написать боту `/start` и открыть mini app хотя бы один раз.</div>
-            <div class="actions" style="margin-top:10px;">
-              <button id="play-duel-btn" disabled>Отправить дуэль</button>
-            </div>
-          </div>
-
           <div class="team-card" style="margin-bottom:18px;">
             <h3>Автопоиск соперника</h3>
             <div class="tiny">Нажми кнопку рейтингового или обычного режима. Если соперник уже ищет матч, бой стартует мгновенно.</div>
@@ -3771,12 +3754,6 @@ PAGE_TEMPLATE = """
               <p>Автопоиск соперника среди активных игроков без изменения рейтинга.</p>
               <button id="play-casual-btn" disabled>Найти обычный матч</button>
             </div>
-            <div class="mode-card" data-mode-card="duel">
-              <div class="mode-burst"></div>
-              <h3>Дуэль</h3>
-              <p>Отправь персональное приглашение выбранному игроку на бой через сайт или Telegram.</p>
-              <button id="play-duel-mode-btn" disabled>Перейти к дуэли</button>
-            </div>
             <div class="mode-card" data-mode-card="bot">
               <div class="mode-burst"></div>
               <h3>С ботом</h3>
@@ -3800,11 +3777,8 @@ PAGE_TEMPLATE = """
           <div id="mobile-profile-summary" class="deck-list"></div>
           <div class="actions" style="margin-top:14px;">
             <button class="secondary" id="mobile-show-deck-btn">Моя колода</button>
-            <button class="secondary" id="mobile-link-tg-btn">Привязать Telegram</button>
           </div>
           <div id="mobile-deck-view" class="deck-list" style="margin-top:14px;"></div>
-          <h3 style="margin-top:20px;">Друзья</h3>
-          <div id="mobile-friends-list" class="friend-list"></div>
           <h3 style="margin-top:20px;">Рейтинг</h3>
           <div id="mobile-leaderboard" class="leaderboard"></div>
           <h3 style="margin-top:20px;">Общая база игроков</h3>
@@ -3839,18 +3813,6 @@ PAGE_TEMPLATE = """
           <div class="kv"><span class="muted">Активный домен</span><span id="profile-domain">-</span></div>
           <div class="kv"><span class="muted">Рейтинг</span><span id="profile-rating">1000</span></div>
           <div class="kv"><span class="muted">Сыграно матчей</span><span id="profile-games">0</span></div>
-          <div class="kv"><span class="muted">Telegram</span><span id="profile-telegram">не привязан</span></div>
-        </section>
-
-        <section class="panel">
-          <h3>Telegram бот</h3>
-          <p class="muted">Бот принимает `/start`, отдельную команду `/link_wallet <wallet>` для привязки Telegram к игре, отправляет реальные приглашения на матч и даёт сопернику ограниченное время на ответ.</p>
-          <div class="actions">
-            <a class="market-link" id="telegram-open-link" target="_blank" rel="noopener">Открыть бота</a>
-            <button id="telegram-link-btn" disabled>Привязать Telegram к кошельку</button>
-            <button class="secondary" id="telegram-share-btn" disabled>Отправить результат в Telegram</button>
-          </div>
-          <div class="status tiny" id="telegram-status"></div>
         </section>
 
         <section class="panel">
@@ -3861,15 +3823,6 @@ PAGE_TEMPLATE = """
         <section class="panel">
           <h3>Общая база игроков</h3>
           <div class="global-players-list" id="global-players-list"></div>
-        </section>
-
-        <section class="panel">
-          <h3>Друзья</h3>
-          <div class="row">
-            <input id="friend-reference" placeholder="Кошелёк или домен">
-            <button id="add-friend-btn" disabled>Добавить</button>
-          </div>
-          <div class="friend-list" id="friends-list"></div>
         </section>
 
         <section class="panel">
@@ -3919,7 +3872,6 @@ PAGE_TEMPLATE = """
     const marketplaceLinks = {{ marketplace_links|tojson }};
 
     const walletBadge = document.getElementById('wallet-badge');
-    const telegramBadge = document.getElementById('telegram-badge');
     const walletStatus = document.getElementById('wallet-status');
     const walletQuickWallet = document.getElementById('wallet-quick-wallet');
     const walletQuickDomain = document.getElementById('wallet-quick-domain');
@@ -3928,7 +3880,6 @@ PAGE_TEMPLATE = """
     const profileDomain = document.getElementById('profile-domain');
     const profileRating = document.getElementById('profile-rating');
     const profileGames = document.getElementById('profile-games');
-    const profileTelegram = document.getElementById('profile-telegram');
     const selectedDomainLabel = document.getElementById('selected-domain-label');
     const packScoreLabel = document.getElementById('pack-score-label');
     const packCards = document.getElementById('pack-cards');
@@ -3938,18 +3889,11 @@ PAGE_TEMPLATE = """
     const leaderboard = document.getElementById('leaderboard');
     const marketplacesBox = document.getElementById('marketplaces-box');
     const marketplacesLinks = document.getElementById('marketplaces-links');
-    const telegramOpenLink = document.getElementById('telegram-open-link');
-    const telegramStatus = document.getElementById('telegram-status');
-    const telegramShareBtn = document.getElementById('telegram-share-btn');
-    const telegramLinkBtn = document.getElementById('telegram-link-btn');
     const activeUsersList = document.getElementById('active-users-list');
-    const friendsList = document.getElementById('friends-list');
     const deckView = document.getElementById('deck-view');
-    const addFriendBtn = document.getElementById('add-friend-btn');
     const showDeckBtn = document.getElementById('show-deck-btn');
     const toggleDeckBtn = document.getElementById('toggle-deck-btn');
     const mobileProfileSummary = document.getElementById('mobile-profile-summary');
-    const mobileFriendsList = document.getElementById('mobile-friends-list');
     const mobileLeaderboard = document.getElementById('mobile-leaderboard');
     const mobileDeckView = document.getElementById('mobile-deck-view');
     const mobileGlobalPlayersList = document.getElementById('mobile-global-players-list');
@@ -3982,13 +3926,6 @@ PAGE_TEMPLATE = """
     const buildMagic = document.getElementById('build-magic');
     const saveBuildBtn = document.getElementById('save-build-btn');
     const buildStatus = document.getElementById('build-status');
-    const duelInvitePanel = document.getElementById('duel-invite-panel');
-
-    telegramOpenLink.href = telegramBotUsername
-      ? `https://t.me/${telegramBotUsername}?startapp=tondomaingame`
-      : telegramWebappUrl || window.location.href;
-    telegramOpenLink.textContent = telegramBotUsername ? `@${telegramBotUsername}` : 'Открыть мини-апп';
-
     let tonConnectUI = null;
     let matchmakingPollTimer = null;
     let modeFocusTimer = null;
@@ -4116,7 +4053,7 @@ PAGE_TEMPLATE = """
 
     function mostUsedMode() {
       const usage = loadUsageMap();
-      const modes = ['ranked', 'casual', 'duel', 'bot'];
+      const modes = ['ranked', 'casual', 'bot'];
       const sorted = modes
         .map((mode) => ({ mode, count: Number(usage[`mode:${mode}`] || 0) }))
         .sort((a, b) => b.count - a.count);
@@ -4167,9 +4104,6 @@ PAGE_TEMPLATE = """
       if (modeGrid) {
         modeGrid.classList.add('mode-focus');
       }
-      if (duelInvitePanel) {
-        duelInvitePanel.style.display = modeName === 'duel' ? 'block' : 'none';
-      }
       document.querySelectorAll('[data-mode-card]').forEach((card) => {
         card.classList.toggle('active-mode', card.dataset.modeCard === modeName);
       });
@@ -4191,9 +4125,6 @@ PAGE_TEMPLATE = """
       document.querySelectorAll('[data-mode-card]').forEach((card) => {
         card.classList.remove('active-mode');
       });
-      if (duelInvitePanel) {
-        duelInvitePanel.style.display = 'none';
-      }
       if (teamPanel) {
         teamPanel.style.display = 'none';
       }
@@ -4242,28 +4173,6 @@ PAGE_TEMPLATE = """
           </div>
         </div>
       `).join('');
-    }
-
-    function renderFriends(items) {
-      state.friends = items;
-      const emptyMarkup = '<div class="user-item muted">Добавь игроков в друзья, чтобы быстро вызывать их на матч.</div>';
-      if (!items.length) {
-        friendsList.innerHTML = emptyMarkup;
-        mobileFriendsList.innerHTML = emptyMarkup;
-        return;
-      }
-      const markup = items.map((item) => `
-        <div class="user-item">
-          <strong>${item.display_name}</strong>
-          <div class="tiny">${item.domain ? `${item.domain}.ton` : 'домен не выбран'} • рейтинг ${item.rating || '-'}</div>
-          <div class="tiny">${item.average_attack ? `Прокачка (сред.): атака ${item.average_attack} • защита ${item.average_defense}` : 'Колода ещё не сохранена'}</div>
-          <div class="actions" style="margin-top:10px;">
-            <button class="secondary" onclick="fillOpponent('${item.domain || item.wallet}')">Выбрать</button>
-          </div>
-        </div>
-      `).join('');
-      friendsList.innerHTML = markup;
-      mobileFriendsList.innerHTML = markup;
     }
 
     function renderDeck(data) {
@@ -4380,12 +4289,10 @@ PAGE_TEMPLATE = """
       if (state.playerProfile) {
         profileRating.textContent = state.playerProfile.rating;
         profileGames.textContent = state.playerProfile.games_played;
-        profileTelegram.textContent = state.playerProfile.telegram_linked ? 'привязан' : 'не привязан';
         showDeckBtn.disabled = !(state.playerProfile.current_domain || state.playerProfile.best_domain);
       } else {
         profileRating.textContent = '1000';
         profileGames.textContent = '0';
-        profileTelegram.textContent = 'не привязан';
         showDeckBtn.disabled = true;
       }
 
@@ -4395,7 +4302,6 @@ PAGE_TEMPLATE = """
           <div class="tiny">Кошелёк: ${state.wallet ? shortAddress(state.wallet) : '-'}</div>
           <div class="tiny">Активный домен: ${state.selectedDomain ? `${state.selectedDomain}.ton` : '-'}</div>
           <div class="tiny">Рейтинг: ${profileRating.textContent} • Матчей: ${profileGames.textContent}</div>
-          <div class="tiny">Telegram: ${profileTelegram.textContent}</div>
         </div>
       `;
       document.getElementById('mobile-show-deck-btn').disabled = showDeckBtn.disabled;
@@ -4544,8 +4450,6 @@ PAGE_TEMPLATE = """
       document.getElementById('continue-to-modes-btn').disabled = !hasCards;
       document.getElementById('play-ranked-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards) || searching;
-      document.getElementById('play-duel-btn').disabled = !(connected && hasCards) || searching;
-      document.getElementById('play-duel-mode-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-bot-btn').disabled = !(connected && hasCards) || searching;
       if (playOnecardBtn && oneCardSlot) {
         playOnecardBtn.disabled = !(connected && hasCards && oneCardSlot.value) || searching;
@@ -4556,8 +4460,6 @@ PAGE_TEMPLATE = """
       if (joinRoomBtn) {
         joinRoomBtn.disabled = !(connected && hasCards) || searching;
       }
-      telegramLinkBtn.disabled = !connected;
-      addFriendBtn.disabled = !connected;
       refreshAchievementsBtn.disabled = !connected;
       cancelMatchmakingBtn.disabled = !searching;
       saveBuildBtn.disabled = !(connected && hasDomain);
@@ -5428,7 +5330,6 @@ PAGE_TEMPLATE = """
           setTimeout(() => startBtn.click(), 120);
         }
       }
-      telegramShareBtn.disabled = false;
     }
 
     function animateScoreCounters(container) {
@@ -5498,16 +5399,6 @@ PAGE_TEMPLATE = """
       switchView('battleflow');
     }
 
-    function openDuelMode() {
-      bumpUsage('mode:duel');
-      animateModeChoice('duel');
-      const input = document.getElementById('opponent-wallet');
-      if (input) {
-        input.focus();
-      }
-      matchmakingStatus.textContent = 'Дуэль: укажи домен соперника и отправь приглашение.';
-    }
-
     function repeatLastMode() {
       clearFinalClimax();
       if (state.lastReplayMode === 'bot') {
@@ -5516,10 +5407,6 @@ PAGE_TEMPLATE = """
       }
       if (state.lastReplayMode === 'ranked' || state.lastReplayMode === 'casual') {
         startMatchmaking(state.lastReplayMode);
-        return;
-      }
-      if (state.lastReplayMode === 'duel') {
-        playMatch('duel');
         return;
       }
       switchView('modes');
@@ -5593,7 +5480,6 @@ PAGE_TEMPLATE = """
       if (!state.wallet) {
         state.playerProfile = null;
         renderProfile();
-        renderFriends([]);
         renderOwnedDecks([], null);
         return;
       }
@@ -5603,8 +5489,6 @@ PAGE_TEMPLATE = """
         state.selectedDomain = state.playerProfile.current_domain;
       }
       renderProfile();
-      const friends = await api(`/api/friends/${encodeURIComponent(state.wallet)}`);
-      renderFriends(friends.friends);
     }
 
     async function checkDomains() {
@@ -6047,55 +5931,6 @@ PAGE_TEMPLATE = """
       }
     }
 
-    function initTelegram() {
-      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-      if (!tg) {
-        telegramBadge.textContent = telegramBotUsername ? 'Telegram: бот готов' : 'Telegram: нужен бот';
-        telegramStatus.textContent = telegramBotUsername
-          ? 'Можно открыть мини-апп через ссылку на бота.'
-          : 'Укажи TG_BOT_USERNAME и TG_BOT_TOKEN, чтобы включить Telegram-режим.';
-        return;
-      }
-
-      tg.ready();
-      tg.expand();
-      telegramBadge.textContent = 'Telegram: mini app активен';
-      telegramStatus.textContent = 'Приложение открыто внутри Telegram. Можно привязать кошелёк и получать PvP-приглашения от бота.';
-    }
-
-    async function linkTelegramWallet() {
-      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-      if (!state.wallet) {
-        telegramStatus.textContent = 'Сначала подключи кошелёк.';
-        return;
-      }
-      if (!tg || !tg.initData) {
-        if (telegramBotUsername) {
-          const payload = encodeURIComponent(`link_${state.wallet}`);
-          window.open(`https://t.me/${telegramBotUsername}?start=${payload}`, '_blank');
-          telegramStatus.textContent = 'Открыл бота. Нажми Start в Telegram для автоматической привязки кошелька.';
-        } else {
-          telegramStatus.textContent = 'Привязка доступна в Telegram mini app. Укажи TG_BOT_USERNAME.';
-        }
-        return;
-      }
-      try {
-        const data = await api('/api/telegram/link', {
-          method: 'POST',
-          body: {
-            wallet: state.wallet,
-            init_data: tg.initData
-          }
-        });
-        state.playerProfile = data.player;
-        renderProfile();
-        telegramStatus.textContent = 'Telegram успешно привязан к кошельку. Теперь тебе могут приходить PvP-приглашения.';
-        loadActiveUsers();
-      } catch (error) {
-        telegramStatus.textContent = error.message;
-      }
-    }
-
     async function showDeck() {
       if (!state.wallet) return;
       try {
@@ -6235,41 +6070,6 @@ PAGE_TEMPLATE = """
       toggleDeckBtn.textContent = isHidden ? 'Скрыть' : 'Открыть';
     }
 
-    async function addFriend() {
-      const reference = document.getElementById('friend-reference').value.trim();
-      try {
-        const data = await api('/api/friends', {
-          method: 'POST',
-          body: { wallet: state.wallet, reference }
-        });
-        renderFriends(data.friends);
-        document.getElementById('friend-reference').value = '';
-      } catch (error) {
-        friendsList.innerHTML = `<div class="user-item error">${error.message}</div>${friendsList.innerHTML}`;
-      }
-    }
-
-    async function shareTelegram() {
-      if (!state.lastResult) return;
-      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-      const payload = {
-        type: 'battle_result',
-        wallet: state.wallet,
-        domain: state.selectedDomain,
-        result: state.lastResult
-      };
-
-      if (tg && typeof tg.sendData === 'function') {
-        tg.sendData(JSON.stringify(payload));
-        telegramStatus.textContent = 'Результат отправлен в Telegram через WebApp bridge.';
-        return;
-      }
-
-      telegramStatus.textContent = telegramBotUsername
-        ? `Открой бота @${telegramBotUsername} и запусти мини-апп внутри Telegram, чтобы отправлять результаты автоматически.`
-        : 'Для автоматической отправки результата нужен Telegram WebApp.';
-    }
-
     async function initTonConnect() {
       tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: `${window.location.origin}/tonconnect-manifest.json`,
@@ -6325,7 +6125,6 @@ PAGE_TEMPLATE = """
           state.selectedBattleSlot = null;
           renderDomains([]);
           renderProfile();
-          renderFriends([]);
           renderDeck(null);
           renderOwnedDecks([], null);
           renderAchievements([]);
@@ -6363,8 +6162,6 @@ PAGE_TEMPLATE = """
     document.getElementById('continue-to-modes-btn').addEventListener('click', () => switchView('modes'));
     document.getElementById('play-ranked-btn').addEventListener('click', () => startMatchmaking('ranked'));
     document.getElementById('play-casual-btn').addEventListener('click', () => startMatchmaking('casual'));
-    document.getElementById('play-duel-btn').addEventListener('click', () => playMatch('duel'));
-    document.getElementById('play-duel-mode-btn').addEventListener('click', openDuelMode);
     cancelMatchmakingBtn.addEventListener('click', cancelMatchmaking);
     saveBuildBtn.addEventListener('click', saveDisciplineBuild);
     document.getElementById('play-bot-btn').addEventListener('click', playBotMatch);
@@ -6404,18 +6201,14 @@ PAGE_TEMPLATE = """
     if (startRoomBtn) {
       startRoomBtn.addEventListener('click', startRoom);
     }
-    telegramLinkBtn.addEventListener('click', linkTelegramWallet);
-    telegramShareBtn.addEventListener('click', shareTelegram);
     showDeckBtn.addEventListener('click', showDeck);
     toggleDeckBtn.addEventListener('click', toggleDeck);
     document.getElementById('mobile-show-deck-btn').addEventListener('click', showDeck);
-    document.getElementById('mobile-link-tg-btn').addEventListener('click', linkTelegramWallet);
     document.getElementById('nav-wallet').addEventListener('click', () => switchView('wallet'));
     document.getElementById('nav-pack').addEventListener('click', () => switchView('pack'));
     document.getElementById('nav-modes').addEventListener('click', () => switchView('modes'));
     document.getElementById('nav-profile').addEventListener('click', () => switchView('profile'));
     document.getElementById('nav-achievements').addEventListener('click', () => switchView('achievements'));
-    addFriendBtn.addEventListener('click', addFriend);
     [buildAttack, buildDefense, buildLuck, buildSpeed, buildMagic].forEach((node) => {
       node.addEventListener('input', () => {
         const pool = Number((state.disciplineBuild && state.disciplineBuild.pool) || 0);
@@ -6431,7 +6224,6 @@ PAGE_TEMPLATE = """
     window.viewBattleFlow = viewBattleFlow;
     window.selectDeckDomain = selectDeckDomain;
 
-    initTelegram();
     initTonConnect().catch((error) => {
       setStatus(walletStatus, `Ошибка TonConnect: ${error.message}`, 'error');
     });
@@ -6441,7 +6233,6 @@ PAGE_TEMPLATE = """
     loadAchievements();
     loadCardCatalog();
     renderProfile();
-    renderFriends([]);
     renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
     renderDeck(null);
     renderOwnedDecks([], null);
