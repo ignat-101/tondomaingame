@@ -2432,6 +2432,9 @@ PAGE_TEMPLATE = """
       domainsChecked: false,
       selectedDomain: null,
       cards: [],
+      pendingPackSource: null,
+      pendingPackPaymentId: null,
+      packOpening: false,
       selectedBattleSlot: null,
       playerProfile: null,
       lastResult: null,
@@ -3030,6 +3033,8 @@ PAGE_TEMPLATE = """
       const packRect = foilPack.getBoundingClientRect();
       const startX = packRect.left + packRect.width * 0.5;
       const startY = packRect.top + packRect.height * 0.17;
+      const centerX = window.innerWidth * 0.5;
+      const centerY = window.innerHeight * 0.5;
 
       for (const [index, target] of targets.entries()) {
         const preview = document.createElement('article');
@@ -3041,17 +3046,15 @@ PAGE_TEMPLATE = """
         preview.style.opacity = '0';
         layer.appendChild(preview);
 
-        const arcX = window.innerWidth * 0.5 + (index - ((targets.length - 1) / 2)) * 42;
-        const arcY = window.innerHeight * 0.42 + (index % 2 === 0 ? -24 : 18);
-
         await sleep(60);
-        preview.style.left = `${arcX}px`;
-        preview.style.top = `${arcY}px`;
-        preview.style.transform = `translate(-50%, -50%) scale(${0.92 + index * 0.03}) rotate(${(index - 2) * 8}deg)`;
+        preview.style.left = `${centerX}px`;
+        preview.style.top = `${centerY}px`;
+        preview.style.transform = `translate(-50%, -50%) scale(1.02) rotate(${index % 2 === 0 ? 360 : -360}deg)`;
         preview.classList.add('focused');
         layer.classList.add('dimmed');
 
-        await sleep(480);
+        await sleep(760);
+        await sleep(1000);
 
         const rect = target.getBoundingClientRect();
         const targetX = rect.left + rect.width / 2;
@@ -3061,7 +3064,7 @@ PAGE_TEMPLATE = """
         preview.style.transform = 'translate(-50%, -50%) scale(0.44)';
         preview.style.opacity = '0.94';
 
-        await sleep(600);
+        await sleep(560);
         target.classList.add('sequence-visible');
         preview.remove();
       }
@@ -3772,6 +3775,9 @@ PAGE_TEMPLATE = """
     function rebindDomain() {
       state.selectedDomain = null;
       state.cards = [];
+      state.pendingPackSource = null;
+      state.pendingPackPaymentId = null;
+      state.packOpening = false;
       state.selectedBattleSlot = null;
       state.lastResult = null;
       packCards.innerHTML = '';
@@ -3885,6 +3891,8 @@ PAGE_TEMPLATE = """
     }
 
     async function openPack(source = 'daily', paymentId = null) {
+      if (state.packOpening) return;
+      state.packOpening = true;
       setStatus(document.getElementById('pack-status'), 'Распаковываем 5 карточек из домена...', 'warning');
       foilPack.classList.remove('opening');
       foilPack.classList.remove('vanishing');
@@ -3898,12 +3906,12 @@ PAGE_TEMPLATE = """
           body: {wallet: state.wallet, domain: state.selectedDomain, source, payment_id: paymentId}
         });
         state.cards = data.cards;
+        state.pendingPackSource = null;
+        state.pendingPackPaymentId = null;
         await sleep(1300);
         packShowcase.classList.add('opened');
         packNote.textContent = 'Cards incoming';
         await renderPack(data.cards, data.total_score);
-        foilPack.classList.add('vanishing');
-        await sleep(1500);
         packShowcase.classList.remove('cinematic');
         setStatus(document.getElementById('pack-status'), `Колода готова. Вклад карт: ${data.total_score}. Свободный пул пересчитан от домена.`, 'success');
         updateButtons();
@@ -3920,6 +3928,8 @@ PAGE_TEMPLATE = """
         packShowcase.classList.remove('cinematic');
         packNote.textContent = 'TAP TO OPEN';
         setStatus(document.getElementById('pack-status'), error.message, 'error');
+      } finally {
+        state.packOpening = false;
       }
     }
 
@@ -3952,8 +3962,13 @@ PAGE_TEMPLATE = """
             tx_hash: tx && tx.boc ? tx.boc.slice(0, 120) : ''
           }
         });
-        setStatus(document.getElementById('pack-status'), 'Платёж подтверждён. Открываем платный пак...', 'success');
-        await openPack('paid', intent.payment_id);
+        state.pendingPackSource = 'paid';
+        state.pendingPackPaymentId = intent.payment_id;
+        packShowcase.classList.remove('opened');
+        foilPack.classList.remove('opening');
+        foilPack.classList.remove('vanishing');
+        packNote.textContent = 'Tap pack to open';
+        setStatus(document.getElementById('pack-status'), 'Платёж подтверждён. Нажми на пак, чтобы открыть его.', 'success');
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
@@ -4335,6 +4350,9 @@ PAGE_TEMPLATE = """
         state.selectedDomain = data.domain;
         state.playerProfile = data.player;
         state.cards = data.deck.cards || [];
+        state.pendingPackSource = null;
+        state.pendingPackPaymentId = null;
+        state.packOpening = false;
         packShowcase.classList.remove('opened');
         foilPack.classList.remove('opening');
         packNote.textContent = 'TAP TO OPEN';
@@ -4484,6 +4502,9 @@ PAGE_TEMPLATE = """
           state.domains = [];
           state.selectedDomain = null;
           state.cards = [];
+          state.pendingPackSource = null;
+          state.pendingPackPaymentId = null;
+          state.packOpening = false;
           state.selectedBattleSlot = null;
           packCards.innerHTML = '';
           packScoreLabel.textContent = 'Вклад карт: -';
@@ -4509,6 +4530,9 @@ PAGE_TEMPLATE = """
           state.domains = [];
           state.selectedDomain = null;
           state.cards = [];
+          state.pendingPackSource = null;
+          state.pendingPackPaymentId = null;
+          state.packOpening = false;
           state.selectedBattleSlot = null;
           renderDomains([]);
           renderProfile();
@@ -4536,8 +4560,15 @@ PAGE_TEMPLATE = """
     document.getElementById('open-pack-btn').addEventListener('click', () => openPack('daily'));
     buyPackBtn.addEventListener('click', buyPackWithTon);
     foilPack.addEventListener('click', () => {
+      if (state.packOpening) {
+        return;
+      }
+      if (state.pendingPackSource === 'paid' && state.pendingPackPaymentId) {
+        openPack('paid', state.pendingPackPaymentId);
+        return;
+      }
       if (!document.getElementById('open-pack-btn').disabled) {
-        openPack();
+        openPack('daily');
       }
     });
     document.getElementById('continue-to-modes-btn').addEventListener('click', () => switchView('modes'));
