@@ -1593,21 +1593,59 @@ PAGE_TEMPLATE = """
     }
 
     .battle-cinematic {
+      position: relative;
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      gap: 10px;
-      margin: 10px 0 14px;
+      gap: 14px;
+      margin: 12px 0 18px;
+      padding: 18px 10px 14px;
+      isolation: isolate;
+    }
+
+    .battle-cinematic::before {
+      content: "";
+      position: absolute;
+      inset: 22% 8% 16%;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(69, 215, 255, 0.18), transparent 34%),
+        linear-gradient(90deg, rgba(83, 246, 184, 0.14), rgba(255, 211, 110, 0.18), rgba(255, 122, 134, 0.14));
+      filter: blur(18px);
+      opacity: 0.9;
+      z-index: -2;
+    }
+
+    .battle-cinematic::after {
+      content: "";
+      position: absolute;
+      left: 16%;
+      right: 16%;
+      top: 50%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(121, 217, 255, 0.38), transparent);
+      box-shadow: 0 0 18px rgba(69, 215, 255, 0.28);
+      z-index: -1;
     }
 
     .battle-fighter {
+      position: relative;
       border-radius: 16px;
       border: 1px solid rgba(121, 217, 255, 0.26);
       padding: 12px;
       background: linear-gradient(145deg, rgba(18, 39, 67, 0.9), rgba(8, 16, 30, 0.92));
-      box-shadow: inset 0 0 22px rgba(83, 246, 184, 0.08);
+      box-shadow:
+        inset 0 0 22px rgba(83, 246, 184, 0.08),
+        0 18px 36px rgba(0, 0, 0, 0.24);
       opacity: 0;
+      transform-style: preserve-3d;
       animation: fighterIn 460ms cubic-bezier(.2,.82,.2,1) forwards;
+    }
+
+    .battle-fighter.player {
+      text-align: left;
+      transform-origin: center right;
+      animation-name: fighterFacePlayer;
     }
 
     .battle-fighter strong {
@@ -1619,7 +1657,40 @@ PAGE_TEMPLATE = """
 
     .battle-fighter.enemy {
       text-align: right;
+      transform-origin: center left;
       animation-delay: 100ms;
+      animation-name: fighterFaceEnemy;
+    }
+
+    .battle-fighter::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      pointer-events: none;
+    }
+
+    .battle-fighter.player::after,
+    .battle-fighter.enemy::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 44px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(255, 211, 110, 0.7), transparent);
+      filter: blur(0.4px);
+      opacity: 0.78;
+    }
+
+    .battle-fighter.player::after {
+      right: -20px;
+      transform: translateY(-50%);
+    }
+
+    .battle-fighter.enemy::after {
+      left: -20px;
+      transform: translateY(-50%) rotate(180deg);
     }
 
     .battle-vs-orb {
@@ -1636,6 +1707,190 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 30% 30%, rgba(83, 246, 184, 0.38), rgba(69, 215, 255, 0.18) 60%, rgba(7, 14, 25, 0.95));
       box-shadow: 0 0 24px rgba(83, 246, 184, 0.28);
       animation: vsPulse 1.2s ease-in-out infinite;
+    }
+
+    .arena-decision-track {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 16px;
+      padding: 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(121, 217, 255, 0.14);
+      background:
+        linear-gradient(135deg, rgba(7, 18, 33, 0.92), rgba(9, 27, 42, 0.9)),
+        radial-gradient(circle at top, rgba(69, 215, 255, 0.12), transparent 60%);
+      box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.04);
+    }
+
+    .arena-decision-headline {
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(213, 235, 255, 0.76);
+    }
+
+    .arena-decision-bursts {
+      display: grid;
+      gap: 10px;
+    }
+
+    .arena-decision-burst {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+      animation: decisionTrackRise 520ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .arena-decision-burst.latest {
+      border-color: rgba(255, 211, 110, 0.34);
+      background: linear-gradient(135deg, rgba(255, 211, 110, 0.1), rgba(255, 255, 255, 0.03));
+      box-shadow: 0 0 0 1px rgba(255, 211, 110, 0.08), 0 16px 34px rgba(0, 0, 0, 0.16);
+    }
+
+    .arena-decision-burst.win {
+      border-color: rgba(83, 246, 184, 0.22);
+    }
+
+    .arena-decision-burst.lose {
+      border-color: rgba(255, 122, 134, 0.24);
+    }
+
+    .arena-decision-roundline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .arena-decision-roundline strong {
+      font-size: 14px;
+      letter-spacing: 0.04em;
+    }
+
+    .arena-decision-score {
+      color: #ffe59d;
+      white-space: nowrap;
+    }
+
+    .arena-decision-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .arena-decision-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: rgba(255, 255, 255, 0.04);
+      color: #eaf8ff;
+      font-size: 12px;
+      line-height: 1;
+      opacity: 0;
+      transform: translateY(10px) scale(0.92);
+      animation: decisionChipIn 420ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .arena-decision-chip.player {
+      border-color: rgba(69, 215, 255, 0.34);
+      background: rgba(69, 215, 255, 0.1);
+    }
+
+    .arena-decision-chip.enemy {
+      border-color: rgba(255, 122, 134, 0.3);
+      background: rgba(255, 122, 134, 0.1);
+    }
+
+    .arena-decision-chip.strategy {
+      border-color: rgba(255, 211, 110, 0.34);
+      background: rgba(255, 211, 110, 0.1);
+    }
+
+    .arena-decision-chip.featured {
+      border-color: rgba(83, 246, 184, 0.34);
+      background: rgba(83, 246, 184, 0.1);
+    }
+
+    .arena-decision-chip.outcome {
+      border-color: rgba(216, 228, 255, 0.26);
+      background: rgba(216, 228, 255, 0.08);
+    }
+
+    .arena-decision-chip.action {
+      box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.03);
+    }
+
+    .arena-decision-chip.burst {
+      border-color: rgba(255, 122, 134, 0.36);
+    }
+
+    .arena-decision-chip.guard {
+      border-color: rgba(83, 246, 184, 0.36);
+    }
+
+    .arena-decision-chip.channel {
+      border-color: rgba(69, 215, 255, 0.36);
+    }
+
+    @keyframes fighterFacePlayer {
+      0% {
+        opacity: 0;
+        transform: translateX(-22px) rotateY(24deg) scale(0.9);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: perspective(1200px) rotateY(12deg) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes fighterFaceEnemy {
+      0% {
+        opacity: 0;
+        transform: translateX(22px) rotateY(-24deg) scale(0.9);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: perspective(1200px) rotateY(-12deg) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes decisionTrackRise {
+      0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes decisionChipIn {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.9);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
     }
 
     .battle-fx-layer {
@@ -2384,17 +2639,46 @@ PAGE_TEMPLATE = """
       }
 
       .battle-cinematic {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 8px;
+        padding: 12px 4px 10px;
       }
 
       .battle-vs-orb {
         margin: 0 auto;
+        width: 54px;
+        height: 54px;
+        font-size: 13px;
       }
 
       .battle-fighter,
       .battle-fighter.enemy {
+        min-width: 0;
+        padding: 10px;
+      }
+
+      .battle-fighter.player {
         text-align: left;
+        transform: perspective(900px) rotateY(9deg) scale(1);
+      }
+
+      .battle-fighter.enemy {
+        text-align: right;
+        transform: perspective(900px) rotateY(-9deg) scale(1);
+      }
+
+      .battle-fighter strong {
+        font-size: 15px;
+      }
+
+      .arena-decision-track {
+        padding: 12px;
+      }
+
+      .arena-decision-roundline {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
       }
 
       .interactive-battle-actions {
@@ -3802,6 +4086,9 @@ PAGE_TEMPLATE = """
         const oppFeaturedCardLine = result.opponent_featured_card
           ? `<div class="tiny">Тактическая карта соперника: слот ${result.opponent_featured_card.slot} • ${result.opponent_featured_card.title} • ${result.opponent_featured_card.skill_name || 'скилл'}</div>`
           : '';
+        const decisionChipMarkup = (label, tone, extraClass = '', delay = 0) => `
+          <span class="arena-decision-chip ${tone} ${extraClass}" style="animation-delay:${delay}ms;">${label}</span>
+        `;
         const roundsLine = Array.isArray(result.rounds) && result.rounds.length
           ? `<div class="discipline-list">
               ${result.rounds.map((round) => {
@@ -3825,6 +4112,39 @@ PAGE_TEMPLATE = """
                   </div>
                 `;
               }).join('')}
+            </div>`
+          : '';
+        const decisionTimelineLine = Array.isArray(result.rounds) && result.rounds.length
+          ? `<div class="arena-decision-track">
+              <div class="arena-decision-headline">Решения, которые двигают раунд</div>
+              <div class="arena-decision-bursts">
+                ${result.rounds.map((round, index) => {
+                  const playerAction = actionRuleMeta(round.player_action || 'channel');
+                  const opponentAction = actionRuleMeta(round.opponent_action || 'channel');
+                  const playerStrategy = strategyMeta(round.player_strategy_key || 'balanced');
+                  const opponentStrategy = strategyMeta(round.opponent_strategy_key || 'balanced');
+                  const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
+                  const roundOutcome = round.winner === 'player'
+                    ? 'Раунд за тобой'
+                    : (round.winner === 'opponent' ? 'Раунд забрал соперник' : 'Раунд вничью');
+                  const chipDelayBase = index * 140;
+                  return `
+                    <div class="arena-decision-burst ${roundClass} ${index === result.rounds.length - 1 ? 'latest' : ''}" style="animation-delay:${Math.min(index * 120, 480)}ms;">
+                      <div class="arena-decision-roundline">
+                        <strong>${round.label}</strong>
+                        <span class="arena-decision-score">${round.player_total} : ${round.opponent_total}</span>
+                      </div>
+                      <div class="arena-decision-chips">
+                        ${decisionChipMarkup(`Ты: ${playerAction.ruLabel} ${Number(round.player_action_bonus || 0) ? `+${round.player_action_bonus}` : ''}`.trim(), 'player', `action ${round.player_action || 'channel'}`, chipDelayBase + 40)}
+                        ${decisionChipMarkup(`Соперник: ${opponentAction.ruLabel} ${Number(round.opponent_action_bonus || 0) ? `+${round.opponent_action_bonus}` : ''}`.trim(), 'enemy', `action ${round.opponent_action || 'channel'}`, chipDelayBase + 90)}
+                        ${decisionChipMarkup(`Стратегия: ${playerStrategy.label} / ${opponentStrategy.label}`, 'strategy', '', chipDelayBase + 140)}
+                        ${decisionChipMarkup(`Тактика: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}`, 'featured', '', chipDelayBase + 190)}
+                        ${decisionChipMarkup(roundOutcome, 'outcome', roundClass, chipDelayBase + 240)}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
             </div>`
           : '';
         const buildLine = result.player_build
@@ -3934,6 +4254,7 @@ PAGE_TEMPLATE = """
                   </div>
                   <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
                 </div>
+                ${decisionTimelineLine}
                 ${cardLine}
                 ${oppCardLine}
                 ${featuredCardLine}
