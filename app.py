@@ -1681,7 +1681,7 @@ PAGE_TEMPLATE = """
     .pack-sequence-layer {
       position: fixed;
       inset: 0;
-      z-index: 7000;
+      z-index: 7300;
       pointer-events: none;
       overflow: hidden;
       background: rgba(3, 8, 14, 0);
