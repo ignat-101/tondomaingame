@@ -3888,7 +3888,8 @@ PAGE_TEMPLATE = """
       matchmakingMode: null,
       matchmakingPolling: false,
       disciplineBuild: null,
-      battleLaunchInFlight: false
+      battleLaunchInFlight: false,
+      lastReplayTapAt: 0
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -4935,6 +4936,8 @@ PAGE_TEMPLATE = """
       battleResult.querySelectorAll('.result-actions button').forEach((button) => {
         if ((button.textContent || '').includes('Играть ещё раз')) {
           button.disabled = Boolean(active);
+          button.style.pointerEvents = active ? 'none' : '';
+          button.style.opacity = active ? '0.6' : '';
         }
       });
     }
@@ -4957,6 +4960,7 @@ PAGE_TEMPLATE = """
       clearInteractiveChoiceTimer();
       clearBattleAutostartTimer();
       setBattleLaunchInFlight(false);
+      state.lastReplayTapAt = 0;
       battleResult.className = 'result-box';
       battleResult.style.display = 'block';
       battleResult.classList.add('duel-anim');
@@ -5465,7 +5469,10 @@ PAGE_TEMPLATE = """
     }
 
     function repeatLastMode() {
+      const now = Date.now();
+      if (state.lastReplayTapAt && now - state.lastReplayTapAt < 1200) return;
       if (state.battleLaunchInFlight) return;
+      state.lastReplayTapAt = now;
       setBattleLaunchInFlight(true);
       resetBattleStage();
       if (state.lastReplayMode === 'bot') {
