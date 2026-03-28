@@ -587,6 +587,18 @@ PAGE_TEMPLATE = """
       margin: 0 0 10px;
     }
 
+    .game-card h3,
+    .mode-card h3,
+    .domain-card h3,
+    .catalog-card strong,
+    .user-item strong,
+    .wallet-domain-mainline,
+    .wallet-flow-note,
+    .wallet-section .tiny {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
     .muted {
       color: var(--muted);
     }
@@ -3015,10 +3027,88 @@ PAGE_TEMPLATE = """
     }
 
     @media (max-width: 920px) {
-      body { padding-bottom: 84px; }
-      .shell { overflow-x: hidden; }
+      body {
+        padding-bottom: calc(116px + env(safe-area-inset-bottom));
+      }
+
+      .shell {
+        overflow-x: hidden;
+        padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
+      }
+
       .layout { grid-template-columns: 1fr; }
       .side { display: none; }
+
+      .hero,
+      .panel {
+        border-radius: 20px;
+      }
+
+      .panel,
+      .domain-card,
+      .game-card,
+      .mode-card,
+      .leaderboard-item,
+      .team-card,
+      .user-item,
+      .catalog-card {
+        padding: 12px;
+      }
+
+      h1 {
+        font-size: clamp(30px, 9vw, 44px);
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      h3 {
+        font-size: 18px;
+      }
+
+      p,
+      .muted,
+      .tiny,
+      .status,
+      .wallet-flow-note,
+      .wallet-domain-mainline {
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      button,
+      select,
+      input {
+        min-height: 44px;
+      }
+
+      button {
+        padding: 11px 14px;
+      }
+
+      input,
+      select {
+        padding: 10px 12px;
+      }
+
+      .actions,
+      .row {
+        gap: 6px;
+      }
+
+      .badge,
+      .step-chip,
+      .stat-chip,
+      .market-link {
+        padding: 7px 10px;
+        font-size: 11px;
+      }
+
+      .stats-strip {
+        gap: 6px;
+      }
+
       .mode-grid.mode-focus::before {
         inset: -4px;
         background: rgba(2, 8, 16, 0.38);
@@ -3034,40 +3124,42 @@ PAGE_TEMPLATE = """
       }
       .mobile-nav {
         position: fixed;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
+        left: 8px;
+        right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
         display: grid;
         grid-template-columns: repeat(5, 1fr);
-        gap: 10px;
-        padding: 10px;
-        border-radius: 20px;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 18px;
         border: 1px solid var(--line);
-        background: rgba(7, 16, 25, 0.94);
+        background: rgba(7, 16, 25, 0.96);
         backdrop-filter: blur(16px);
-        z-index: 20;
+        z-index: 40;
+        box-shadow: 0 18px 34px rgba(0, 0, 0, 0.34);
       }
       .mobile-nav button {
-        min-height: 44px;
-        height: 44px;
-        padding: 7px 4px;
-        font-size: 11px;
+        min-height: 40px;
+        height: 40px;
+        padding: 6px 3px;
+        font-size: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center;
-        line-height: 1.05;
+        line-height: 1;
         white-space: normal;
         word-break: break-word;
         min-width: 0;
+        border-radius: 12px;
       }
 
       #nav-achievements {
-        font-size: 10px;
+        font-size: 9px;
       }
 
       .hero {
-        padding-bottom: 14px;
+        padding: 14px;
       }
 
       .hero-top p,
@@ -3096,24 +3188,28 @@ PAGE_TEMPLATE = """
 
       .wallet-quick-panel {
         margin: 0;
-        padding: 14px;
-        border-radius: 18px;
+        padding: 12px;
+        border-radius: 16px;
         box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
       }
 
+      .wallet-quick-grid {
+        gap: 8px;
+      }
+
       .wallet-quick-item {
-        padding: 12px 14px;
+        padding: 10px 12px;
       }
 
       .wallet-quick-item strong {
-        font-size: 14px;
-        margin-bottom: 6px;
+        font-size: 13px;
+        margin-bottom: 4px;
       }
 
       .wallet-quick-actions button,
       .wallet-domain-action {
-        min-height: 50px;
-        font-size: 14px;
+        min-height: 44px;
+        font-size: 13px;
       }
 
       #view-wallet .actions {
@@ -3131,7 +3227,23 @@ PAGE_TEMPLATE = """
       .wallet-section {
         margin-top: 0;
         padding: 12px;
-        border-radius: 18px;
+        border-radius: 16px;
+      }
+
+      .wallet-section-head {
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .wallet-section h3 {
+        font-size: 15px;
+        line-height: 1.25;
+      }
+
+      .wallet-section-kicker {
+        min-width: 30px;
+        height: 30px;
+        font-size: 11px;
       }
 
       .domain-grid,
@@ -3140,6 +3252,87 @@ PAGE_TEMPLATE = """
       .catalog-grid,
       .mode-grid {
         grid-template-columns: 1fr;
+      }
+
+      .owned-decks,
+      .card-grid,
+      .catalog-grid,
+      .domain-grid,
+      .mode-grid {
+        gap: 10px;
+      }
+
+      .catalog-card {
+        padding: 10px 12px;
+      }
+
+      .catalog-kicker {
+        min-height: 24px;
+        padding: 0 8px;
+        margin-bottom: 8px;
+        font-size: 10px;
+      }
+
+      .pack-showcase {
+        margin-top: 12px;
+        padding: 12px 10px 14px;
+        border-radius: 22px;
+      }
+
+      .pack-counter {
+        min-width: 0;
+        width: 100%;
+        max-width: 250px;
+        min-height: 36px;
+        margin-bottom: 8px;
+        padding: 0 14px;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+      }
+
+      .pack-note {
+        margin-bottom: 8px;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+      }
+
+      .foil-pack,
+      .pack-showcase.cinematic .foil-pack {
+        width: min(280px, calc(100vw - 70px));
+        border-radius: 20px;
+      }
+
+      .pack-face {
+        border-radius: 20px;
+      }
+
+      .pack-rip-strip {
+        border-radius: 20px 20px 0 0;
+      }
+
+      .pack-tap {
+        margin-top: 10px;
+        font-size: 13px;
+        letter-spacing: 0.18em;
+      }
+
+      .pack-preview-card {
+        width: min(300px, calc(100vw - 28px));
+      }
+
+      .pack-preview-card .game-card {
+        padding: 14px;
+      }
+
+      .wallet-domain-card,
+      .domain-card.user-item,
+      .user-item.wallet-domain-card {
+        padding: 12px;
+      }
+
+      .wallet-domain-stats {
+        gap: 6px;
+        margin: 8px 0;
       }
 
       .showdown-main {
@@ -3232,32 +3425,32 @@ PAGE_TEMPLATE = """
       }
 
       .arena-slot-card {
-        padding: 8px 6px;
+        padding: 7px 5px;
         border-radius: 12px;
       }
 
       .arena-slot-card strong {
-        font-size: 10px;
+        font-size: 9px;
         margin-bottom: 4px;
       }
 
       .arena-slot-meta {
-        font-size: 10px;
-        line-height: 1.25;
+        font-size: 9px;
+        line-height: 1.18;
       }
 
       .arena-core {
-        min-height: 252px;
+        min-height: 214px;
       }
 
       .arena-choice-hub {
-        min-height: 252px;
-        padding: 6px 4px 8px;
+        min-height: 214px;
+        padding: 4px 2px 6px;
       }
 
       .arena-choice-panel {
-        padding: 14px 12px;
-        border-radius: 18px;
+        padding: 12px 10px;
+        border-radius: 16px;
       }
 
       .arena-choice-panel .interactive-battle-actions {
@@ -3271,7 +3464,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot {
-        top: 48px;
+        top: 40px;
       }
 
       .arena-round-marker {
@@ -3287,22 +3480,22 @@ PAGE_TEMPLATE = """
       }
 
       .arena-lane-choice-panel {
-        width: min(124px, 22vw);
-        padding: 8px 6px 7px;
+        width: min(116px, 21vw);
+        padding: 7px 5px 6px;
         border-radius: 14px;
       }
 
       .arena-lane-choice-panel .interactive-battle-title {
-        font-size: 11px;
+        font-size: 10px;
       }
 
       .arena-lane-choice-panel .interactive-battle-actions {
-        grid-template-columns: repeat(2, minmax(0, 34px));
-        gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 32px));
+        gap: 8px;
       }
 
       .arena-lane-choice-panel .interactive-action-btn {
-        min-height: 34px;
+        min-height: 32px;
         font-size: 7px;
       }
 
@@ -3311,9 +3504,9 @@ PAGE_TEMPLATE = """
       }
 
       .wallet-domain-chip {
-        min-height: 26px;
-        padding: 0 8px;
-        font-size: 11px;
+        min-height: 24px;
+        padding: 0 7px;
+        font-size: 10px;
       }
 
       .wallet-domain-mainline,
@@ -3321,6 +3514,19 @@ PAGE_TEMPLATE = """
       .wallet-section .tiny,
       .wallet-flow-note {
         font-size: 12px;
+      }
+
+      .discipline-build-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      .discipline-build-grid label {
+        font-size: 12px;
+      }
+
+      .result-actions {
+        gap: 8px;
       }
     }
   </style>
