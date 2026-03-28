@@ -1696,13 +1696,11 @@ PAGE_TEMPLATE = """
       position: fixed;
       width: min(430px, 88vw);
       max-height: 86vh;
-      z-index: 2;
+      z-index: 7010;
       border-radius: 20px;
       border: 1px solid rgba(121, 217, 255, 0.4);
-      padding: 16px 14px;
-      background:
-        radial-gradient(circle at top right, rgba(69, 215, 255, 0.22), transparent 32%),
-        linear-gradient(180deg, rgba(18, 41, 71, 0.95), rgba(11, 18, 35, 0.98));
+      padding: 0;
+      background: transparent;
       box-shadow: 0 32px 72px rgba(0, 0, 0, 0.56);
       color: var(--text);
       transform: perspective(1400px) translate(-50%, -50%) rotateY(88deg) scale(0.32);
@@ -1715,6 +1713,17 @@ PAGE_TEMPLATE = """
         transform 820ms cubic-bezier(.16,.84,.2,1),
         opacity 260ms ease;
       overflow: hidden;
+    }
+
+    .pack-preview-card .game-card {
+      min-height: 0;
+      height: 100%;
+      border-radius: 20px;
+      margin: 0;
+      border: 0;
+      padding: 18px;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.24);
     }
 
     .pack-preview-card.focused {
@@ -3049,7 +3058,10 @@ PAGE_TEMPLATE = """
       for (const [index, target] of targets.entries()) {
         const preview = document.createElement('article');
         preview.className = 'pack-preview-card';
-        preview.innerHTML = target.innerHTML;
+        const previewCard = document.createElement('article');
+        previewCard.className = 'game-card';
+        previewCard.innerHTML = target.innerHTML;
+        preview.appendChild(previewCard);
         preview.style.left = `${startX}px`;
         preview.style.top = `${startY}px`;
         preview.style.transform = `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? 92 : -92}deg) scale(0.24)`;
