@@ -3019,6 +3019,10 @@ PAGE_TEMPLATE = """
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
+    function nextFrame() {
+      return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    }
+
     async function playPackSequence() {
       const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const targets = Array.from(packCards.querySelectorAll('.game-card'));
@@ -3048,7 +3052,8 @@ PAGE_TEMPLATE = """
         preview.style.opacity = '0';
         layer.appendChild(preview);
 
-        await sleep(60);
+        await nextFrame();
+        await nextFrame();
         preview.style.left = `${centerX}px`;
         preview.style.top = `${centerY}px`;
         preview.style.transform = 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.02)';
