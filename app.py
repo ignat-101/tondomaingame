@@ -146,7 +146,7 @@ PAGE_TEMPLATE = """
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      min-height: 100vh;
+      min-height: var(--app-height, 100vh);
       overflow-x: hidden;
       color: var(--text);
       font-family: "Avenir Next", "Helvetica Neue", sans-serif;
@@ -4119,6 +4119,25 @@ PAGE_TEMPLATE = """
     }
 
     let tmaSyncRaf = null;
+    function syncTmaViewport() {
+      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      const viewportHeight = tg && Number.isFinite(Number(tg.viewportHeight)) && Number(tg.viewportHeight) > 0
+        ? Number(tg.viewportHeight)
+        : window.innerHeight;
+      const viewportWidth = tg && Number.isFinite(Number(tg.viewportStableWidth)) && Number(tg.viewportStableWidth) > 0
+        ? Number(tg.viewportStableWidth)
+        : window.innerWidth;
+      document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
+      document.documentElement.style.setProperty('--app-width', `${viewportWidth}px`);
+      if (tg && typeof tg.expand === 'function') {
+        try {
+          tg.expand();
+        } catch (error) {
+          // Ignore Telegram viewport sync errors and keep the local CSS vars updated.
+        }
+      }
+    }
+
     function queueTmaModeSync() {
       if (tmaSyncRaf) {
         return;
@@ -4126,6 +4145,7 @@ PAGE_TEMPLATE = """
       tmaSyncRaf = window.requestAnimationFrame(() => {
         tmaSyncRaf = null;
         syncTmaMode();
+        syncTmaViewport();
       });
     }
 
@@ -6486,23 +6506,24 @@ PAGE_TEMPLATE = """
     window.selectDeckDomain = selectDeckDomain;
 
     syncTmaMode();
+    syncTmaViewport();
     const tgWebApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tgWebApp && typeof tgWebApp.onEvent === 'function') {
-      tgWebApp.onEvent('viewportChanged', syncTmaMode);
-      tgWebApp.onEvent('themeChanged', syncTmaMode);
+      tgWebApp.onEvent('viewportChanged', queueTmaModeSync);
+      tgWebApp.onEvent('themeChanged', queueTmaModeSync);
     }
     ['pointerdown', 'touchstart', 'click', 'change', 'focusin'].forEach((eventName) => {
       document.addEventListener(eventName, syncTmaModeForFunctionalAction, true);
     });
     document.addEventListener('submit', queueTmaModeSync, true);
-    window.addEventListener('pageshow', syncTmaMode);
+    window.addEventListener('pageshow', queueTmaModeSync);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        syncTmaMode();
+        queueTmaModeSync();
       }
     });
-    window.addEventListener('orientationchange', syncTmaMode);
-    window.addEventListener('resize', syncTmaMode);
+    window.addEventListener('orientationchange', queueTmaModeSync);
+    window.addEventListener('resize', queueTmaModeSync);
     initTonConnect().catch((error) => {
       setStatus(walletStatus, `Ошибка TonConnect: ${error.message}`, 'error');
     });
