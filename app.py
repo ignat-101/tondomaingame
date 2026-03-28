@@ -2693,6 +2693,10 @@ PAGE_TEMPLATE = """
         attack_burst: 'Сильнее в агрессивных раундах и на добивании. Слабее, если матч уходит в контроль.',
         defense_lock: 'Сильнее против прямого натиска и быстрых ходов. Слабее против затяжной подготовки.',
         wildcard: 'Сильнее в рисковых раундах и при нестандартном размене. Слабее, когда бой идет слишком предсказуемо.',
+        anchor: 'Сильнее в тяжёлых защитных и ровных разменах. Слабее, когда бой слишком быстрый.',
+        overclock: 'Сильнее в темпе и ближе к финалу. Слабее, если матч ломается в самом начале.',
+        oracle: 'Сильнее в рискованных раундах и на чтении контров. Слабее в прямолинейной драке.',
+        reactor: 'Сильнее, когда твоя карта уже мощная и можно добить перевес. Слабее на слабых картах.',
       };
       return mapping[key] || 'Скилл дает ситуативный бонус в зависимости от темпа и контр-хода.';
     }
@@ -5769,6 +5773,10 @@ CARD_SKILLS = [
     {'key': 'attack_burst', 'name': 'Пролом', 'description': 'Сильно давит в атаке и магии.'},
     {'key': 'defense_lock', 'name': 'Замок', 'description': 'Особенно хороша в защите и скорости.'},
     {'key': 'wildcard', 'name': 'Джокер', 'description': 'Может резко перевернуть удачу и магию.'},
+    {'key': 'anchor', 'name': 'Якорь', 'description': 'Стабилизирует раунд и лучше держит тяжёлые размены.'},
+    {'key': 'overclock', 'name': 'Оверклок', 'description': 'Разгоняется к концу боя и любит высокий темп.'},
+    {'key': 'oracle', 'name': 'Оракул', 'description': 'Лучше читает рискованные раунды и редкие контры.'},
+    {'key': 'reactor', 'name': 'Реактор', 'description': 'Накапливает давление, если карта и так сильная.'},
 ]
 ACTION_RULES = {
     'burst': {
@@ -6098,6 +6106,10 @@ def auto_tactical_slot(cards, build_points=None):
         'mirror': {focus_rank[0] if focus_rank else 'attack'},
         'tempo': {focus_rank[1] if len(focus_rank) > 1 else focus_rank[0] if focus_rank else 'speed'},
         'underdog': {'luck', 'speed'},
+        'anchor': {'defense', 'luck'},
+        'overclock': {'speed', 'attack'},
+        'oracle': {'magic', 'luck'},
+        'reactor': {'attack', 'magic'},
     }
     def score(card):
         skill_key = card.get('skill_key')
@@ -6140,6 +6152,26 @@ def apply_skill_bonus(skill_key, focus, base_self, base_opp, card_self, card_opp
             return 15, 'Джокер перевернул ход'
         if diff > 6:
             return 5, 'Джокер вытянул минимум'
+    if skill_key == 'anchor':
+        if focus in {'defense', 'luck'} or abs(diff) <= 8:
+            return 11, 'Якорь стабилизировал размен'
+        if previous_outcome == 'loss':
+            return 5, 'Якорь не дал матчу развалиться'
+    if skill_key == 'overclock':
+        if phase in {'tempo', 'finisher'} or round_index >= 3:
+            return 13, 'Оверклок вышел на пик'
+        if focus == 'speed':
+            return 6, 'Оверклок разогнал карту'
+    if skill_key == 'oracle':
+        if phase in {'risk', 'counter'}:
+            return 12, 'Оракул прочитал рискованный раунд'
+        if base_opp >= base_self:
+            return 5, 'Оракул нашёл безопасную линию'
+    if skill_key == 'reactor':
+        if own_pool >= opp_pool:
+            return 10, 'Реактор усилил уже сильную карту'
+        if focus in {'attack', 'magic'}:
+            return 6, 'Реактор подпитал профильный раунд'
     return 0, ''
 
 
@@ -6211,6 +6243,22 @@ def featured_card_round_bonus(featured_card, opposing_featured_card, focus, phas
         if focus in {'luck', 'magic'} or phase == 'risk':
             return base + 10, 'Тактический джокер перевернул раунд'
         return base + 2, 'Тактический джокер давит неожиданностью'
+    if skill_key == 'anchor':
+        if focus in {'defense', 'luck'} or abs(own_pool - opp_pool) <= 20:
+            return base + 8, 'Тактический якорь удержал тяжёлый размен'
+        return base + 3, 'Тактический якорь стабилизирует бой'
+    if skill_key == 'overclock':
+        if phase in {'tempo', 'finisher'} or round_index >= 3:
+            return base + 9, 'Тактический оверклок включился в нужный момент'
+        return base + 3, 'Тактический оверклок набирает скорость'
+    if skill_key == 'oracle':
+        if phase in {'risk', 'counter'}:
+            return base + 8, 'Тактический оракул прочитал ход соперника'
+        return base + 3, 'Тактический оракул держит прогноз'
+    if skill_key == 'reactor':
+        if own_pool >= opp_pool or focus in {'attack', 'magic'}:
+            return base + 8, 'Тактический реактор подпитал давление'
+        return base + 2, 'Тактический реактор держит заряд'
     return base, note
 
 
@@ -8728,6 +8776,10 @@ def api_cards_catalog():
         'attack_burst': 'в агрессивных разменах и на добивании',
         'defense_lock': 'против натиска и быстрых атак',
         'wildcard': 'в рискованных и непредсказуемых раундах',
+        'anchor': 'в ровных защитных разменах и тяжелых матчапах',
+        'overclock': 'в темпе, скорости и к финалу матча',
+        'oracle': 'в чтении контров и рискованных раундах',
+        'reactor': 'когда нужно усилить уже сильную карту и дожать перевес',
     }
     skills = [
         {
