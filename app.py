@@ -718,8 +718,8 @@ PAGE_TEMPLATE = """
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
-      min-height: 74vh;
-      max-height: 88vh;
+      min-height: 66vh;
+      max-height: 82vh;
     }
 
     .showdown-main.arena-board {
@@ -808,7 +808,7 @@ PAGE_TEMPLATE = """
 
     .arena-core {
       position: relative;
-      min-height: 540px;
+      min-height: 430px;
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background:
@@ -869,7 +869,7 @@ PAGE_TEMPLATE = """
     .arena-choice-hub {
       position: relative;
       z-index: 1;
-      min-height: 540px;
+      min-height: 430px;
       display: grid;
       place-items: center;
       padding: 14px 14px 18px;
@@ -918,9 +918,9 @@ PAGE_TEMPLATE = """
       transform: translateX(-50%);
       display: grid;
       justify-items: center;
-      gap: 10px;
-      min-width: 52px;
-      pointer-events: none;
+      gap: 8px;
+      min-width: 40px;
+      pointer-events: auto;
     }
 
     .arena-round-choice-slot.active {
@@ -928,20 +928,17 @@ PAGE_TEMPLATE = """
     }
 
     .arena-round-marker {
-      min-width: 42px;
-      height: 42px;
-      padding: 0 10px;
+      width: 16px;
+      height: 16px;
+      padding: 0;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border: 1px solid rgba(121, 217, 255, 0.22);
       background: rgba(8, 19, 34, 0.94);
-      color: #dff7ff;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.06em;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+      pointer-events: none;
     }
 
     .arena-round-choice-slot.resolved .arena-round-marker {
@@ -951,7 +948,6 @@ PAGE_TEMPLATE = """
 
     .arena-round-choice-slot.active .arena-round-marker {
       border-color: rgba(83, 246, 184, 0.42);
-      color: #e9fff8;
       box-shadow: 0 0 0 1px rgba(83, 246, 184, 0.12), 0 10px 20px rgba(0, 0, 0, 0.18);
     }
 
@@ -968,6 +964,7 @@ PAGE_TEMPLATE = """
       font-size: 11px;
       letter-spacing: 0.04em;
       white-space: nowrap;
+      pointer-events: none;
     }
 
     .arena-lane-choice-panel {
@@ -1044,6 +1041,22 @@ PAGE_TEMPLATE = """
       color: #ffe59d;
       font-size: 12px;
       letter-spacing: 0.05em;
+    }
+
+    .battleflow-shell {
+      display: grid;
+      gap: 14px;
+    }
+
+    .battleflow-summary {
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background: rgba(8, 20, 36, 0.86);
+    }
+
+    .battleflow-summary .showdown-score {
+      margin: 8px 0 0;
     }
 
     .arena-core.flash-focus {
@@ -3210,11 +3223,11 @@ PAGE_TEMPLATE = """
       }
 
       .arena-core {
-        min-height: 380px;
+        min-height: 330px;
       }
 
       .arena-choice-hub {
-        min-height: 380px;
+        min-height: 330px;
         padding: 12px 6px 16px;
       }
 
@@ -3238,10 +3251,9 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-marker {
-        min-width: 30px;
-        height: 30px;
-        padding: 0 6px;
-        font-size: 10px;
+        width: 12px;
+        height: 12px;
+        min-width: 12px;
       }
 
       .arena-round-state {
@@ -3538,6 +3550,12 @@ PAGE_TEMPLATE = """
           </div>
         </section>
 
+        <section class="panel view" id="view-battleflow">
+          <h2>Ход боя</h2>
+          <p class="muted">Подробный разбор раундов матча: какие карты сошлись, какие решения были выбраны и как сложился итог.</p>
+          <div id="battle-flow-view"></div>
+        </section>
+
         <section class="panel view" id="view-profile">
           <h2>Профиль</h2>
           <div id="mobile-profile-summary" class="deck-list"></div>
@@ -3677,6 +3695,7 @@ PAGE_TEMPLATE = """
     const packCards = document.getElementById('pack-cards');
     const battleResult = document.getElementById('battle-result');
     const inviteResult = document.getElementById('invite-result');
+    const battleFlowView = document.getElementById('battle-flow-view');
     const leaderboard = document.getElementById('leaderboard');
     const marketplacesBox = document.getElementById('marketplaces-box');
     const marketplacesLinks = document.getElementById('marketplaces-links');
@@ -4499,6 +4518,60 @@ PAGE_TEMPLATE = """
       return data.result || null;
     }
 
+    function battleFlowRoundsMarkup(result) {
+      const rounds = Array.isArray(result && result.rounds) ? result.rounds : [];
+      if (!rounds.length) {
+        return '<div class="tiny">Подробный ход боя пока недоступен.</div>';
+      }
+      return `
+        <div class="discipline-list">
+          ${rounds.map((round) => {
+            const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
+            const marker = round.winner === 'player' ? 'WIN' : (round.winner === 'opponent' ? 'LOSE' : 'DRAW');
+            const playerCardTitle = round.player_card?.title || 'Твоя карта';
+            const opponentCardTitle = round.opponent_card?.title || 'Карта соперника';
+            const playerSlot = round.player_card?.slot || '-';
+            const opponentSlot = round.opponent_card?.slot || '-';
+            const playerStrategy = strategyMeta(round.player_strategy_key || 'balanced');
+            const opponentStrategy = strategyMeta(round.opponent_strategy_key || 'balanced');
+            const playerAction = actionRuleMeta(round.player_action || 'channel');
+            const opponentAction = actionRuleMeta(round.opponent_action || 'channel');
+            return `
+              <div class="discipline-row ${roundClass} visible">
+                <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
+                <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
+                <span class="tiny">Ход: ${playerAction.ruLabel} / ${opponentAction.ruLabel}</span>
+                <span class="tiny">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label} • бонус: +${round.player_strategy_bonus || 0} / +${round.opponent_strategy_bonus || 0}</span>
+                <span class="tiny">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderBattleFlowView(result) {
+      if (!battleFlowView) return;
+      const safeResult = result || state.lastResult || {};
+      const opponentLabel = safeResult.opponent_domain ? `${safeResult.opponent_domain}.ton` : 'бот';
+      battleFlowView.innerHTML = `
+        <div class="battleflow-shell">
+          <div class="battleflow-summary">
+            <div class="tiny"><strong>${safeResult.player_domain || '-'}.ton</strong> vs <strong>${opponentLabel}</strong></div>
+            <div class="showdown-score">
+              <span>${safeResult.player_score ?? 0}</span>
+              <span>:</span>
+              <span>${safeResult.opponent_score ?? 0}</span>
+            </div>
+          </div>
+          ${battleFlowRoundsMarkup(safeResult)}
+          <div class="actions">
+            <button class="secondary" onclick="switchView('modes')">Назад к режимам</button>
+          </div>
+        </div>
+      `;
+    }
+
     function revealDisciplineRows(startDelay = 0, stepMs = 1000) {
       const rows = battleResult.querySelectorAll('.discipline-row');
       if (!rows.length) {
@@ -4697,7 +4770,13 @@ PAGE_TEMPLATE = """
         const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
         const totalRounds = result.interactive_total_rounds || 5;
         const activeRoundNumber = Math.min((result.interactive_round_index || 0) + 1, totalRounds);
-        const arenaLanePercents = [14, 32, 50, 68, 86];
+        const arenaLanes = [
+          { percent: 14, x: 140 },
+          { percent: 32, x: 320 },
+          { percent: 50, x: 500 },
+          { percent: 68, x: 680 },
+          { percent: 86, x: 860 },
+        ];
         const interactivePanel = result.interactive_session_id
           ? `
               <div class="arena-round-choice-strip">
@@ -4705,10 +4784,10 @@ PAGE_TEMPLATE = """
                   const roundNumber = index + 1;
                   const isActive = result.interactive_live && roundNumber === activeRoundNumber;
                   const isResolved = !result.interactive_live || roundNumber < activeRoundNumber;
-                  const left = arenaLanePercents[index] || 50;
+                  const left = (arenaLanes[index] && arenaLanes[index].percent) || 50;
                   return `
                     <div class="arena-round-choice-slot ${isActive ? 'active' : ''} ${isResolved ? 'resolved' : ''}" style="left:${left}%;">
-                      <div class="arena-round-marker">R${roundNumber}</div>
+                      <div class="arena-round-marker"></div>
                       ${isActive ? `
                         <div class="interactive-battle-panel arena-lane-choice-panel" id="interactive-battle-panel">
                           <div class="interactive-battle-title">Раунд ${roundNumber}</div>
@@ -4738,17 +4817,16 @@ PAGE_TEMPLATE = """
           : Number(result.opponent_featured_card?.slot || result.opponent_card?.slot || result.rounds?.[Math.max((result.rounds?.length || 1) - 1, 0)]?.opponent_card?.slot || 0);
         const playerArenaDeck = arenaDeckMarkup(result.player_cards, result.player_card, 'player', playerActiveSlot, result.player_featured_card?.slot || result.selected_slot);
         const opponentArenaDeck = arenaDeckMarkup(result.opponent_cards, result.opponent_card, 'enemy', opponentActiveSlot, result.opponent_featured_card?.slot);
-        const arenaLaneXs = [100, 300, 500, 700, 900];
         const arenaRoutes = `
           <div class="arena-route-overlay" aria-hidden="true">
             <svg viewBox="0 0 1000 440" preserveAspectRatio="none">
-              ${arenaLaneXs.map((x, index) => {
+              ${arenaLanes.map((lane, index) => {
                 const slot = index + 1;
                 const isActive = slot === playerActiveSlot || slot === opponentActiveSlot;
                 const laneClass = `arena-route-path ${slot % 2 === 0 ? 'alt' : ''} ${isActive ? 'active' : ''}`.trim();
                 return `
-                  <path class="${laneClass}" d="M ${x} 0 L ${x} 146" />
-                  <path class="${laneClass}" d="M ${x} 272 L ${x} 440" />
+                  <path class="${laneClass}" d="M ${lane.x} 0 L ${lane.x} 182" />
+                  <path class="${laneClass}" d="M ${lane.x} 248 L ${lane.x} 440" />
                 `;
               }).join('')}
             </svg>
@@ -4807,10 +4885,6 @@ PAGE_TEMPLATE = """
                         <span class="count-up" data-count-to="${result.player_score}">0</span>
                         <span>:</span>
                         <span class="count-up" data-count-to="${result.opponent_score}">0</span>
-                      </div>
-                      <div class="arena-score-pips">
-                        <span class="arena-score-pip">Твой слот ${playerActiveSlot || '-'}</span>
-                        <span class="arena-score-pip">Слот соперника ${opponentActiveSlot || '-'}</span>
                       </div>
                     </div>
                   </div>
@@ -5149,22 +5223,9 @@ PAGE_TEMPLATE = """
 
     function viewBattleFlow() {
       clearFinalClimax();
-      const arenaCore = battleResult.querySelector('.arena-core');
-      const livePanel = battleResult.querySelector('#interactive-battle-panel');
-      const battleStage = battleResult.querySelector('#battle-stage');
-      const list = battleResult.querySelector('.discipline-list');
-      const row = battleResult.querySelector('.discipline-row');
-      const target = livePanel || battleStage || arenaCore || list || row || battleResult.querySelector('.showdown-main');
-      if (!target) return;
-      requestAnimationFrame(() => {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-        if (arenaCore) {
-          arenaCore.classList.remove('flash-focus');
-          void arenaCore.offsetWidth;
-          arenaCore.classList.add('flash-focus');
-          setTimeout(() => arenaCore.classList.remove('flash-focus'), 980);
-        }
-      });
+      if (!state.lastResult) return;
+      renderBattleFlowView(state.lastResult);
+      switchView('battleflow');
     }
 
     function openDuelMode() {
