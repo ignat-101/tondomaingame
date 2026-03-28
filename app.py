@@ -1582,32 +1582,36 @@ PAGE_TEMPLATE = """
 
     .pack-face {
       position: absolute;
-      left: 0;
-      right: 0;
+      left: 50%;
+      width: 80%;
       top: 11%;
       bottom: 5.6%;
       border-radius: 0 0 26px 26px;
       background-image: url('/static/pack-10k-club.png');
-      background-size: cover;
+      background-size: 100% 100%;
       background-position: center center;
+      background-repeat: no-repeat;
       clip-path: inset(0 0 0 0 round 0 0 26px 26px);
       z-index: 1;
       transform-origin: top center;
+      transform: translateX(-50%);
     }
 
     .pack-rip-strip {
       position: absolute;
-      left: 0;
-      right: 0;
+      left: 50%;
+      width: 80%;
       top: 0;
       height: 15%;
       border-radius: 26px 26px 0 0;
       background-image: url('/static/pack-10k-club.png');
-      background-size: cover;
+      background-size: 100% auto;
       background-position: center top;
+      background-repeat: no-repeat;
       z-index: 4;
       transform-origin: right bottom;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.36);
+      transform: translateX(-50%);
     }
 
     .pack-cap {
@@ -1639,7 +1643,7 @@ PAGE_TEMPLATE = """
     }
 
     .foil-pack.opening {
-      animation: packLunge 980ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packLunge 1400ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .pack-showcase.opened .foil-pack {
@@ -1648,19 +1652,19 @@ PAGE_TEMPLATE = """
     }
 
     .foil-pack.vanishing {
-      animation: packVanish 1.1s cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packVanish 1.5s cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .foil-pack.opening .pack-rip-strip {
-      animation: packRipAway 980ms cubic-bezier(.15,.86,.2,1) forwards;
+      animation: packRipAway 1400ms cubic-bezier(.15,.86,.2,1) forwards;
     }
 
     .foil-pack.opening .pack-face {
-      animation: packBodyOpen 980ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packBodyOpen 1400ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .foil-pack.opening .pack-mouth-glow {
-      animation: packMouthGlow 980ms ease forwards;
+      animation: packMouthGlow 1400ms ease forwards;
     }
 
     .pack-tap {
@@ -1887,15 +1891,15 @@ PAGE_TEMPLATE = """
 
     @keyframes packRipAway {
       0% {
-        transform: translate3d(0, 0, 0) rotate(0deg);
+        transform: translateX(-50%) translate3d(0, 0, 0) rotate(0deg);
         opacity: 1;
       }
       28% {
-        transform: translate3d(-10px, -8px, 0) rotate(-5deg);
+        transform: translateX(-50%) translate3d(-10px, -8px, 0) rotate(-5deg);
         opacity: 1;
       }
       100% {
-        transform: translate3d(-280px, -220px, 0) rotate(-34deg);
+        transform: translateX(-50%) translate3d(-280px, -220px, 0) rotate(-34deg);
         opacity: 0;
       }
     }
@@ -1903,15 +1907,15 @@ PAGE_TEMPLATE = """
     @keyframes packBodyOpen {
       0% {
         clip-path: inset(0 0 0 0 round 0 0 26px 26px);
-        transform: perspective(1200px) rotateX(0deg) scaleY(1);
+        transform: translateX(-50%) perspective(1200px) rotateX(0deg) scaleY(1);
       }
       54% {
         clip-path: inset(2.8% 0 0 0 round 0 0 26px 26px);
-        transform: perspective(1200px) rotateX(-12deg) scaleY(1.01);
+        transform: translateX(-50%) perspective(1200px) rotateX(-12deg) scaleY(1.01);
       }
       100% {
         clip-path: inset(6.5% 0 0 0 round 0 0 26px 26px);
-        transform: perspective(1200px) rotateX(-18deg) scaleY(1.02);
+        transform: translateX(-50%) perspective(1200px) rotateX(-18deg) scaleY(1.02);
       }
     }
 
@@ -3035,14 +3039,14 @@ PAGE_TEMPLATE = """
         const arcX = window.innerWidth * 0.5 + (index - ((targets.length - 1) / 2)) * 42;
         const arcY = window.innerHeight * 0.42 + (index % 2 === 0 ? -24 : 18);
 
-        await sleep(34);
+        await sleep(60);
         preview.style.left = `${arcX}px`;
         preview.style.top = `${arcY}px`;
         preview.style.transform = `translate(-50%, -50%) scale(${0.92 + index * 0.03}) rotate(${(index - 2) * 8}deg)`;
         preview.classList.add('focused');
         layer.classList.add('dimmed');
 
-        await sleep(320);
+        await sleep(480);
 
         const rect = target.getBoundingClientRect();
         const targetX = rect.left + rect.width / 2;
@@ -3052,7 +3056,7 @@ PAGE_TEMPLATE = """
         preview.style.transform = 'translate(-50%, -50%) scale(0.44)';
         preview.style.opacity = '0.94';
 
-        await sleep(440);
+        await sleep(600);
         target.classList.add('sequence-visible');
         preview.remove();
       }
@@ -3889,12 +3893,12 @@ PAGE_TEMPLATE = """
           body: {wallet: state.wallet, domain: state.selectedDomain, source, payment_id: paymentId}
         });
         state.cards = data.cards;
-        await sleep(940);
+        await sleep(1300);
         packShowcase.classList.add('opened');
         packNote.textContent = 'Cards incoming';
         await renderPack(data.cards, data.total_score);
         foilPack.classList.add('vanishing');
-        await sleep(1080);
+        await sleep(1500);
         packShowcase.classList.remove('cinematic');
         setStatus(document.getElementById('pack-status'), `Колода готова. Вклад карт: ${data.total_score}. Свободный пул пересчитан от домена.`, 'success');
         updateButtons();
