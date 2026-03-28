@@ -1485,16 +1485,13 @@ PAGE_TEMPLATE = """
       display: grid;
       justify-items: center;
       border-radius: 28px;
-      border: 1px solid rgba(255, 212, 92, 0.28);
       background:
         radial-gradient(circle at 50% 0%, rgba(255, 212, 92, 0.18), transparent 38%),
         linear-gradient(180deg, rgba(14, 10, 4, 0.98), rgba(5, 5, 5, 0.97));
       padding: 18px 16px 20px;
       text-align: center;
       overflow: hidden;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 224, 140, 0.08),
-        0 24px 60px rgba(0, 0, 0, 0.44);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.44);
     }
 
     .pack-showcase::after {
@@ -1507,17 +1504,8 @@ PAGE_TEMPLATE = """
       border-radius: 24px;
     }
 
-    .pack-showcase::before {
-      content: "";
-      position: absolute;
-      inset: 12px;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 212, 92, 0.12);
-      pointer-events: none;
-    }
-
     .pack-showcase.cinematic::after {
-      background: rgba(3, 9, 18, 0.72);
+      background: rgba(3, 9, 18, 0.36);
     }
 
     .pack-counter {
@@ -1566,11 +1554,11 @@ PAGE_TEMPLATE = """
     }
 
     .pack-showcase.cinematic .foil-pack {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      width: min(86vw, 520px);
-      transform: translate(-50%, -50%) scale(1);
+      position: relative;
+      left: auto;
+      top: auto;
+      width: min(380px, 92vw);
+      transform: scale(1);
       z-index: 7100;
     }
 
@@ -1656,6 +1644,7 @@ PAGE_TEMPLATE = """
 
     .pack-showcase.opened .foil-pack {
       filter: brightness(1.08);
+      transform: scale(1);
     }
 
     .foil-pack.vanishing {
@@ -1883,16 +1872,16 @@ PAGE_TEMPLATE = """
 
     @keyframes packLunge {
       0% {
-        transform: translate(-50%, -50%) scale(1);
+        transform: scale(1);
       }
       18% {
-        transform: translate(-50%, -50%) scale(1.06);
+        transform: scale(1.02);
       }
       52% {
-        transform: translate(-50%, -50%) scale(1.32);
+        transform: scale(1.08);
       }
       100% {
-        transform: translate(-50%, -50%) scale(1.72);
+        transform: scale(1.14);
       }
     }
 
@@ -1942,8 +1931,8 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes packVanish {
-      0% { opacity: 1; transform: translate(-50%, -50%) scale(1.72); }
-      100% { opacity: 0; transform: translate(-50%, -38%) scale(1.05); }
+      0% { opacity: 1; transform: scale(1.14); }
+      100% { opacity: 0; transform: scale(1.02); }
     }
 
     @media (max-width: 920px) {
