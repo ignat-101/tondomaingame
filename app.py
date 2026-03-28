@@ -811,7 +811,7 @@ PAGE_TEMPLATE = """
 
     .arena-core {
       position: relative;
-      min-height: 360px;
+      min-height: 332px;
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background:
@@ -872,10 +872,10 @@ PAGE_TEMPLATE = """
     .arena-choice-hub {
       position: relative;
       z-index: 1;
-      min-height: 360px;
+      min-height: 332px;
       display: grid;
       place-items: center;
-      padding: 10px 10px 12px;
+      padding: 8px 10px 10px;
     }
 
     .arena-choice-panel {
@@ -3247,12 +3247,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-core {
-        min-height: 276px;
+        min-height: 252px;
       }
 
       .arena-choice-hub {
-        min-height: 276px;
-        padding: 8px 4px 10px;
+        min-height: 252px;
+        padding: 6px 4px 8px;
       }
 
       .arena-choice-panel {
@@ -4849,8 +4849,7 @@ PAGE_TEMPLATE = """
                 const isActive = slot === playerActiveSlot || slot === opponentActiveSlot;
                 const laneClass = `arena-route-path ${slot % 2 === 0 ? 'alt' : ''} ${isActive ? 'active' : ''}`.trim();
                 return `
-                  <path class="${laneClass}" d="M ${lane.x} 0 L ${lane.x} 182" />
-                  <path class="${laneClass}" d="M ${lane.x} 248 L ${lane.x} 440" />
+                  <path class="${laneClass}" d="M ${lane.x} 0 L ${lane.x} 440" />
                 `;
               }).join('')}
             </svg>
