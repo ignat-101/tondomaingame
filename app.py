@@ -3777,6 +3777,7 @@ PAGE_TEMPLATE = """
               <button id="check-domains-btn" disabled>Проверить наличие доменов</button>
               <button class="secondary" id="wallet-open-pack-btn" disabled>К распаковке</button>
             </div>
+            <div class="tiny" style="margin-top:8px; color: var(--warning);">Чтобы откалибровать экран в TMA, нажми «Проверить наличие доменов».</div>
           </div>
 
           <div class="actions">
