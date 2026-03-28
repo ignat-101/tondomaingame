@@ -147,6 +147,7 @@ PAGE_TEMPLATE = """
     body {
       margin: 0;
       min-height: 100vh;
+      overflow-x: hidden;
       color: var(--text);
       font-family: "Avenir Next", "Helvetica Neue", sans-serif;
       background:
@@ -714,10 +715,19 @@ PAGE_TEMPLATE = """
       border-radius: 20px;
       padding: 10px;
       background: rgba(4, 14, 27, 0.94);
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       min-height: 54vh;
       max-height: 68vh;
+    }
+
+    .showdown-main.arena-board {
+      background:
+        radial-gradient(circle at 50% 22%, rgba(69, 215, 255, 0.16), transparent 30%),
+        radial-gradient(circle at 50% 70%, rgba(83, 246, 184, 0.08), transparent 42%),
+        linear-gradient(180deg, rgba(7, 18, 33, 0.98), rgba(3, 10, 20, 0.98));
+      box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.06);
     }
 
     .showdown-deck {
@@ -980,6 +990,23 @@ PAGE_TEMPLATE = """
       font-weight: 800;
       letter-spacing: 0.03em;
       font-size: clamp(18px, 5vw, 24px);
+    }
+
+    .interactive-timer {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      min-width: 92px;
+      margin: 0 auto;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 211, 110, 0.34);
+      background: rgba(255, 211, 110, 0.1);
+      color: #ffe59d;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      box-shadow: 0 10px 24px rgba(255, 211, 110, 0.1);
     }
 
     .interactive-battle-actions {
@@ -2213,6 +2240,7 @@ PAGE_TEMPLATE = """
 
     @media (max-width: 920px) {
       body { padding-bottom: 84px; }
+      .shell { overflow-x: hidden; }
       .layout { grid-template-columns: 1fr; }
       .side { display: none; }
       .mode-grid.mode-focus::before {
@@ -2331,7 +2359,45 @@ PAGE_TEMPLATE = """
       }
 
       .domain-grid,
-      .owned-decks {
+      .owned-decks,
+      .card-grid,
+      .catalog-grid,
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .showdown-main {
+        min-height: 0;
+        max-height: none;
+      }
+
+      .showdown-deck {
+        display: grid;
+        grid-template-columns: 1fr;
+        overflow: visible;
+        padding-bottom: 0;
+      }
+
+      .showdown-card {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .battle-cinematic {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .battle-vs-orb {
+        margin: 0 auto;
+      }
+
+      .battle-fighter,
+      .battle-fighter.enemy {
+        text-align: left;
+      }
+
+      .interactive-battle-actions {
         grid-template-columns: 1fr;
       }
 
@@ -2788,6 +2854,7 @@ PAGE_TEMPLATE = """
     let tonConnectUI = null;
     let matchmakingPollTimer = null;
     let modeFocusTimer = null;
+    let interactiveChoiceTimer = null;
     const usageStorageKey = 'tondomaingame_ui_usage_v1';
 
     function shortAddress(value) {
@@ -2798,6 +2865,33 @@ PAGE_TEMPLATE = """
     function setStatus(element, text, kind = '') {
       element.className = `status ${kind}`.trim();
       element.textContent = text;
+    }
+
+    function clearInteractiveChoiceTimer() {
+      if (interactiveChoiceTimer) {
+        window.clearInterval(interactiveChoiceTimer);
+        interactiveChoiceTimer = null;
+      }
+    }
+
+    function startInteractiveChoiceTimer(node, onExpire) {
+      clearInteractiveChoiceTimer();
+      let remaining = 5;
+      if (node) {
+        node.textContent = `${remaining} c`;
+      }
+      interactiveChoiceTimer = window.setInterval(() => {
+        remaining -= 1;
+        if (node) {
+          node.textContent = `${Math.max(remaining, 0)} c`;
+        }
+        if (remaining <= 0) {
+          clearInteractiveChoiceTimer();
+          if (typeof onExpire === 'function') {
+            onExpire();
+          }
+        }
+      }, 1000);
     }
 
     function actionRuleMeta(actionKey) {
@@ -3652,6 +3746,7 @@ PAGE_TEMPLATE = """
     }
 
     function renderBattleResult(result) {
+      clearInteractiveChoiceTimer();
       battleResult.className = 'result-box';
       battleResult.style.display = 'block';
       battleResult.classList.add('duel-anim');
@@ -3738,8 +3833,9 @@ PAGE_TEMPLATE = """
                     ? `Раунд ${Math.min((result.interactive_round_index || 0) + 1, result.interactive_total_rounds || 5)} из ${result.interactive_total_rounds || 5}`
                     : 'Результат матча'}
                 </div>
+                ${result.interactive_live ? `<div class="interactive-timer" id="interactive-timer">5 c</div>` : ''}
                 <div class="tiny" id="interactive-battle-status" style="text-align:center;">
-                  ${result.interactive_live ? (result.interactive_hint || 'Выбери действие и повлияй на исход боя.') : `Итог: ${result.result_label}`}
+                  ${result.interactive_live ? (result.interactive_hint || 'У тебя 5 секунд на выбор. После выбора или таймаута раунд раскрывается синхронно.') : `Итог: ${result.result_label}`}
                 </div>
                 ${result.interactive_live ? `
                   <div class="interactive-battle-actions">
@@ -3770,7 +3866,7 @@ PAGE_TEMPLATE = """
               ${showdownDeckMarkup(result.player_cards, result.player_card)}
             </div>
           </section>
-          <section class="showdown-main">
+          <section class="showdown-main arena-board">
             <div class="showdown-center showdown-middle">
               <div class="prebattle-stage" id="prebattle-stage">
                 <div class="tiny" id="prebattle-ready-status">Колоды готовы. Нажми "Готов".</div>
@@ -3866,6 +3962,7 @@ PAGE_TEMPLATE = """
         const showdownMain = battleResult.querySelector('.showdown-main');
         const interactiveBattlePanel = battleResult.querySelector('#interactive-battle-panel');
         const interactiveBattleStatus = battleResult.querySelector('#interactive-battle-status');
+        const interactiveTimer = battleResult.querySelector('#interactive-timer');
         const interactiveActionButtons = Array.from(battleResult.querySelectorAll('.interactive-action-btn'));
         const wireInteractiveBattle = () => {
           const rows = Array.from(battleResult.querySelectorAll('.discipline-row'));
@@ -3888,38 +3985,54 @@ PAGE_TEMPLATE = """
             return;
           }
           focusBattleChoiceMenu(interactiveBattlePanel);
+          let actionLocked = false;
+          const submitInteractiveAction = async (actionKey, activeButton = null, byTimeout = false) => {
+            if (actionLocked) return;
+            actionLocked = true;
+            clearInteractiveChoiceTimer();
+            interactiveActionButtons.forEach((node) => {
+              node.disabled = true;
+              node.classList.remove('choice-ready');
+            });
+            if (activeButton) {
+              activeButton.classList.add('choice-picked');
+            }
+            if (interactiveBattleStatus) {
+              const meta = actionRuleMeta(actionKey);
+              interactiveBattleStatus.textContent = byTimeout
+                ? `Время вышло. Автовыбор: ${meta.ruLabel}. Раунд раскрывается синхронно...`
+                : `Ты выбираешь: ${meta.ruLabel}. Раунд раскрывается синхронно...`;
+            }
+            await sleep(260);
+            try {
+              const data = await api('/api/solo-battle/action', {
+                method: 'POST',
+                body: {
+                  wallet: state.wallet,
+                  session_id: liveResult.interactive_session_id,
+                  action: actionKey
+                }
+              });
+              const nextResult = data.result || {};
+              nextResult.autostart_battle = true;
+              state.lastResult = nextResult;
+              renderBattleResult(nextResult);
+            } catch (error) {
+              interactiveActionButtons.forEach((node) => {
+                node.disabled = false;
+              });
+              if (interactiveBattleStatus) {
+                interactiveBattleStatus.textContent = error.message;
+              }
+              actionLocked = false;
+              startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true));
+            }
+          };
+          startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true));
           interactiveActionButtons.forEach((button) => {
             button.addEventListener('click', async () => {
               const actionKey = button.dataset.actionKey;
-              interactiveActionButtons.forEach((node) => {
-                node.disabled = true;
-                node.classList.remove('choice-ready');
-              });
-              button.classList.add('choice-picked');
-              if (interactiveBattleStatus) {
-                const meta = actionRuleMeta(actionKey);
-                interactiveBattleStatus.textContent = `Ты выбираешь: ${meta.ruLabel}. Считаем размен...`;
-              }
-              await sleep(260);
-              try {
-                const data = await api('/api/solo-battle/action', {
-                  method: 'POST',
-                  body: {
-                    wallet: state.wallet,
-                    session_id: liveResult.interactive_session_id,
-                    action: actionKey
-                  }
-                });
-                const nextResult = data.result || {};
-                nextResult.autostart_battle = true;
-                state.lastResult = nextResult;
-                renderBattleResult(nextResult);
-              } catch (error) {
-                interactiveActionButtons.forEach((node) => { node.disabled = false; });
-                if (interactiveBattleStatus) {
-                  interactiveBattleStatus.textContent = error.message;
-                }
-              }
+              await submitInteractiveAction(actionKey, button, false);
             });
           });
         };
@@ -4112,6 +4225,7 @@ PAGE_TEMPLATE = """
     }
 
     function openModes() {
+      clearInteractiveChoiceTimer();
       clearFinalClimax();
       document.body.classList.remove('showdown-open');
       battleResult.className = 'result-box';
