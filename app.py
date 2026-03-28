@@ -4163,8 +4163,22 @@ PAGE_TEMPLATE = """
     }
 
     async function prepareFunctionalInteraction() {
-      queueTmaModeSync();
+      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      syncTmaMode();
+      syncTmaViewport();
+      if (tg && typeof tg.ready === 'function') {
+        try {
+          tg.ready();
+        } catch (error) {
+          // Ignore Telegram readiness errors and continue with local viewport sync.
+        }
+      }
       await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+      syncTmaMode();
+      syncTmaViewport();
+      await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+      syncTmaMode();
+      syncTmaViewport();
     }
 
     function bindFunctionalControl(node, handler, eventName = 'click') {
@@ -4397,7 +4411,8 @@ PAGE_TEMPLATE = """
       mobileLeaderboard.innerHTML = markup;
     }
 
-    function fillOpponent(reference) {
+    async function fillOpponent(reference) {
+      await prepareFunctionalInteraction();
       document.getElementById('opponent-wallet').value = reference;
       switchView('modes');
     }
@@ -4743,8 +4758,8 @@ PAGE_TEMPLATE = """
       `).join('');
     }
 
-    window.selectDomain = function selectDomain(domain) {
-      selectDeckDomain(domain);
+    window.selectDomain = async function selectDomain(domain) {
+      await selectDeckDomain(domain);
     };
 
     function sleep(ms) {
@@ -5389,6 +5404,7 @@ PAGE_TEMPLATE = """
           let actionLocked = false;
           const submitInteractiveAction = async (actionKey, activeButton = null, byTimeout = false) => {
             if (actionLocked) return;
+            await prepareFunctionalInteraction();
             if (!liveResult.interactive_session_id) {
               if (interactiveBattleStatus) {
                 interactiveBattleStatus.textContent = 'Сессия боя потеряна. Обновляю состояние...';
@@ -5496,7 +5512,8 @@ PAGE_TEMPLATE = """
           });
         }
         if (startBtn) {
-          startBtn.addEventListener('click', () => {
+          startBtn.addEventListener('click', async () => {
+            await prepareFunctionalInteraction();
             const launchBattle = () => {
               startBtn.disabled = true;
               startBtn.textContent = 'Бой идёт...';
@@ -5664,7 +5681,8 @@ PAGE_TEMPLATE = """
       });
     }
 
-    function openModes() {
+    async function openModes() {
+      await prepareFunctionalInteraction();
       clearInteractiveChoiceTimer();
       clearFinalClimax();
       document.body.classList.remove('showdown-open');
@@ -5675,14 +5693,16 @@ PAGE_TEMPLATE = """
       resetModeChoice('');
     }
 
-    function viewBattleFlow() {
+    async function viewBattleFlow() {
+      await prepareFunctionalInteraction();
       clearFinalClimax();
       if (!state.lastResult) return;
       renderBattleFlowView(state.lastResult);
       switchView('battleflow');
     }
 
-    function repeatLastMode() {
+    async function repeatLastMode() {
+      await prepareFunctionalInteraction();
       const now = Date.now();
       if (state.lastReplayTapAt && now - state.lastReplayTapAt < 1200) return;
       if (state.battleLaunchInFlight) return;
@@ -5811,7 +5831,7 @@ PAGE_TEMPLATE = """
         const decksData = await loadOwnedDecks();
         const preferredDomain = preferredDeckDomain((decksData && decksData.decks) || [], state.playerProfile && state.playerProfile.current_domain);
         if (!state.selectedDomain && preferredDomain) {
-          await selectDeckDomain(preferredDomain, {silent: true, switchToPack: false});
+          await selectDeckDomain(preferredDomain, {silent: true, switchToPack: false, skipSync: true});
           setStatus(walletStatus, `Найдена готовая колода ${preferredDomain}.ton. Она выбрана автоматически.`, 'success');
         } else {
           loadDisciplineBuild();
@@ -6255,8 +6275,11 @@ PAGE_TEMPLATE = """
     }
 
     async function selectDeckDomain(domain, options = {}) {
-      const {silent = false, switchToPack = true} = options;
+      const {silent = false, switchToPack = true, skipSync = false} = options;
       if (!state.wallet) return;
+      if (!skipSync) {
+        await prepareFunctionalInteraction();
+      }
       try {
         const data = await api('/api/deck/select', {
           method: 'POST',
@@ -6471,9 +6494,9 @@ PAGE_TEMPLATE = """
       state.selectedBattleSlot = Number(battleCardSlot.value || 0) || null;
       updateButtons();
     });
-    refreshAchievementsBtn.addEventListener('click', loadAchievements);
+    bindFunctionalControl(refreshAchievementsBtn, loadAchievements);
     if (showTeamBtn) {
-      showTeamBtn.addEventListener('click', () => {
+      bindFunctionalControl(showTeamBtn, () => {
         bumpUsage('mode:team');
         animateModeChoice('team');
         if (teamPanel) {
@@ -6486,16 +6509,16 @@ PAGE_TEMPLATE = """
       });
     }
     if (createRoomBtn) {
-      createRoomBtn.addEventListener('click', createRoom);
+      bindFunctionalControl(createRoomBtn, createRoom);
     }
     if (joinRoomBtn) {
-      joinRoomBtn.addEventListener('click', joinRoom);
+      bindFunctionalControl(joinRoomBtn, joinRoom);
     }
     if (refreshRoomBtn) {
-      refreshRoomBtn.addEventListener('click', refreshRoom);
+      bindFunctionalControl(refreshRoomBtn, refreshRoom);
     }
     if (startRoomBtn) {
-      startRoomBtn.addEventListener('click', startRoom);
+      bindFunctionalControl(startRoomBtn, startRoom);
     }
     bindFunctionalControl(showDeckBtn, showDeck);
     bindFunctionalControl(toggleDeckBtn, toggleDeck);
