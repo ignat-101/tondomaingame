@@ -4065,14 +4065,30 @@ PAGE_TEMPLATE = """
 
     function isTelegramMiniApp() {
       const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-      if (!tg) return false;
-      return Boolean(tg.initData || (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length) || tg.platform);
+      const search = new URLSearchParams(window.location.search || '');
+      const hash = (window.location.hash || '').toLowerCase();
+      const ua = (navigator.userAgent || '').toLowerCase();
+      const hasTelegramQuery = Array.from(search.keys()).some((key) => key.toLowerCase().startsWith('tgwebapp'));
+      const hasTelegramHash = hash.includes('tgwebapp') || hash.includes('telegram');
+      const hasTelegramUA = ua.includes('telegram') || ua.includes('telegrambot');
+      if (!tg) {
+        return hasTelegramQuery || hasTelegramHash || hasTelegramUA;
+      }
+      return Boolean(
+        tg.initData
+        || (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length)
+        || tg.platform
+        || hasTelegramQuery
+        || hasTelegramHash
+        || hasTelegramUA
+      );
     }
 
     function syncTmaMode() {
       const active = isTelegramMiniApp();
       document.body.classList.toggle('tma-app', active);
       document.documentElement.classList.toggle('tma-app', active);
+      document.body.dataset.appMode = active ? 'tma' : 'site';
     }
 
     function setStatus(element, text, kind = '') {
@@ -6419,6 +6435,12 @@ PAGE_TEMPLATE = """
     window.selectDeckDomain = selectDeckDomain;
 
     syncTmaMode();
+    const tgWebApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (tgWebApp && typeof tgWebApp.onEvent === 'function') {
+      tgWebApp.onEvent('viewportChanged', syncTmaMode);
+      tgWebApp.onEvent('themeChanged', syncTmaMode);
+    }
+    window.addEventListener('orientationchange', syncTmaMode);
     window.addEventListener('resize', syncTmaMode);
     initTonConnect().catch((error) => {
       setStatus(walletStatus, `Ошибка TonConnect: ${error.message}`, 'error');
