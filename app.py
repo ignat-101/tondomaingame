@@ -3173,6 +3173,18 @@ PAGE_TEMPLATE = """
         transform: none;
         box-shadow: none;
       }
+      .mode-card.preferred-mode {
+        padding-top: 74px;
+      }
+      .mode-card.preferred-mode::before {
+        top: 12px;
+        left: 12px;
+        right: auto;
+        max-width: calc(100% - 24px);
+        padding: 6px 10px;
+        font-size: 10px;
+        letter-spacing: 0.05em;
+      }
       .mode-card.active-mode {
         transform: translateY(-4px) scale(1.01);
         box-shadow: 0 12px 30px rgba(69, 215, 255, 0.16);
@@ -3645,6 +3657,20 @@ PAGE_TEMPLATE = """
 
     body.tma-app .hero {
       padding: 14px;
+    }
+
+    body.tma-app .mode-card.preferred-mode {
+      padding-top: 76px;
+    }
+
+    body.tma-app .mode-card.preferred-mode::before {
+      top: 12px;
+      left: 12px;
+      right: auto;
+      max-width: calc(100% - 24px);
+      padding: 6px 10px;
+      font-size: 10px;
+      letter-spacing: 0.05em;
     }
 
     body.tma-app .hero-top p,
