@@ -2855,6 +2855,7 @@ PAGE_TEMPLATE = """
     let matchmakingPollTimer = null;
     let modeFocusTimer = null;
     let interactiveChoiceTimer = null;
+    let interactiveChoiceExpireTimer = null;
     const usageStorageKey = 'tondomaingame_ui_usage_v1';
 
     function shortAddress(value) {
@@ -2872,26 +2873,35 @@ PAGE_TEMPLATE = """
         window.clearInterval(interactiveChoiceTimer);
         interactiveChoiceTimer = null;
       }
+      if (interactiveChoiceExpireTimer) {
+        window.clearTimeout(interactiveChoiceExpireTimer);
+        interactiveChoiceExpireTimer = null;
+      }
     }
 
-    function startInteractiveChoiceTimer(node, onExpire) {
+    function startInteractiveChoiceTimer(node, onExpire, delayMs = 0) {
       clearInteractiveChoiceTimer();
-      let remaining = 5;
+      const startAt = Date.now() + delayMs;
+      const endAt = startAt + 5000;
       if (node) {
-        node.textContent = `${remaining} c`;
+        node.textContent = '5 c';
       }
       interactiveChoiceTimer = window.setInterval(() => {
-        remaining -= 1;
+        const now = Date.now();
+        if (now < startAt) {
+          return;
+        }
+        const remaining = Math.max(0, Math.ceil((endAt - now) / 1000));
         if (node) {
-          node.textContent = `${Math.max(remaining, 0)} c`;
+          node.textContent = `${remaining} c`;
         }
-        if (remaining <= 0) {
-          clearInteractiveChoiceTimer();
-          if (typeof onExpire === 'function') {
-            onExpire();
-          }
+      }, 120);
+      interactiveChoiceExpireTimer = window.setTimeout(() => {
+        clearInteractiveChoiceTimer();
+        if (typeof onExpire === 'function') {
+          onExpire();
         }
-      }, 1000);
+      }, delayMs + 5000);
     }
 
     function actionRuleMeta(actionKey) {
@@ -4028,7 +4038,7 @@ PAGE_TEMPLATE = """
               startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true));
             }
           };
-          startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true));
+          startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('channel', null, true), 850);
           interactiveActionButtons.forEach((button) => {
             button.addEventListener('click', async () => {
               const actionKey = button.dataset.actionKey;
