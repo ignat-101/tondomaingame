@@ -3083,7 +3083,7 @@ PAGE_TEMPLATE = """
             left: `${startX}px`,
             top: `${startY}px`,
             opacity: 0,
-            transform: `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? 92 : -92}deg) scale(0.24)`
+            transform: `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? 220 : -220}deg) scale(0.2)`
           },
           {
             left: `${centerX}px`,
@@ -3118,7 +3118,7 @@ PAGE_TEMPLATE = """
             left: `${targetX}px`,
             top: `${targetY}px`,
             opacity: 0.94,
-            transform: `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? -72 : 72}deg) scale(0.44)`
+            transform: `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? -180 : 180}deg) scale(0.44)`
           }
         ], {
           duration: 620,
