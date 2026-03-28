@@ -901,6 +901,7 @@ PAGE_TEMPLATE = """
     }
 
     .interactive-battle-panel {
+      position: relative;
       display: grid;
       gap: 12px;
       margin: 14px 0 10px;
@@ -909,15 +910,51 @@ PAGE_TEMPLATE = """
       border: 1px solid rgba(121, 217, 255, 0.2);
       background: linear-gradient(135deg, rgba(8, 23, 43, 0.82), rgba(10, 29, 34, 0.88));
       box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    .interactive-battle-panel::before,
+    .interactive-battle-panel::after {
+      content: "";
+      position: absolute;
+      inset: -24%;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .interactive-battle-panel::before {
+      background:
+        radial-gradient(circle at 50% 50%, rgba(69, 215, 255, 0.18), transparent 34%),
+        radial-gradient(circle at 50% 50%, rgba(83, 246, 184, 0.14), transparent 54%);
+      transform: scale(0.72);
+      filter: blur(10px);
+    }
+
+    .interactive-battle-panel::after {
+      inset: -10%;
+      border-radius: 32px;
+      border: 1px solid rgba(121, 217, 255, 0.2);
+      background: conic-gradient(from 180deg, transparent, rgba(69, 215, 255, 0.16), transparent, rgba(83, 246, 184, 0.14), transparent);
+      filter: blur(2px);
     }
 
     .interactive-battle-panel.menu-live {
-      animation: battleMenuRise 560ms cubic-bezier(.16,.84,.2,1);
+      animation: battleMenuRise 760ms cubic-bezier(.16,.84,.2,1);
     }
 
     .interactive-battle-panel.menu-live .interactive-battle-title,
     .interactive-battle-panel.menu-live #interactive-battle-status {
-      animation: battleMenuFade 460ms ease forwards;
+      animation: battleMenuFade 520ms ease forwards;
+    }
+
+    .interactive-battle-panel.menu-live::before {
+      animation: battleMenuAura 980ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .interactive-battle-panel.menu-live::after {
+      animation: battleMenuRing 1200ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .interactive-battle-panel.floating {
@@ -991,6 +1028,18 @@ PAGE_TEMPLATE = """
       animation: choiceBreath 1.7s ease-in-out infinite;
     }
 
+    .interactive-battle-panel.menu-live .interactive-action-btn:nth-child(1) {
+      animation: choiceEnterLeft 560ms cubic-bezier(.16,.84,.2,1) forwards, choiceBreath 1.7s ease-in-out 620ms infinite;
+    }
+
+    .interactive-battle-panel.menu-live .interactive-action-btn:nth-child(2) {
+      animation: choiceEnterCenter 620ms cubic-bezier(.16,.84,.2,1) forwards, choiceBreath 1.7s ease-in-out 700ms infinite;
+    }
+
+    .interactive-battle-panel.menu-live .interactive-action-btn:nth-child(3) {
+      animation: choiceEnterRight 560ms cubic-bezier(.16,.84,.2,1) forwards, choiceBreath 1.7s ease-in-out 780ms infinite;
+    }
+
     .interactive-action-btn.choice-picked {
       opacity: 1;
       animation: choiceConfirm 520ms cubic-bezier(.16,.84,.2,1) forwards;
@@ -999,17 +1048,17 @@ PAGE_TEMPLATE = """
     @keyframes battleMenuRise {
       0% {
         opacity: 0;
-        transform: translateY(18px) scale(0.96);
-        filter: blur(4px);
+        transform: translateY(34px) scale(0.9) rotateX(18deg);
+        filter: blur(8px);
       }
-      60% {
+      62% {
         opacity: 1;
-        transform: translateY(-4px) scale(1.01);
+        transform: translateY(-8px) scale(1.02) rotateX(-4deg);
         filter: blur(0);
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0) scale(1) rotateX(0deg);
         filter: blur(0);
       }
     }
@@ -1025,12 +1074,87 @@ PAGE_TEMPLATE = """
       }
     }
 
+    @keyframes battleMenuAura {
+      0% {
+        opacity: 0;
+        transform: scale(0.62);
+      }
+      45% {
+        opacity: 1;
+        transform: scale(1.02);
+      }
+      100% {
+        opacity: 0.46;
+        transform: scale(1.18);
+      }
+    }
+
+    @keyframes battleMenuRing {
+      0% {
+        opacity: 0;
+        transform: scale(0.86) rotate(-14deg);
+      }
+      55% {
+        opacity: 0.9;
+        transform: scale(1.03) rotate(4deg);
+      }
+      100% {
+        opacity: 0.24;
+        transform: scale(1.08) rotate(10deg);
+      }
+    }
+
     @keyframes choiceBreath {
       0%, 100% {
         box-shadow: 0 0 0 rgba(69, 215, 255, 0);
       }
       50% {
         box-shadow: 0 14px 30px rgba(69, 215, 255, 0.18);
+      }
+    }
+
+    @keyframes choiceEnterLeft {
+      0% {
+        opacity: 0;
+        transform: translate3d(-42px, 22px, 0) rotate(-9deg) scale(0.88);
+      }
+      70% {
+        opacity: 1;
+        transform: translate3d(4px, -4px, 0) rotate(2deg) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+      }
+    }
+
+    @keyframes choiceEnterCenter {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 28px, 0) scale(0.84);
+      }
+      68% {
+        opacity: 1;
+        transform: translate3d(0, -6px, 0) scale(1.04);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+
+    @keyframes choiceEnterRight {
+      0% {
+        opacity: 0;
+        transform: translate3d(42px, 22px, 0) rotate(9deg) scale(0.88);
+      }
+      70% {
+        opacity: 1;
+        transform: translate3d(-4px, -4px, 0) rotate(-2deg) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
       }
     }
 
@@ -3984,9 +4108,6 @@ PAGE_TEMPLATE = """
       const buttons = Array.from(panel.querySelectorAll('.interactive-action-btn'));
       buttons.forEach((button, index) => {
         button.classList.remove('choice-ready', 'choice-picked');
-        window.setTimeout(() => {
-          button.classList.add('choice-ready');
-        }, 110 + index * 90);
       });
     }
 
