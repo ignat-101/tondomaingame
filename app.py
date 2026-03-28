@@ -1584,8 +1584,8 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 50%;
       width: 100%;
-      top: 0;
-      bottom: 0;
+      top: 2.5%;
+      bottom: -2.5%;
       border-radius: 26px;
       background-image: url('/static/pack-10k-club.png');
       background-size: 100% 100%;
@@ -1601,7 +1601,7 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 50%;
       width: 100%;
-      top: 0;
+      top: 2.5%;
       height: 15%;
       border-radius: 26px 26px 0 0;
       background-image: url('/static/pack-10k-club.png');
