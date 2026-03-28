@@ -940,7 +940,7 @@ PAGE_TEMPLATE = """
 
     .arena-round-choice-slot.active {
       z-index: 3;
-      gap: 18px;
+      gap: 24px;
     }
 
     .arena-round-marker {
@@ -981,6 +981,8 @@ PAGE_TEMPLATE = """
       letter-spacing: 0.04em;
       white-space: nowrap;
       pointer-events: none;
+      position: relative;
+      z-index: 4;
     }
 
     .arena-round-state.win {
@@ -1002,7 +1004,7 @@ PAGE_TEMPLATE = """
     }
 
     .arena-round-choice-slot.active .arena-lane-choice-panel {
-      margin-top: 12px;
+      margin-top: 26px;
     }
 
     .arena-lane-choice-panel {
@@ -3515,7 +3517,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot.active {
-        gap: 14px;
+        gap: 18px;
       }
 
       .arena-round-marker {
@@ -3528,6 +3530,7 @@ PAGE_TEMPLATE = """
         min-height: 22px;
         padding: 0 8px;
         font-size: 10px;
+        transform: translateY(-2px);
       }
 
       .arena-lane-choice-panel {
@@ -3538,7 +3541,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot.active .arena-lane-choice-panel {
-        margin-top: 10px;
+        margin-top: 34px;
       }
 
       .arena-round-choice-slot:first-child .arena-lane-choice-panel {
