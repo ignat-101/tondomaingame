@@ -4610,7 +4610,7 @@ PAGE_TEMPLATE = """
           </div>
           <div class="wallet-domain-mainline">Вклад карт: ${item.deck.total_score} • ${item.deck.cards && item.deck.cards.length ? `карт: ${item.deck.cards.length}` : 'колода еще не открыта'}</div>
           <div class="actions" style="margin-top:10px;">
-            <button class="secondary wallet-domain-action" onclick="selectDeckDomain('${item.domain}')">Играть этим доменом</button>
+            <button class="secondary wallet-domain-action" onclick="handleDeckDomainAction(event, '${item.domain}')">Играть этим доменом</button>
           </div>
         </div>
       `).join('');
@@ -4778,13 +4778,22 @@ PAGE_TEMPLATE = """
             <div class="tiny">Паттерны: ${domain.patterns.length ? domain.patterns.join(', ') : 'базовый 10K домен'}</div>
             <div class="tiny">Спецколлекции: ${domain.special_collections && domain.special_collections.length ? domain.special_collections.join(', ') : 'нет'}</div>
           </details>
-          <button class="wallet-domain-action" onclick="selectDomain('${domain.domain}')">${state.selectedDomain === domain.domain ? 'Открыть колоду' : 'Выбрать домен'}</button>
+          <button class="wallet-domain-action" onclick="handleDeckDomainAction(event, '${domain.domain}')">${state.selectedDomain === domain.domain ? 'Открыть колоду' : 'Выбрать домен'}</button>
         </div>
       `).join('');
     }
 
     window.selectDomain = async function selectDomain(domain) {
       await selectDeckDomain(domain);
+    };
+
+    window.handleDeckDomainAction = async function handleDeckDomainAction(event, domain) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      await prepareFunctionalInteraction();
+      await selectDeckDomain(domain, {skipSync: true});
     };
 
     function sleep(ms) {
