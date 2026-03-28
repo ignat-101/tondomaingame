@@ -4160,7 +4160,7 @@ PAGE_TEMPLATE = """
       if (!target || typeof target.closest !== 'function') {
         return null;
       }
-      return target.closest('button, [role="button"], [data-mode-card], .mode-card, .wallet-domain-action, .mobile-nav button');
+      return target.closest('button:not(.wallet-domain-action), [role="button"], [data-mode-card], .mode-card, .mobile-nav button');
     }
 
     function syncTmaModeForFunctionalAction(event) {
@@ -4227,8 +4227,15 @@ PAGE_TEMPLATE = """
       if (!domain) {
         return;
       }
+      control.disabled = true;
+      control.dataset.loading = '1';
       await prepareFunctionalInteraction();
+      await new Promise((resolve) => window.setTimeout(resolve, 90));
+      syncTmaMode();
+      syncTmaViewport();
       await selectDeckDomain(domain, {skipSync: true});
+      delete control.dataset.loading;
+      control.disabled = false;
     }
 
     function setStatus(element, text, kind = '') {
