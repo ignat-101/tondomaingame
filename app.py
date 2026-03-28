@@ -360,6 +360,27 @@ PAGE_TEMPLATE = """
       transition: transform 420ms cubic-bezier(.2,.8,.2,1), box-shadow 420ms ease, border-color 420ms ease;
     }
 
+    .mode-card.preferred-mode {
+      border-color: rgba(255, 211, 110, 0.58);
+      box-shadow: 0 22px 44px rgba(255, 211, 110, 0.12);
+    }
+
+    .mode-card.preferred-mode::before {
+      content: attr(data-usage-label);
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 211, 110, 0.14);
+      border: 1px solid rgba(255, 211, 110, 0.34);
+      color: #ffe9a5;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
     .mode-card::after {
       content: "";
       position: absolute;
@@ -2536,6 +2557,7 @@ PAGE_TEMPLATE = """
     let tonConnectUI = null;
     let matchmakingPollTimer = null;
     let modeFocusTimer = null;
+    const usageStorageKey = 'tondomaingame_ui_usage_v1';
 
     function shortAddress(value) {
       if (!value) return '-';
@@ -2593,6 +2615,54 @@ PAGE_TEMPLATE = """
       });
     }
 
+    function loadUsageMap() {
+      try {
+        return JSON.parse(window.localStorage.getItem(usageStorageKey) || '{}') || {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveUsageMap(map) {
+      try {
+        window.localStorage.setItem(usageStorageKey, JSON.stringify(map));
+      } catch (_) {
+      }
+    }
+
+    function bumpUsage(key) {
+      const usage = loadUsageMap();
+      usage[key] = Number(usage[key] || 0) + 1;
+      saveUsageMap(usage);
+      return usage[key];
+    }
+
+    function mostUsedMode() {
+      const usage = loadUsageMap();
+      const modes = ['ranked', 'casual', 'duel', 'bot', 'onecard', 'team'];
+      const sorted = modes
+        .map((mode) => ({ mode, count: Number(usage[`mode:${mode}`] || 0) }))
+        .sort((a, b) => b.count - a.count);
+      return sorted[0] && sorted[0].count > 0 ? sorted[0].mode : '';
+    }
+
+    function softCameraFocus(target, block = 'center') {
+      if (!target) return;
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: 'smooth', block, inline: 'nearest' });
+      });
+    }
+
+    function refreshModeUsageUI() {
+      const topMode = mostUsedMode();
+      document.querySelectorAll('[data-mode-card]').forEach((card) => {
+        const preferred = topMode && card.dataset.modeCard === topMode;
+        card.classList.toggle('preferred-mode', preferred);
+        card.dataset.usageLabel = preferred ? 'Чаще играешь' : '';
+      });
+      return topMode;
+    }
+
     function switchView(name) {
       if (name !== 'modes') {
         resetModeChoice('');
@@ -2606,6 +2676,13 @@ PAGE_TEMPLATE = """
       document.querySelectorAll('.mobile-nav button').forEach((button) => {
         button.classList.toggle('active', button.id === `nav-${name}`);
       });
+      if (name === 'modes') {
+        const preferredMode = refreshModeUsageUI();
+        if (preferredMode) {
+          const preferredCard = document.querySelector(`[data-mode-card="${preferredMode}"]`);
+          softCameraFocus(preferredCard);
+        }
+      }
     }
 
     function animateModeChoice(modeName) {
@@ -2619,6 +2696,8 @@ PAGE_TEMPLATE = """
       document.querySelectorAll('[data-mode-card]').forEach((card) => {
         card.classList.toggle('active-mode', card.dataset.modeCard === modeName);
       });
+      const activeCard = document.querySelector(`[data-mode-card="${modeName}"]`);
+      softCameraFocus(activeCard);
       window.clearTimeout(modeFocusTimer);
       modeFocusTimer = window.setTimeout(() => {
         if (modeGrid) {
@@ -3804,6 +3883,7 @@ PAGE_TEMPLATE = """
     }
 
     function openDuelMode() {
+      bumpUsage('mode:duel');
       animateModeChoice('duel');
       const input = document.getElementById('opponent-wallet');
       if (input) {
@@ -4130,6 +4210,7 @@ PAGE_TEMPLATE = """
     }
 
     async function startMatchmaking(mode) {
+      bumpUsage(`mode:${mode}`);
       animateModeChoice(mode);
       state.matchmakingMode = mode;
       state.matchmakingPolling = true;
@@ -4179,6 +4260,7 @@ PAGE_TEMPLATE = """
     }
 
     async function playMatch(mode) {
+      bumpUsage(`mode:${mode}`);
       const opponentWallet = document.getElementById('opponent-wallet').value.trim();
       const timeoutSeconds = Number(document.getElementById('invite-timeout').value || 60);
       const delivery = (document.getElementById('match-delivery')?.value || 'site').trim();
@@ -4230,6 +4312,7 @@ PAGE_TEMPLATE = """
     }
 
     async function playBotMatch() {
+      bumpUsage('mode:bot');
       animateModeChoice('bot');
       showMatchIntro('Запуск матча с ботом');
       try {
@@ -4257,6 +4340,7 @@ PAGE_TEMPLATE = """
     }
 
     async function createRoom() {
+      bumpUsage('mode:team');
       const username = document.getElementById('team-username').value.trim() || shortAddress(state.wallet);
       try {
         const data = await api('/api/team-room/create', {
@@ -4276,6 +4360,7 @@ PAGE_TEMPLATE = """
     }
 
     async function joinRoom() {
+      bumpUsage('mode:team');
       const username = document.getElementById('team-username').value.trim() || shortAddress(state.wallet);
       const roomId = document.getElementById('room-code-input').value.trim().toUpperCase();
       try {
@@ -4307,6 +4392,7 @@ PAGE_TEMPLATE = """
 
     async function startRoom() {
       if (!state.roomId) return;
+      bumpUsage('mode:team');
       try {
         const data = await api('/api/team-room/start', {
           method: 'POST',
@@ -4475,6 +4561,7 @@ PAGE_TEMPLATE = """
         setStatus(document.getElementById('pack-status'), 'Для режима одной карты выбери карту из колоды.', 'warning');
         return;
       }
+      bumpUsage('mode:onecard');
       animateModeChoice('onecard');
       showMatchIntro('Запуск дуэли одной картой');
       try {
@@ -4648,6 +4735,7 @@ PAGE_TEMPLATE = """
     });
     refreshAchievementsBtn.addEventListener('click', loadAchievements);
     document.getElementById('show-team-btn').addEventListener('click', () => {
+      bumpUsage('mode:team');
       animateModeChoice('team');
       document.getElementById('team-panel').style.display = 'block';
       setStatus(document.getElementById('team-status'), 'Создай командную комнату или войди по коду.', 'warning');
