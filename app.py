@@ -3955,6 +3955,7 @@ PAGE_TEMPLATE = """
     let modeFocusTimer = null;
     let interactiveChoiceTimer = null;
     let interactiveChoiceExpireTimer = null;
+    let battleAutostartTimer = null;
     const usageStorageKey = 'tondomaingame_ui_usage_v1';
 
     function shortAddress(value) {
@@ -4001,6 +4002,13 @@ PAGE_TEMPLATE = """
           onExpire();
         }
       }, delayMs + 5000);
+    }
+
+    function clearBattleAutostartTimer() {
+      if (battleAutostartTimer) {
+        window.clearTimeout(battleAutostartTimer);
+        battleAutostartTimer = null;
+      }
     }
 
     function actionRuleMeta(actionKey) {
@@ -4907,6 +4915,7 @@ PAGE_TEMPLATE = """
 
     function showMatchIntro(title) {
       clearInteractiveChoiceTimer();
+      clearBattleAutostartTimer();
       clearFinalClimax();
       battleResult.className = 'result-box duel-anim showdown-fullscreen';
       battleResult.style.display = 'block';
@@ -4932,6 +4941,7 @@ PAGE_TEMPLATE = """
 
     function resetBattleStage() {
       clearInteractiveChoiceTimer();
+      clearBattleAutostartTimer();
       clearFinalClimax();
       battleResult.className = 'result-box';
       battleResult.style.display = 'none';
@@ -4945,6 +4955,7 @@ PAGE_TEMPLATE = """
 
     function renderBattleResult(result) {
       clearInteractiveChoiceTimer();
+      clearBattleAutostartTimer();
       setBattleLaunchInFlight(false);
       battleResult.className = 'result-box';
       battleResult.style.display = 'block';
@@ -5376,7 +5387,12 @@ PAGE_TEMPLATE = """
           });
         }
         if (result.autostart_battle && startBtn) {
-          setTimeout(() => startBtn.click(), 120);
+          battleAutostartTimer = window.setTimeout(() => {
+            battleAutostartTimer = null;
+            if (document.body.contains(startBtn)) {
+              startBtn.click();
+            }
+          }, 120);
         }
       }
     }
