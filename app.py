@@ -728,6 +728,205 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 50% 70%, rgba(83, 246, 184, 0.08), transparent 42%),
         linear-gradient(180deg, rgba(7, 18, 33, 0.98), rgba(3, 10, 20, 0.98));
       box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.06);
+      padding: 16px;
+    }
+
+    .arena-shell {
+      display: grid;
+      gap: 14px;
+    }
+
+    .arena-rail {
+      display: grid;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background: rgba(8, 20, 36, 0.88);
+      box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.04);
+    }
+
+    .arena-rail.enemy {
+      border-color: rgba(255, 211, 110, 0.14);
+    }
+
+    .arena-deck-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .arena-slot-card {
+      position: relative;
+      min-width: 0;
+      border-radius: 16px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(19, 34, 56, 0.96), rgba(9, 18, 31, 0.98));
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .arena-slot-card.player-card {
+      border-color: rgba(69, 215, 255, 0.22);
+    }
+
+    .arena-slot-card.enemy-card {
+      border-color: rgba(255, 211, 110, 0.18);
+    }
+
+    .arena-slot-card.active-slot {
+      transform: translateY(-3px);
+      border-color: rgba(83, 246, 184, 0.42);
+      box-shadow:
+        0 12px 24px rgba(0, 0, 0, 0.18),
+        0 0 0 1px rgba(83, 246, 184, 0.14);
+    }
+
+    .arena-slot-card.featured-slot::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 0 0 1px rgba(255, 211, 110, 0.2);
+      pointer-events: none;
+    }
+
+    .arena-slot-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .arena-slot-meta {
+      color: rgba(213, 235, 255, 0.8);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .arena-core {
+      position: relative;
+      min-height: 440px;
+      border-radius: 26px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(14, 44, 55, 0.44), transparent 42%),
+        linear-gradient(180deg, rgba(6, 14, 26, 0.98), rgba(3, 9, 18, 0.98));
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+        inset 0 0 90px rgba(0, 0, 0, 0.18);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .arena-core::before {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 211, 110, 0.08);
+      pointer-events: none;
+    }
+
+    .arena-route-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .arena-route-overlay svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .arena-route-path {
+      fill: none;
+      stroke: rgba(255, 211, 110, 0.7);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 5 10;
+      filter: drop-shadow(0 0 6px rgba(255, 211, 110, 0.18));
+      animation: arenaDashFlow 2.4s linear infinite;
+      opacity: 0.84;
+    }
+
+    .arena-route-path.alt {
+      stroke: rgba(69, 215, 255, 0.52);
+      stroke-dasharray: 4 11;
+      animation-duration: 2.8s;
+    }
+
+    .arena-choice-hub {
+      position: relative;
+      z-index: 1;
+      min-height: 440px;
+      display: grid;
+      place-items: center;
+      padding: 28px 18px;
+    }
+
+    .arena-choice-panel {
+      width: min(100%, 430px);
+      padding: 18px 18px 16px;
+      border-radius: 24px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background:
+        linear-gradient(180deg, rgba(8, 21, 37, 0.96), rgba(8, 17, 29, 0.98)),
+        radial-gradient(circle at top, rgba(69, 215, 255, 0.12), transparent 62%);
+      box-shadow:
+        0 24px 44px rgba(0, 0, 0, 0.24),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(16px);
+    }
+
+    .arena-score-card {
+      width: min(100%, 360px);
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+      padding: 18px 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: linear-gradient(180deg, rgba(8, 20, 34, 0.95), rgba(5, 11, 21, 0.98));
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .arena-score-card .showdown-score {
+      margin: 0;
+    }
+
+    .arena-score-pips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .arena-score-pip {
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 211, 110, 0.22);
+      background: rgba(255, 211, 110, 0.08);
+      color: #ffe59d;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    @keyframes arenaDashFlow {
+      0% {
+        stroke-dashoffset: 0;
+      }
+      100% {
+        stroke-dashoffset: -120;
+      }
     }
 
     .showdown-deck {
@@ -2823,6 +3022,20 @@ PAGE_TEMPLATE = """
         text-align: left;
       }
 
+      .arena-deck-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .arena-core,
+      .arena-choice-hub {
+        min-height: 0;
+      }
+
+      .arena-choice-panel,
+      .arena-score-card {
+        width: 100%;
+      }
+
       .arena-decision-roundline {
         align-items: flex-start;
         flex-direction: column;
@@ -4028,6 +4241,28 @@ PAGE_TEMPLATE = """
       `).join('');
     }
 
+    function arenaDeckMarkup(cards, fallbackCard, side = 'player', activeSlot = null, featuredSlot = null) {
+      const normalized = Array.isArray(cards) && cards.length
+        ? cards
+        : (fallbackCard ? [fallbackCard] : []);
+      if (!normalized.length) {
+        return '<div class="tiny">Колода недоступна</div>';
+      }
+      return normalized.map((card, index) => {
+        const slot = Number(card.slot || index + 1);
+        const isActive = Number(activeSlot || 0) === slot;
+        const isFeatured = Number(featuredSlot || 0) === slot;
+        return `
+          <div class="arena-slot-card ${side === 'enemy' ? 'enemy-card' : 'player-card'} ${isActive ? 'active-slot' : ''} ${isFeatured ? 'featured-slot' : ''}">
+            <strong>${slot}. ${card.title || 'Карта'}</strong>
+            <div class="arena-slot-meta">${card.rarity || '-'}</div>
+            <div class="arena-slot-meta">Вклад: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
+            <div class="arena-slot-meta">${card.skill_name || '-'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
     function revealDisciplineRows(startDelay = 0, stepMs = 1000) {
       const rows = battleResult.querySelectorAll('.discipline-row');
       if (!rows.length) {
@@ -4219,124 +4454,18 @@ PAGE_TEMPLATE = """
           : '';
         const opponentLabel = result.opponent_domain ? `${result.opponent_domain}.ton` : 'бот';
         const resultKey = result.result || (result.result_label === 'Победа' ? 'win' : (result.result_label === 'Поражение' ? 'lose' : 'draw'));
-        const resultClass = resultKey === 'win' ? 'to-win' : (resultKey === 'lose' ? 'to-lose' : 'to-draw');
-        const frontLabel = resultKey === 'draw' ? 'DRAW' : 'WIN';
-        const frontClass = resultKey === 'draw' ? 'draw' : 'front';
-        const cardLine = result.player_card
-          ? `<div class="tiny">Твоя карта: слот ${result.player_card.slot} • ${result.player_card.title} • сила ${result.player_card.score}</div>`
-          : '';
-        const oppCardLine = result.opponent_card
-          ? `<div class="tiny">Карта соперника: ${result.opponent_card.title} • сила ${result.opponent_card.score}</div>`
-          : '';
-        const featuredCardLine = result.player_featured_card
-          ? `<div class="tiny">Тактическая карта: слот ${result.player_featured_card.slot} • ${result.player_featured_card.title} • ${result.player_featured_card.skill_name || 'скилл'}</div>`
-          : '';
-        const oppFeaturedCardLine = result.opponent_featured_card
-          ? `<div class="tiny">Тактическая карта соперника: слот ${result.opponent_featured_card.slot} • ${result.opponent_featured_card.title} • ${result.opponent_featured_card.skill_name || 'скилл'}</div>`
-          : '';
-        const decisionChipMarkup = (label, tone, extraClass = '', delay = 0) => `
-          <span class="arena-decision-chip ${tone} ${extraClass}" style="animation-delay:${delay}ms;">${label}</span>
-        `;
-        const roundsLine = Array.isArray(result.rounds) && result.rounds.length
-          ? `<div class="discipline-list">
-              ${result.rounds.map((round) => {
-                const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
-                const marker = round.winner === 'player' ? 'WIN' : (round.winner === 'opponent' ? 'LOSE' : 'DRAW');
-                const playerCardTitle = round.player_card?.title || 'Твоя карта';
-                const opponentCardTitle = round.opponent_card?.title || 'Карта соперника';
-                const playerSlot = round.player_card?.slot || '-';
-                const opponentSlot = round.opponent_card?.slot || '-';
-                const playerStrategy = strategyMeta(round.player_strategy_key || 'balanced');
-                const opponentStrategy = strategyMeta(round.opponent_strategy_key || 'balanced');
-                const playerCardPower = Number(round.player_value || 0) + Number(round.player_boost || 0) + Number(round.player_skill_bonus || 0);
-                const opponentCardPower = Number(round.opponent_value || 0) + Number(round.opponent_boost || 0) + Number(round.opponent_skill_bonus || 0);
-                return `
-                  <div class="discipline-row ${roundClass}">
-                    <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
-                    <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
-                    <span class="tiny">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label} • бонус: +${round.player_strategy_bonus || 0} / +${round.opponent_strategy_bonus || 0}</span>
-                    <span class="tiny">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
-                    <span class="tiny">Сила карт: +${playerCardPower} / +${opponentCardPower}</span>
-                  </div>
-                `;
-              }).join('')}
-            </div>`
-          : '';
-        const decisionTimelineLine = Array.isArray(result.rounds) && result.rounds.length
-          ? `<div class="arena-decision-track">
-              <div class="arena-decision-headline">Решения, которые двигают раунд</div>
-              <div class="arena-decision-bursts">
-                ${result.rounds.map((round, index) => {
-                  const playerAction = actionRuleMeta(round.player_action || 'channel');
-                  const opponentAction = actionRuleMeta(round.opponent_action || 'channel');
-                  const playerStrategy = strategyMeta(round.player_strategy_key || 'balanced');
-                  const opponentStrategy = strategyMeta(round.opponent_strategy_key || 'balanced');
-                  const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
-                  const roundOutcome = round.winner === 'player'
-                    ? 'Раунд за тобой'
-                    : (round.winner === 'opponent' ? 'Раунд забрал соперник' : 'Раунд вничью');
-                  const roundOutcomeShort = round.winner === 'player'
-                    ? 'Победа'
-                    : (round.winner === 'opponent' ? 'Поражение' : 'Ничья');
-                  const playerCardTitle = round.player_card?.title || 'Твоя карта';
-                  const opponentCardTitle = round.opponent_card?.title || 'Карта соперника';
-                  const playerSlot = round.player_card?.slot || '-';
-                  const opponentSlot = round.opponent_card?.slot || '-';
-                  const chipDelayBase = index * 140;
-                  return `
-                    <div class="arena-decision-burst ${roundClass} ${index === result.rounds.length - 1 ? 'latest' : ''}" style="animation-delay:${Math.min(index * 120, 480)}ms;">
-                      <div class="arena-decision-roundline">
-                        <strong>${round.label}</strong>
-                        <span class="arena-decision-score">${round.player_total} : ${round.opponent_total}</span>
-                      </div>
-                      <div class="arena-clash-lane">
-                        <div class="arena-clash-card player">
-                          <span class="arena-clash-slot">Твоя карта • слот ${playerSlot}</span>
-                          <strong class="arena-clash-title">${playerCardTitle}</strong>
-                          <span class="arena-clash-meta">База ${round.player_value || 0} • сила раунда ${round.player_total || 0}</span>
-                        </div>
-                        <div class="arena-clash-versus">
-                          <div class="arena-clash-badge">VS</div>
-                          <div class="arena-clash-winner">${roundOutcomeShort}</div>
-                        </div>
-                        <div class="arena-clash-card enemy">
-                          <span class="arena-clash-slot">Карта соперника • слот ${opponentSlot}</span>
-                          <strong class="arena-clash-title">${opponentCardTitle}</strong>
-                          <span class="arena-clash-meta">База ${round.opponent_value || 0} • сила раунда ${round.opponent_total || 0}</span>
-                        </div>
-                      </div>
-                      <div class="arena-decision-chips">
-                        ${decisionChipMarkup(`Ты: ${playerAction.ruLabel} ${Number(round.player_action_bonus || 0) ? `+${round.player_action_bonus}` : ''}`.trim(), 'player', `action ${round.player_action || 'channel'}`, chipDelayBase + 40)}
-                        ${decisionChipMarkup(`Соперник: ${opponentAction.ruLabel} ${Number(round.opponent_action_bonus || 0) ? `+${round.opponent_action_bonus}` : ''}`.trim(), 'enemy', `action ${round.opponent_action || 'channel'}`, chipDelayBase + 90)}
-                        ${decisionChipMarkup(`Стратегия: ${playerStrategy.label} / ${opponentStrategy.label}`, 'strategy', '', chipDelayBase + 140)}
-                        ${decisionChipMarkup(`Тактика: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}`, 'featured', '', chipDelayBase + 190)}
-                        ${decisionChipMarkup(roundOutcome, 'outcome', roundClass, chipDelayBase + 240)}
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>`
-          : '';
-        const buildLine = result.player_build
-          ? `<div class="tiny">Твоя прокачка: ATK ${result.player_build.attack || 0} • DEF ${result.player_build.defense || 0} • LUCK ${result.player_build.luck || 0} • SPD ${result.player_build.speed || 0} • MAG ${result.player_build.magic || 0}</div>`
-          : '';
-        const deckPowerLine = result.player_deck_power !== undefined && result.opponent_deck_power !== undefined
-          ? `<div class="tiny">Сила колод (тай-брейк): ${result.player_deck_power} vs ${result.opponent_deck_power}${result.tie_breaker ? ' • использован тай-брейк' : ''}</div>`
-          : '';
         const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
-        const interactiveRows = Array.isArray(result.rounds) && result.rounds.length;
         const interactivePanel = result.interactive_session_id
           ? `
-              <div class="interactive-battle-panel ${result.interactive_live ? 'floating' : ''}" id="interactive-battle-panel">
+              <div class="interactive-battle-panel arena-choice-panel ${result.interactive_live ? 'floating' : ''}" id="interactive-battle-panel">
                 <div class="interactive-battle-title">
                   ${result.interactive_live
                     ? `Раунд ${Math.min((result.interactive_round_index || 0) + 1, result.interactive_total_rounds || 5)} из ${result.interactive_total_rounds || 5}`
-                    : 'Результат матча'}
+                    : 'Выбор завершён'}
                 </div>
                 ${result.interactive_live ? `<div class="interactive-timer" id="interactive-timer">5 c</div>` : ''}
                 <div class="tiny" id="interactive-battle-status" style="text-align:center;">
-                  ${result.interactive_live ? (result.interactive_hint || 'У тебя 5 секунд на выбор. После выбора или таймаута раунд раскрывается синхронно.') : `Итог: ${result.result_label}`}
+                  ${result.interactive_live ? (result.interactive_hint || 'У тебя 5 секунд на выбор. После выбора или таймаута раунд раскрывается синхронно.') : 'Все решения зафиксированы.'}
                 </div>
                 ${result.interactive_live ? `
                   <div class="interactive-battle-actions">
@@ -4349,6 +4478,30 @@ PAGE_TEMPLATE = """
               </div>
             `
           : '';
+        const playerActiveSlot = result.interactive_live
+          ? Number((result.player_cards || [])[Math.min(result.interactive_round_index || 0, Math.max((result.player_cards || []).length - 1, 0))]?.slot || 0)
+          : Number(result.player_featured_card?.slot || result.player_card?.slot || result.rounds?.[Math.max((result.rounds?.length || 1) - 1, 0)]?.player_card?.slot || 0);
+        const opponentActiveSlot = result.interactive_live
+          ? Number((result.opponent_cards || [])[Math.min(result.interactive_round_index || 0, Math.max((result.opponent_cards || []).length - 1, 0))]?.slot || 0)
+          : Number(result.opponent_featured_card?.slot || result.opponent_card?.slot || result.rounds?.[Math.max((result.rounds?.length || 1) - 1, 0)]?.opponent_card?.slot || 0);
+        const playerArenaDeck = arenaDeckMarkup(result.player_cards, result.player_card, 'player', playerActiveSlot, result.player_featured_card?.slot || result.selected_slot);
+        const opponentArenaDeck = arenaDeckMarkup(result.opponent_cards, result.opponent_card, 'enemy', opponentActiveSlot, result.opponent_featured_card?.slot);
+        const arenaRoutes = `
+          <div class="arena-route-overlay" aria-hidden="true">
+            <svg viewBox="0 0 1000 440" preserveAspectRatio="none">
+              <path class="arena-route-path" d="M 100 0 C 100 120, 110 150, 430 220" />
+              <path class="arena-route-path alt" d="M 300 0 C 300 120, 310 150, 470 220" />
+              <path class="arena-route-path" d="M 500 0 C 500 120, 500 160, 500 220" />
+              <path class="arena-route-path alt" d="M 700 0 C 700 120, 690 150, 530 220" />
+              <path class="arena-route-path" d="M 900 0 C 900 120, 890 150, 570 220" />
+              <path class="arena-route-path" d="M 430 220 C 110 290, 100 320, 100 440" />
+              <path class="arena-route-path alt" d="M 470 220 C 310 290, 300 320, 300 440" />
+              <path class="arena-route-path" d="M 500 220 C 500 290, 500 320, 500 440" />
+              <path class="arena-route-path alt" d="M 530 220 C 690 290, 700 320, 700 440" />
+              <path class="arena-route-path" d="M 570 220 C 890 290, 900 320, 900 440" />
+            </svg>
+          </div>
+        `;
         state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
         battleResult.classList.add('showdown-fullscreen');
         battleResult.classList.remove('result-win', 'result-lose', 'result-draw', 'battle-live');
@@ -4357,104 +4510,70 @@ PAGE_TEMPLATE = """
         battleResult.scrollTop = 0;
         const immediateInteractiveOutcome = Boolean(result.interactive_session_id && !result.interactive_live);
         const outcomeClass = immediateInteractiveOutcome ? '' : 'delayed-outcome';
-        const victoryLine = resultKey === 'win'
-          ? `<div class="victory-banner ${outcomeClass}">Поздравляем! Это победный матч!</div>`
-          : '';
         battleResult.innerHTML = `
-          <section class="showdown-header">
-            <div class="tiny"><strong>Колода пользователя</strong> • ${result.player_domain}.ton</div>
-            <div class="showdown-deck">
-              ${showdownDeckMarkup(result.player_cards, result.player_card)}
-            </div>
-          </section>
           <section class="showdown-main arena-board">
-            <div class="showdown-center showdown-middle">
-              <div class="prebattle-stage" id="prebattle-stage">
-                <div class="tiny" id="prebattle-ready-status">Колоды готовы. Нажми "Готов".</div>
-                <div class="row" style="margin-top:10px;">
-                  <select id="prebattle-tactical-slot">
-                    ${(result.player_cards || []).map((card) => `
-                      <option value="${card.slot}" ${Number((result.selected_slot || result.player_featured_card?.slot || 0)) === Number(card.slot) ? 'selected' : ''}>
-                        Слот ${card.slot}: ${card.title} • ${card.skill_name || 'скилл'}
-                      </option>
-                    `).join('')}
-                  </select>
-                </div>
-                <div class="row" style="margin-top:10px;">
-                  <select id="prebattle-strategy">
-                    ${['aggressive', 'balanced', 'tricky'].map((key) => {
-                      const meta = strategyMeta(key);
-                      return `<option value="${key}" ${String(result.strategy_key || 'balanced') === key ? 'selected' : ''}>${meta.label}</option>`;
-                    }).join('')}
-                  </select>
-                </div>
-                <div class="tiny" style="text-align:center;">Стратегия влияет напрямую на исход матча.</div>
-                <div class="tiny" id="prebattle-strategy-help" style="text-align:center;"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
-                <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'}</div>
-                <div class="showdown-entry-actions">
-                  <button id="start-battle-btn">Готов</button>
-                  <button class="secondary" onclick="openModes()">К режимам</button>
+            <div class="arena-shell">
+              <div class="arena-rail player">
+                <div class="tiny"><strong>Колода пользователя</strong> • ${result.player_domain}.ton</div>
+                <div class="arena-deck-grid">
+                  ${playerArenaDeck}
                 </div>
               </div>
-              <div class="battle-stage" id="battle-stage">
-                <div class="match-outcome ${outcomeClass}">
-                  <div class="result-flip">
-                    <div class="result-flip-card ${resultClass}">
-                      <div class="result-flip-face ${frontClass}">${frontLabel}</div>
-                      <div class="result-flip-face back">LOSE</div>
+              <div class="arena-core">
+                ${arenaRoutes}
+                <div class="arena-choice-hub">
+                  <div class="prebattle-stage arena-choice-panel" id="prebattle-stage">
+                    <div class="tiny" id="prebattle-ready-status">Колоды готовы. Нажми "Готов".</div>
+                    <div class="row" style="margin-top:10px;">
+                      <select id="prebattle-tactical-slot">
+                        ${(result.player_cards || []).map((card) => `
+                          <option value="${card.slot}" ${Number((result.selected_slot || result.player_featured_card?.slot || 0)) === Number(card.slot) ? 'selected' : ''}>
+                            Слот ${card.slot}: ${card.title} • ${card.skill_name || 'скилл'}
+                          </option>
+                        `).join('')}
+                      </select>
+                    </div>
+                    <div class="row" style="margin-top:10px;">
+                      <select id="prebattle-strategy">
+                        ${['aggressive', 'balanced', 'tricky'].map((key) => {
+                          const meta = strategyMeta(key);
+                          return `<option value="${key}" ${String(result.strategy_key || 'balanced') === key ? 'selected' : ''}>${meta.label}</option>`;
+                        }).join('')}
+                      </select>
+                    </div>
+                    <div class="tiny" id="prebattle-strategy-help" style="text-align:center;"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
+                    <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'}</div>
+                    <div class="showdown-entry-actions">
+                      <button id="start-battle-btn">Готов</button>
+                      <button class="secondary" onclick="openModes()">К режимам</button>
                     </div>
                   </div>
-                  <h3>${result.mode_title}</h3>
-                  <div class="battle-cinematic">
-                    <div class="battle-cinematic-label">Arena Clash</div>
-                    <div class="battle-cinematic-floor"></div>
-                    <div class="battle-fighter player">
-                      <div class="tiny">Твоя карта</div>
-                      <strong>${result.player_featured_card ? result.player_featured_card.title : (result.player_card ? result.player_card.title : `${result.player_domain}.ton`)}</strong>
-                      <div class="battle-fighter-cardline">
-                        <div class="battle-fighter-slot">Слот ${result.player_featured_card?.slot || result.player_card?.slot || '-'}</div>
-                        <div class="tiny">Скилл: ${result.player_featured_card ? result.player_featured_card.skill_name : 'без тактики'}</div>
+                  <div class="battle-stage" id="battle-stage">
+                    ${interactivePanel}
+                    <div class="arena-score-card ${outcomeClass}">
+                      <div class="showdown-score">
+                        <span class="count-up" data-count-to="${result.player_score}">0</span>
+                        <span>:</span>
+                        <span class="count-up" data-count-to="${result.opponent_score}">0</span>
                       </div>
-                    </div>
-                    <div class="battle-vs-orb">VS</div>
-                    <div class="battle-fighter enemy">
-                      <div class="tiny">Карта соперника</div>
-                      <strong>${result.opponent_featured_card ? result.opponent_featured_card.title : (result.opponent_card ? result.opponent_card.title : opponentLabel)}</strong>
-                      <div class="battle-fighter-cardline">
-                        <div class="battle-fighter-slot">Слот ${result.opponent_featured_card?.slot || result.opponent_card?.slot || '-'}</div>
-                        <div class="tiny">Скилл: ${result.opponent_featured_card ? result.opponent_featured_card.skill_name : 'без тактики'}</div>
+                      <div class="arena-score-pips">
+                        <span class="arena-score-pip">Твой слот ${playerActiveSlot || '-'}</span>
+                        <span class="arena-score-pip">Слот соперника ${opponentActiveSlot || '-'}</span>
                       </div>
                     </div>
                   </div>
-                  <div class="showdown-score">
-                    <span class="count-up" data-count-to="${result.player_score}">0</span>
-                    <span>:</span>
-                    <span class="count-up" data-count-to="${result.opponent_score}">0</span>
-                  </div>
-                  <div class="tiny">Твой домен: ${result.player_domain}.ton • Соперник: ${opponentLabel}</div>
                 </div>
-                ${decisionTimelineLine}
-                ${cardLine}
-                ${oppCardLine}
-                ${featuredCardLine}
-                ${oppFeaturedCardLine}
-                ${buildLine}
-                ${interactivePanel}
-                ${roundsLine}
-                ${deckPowerLine}
-                ${ratingLine}
-                <p class="muted ${outcomeClass}">Итог: ${result.result_label}</p>
-                ${victoryLine}
               </div>
-            </div>
-          </section>
-          <section class="showdown-header">
-            <div class="tiny"><strong>Колода противника</strong> • ${opponentLabel}</div>
-            <div class="showdown-deck">
-              ${showdownDeckMarkup(result.opponent_cards, result.opponent_card)}
+              <div class="arena-rail enemy">
+                <div class="tiny"><strong>Колода противника</strong> • ${opponentLabel}</div>
+                <div class="arena-deck-grid">
+                  ${opponentArenaDeck}
+                </div>
+              </div>
             </div>
           </section>
           <div class="result-actions delayed-outcome post-actions">
+            ${ratingLine ? `<div class="tiny" style="width:100%; text-align:center;">${result.rating_before} → ${result.rating_after}</div>` : ''}
             <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
