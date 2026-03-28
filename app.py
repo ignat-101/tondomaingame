@@ -940,6 +940,7 @@ PAGE_TEMPLATE = """
 
     .arena-round-choice-slot.active {
       z-index: 3;
+      gap: 18px;
     }
 
     .arena-round-marker {
@@ -998,6 +999,10 @@ PAGE_TEMPLATE = """
       border-color: rgba(255, 211, 110, 0.34);
       background: rgba(255, 211, 110, 0.12);
       color: #ffe9ad;
+    }
+
+    .arena-round-choice-slot.active .arena-lane-choice-panel {
+      margin-top: 12px;
     }
 
     .arena-lane-choice-panel {
@@ -3509,6 +3514,10 @@ PAGE_TEMPLATE = """
         top: 36px;
       }
 
+      .arena-round-choice-slot.active {
+        gap: 14px;
+      }
+
       .arena-round-marker {
         width: 12px;
         height: 12px;
@@ -3526,6 +3535,10 @@ PAGE_TEMPLATE = """
         padding: 7px 5px 6px;
         border-radius: 14px;
         max-width: 100%;
+      }
+
+      .arena-round-choice-slot.active .arena-lane-choice-panel {
+        margin-top: 10px;
       }
 
       .arena-round-choice-slot:first-child .arena-lane-choice-panel {
