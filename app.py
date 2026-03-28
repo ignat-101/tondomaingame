@@ -1547,222 +1547,129 @@ PAGE_TEMPLATE = """
 
     .foil-pack {
       position: relative;
-      width: min(360px, 94%);
+      width: min(380px, 92vw);
+      aspect-ratio: 2 / 3;
       margin: 0 auto;
       border-radius: 26px;
       border: 1px solid rgba(255, 212, 92, 0.32);
-      background:
-        linear-gradient(90deg, rgba(255, 209, 77, 0.06), transparent 14%, transparent 86%, rgba(255, 209, 77, 0.06)),
-        radial-gradient(circle at 50% 20%, rgba(255, 214, 95, 0.12), transparent 34%),
-        linear-gradient(180deg, #151515 0%, #060606 18%, #121212 50%, #070707 100%);
+      background: linear-gradient(180deg, rgba(15, 15, 15, 0.98), rgba(4, 4, 4, 0.98));
       color: #ffd95d;
-      padding: 78px 26px 66px;
+      padding: 0;
       box-shadow:
         inset 0 0 0 1px rgba(255, 220, 120, 0.08),
         0 34px 52px rgba(0, 0, 0, 0.52);
       overflow: visible;
-      transition: transform 420ms ease, opacity 420ms ease;
+      transform-origin: center center;
+      transition: transform 420ms ease, opacity 420ms ease, filter 420ms ease;
     }
 
     .pack-showcase.cinematic .foil-pack {
       position: fixed;
       left: 50%;
       top: 50%;
-      width: min(88vw, 560px);
-      transform: translate(-50%, -50%) scale(1.38);
+      width: min(86vw, 520px);
+      transform: translate(-50%, -50%) scale(1);
       z-index: 7100;
     }
 
-    .foil-pack::before, .foil-pack::after {
+    .foil-pack-frame {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      overflow: hidden;
+    }
+
+    .foil-pack-frame::before {
       content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 212, 92, 0.06), transparent 10%, transparent 90%, rgba(255, 212, 92, 0.06)),
+        radial-gradient(circle at 50% 10%, rgba(255, 223, 130, 0.12), transparent 30%);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .pack-face {
       position: absolute;
       left: 0;
       right: 0;
-      height: 34px;
-      background:
-        repeating-linear-gradient(
-          180deg,
-          rgba(255, 224, 138, 0.2),
-          rgba(255, 224, 138, 0.2) 2px,
-          rgba(0, 0, 0, 0) 2px,
-          rgba(0, 0, 0, 0) 5px
-        ),
-        linear-gradient(180deg, rgba(255, 212, 92, 0.28), rgba(255, 212, 92, 0.06));
-      border-top: 1px solid rgba(255, 212, 92, 0.22);
-      border-bottom: 1px solid rgba(255, 212, 92, 0.22);
-      border-radius: 18px 18px 0 0;
+      top: 11%;
+      bottom: 5.6%;
+      border-radius: 0 0 26px 26px;
+      background-image: url('/static/pack-10k-club.png');
+      background-size: cover;
+      background-position: center bottom;
+      clip-path: inset(0 0 0 0 round 0 0 26px 26px);
+      z-index: 1;
+      transform-origin: top center;
     }
 
-    .foil-pack::before { top: 0; }
-
-    .foil-pack::after {
-      bottom: 0;
-      transform: rotate(180deg);
-      border-radius: 18px 18px 0 0;
-    }
-
-    .foil-pack-sash {
+    .pack-rip-strip {
       position: absolute;
-      left: 18px;
-      right: 18px;
-      top: 42px;
-      height: 18px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 212, 92, 0.42);
-      background:
-        linear-gradient(90deg, rgba(255, 212, 92, 0.06), rgba(255, 212, 92, 0.2), rgba(255, 212, 92, 0.06)),
-        repeating-linear-gradient(
-          90deg,
-          transparent 0,
-          transparent 12px,
-          rgba(255, 212, 92, 0.8) 12px,
-          rgba(255, 212, 92, 0.8) 22px,
-          transparent 22px,
-          transparent 34px
-        );
-      box-shadow: 0 0 16px rgba(255, 212, 92, 0.1);
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 15%;
+      border-radius: 26px 26px 0 0;
+      background-image: url('/static/pack-10k-club.png');
+      background-size: cover;
+      background-position: center top;
+      z-index: 4;
+      transform-origin: right bottom;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.36);
     }
 
     .pack-cap {
       position: absolute;
-      left: 16px;
-      right: 16px;
-      top: 12px;
-      height: 30px;
-      border-top: 2px solid rgba(255, 212, 92, 0.28);
-      border-bottom: 2px solid rgba(255, 212, 92, 0.16);
-      border-radius: 14px 14px 0 0;
-      background:
-        linear-gradient(180deg, rgba(255, 212, 92, 0.14), rgba(255, 212, 92, 0.02)),
-        repeating-linear-gradient(
-        180deg,
-        rgba(255, 224, 138, 0.12),
-        rgba(255, 224, 138, 0.12) 2px,
-        rgba(0, 0, 0, 0) 2px,
-        rgba(0, 0, 0, 0) 4px
-      );
+      left: 6%;
+      right: 6%;
+      top: 11%;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255, 214, 101, 0), rgba(255, 214, 101, 0.96), rgba(255, 214, 101, 0));
+      box-shadow: 0 0 16px rgba(255, 214, 101, 0.6);
       transform-origin: top center;
-      z-index: 4;
+      z-index: 5;
     }
 
-    .foil-pack.opening .pack-cap {
-      animation: tearOpen 860ms cubic-bezier(.16,.84,.2,1) forwards;
+    .pack-mouth-glow {
+      position: absolute;
+      left: 14%;
+      right: 14%;
+      top: 11%;
+      height: 14%;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 223, 130, 0.86), rgba(255, 188, 52, 0.42) 28%, rgba(255, 160, 48, 0.12) 52%, transparent 78%);
+      filter: blur(10px);
+      opacity: 0;
+      z-index: 2;
+      pointer-events: none;
+      transform: translateY(-10px) scaleY(0.3);
     }
 
     .foil-pack.opening {
-      animation: packShake 560ms ease-in-out;
+      animation: packLunge 980ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .pack-showcase.opened .foil-pack {
-      transform: translateY(-26px) scale(0.92);
-      opacity: 0.18;
+      filter: brightness(1.08);
     }
 
     .foil-pack.vanishing {
       animation: packVanish 1.1s cubic-bezier(.16,.84,.2,1) forwards;
     }
 
-    .pack-emblem {
-      width: 198px;
-      height: 198px;
-      margin: 0 auto 22px;
-      border-radius: 50%;
-      border: 3px solid #ffcf45;
-      background:
-        radial-gradient(circle at 50% 30%, rgba(255, 224, 138, 0.16), transparent 44%),
-        radial-gradient(circle at 50% 50%, #1d1b18 0%, #0a0a0a 72%);
-      box-shadow:
-        inset 0 0 0 3px rgba(10, 10, 10, 0.9),
-        inset 0 0 0 8px rgba(255, 207, 69, 0.95),
-        0 12px 26px rgba(0, 0, 0, 0.34);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 18px 20px;
-      gap: 8px;
+    .foil-pack.opening .pack-rip-strip {
+      animation: packRipAway 980ms cubic-bezier(.15,.86,.2,1) forwards;
     }
 
-    .pack-emblem-kicker {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 12px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #ffdc73;
+    .foil-pack.opening .pack-face {
+      animation: packBodyOpen 980ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
-    .pack-emblem-mark {
-      font-size: clamp(56px, 12vw, 82px);
-      line-height: 0.86;
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      text-transform: uppercase;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.38);
-    }
-
-    .pack-emblem-mark small {
-      font-size: 0.34em;
-      font-weight: 700;
-      letter-spacing: 0;
-      vertical-align: middle;
-      margin-left: 3px;
-    }
-
-    .pack-emblem-site {
-      font-size: 20px;
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: 0.01em;
-    }
-
-    .pack-emblem-ribbon {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #ffe186;
-    }
-
-    .pack-brand {
-      margin-top: 6px;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(34px, 7vw, 48px);
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      color: #ffd95d;
-      text-transform: uppercase;
-      line-height: 1;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.42);
-    }
-
-    .pack-sub {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(16px, 3.4vw, 22px);
-      color: rgba(255, 223, 130, 0.9);
-      margin: 10px 0 0;
-      line-height: 1.1;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .pack-divider {
-      width: 100%;
-      max-width: 246px;
-      height: 1px;
-      margin: 10px auto;
-      background: linear-gradient(90deg, transparent, rgba(255, 212, 92, 0.85), transparent);
-    }
-
-    .pack-footer-note {
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 2px solid rgba(255, 212, 92, 0.54);
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(16px, 3.6vw, 20px);
-      color: rgba(255, 223, 130, 0.88);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+    .foil-pack.opening .pack-mouth-glow {
+      animation: packMouthGlow 980ms ease forwards;
     }
 
     .pack-tap {
@@ -1813,7 +1720,6 @@ PAGE_TEMPLATE = """
 
     .pack-preview-card.focused {
       opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
     }
 
     .owned-decks {
@@ -1973,23 +1879,69 @@ PAGE_TEMPLATE = """
       margin-top: 10px;
     }
 
-    @keyframes tearOpen {
-      0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
-      40% { transform: translate3d(-18px, -16px, 0) rotate(-8deg); opacity: 1; }
-      100% { transform: translate3d(-140px, -110px, 0) rotate(-26deg); opacity: 0; }
+    @keyframes packLunge {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+      }
+      18% {
+        transform: translate(-50%, -50%) scale(1.06);
+      }
+      52% {
+        transform: translate(-50%, -50%) scale(1.32);
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1.72);
+      }
     }
 
-    @keyframes packShake {
-      0% { transform: translateX(0) rotate(0deg); }
-      20% { transform: translateX(-3px) rotate(-1deg); }
-      40% { transform: translateX(3px) rotate(1deg); }
-      60% { transform: translateX(-2px) rotate(-0.5deg); }
-      100% { transform: translateX(0) rotate(0deg); }
+    @keyframes packRipAway {
+      0% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+        opacity: 1;
+      }
+      28% {
+        transform: translate3d(-10px, -8px, 0) rotate(-5deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translate3d(-280px, -220px, 0) rotate(-34deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes packBodyOpen {
+      0% {
+        clip-path: inset(0 0 0 0 round 0 0 26px 26px);
+        transform: perspective(1200px) rotateX(0deg) scaleY(1);
+      }
+      54% {
+        clip-path: inset(2.8% 0 0 0 round 0 0 26px 26px);
+        transform: perspective(1200px) rotateX(-12deg) scaleY(1.01);
+      }
+      100% {
+        clip-path: inset(6.5% 0 0 0 round 0 0 26px 26px);
+        transform: perspective(1200px) rotateX(-18deg) scaleY(1.02);
+      }
+    }
+
+    @keyframes packMouthGlow {
+      0% {
+        opacity: 0;
+        transform: translateY(-10px) scaleY(0.3);
+      }
+      58% {
+        opacity: 0.9;
+        transform: translateY(0) scaleY(1.15);
+      }
+      100% {
+        opacity: 0.5;
+        transform: translateY(12px) scaleY(1.45);
+      }
     }
 
     @keyframes packVanish {
-      0% { opacity: 1; transform: translate(-50%, -50%) scale(1.18) rotate(0deg); filter: blur(0); }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.08) rotate(-420deg); filter: blur(5px); }
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(1.72); }
+      100% { opacity: 0; transform: translate(-50%, -38%) scale(1.05); }
     }
 
     @media (max-width: 920px) {
@@ -2241,17 +2193,11 @@ PAGE_TEMPLATE = """
             <p class="pack-note" id="pack-note">TAP TO OPEN</p>
             <div class="foil-pack" id="foil-pack">
               <div class="pack-cap"></div>
-              <div class="foil-pack-sash" aria-hidden="true"></div>
-              <div class="pack-emblem" aria-hidden="true">
-                <div class="pack-emblem-kicker">Since 2026</div>
-                <div class="pack-emblem-mark">10K <small>club</small></div>
-                <div class="pack-emblem-site">.ton</div>
-                <div class="pack-emblem-ribbon">Private Club</div>
+              <div class="foil-pack-frame" aria-hidden="true">
+                <div class="pack-rip-strip"></div>
+                <div class="pack-mouth-glow"></div>
+                <div class="pack-face"></div>
               </div>
-              <div class="pack-brand">10K Club</div>
-              <div class="pack-divider" aria-hidden="true"></div>
-              <div class="pack-sub">.ton Private Club</div>
-              <div class="pack-footer-note">Exclusive • Elite • Established</div>
             </div>
             <div class="pack-tap">Tap To Open</div>
           </div>
@@ -3083,38 +3029,44 @@ PAGE_TEMPLATE = """
 
       const packRect = foilPack.getBoundingClientRect();
       const startX = packRect.left + packRect.width * 0.5;
-      const startY = packRect.top + 26;
+      const startY = packRect.top + packRect.height * 0.17;
 
-      for (const target of targets) {
+      for (const [index, target] of targets.entries()) {
         const preview = document.createElement('article');
         preview.className = 'pack-preview-card';
         preview.innerHTML = target.innerHTML;
         preview.style.left = `${startX}px`;
         preview.style.top = `${startY}px`;
+        preview.style.transform = 'translate(-50%, -50%) scale(0.18) rotate(-12deg)';
+        preview.style.opacity = '0';
         layer.appendChild(preview);
 
-        await sleep(40);
-        preview.style.left = `${window.innerWidth * 0.5}px`;
-        preview.style.top = `${window.innerHeight * 0.5}px`;
+        const arcX = window.innerWidth * 0.5 + (index - ((targets.length - 1) / 2)) * 42;
+        const arcY = window.innerHeight * 0.42 + (index % 2 === 0 ? -24 : 18);
+
+        await sleep(34);
+        preview.style.left = `${arcX}px`;
+        preview.style.top = `${arcY}px`;
+        preview.style.transform = `translate(-50%, -50%) scale(${0.92 + index * 0.03}) rotate(${(index - 2) * 8}deg)`;
         preview.classList.add('focused');
         layer.classList.add('dimmed');
 
-        await sleep(1500);
+        await sleep(320);
 
         const rect = target.getBoundingClientRect();
         const targetX = rect.left + rect.width / 2;
         const targetY = rect.top + rect.height / 2;
-        layer.classList.remove('dimmed');
         preview.style.left = `${targetX}px`;
         preview.style.top = `${targetY}px`;
         preview.style.transform = 'translate(-50%, -50%) scale(0.44)';
         preview.style.opacity = '0.94';
 
-        await sleep(780);
+        await sleep(440);
         target.classList.add('sequence-visible');
         preview.remove();
       }
 
+      layer.classList.remove('dimmed');
       layer.remove();
       packCards.classList.remove('sequence-prep');
       packCards.classList.add('reveal');
@@ -3946,12 +3898,12 @@ PAGE_TEMPLATE = """
           body: {wallet: state.wallet, domain: state.selectedDomain, source, payment_id: paymentId}
         });
         state.cards = data.cards;
+        await sleep(940);
         packShowcase.classList.add('opened');
-        packNote.textContent = 'Pack opened';
-        await new Promise((resolve) => setTimeout(resolve, 460));
+        packNote.textContent = 'Cards incoming';
         await renderPack(data.cards, data.total_score);
         foilPack.classList.add('vanishing');
-        await sleep(1150);
+        await sleep(1080);
         packShowcase.classList.remove('cinematic');
         setStatus(document.getElementById('pack-status'), `Колода готова. Вклад карт: ${data.total_score}. Свободный пул пересчитан от домена.`, 'success');
         updateButtons();
