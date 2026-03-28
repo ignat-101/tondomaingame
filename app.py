@@ -1482,13 +1482,17 @@ PAGE_TEMPLATE = """
     .pack-showcase {
       position: relative;
       margin-top: 16px;
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 28px;
+      border: 1px solid rgba(255, 212, 92, 0.28);
       background:
-        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.12), transparent 38%),
-        linear-gradient(180deg, rgba(8, 12, 18, 0.96), rgba(6, 10, 15, 0.94));
-      padding: 16px 14px 18px;
+        radial-gradient(circle at 50% 0%, rgba(255, 212, 92, 0.18), transparent 38%),
+        linear-gradient(180deg, rgba(14, 10, 4, 0.98), rgba(5, 5, 5, 0.97));
+      padding: 18px 16px 20px;
       text-align: center;
+      overflow: hidden;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 224, 140, 0.08),
+        0 24px 60px rgba(0, 0, 0, 0.44);
     }
 
     .pack-showcase::after {
@@ -1499,6 +1503,15 @@ PAGE_TEMPLATE = """
       transition: background 260ms ease;
       pointer-events: none;
       border-radius: 24px;
+    }
+
+    .pack-showcase::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 212, 92, 0.12);
+      pointer-events: none;
     }
 
     .pack-showcase.cinematic::after {
@@ -1512,35 +1525,41 @@ PAGE_TEMPLATE = """
       min-height: 42px;
       min-width: 260px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      color: rgba(245, 245, 245, 0.95);
+      border: 1px solid rgba(255, 212, 92, 0.42);
+      color: rgba(255, 231, 161, 0.96);
       letter-spacing: 0.14em;
       font-weight: 700;
       padding: 0 20px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.12);
+      background: linear-gradient(180deg, rgba(34, 25, 8, 0.9), rgba(8, 8, 8, 0.96));
+      box-shadow: 0 0 20px rgba(255, 212, 92, 0.08);
       margin-bottom: 10px;
       text-transform: uppercase;
     }
 
     .pack-note {
-      color: rgba(245, 245, 245, 0.8);
+      color: rgba(255, 220, 126, 0.82);
       margin: 0 0 12px;
       font-size: 14px;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
+      font-family: Georgia, "Times New Roman", serif;
     }
 
     .foil-pack {
       position: relative;
-      width: min(350px, 92%);
+      width: min(360px, 94%);
       margin: 0 auto;
-      border-radius: 18px;
-      border: 1px solid rgba(0, 0, 0, 0.22);
+      border-radius: 26px;
+      border: 1px solid rgba(255, 212, 92, 0.32);
       background:
-        radial-gradient(circle at 45% 24%, rgba(255, 255, 255, 0.84), rgba(232, 232, 232, 0.98) 52%, rgba(210, 210, 210, 1));
-      color: #1e1e1e;
-      padding: 72px 22px 58px;
-      box-shadow: 0 28px 44px rgba(0, 0, 0, 0.42);
+        linear-gradient(90deg, rgba(255, 209, 77, 0.06), transparent 14%, transparent 86%, rgba(255, 209, 77, 0.06)),
+        radial-gradient(circle at 50% 20%, rgba(255, 214, 95, 0.12), transparent 34%),
+        linear-gradient(180deg, #151515 0%, #060606 18%, #121212 50%, #070707 100%);
+      color: #ffd95d;
+      padding: 78px 26px 66px;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 220, 120, 0.08),
+        0 34px 52px rgba(0, 0, 0, 0.52);
       overflow: visible;
       transition: transform 420ms ease, opacity 420ms ease;
     }
@@ -1557,12 +1576,21 @@ PAGE_TEMPLATE = """
     .foil-pack::before, .foil-pack::after {
       content: "";
       position: absolute;
-      left: -1px;
-      right: -1px;
-      height: 16px;
+      left: 0;
+      right: 0;
+      height: 34px;
       background:
-        linear-gradient(135deg, transparent 8px, #ececec 0) repeat-x;
-      background-size: 16px 16px;
+        repeating-linear-gradient(
+          180deg,
+          rgba(255, 224, 138, 0.2),
+          rgba(255, 224, 138, 0.2) 2px,
+          rgba(0, 0, 0, 0) 2px,
+          rgba(0, 0, 0, 0) 5px
+        ),
+        linear-gradient(180deg, rgba(255, 212, 92, 0.28), rgba(255, 212, 92, 0.06));
+      border-top: 1px solid rgba(255, 212, 92, 0.22);
+      border-bottom: 1px solid rgba(255, 212, 92, 0.22);
+      border-radius: 18px 18px 0 0;
     }
 
     .foil-pack::before { top: 0; }
@@ -1570,22 +1598,48 @@ PAGE_TEMPLATE = """
     .foil-pack::after {
       bottom: 0;
       transform: rotate(180deg);
+      border-radius: 18px 18px 0 0;
+    }
+
+    .foil-pack-sash {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 42px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 212, 92, 0.42);
+      background:
+        linear-gradient(90deg, rgba(255, 212, 92, 0.06), rgba(255, 212, 92, 0.2), rgba(255, 212, 92, 0.06)),
+        repeating-linear-gradient(
+          90deg,
+          transparent 0,
+          transparent 12px,
+          rgba(255, 212, 92, 0.8) 12px,
+          rgba(255, 212, 92, 0.8) 22px,
+          transparent 22px,
+          transparent 34px
+        );
+      box-shadow: 0 0 16px rgba(255, 212, 92, 0.1);
     }
 
     .pack-cap {
       position: absolute;
-      left: 14px;
-      right: 14px;
-      top: 18px;
-      height: 22px;
-      border-top: 2px solid rgba(0, 0, 0, 0.2);
-      border-bottom: 2px solid rgba(0, 0, 0, 0.14);
-      background: repeating-linear-gradient(
+      left: 16px;
+      right: 16px;
+      top: 12px;
+      height: 30px;
+      border-top: 2px solid rgba(255, 212, 92, 0.28);
+      border-bottom: 2px solid rgba(255, 212, 92, 0.16);
+      border-radius: 14px 14px 0 0;
+      background:
+        linear-gradient(180deg, rgba(255, 212, 92, 0.14), rgba(255, 212, 92, 0.02)),
+        repeating-linear-gradient(
         180deg,
-        rgba(255, 255, 255, 0.88),
-        rgba(255, 255, 255, 0.88) 2px,
-        rgba(228, 228, 228, 0.92) 2px,
-        rgba(228, 228, 228, 0.92) 4px
+        rgba(255, 224, 138, 0.12),
+        rgba(255, 224, 138, 0.12) 2px,
+        rgba(0, 0, 0, 0) 2px,
+        rgba(0, 0, 0, 0) 4px
       );
       transform-origin: top center;
       z-index: 4;
@@ -1609,47 +1663,113 @@ PAGE_TEMPLATE = """
     }
 
     .pack-emblem {
-      width: 132px;
-      height: 132px;
-      margin: 0 auto 16px;
+      width: 198px;
+      height: 198px;
+      margin: 0 auto 22px;
       border-radius: 50%;
-      border: 0;
-      background: #1593d8;
-      box-shadow: inset 0 -8px 16px rgba(0, 0, 0, 0.12);
-      display: grid;
-      place-items: center;
+      border: 3px solid #ffcf45;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255, 224, 138, 0.16), transparent 44%),
+        radial-gradient(circle at 50% 50%, #1d1b18 0%, #0a0a0a 72%);
+      box-shadow:
+        inset 0 0 0 3px rgba(10, 10, 10, 0.9),
+        inset 0 0 0 8px rgba(255, 207, 69, 0.95),
+        0 12px 26px rgba(0, 0, 0, 0.34);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 20px;
+      gap: 8px;
     }
 
-    .pack-emblem-ton {
-      width: 88px;
-      height: 88px;
-      display: block;
+    .pack-emblem-kicker {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #ffdc73;
+    }
+
+    .pack-emblem-mark {
+      font-size: clamp(56px, 12vw, 82px);
+      line-height: 0.86;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.38);
+    }
+
+    .pack-emblem-mark small {
+      font-size: 0.34em;
+      font-weight: 700;
+      letter-spacing: 0;
+      vertical-align: middle;
+      margin-left: 3px;
+    }
+
+    .pack-emblem-site {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0.01em;
+    }
+
+    .pack-emblem-ribbon {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #ffe186;
     }
 
     .pack-brand {
-      margin-top: 8px;
-      font-family: "Times New Roman", Georgia, serif;
-      font-size: clamp(48px, 9vw, 68px);
+      margin-top: 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(34px, 7vw, 48px);
       font-weight: 700;
       letter-spacing: 0.02em;
-      color: rgba(16, 16, 16, 0.9);
+      color: #ffd95d;
       text-transform: uppercase;
       line-height: 1;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.42);
     }
 
     .pack-sub {
       font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(24px, 5vw, 34px);
-      color: rgba(26, 26, 26, 0.8);
-      margin: 8px 0 0;
+      font-size: clamp(16px, 3.4vw, 22px);
+      color: rgba(255, 223, 130, 0.9);
+      margin: 10px 0 0;
       line-height: 1.1;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .pack-divider {
+      width: 100%;
+      max-width: 246px;
+      height: 1px;
+      margin: 10px auto;
+      background: linear-gradient(90deg, transparent, rgba(255, 212, 92, 0.85), transparent);
+    }
+
+    .pack-footer-note {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 2px solid rgba(255, 212, 92, 0.54);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(16px, 3.6vw, 20px);
+      color: rgba(255, 223, 130, 0.88);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     .pack-tap {
-      margin-top: 12px;
-      color: rgba(242, 242, 242, 0.92);
-      letter-spacing: 0.2em;
-      font-size: clamp(18px, 5vw, 26px);
+      margin-top: 14px;
+      color: rgba(255, 223, 130, 0.92);
+      letter-spacing: 0.24em;
+      font-size: clamp(14px, 3.6vw, 18px);
       font-weight: 700;
       text-transform: uppercase;
       font-family: Georgia, "Times New Roman", serif;
@@ -2121,15 +2241,19 @@ PAGE_TEMPLATE = """
             <p class="pack-note" id="pack-note">TAP TO OPEN</p>
             <div class="foil-pack" id="foil-pack">
               <div class="pack-cap"></div>
+              <div class="foil-pack-sash" aria-hidden="true"></div>
               <div class="pack-emblem" aria-hidden="true">
-                <svg class="pack-emblem-ton" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polyline points="16,24 44,70 72,24 16,24" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"></polyline>
-                  <line x1="44" y1="24" x2="44" y2="62" stroke="#ffffff" stroke-width="8" stroke-linecap="round"></line>
-                </svg>
+                <div class="pack-emblem-kicker">Since 2026</div>
+                <div class="pack-emblem-mark">10K <small>club</small></div>
+                <div class="pack-emblem-site">.ton</div>
+                <div class="pack-emblem-ribbon">Private Club</div>
               </div>
-              <div class="pack-sub">Ton Domain Card Pack</div>
+              <div class="pack-brand">10K Club</div>
+              <div class="pack-divider" aria-hidden="true"></div>
+              <div class="pack-sub">.ton Private Club</div>
+              <div class="pack-footer-note">Exclusive • Elite • Established</div>
             </div>
-            <div class="pack-tap">▲ TAP TO OPEN ▲</div>
+            <div class="pack-tap">Tap To Open</div>
           </div>
 
           <div class="status" id="pack-status"></div>
