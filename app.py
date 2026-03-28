@@ -736,29 +736,6 @@ PAGE_TEMPLATE = """
       gap: 14px;
     }
 
-    @media (min-width: 1080px) {
-      .arena-shell {
-        grid-template-columns: minmax(220px, 1fr) minmax(420px, 1.55fr) minmax(220px, 1fr);
-        align-items: stretch;
-      }
-
-      .arena-rail.player {
-        grid-column: 1;
-      }
-
-      .arena-core {
-        grid-column: 2;
-      }
-
-      .arena-rail.enemy {
-        grid-column: 3;
-      }
-
-      .arena-deck-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
     .arena-rail {
       display: grid;
       gap: 10px;
@@ -831,7 +808,7 @@ PAGE_TEMPLATE = """
 
     .arena-core {
       position: relative;
-      min-height: 440px;
+      min-height: 500px;
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background:
@@ -892,7 +869,7 @@ PAGE_TEMPLATE = """
     .arena-choice-hub {
       position: relative;
       z-index: 1;
-      min-height: 440px;
+      min-height: 500px;
       display: grid;
       place-items: center;
       padding: 18px 18px 22px;
@@ -937,7 +914,7 @@ PAGE_TEMPLATE = """
 
     .arena-round-choice-slot {
       position: absolute;
-      top: 86px;
+      top: 72px;
       transform: translateX(-50%);
       display: grid;
       justify-items: center;
@@ -993,8 +970,8 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-choice-panel {
-      width: min(240px, 24vw);
-      padding: 14px 14px 12px;
+      width: min(180px, 18vw);
+      padding: 12px 10px 10px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.22);
       background:
@@ -1016,17 +993,17 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-choice-panel .interactive-battle-actions {
-      grid-template-columns: repeat(3, minmax(0, 58px));
-      gap: 8px;
+      grid-template-columns: repeat(3, minmax(0, 46px));
+      gap: 6px;
       justify-content: center;
     }
 
     .arena-lane-choice-panel .interactive-action-btn {
-      min-height: 58px;
+      min-height: 46px;
       border-radius: 50%;
       aspect-ratio: 1 / 1;
-      padding: 0 6px;
-      font-size: 11px;
+      padding: 0 4px;
+      font-size: 9px;
       line-height: 1.1;
       text-align: center;
     }
@@ -4719,7 +4696,7 @@ PAGE_TEMPLATE = """
         const selectedStrategy = strategyMeta(result.strategy_key || 'balanced');
         const totalRounds = result.interactive_total_rounds || 5;
         const activeRoundNumber = Math.min((result.interactive_round_index || 0) + 1, totalRounds);
-        const arenaLanePercents = [10, 30, 50, 70, 90];
+        const arenaLanePercents = [14, 32, 50, 68, 86];
         const interactivePanel = result.interactive_session_id
           ? `
               <div class="arena-round-choice-strip">
