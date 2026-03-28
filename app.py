@@ -361,6 +361,7 @@ PAGE_TEMPLATE = """
     }
 
     .mode-card.preferred-mode {
+      padding-top: 62px;
       border-color: rgba(255, 211, 110, 0.58);
       box-shadow: 0 22px 44px rgba(255, 211, 110, 0.12);
     }
@@ -368,16 +369,24 @@ PAGE_TEMPLATE = """
     .mode-card.preferred-mode::before {
       content: attr(data-usage-label);
       position: absolute;
-      left: 14px;
+      left: 16px;
       top: 14px;
-      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      max-width: calc(100% - 32px);
+      padding: 7px 12px;
       border-radius: 999px;
-      background: rgba(255, 211, 110, 0.14);
+      background: linear-gradient(135deg, rgba(255, 211, 110, 0.16), rgba(255, 190, 92, 0.08));
       border: 1px solid rgba(255, 211, 110, 0.34);
       color: #ffe9a5;
       font-size: 11px;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 10px 24px rgba(255, 211, 110, 0.12);
+      backdrop-filter: blur(10px);
       pointer-events: none;
     }
 
@@ -884,6 +893,11 @@ PAGE_TEMPLATE = """
       animation: battleMenuRise 560ms cubic-bezier(.16,.84,.2,1);
     }
 
+    .interactive-battle-panel.menu-live .interactive-battle-title,
+    .interactive-battle-panel.menu-live #interactive-battle-status {
+      animation: battleMenuFade 460ms ease forwards;
+    }
+
     .interactive-battle-panel.floating {
       position: relative;
       top: auto;
@@ -913,6 +927,7 @@ PAGE_TEMPLATE = """
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
+      perspective: 1200px;
     }
 
     .interactive-action-btn {
@@ -974,6 +989,17 @@ PAGE_TEMPLATE = """
         opacity: 1;
         transform: translateY(0) scale(1);
         filter: blur(0);
+      }
+    }
+
+    @keyframes battleMenuFade {
+      0% {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
 
