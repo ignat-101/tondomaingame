@@ -1696,6 +1696,7 @@ PAGE_TEMPLATE = """
       position: fixed;
       width: min(430px, 88vw);
       max-height: 86vh;
+      z-index: 2;
       border-radius: 20px;
       border: 1px solid rgba(121, 217, 255, 0.4);
       padding: 16px 14px;
@@ -1718,6 +1719,9 @@ PAGE_TEMPLATE = """
 
     .pack-preview-card.focused {
       opacity: 1;
+      box-shadow:
+        0 36px 88px rgba(0, 0, 0, 0.62),
+        0 0 0 1px rgba(121, 217, 255, 0.26);
     }
 
     .owned-decks {
@@ -3060,6 +3064,7 @@ PAGE_TEMPLATE = """
         preview.classList.add('focused');
         layer.classList.add('dimmed');
 
+        await sleep(820);
         await sleep(1000);
 
         const rect = target.getBoundingClientRect();
