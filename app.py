@@ -846,7 +846,7 @@ PAGE_TEMPLATE = """
     .arena-route-path {
       fill: none;
       stroke: rgba(255, 211, 110, 0.7);
-      stroke-width: 2.5;
+      stroke-width: 2.2;
       stroke-linecap: round;
       stroke-dasharray: 5 10;
       filter: drop-shadow(0 0 6px rgba(255, 211, 110, 0.18));
@@ -860,13 +860,38 @@ PAGE_TEMPLATE = """
       animation-duration: 2.8s;
     }
 
+    .arena-route-path.active {
+      stroke: rgba(83, 246, 184, 0.9);
+      stroke-width: 3;
+      filter: drop-shadow(0 0 10px rgba(83, 246, 184, 0.24));
+    }
+
+    .arena-route-node {
+      fill: rgba(9, 18, 31, 0.96);
+      stroke: rgba(255, 211, 110, 0.72);
+      stroke-width: 2;
+      filter: drop-shadow(0 0 8px rgba(255, 211, 110, 0.18));
+      animation: arenaNodePulse 2.1s ease-in-out infinite;
+    }
+
+    .arena-route-node.alt {
+      stroke: rgba(69, 215, 255, 0.62);
+      filter: drop-shadow(0 0 8px rgba(69, 215, 255, 0.18));
+    }
+
+    .arena-route-node.active {
+      stroke: rgba(83, 246, 184, 0.94);
+      stroke-width: 2.4;
+      filter: drop-shadow(0 0 10px rgba(83, 246, 184, 0.28));
+    }
+
     .arena-choice-hub {
       position: relative;
       z-index: 1;
       min-height: 440px;
       display: grid;
       place-items: center;
-      padding: 28px 18px;
+      padding: 18px 18px 22px;
     }
 
     .arena-choice-panel {
@@ -881,6 +906,22 @@ PAGE_TEMPLATE = """
         0 24px 44px rgba(0, 0, 0, 0.24),
         inset 0 0 0 1px rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(16px);
+    }
+
+    .arena-choice-panel .interactive-battle-actions {
+      grid-template-columns: repeat(3, minmax(0, 88px));
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .arena-choice-panel .interactive-action-btn {
+      min-height: 82px;
+      border-radius: 50%;
+      aspect-ratio: 1 / 1;
+      padding: 0 10px;
+      font-size: 13px;
+      line-height: 1.15;
+      text-align: center;
     }
 
     .arena-score-card {
@@ -926,6 +967,15 @@ PAGE_TEMPLATE = """
       }
       100% {
         stroke-dashoffset: -120;
+      }
+    }
+
+    @keyframes arenaNodePulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.12);
       }
     }
 
@@ -3022,10 +3072,6 @@ PAGE_TEMPLATE = """
         text-align: left;
       }
 
-      .arena-deck-grid {
-        grid-template-columns: 1fr;
-      }
-
       .arena-core,
       .arena-choice-hub {
         min-height: 0;
@@ -3042,8 +3088,52 @@ PAGE_TEMPLATE = """
         gap: 4px;
       }
 
+      .arena-deck-grid {
+        grid-template-columns: repeat(5, minmax(56px, 1fr));
+        gap: 6px;
+      }
+
+      .arena-slot-card {
+        padding: 8px 6px;
+        border-radius: 12px;
+      }
+
+      .arena-slot-card strong {
+        font-size: 10px;
+        margin-bottom: 4px;
+      }
+
+      .arena-slot-meta {
+        font-size: 10px;
+        line-height: 1.25;
+      }
+
+      .arena-core {
+        min-height: 320px;
+      }
+
+      .arena-choice-hub {
+        min-height: 320px;
+        padding: 14px 8px 18px;
+      }
+
+      .arena-choice-panel {
+        padding: 14px 12px;
+        border-radius: 18px;
+      }
+
+      .arena-choice-panel .interactive-battle-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .arena-choice-panel .interactive-action-btn {
+        min-height: 62px;
+        font-size: 11px;
+      }
+
       .interactive-battle-actions {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
       .wallet-domain-chip {
@@ -4288,7 +4378,7 @@ PAGE_TEMPLATE = """
     function playFinalClimax(resultKey, resultLabel) {
       const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const rows = Array.from(battleResult.querySelectorAll('.discipline-row'));
-      if (prefersReduced || !rows.length) {
+      if (prefersReduced) {
         return Promise.resolve();
       }
       return new Promise((resolve) => {
@@ -4326,20 +4416,24 @@ PAGE_TEMPLATE = """
           layer.classList.add('shake');
           battleResult.classList.add('battle-live');
           setTimeout(() => battleResult.classList.remove('battle-live'), 980);
-          chips.forEach((chip, index) => {
-            setTimeout(() => {
-              chip.classList.add('fly');
-              playBattleFx(resultKey, 'round');
-            }, index * 80);
-          });
+          if (chips.length) {
+            chips.forEach((chip, index) => {
+              setTimeout(() => {
+                chip.classList.add('fly');
+                playBattleFx(resultKey, 'round');
+              }, index * 80);
+            });
+          } else {
+            playBattleFx(resultKey, 'round', battleResult.querySelector('.arena-score-card'));
+          }
         });
         setTimeout(() => {
           core.classList.add('visible');
-          playBattleFx(resultKey, 'finish');
-        }, 860);
+          playBattleFx(resultKey, 'finish', battleResult.querySelector('.arena-score-card'));
+        }, chips.length ? 860 : 180);
         setTimeout(() => {
           resolve();
-        }, 2140);
+        }, chips.length ? 2140 : 1480);
       });
     }
 
@@ -4494,19 +4588,22 @@ PAGE_TEMPLATE = """
           : Number(result.opponent_featured_card?.slot || result.opponent_card?.slot || result.rounds?.[Math.max((result.rounds?.length || 1) - 1, 0)]?.opponent_card?.slot || 0);
         const playerArenaDeck = arenaDeckMarkup(result.player_cards, result.player_card, 'player', playerActiveSlot, result.player_featured_card?.slot || result.selected_slot);
         const opponentArenaDeck = arenaDeckMarkup(result.opponent_cards, result.opponent_card, 'enemy', opponentActiveSlot, result.opponent_featured_card?.slot);
+        const arenaLaneXs = [100, 300, 500, 700, 900];
         const arenaRoutes = `
           <div class="arena-route-overlay" aria-hidden="true">
             <svg viewBox="0 0 1000 440" preserveAspectRatio="none">
-              <path class="arena-route-path" d="M 100 0 C 100 120, 110 150, 430 220" />
-              <path class="arena-route-path alt" d="M 300 0 C 300 120, 310 150, 470 220" />
-              <path class="arena-route-path" d="M 500 0 C 500 120, 500 160, 500 220" />
-              <path class="arena-route-path alt" d="M 700 0 C 700 120, 690 150, 530 220" />
-              <path class="arena-route-path" d="M 900 0 C 900 120, 890 150, 570 220" />
-              <path class="arena-route-path" d="M 430 220 C 110 290, 100 320, 100 440" />
-              <path class="arena-route-path alt" d="M 470 220 C 310 290, 300 320, 300 440" />
-              <path class="arena-route-path" d="M 500 220 C 500 290, 500 320, 500 440" />
-              <path class="arena-route-path alt" d="M 530 220 C 690 290, 700 320, 700 440" />
-              <path class="arena-route-path" d="M 570 220 C 890 290, 900 320, 900 440" />
+              ${arenaLaneXs.map((x, index) => {
+                const slot = index + 1;
+                const isActive = slot === playerActiveSlot || slot === opponentActiveSlot;
+                const laneClass = `arena-route-path ${slot % 2 === 0 ? 'alt' : ''} ${isActive ? 'active' : ''}`.trim();
+                const nodeClass = `arena-route-node ${slot % 2 === 0 ? 'alt' : ''} ${isActive ? 'active' : ''}`.trim();
+                return `
+                  <path class="${laneClass}" d="M ${x} 0 L ${x} 146" />
+                  <circle class="${nodeClass}" cx="${x}" cy="168" r="11" />
+                  <path class="${laneClass}" d="M ${x} 272 L ${x} 440" />
+                  <circle class="${nodeClass}" cx="${x}" cy="250" r="11" />
+                `;
+              }).join('')}
             </svg>
           </div>
         `;
