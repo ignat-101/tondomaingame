@@ -4129,6 +4129,19 @@ PAGE_TEMPLATE = """
       });
     }
 
+    function shouldSyncForFunctionalTarget(target) {
+      if (!target || typeof target.closest !== 'function') {
+        return false;
+      }
+      return Boolean(target.closest('button, select, input, textarea, label[for], [role="button"], [data-mode-card], .mode-card, .mobile-nav button'));
+    }
+
+    function syncTmaModeForFunctionalAction(event) {
+      if (shouldSyncForFunctionalTarget(event.target)) {
+        queueTmaModeSync();
+      }
+    }
+
     function setStatus(element, text, kind = '') {
       element.className = `status ${kind}`.trim();
       element.textContent = text;
@@ -6478,9 +6491,10 @@ PAGE_TEMPLATE = """
       tgWebApp.onEvent('viewportChanged', syncTmaMode);
       tgWebApp.onEvent('themeChanged', syncTmaMode);
     }
-    ['pointerdown', 'touchstart', 'click', 'submit', 'change', 'focusin'].forEach((eventName) => {
-      document.addEventListener(eventName, queueTmaModeSync, true);
+    ['pointerdown', 'touchstart', 'click', 'change', 'focusin'].forEach((eventName) => {
+      document.addEventListener(eventName, syncTmaModeForFunctionalAction, true);
     });
+    document.addEventListener('submit', queueTmaModeSync, true);
     window.addEventListener('pageshow', syncTmaMode);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
