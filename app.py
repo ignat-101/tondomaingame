@@ -1704,13 +1704,15 @@ PAGE_TEMPLATE = """
         linear-gradient(180deg, rgba(18, 41, 71, 0.95), rgba(11, 18, 35, 0.98));
       box-shadow: 0 32px 72px rgba(0, 0, 0, 0.56);
       color: var(--text);
-      transform: translate(-50%, -50%) scale(0.44);
+      transform: perspective(1400px) translate(-50%, -50%) rotateY(88deg) scale(0.32);
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
       opacity: 0;
       transition:
-        left 700ms cubic-bezier(.16,.84,.2,1),
-        top 700ms cubic-bezier(.16,.84,.2,1),
-        transform 700ms cubic-bezier(.16,.84,.2,1),
-        opacity 220ms ease;
+        left 820ms cubic-bezier(.16,.84,.2,1),
+        top 820ms cubic-bezier(.16,.84,.2,1),
+        transform 820ms cubic-bezier(.16,.84,.2,1),
+        opacity 260ms ease;
       overflow: hidden;
     }
 
@@ -3042,18 +3044,17 @@ PAGE_TEMPLATE = """
         preview.innerHTML = target.innerHTML;
         preview.style.left = `${startX}px`;
         preview.style.top = `${startY}px`;
-        preview.style.transform = 'translate(-50%, -50%) scale(0.18) rotate(-12deg)';
+        preview.style.transform = `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? 92 : -92}deg) scale(0.24)`;
         preview.style.opacity = '0';
         layer.appendChild(preview);
 
         await sleep(60);
         preview.style.left = `${centerX}px`;
         preview.style.top = `${centerY}px`;
-        preview.style.transform = `translate(-50%, -50%) scale(1.02) rotate(${index % 2 === 0 ? 360 : -360}deg)`;
+        preview.style.transform = 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.02)';
         preview.classList.add('focused');
         layer.classList.add('dimmed');
 
-        await sleep(760);
         await sleep(1000);
 
         const rect = target.getBoundingClientRect();
@@ -3061,7 +3062,7 @@ PAGE_TEMPLATE = """
         const targetY = rect.top + rect.height / 2;
         preview.style.left = `${targetX}px`;
         preview.style.top = `${targetY}px`;
-        preview.style.transform = 'translate(-50%, -50%) scale(0.44)';
+        preview.style.transform = `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? -72 : 72}deg) scale(0.44)`;
         preview.style.opacity = '0.94';
 
         await sleep(560);
