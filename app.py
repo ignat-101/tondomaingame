@@ -734,6 +734,9 @@ PAGE_TEMPLATE = """
     .arena-shell {
       display: grid;
       gap: 14px;
+      --arena-columns: 5;
+      --arena-gap: 8px;
+      --arena-card-width: calc((100% - (var(--arena-gap) * (var(--arena-columns) - 1))) / var(--arena-columns));
     }
 
     .arena-rail {
@@ -753,7 +756,7 @@ PAGE_TEMPLATE = """
     .arena-deck-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 8px;
+      gap: var(--arena-gap);
     }
 
     .arena-slot-card {
@@ -968,7 +971,9 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-choice-panel {
-      width: min(180px, 18vw);
+      width: var(--arena-card-width);
+      max-width: 160px;
+      min-width: 108px;
       padding: 12px 10px 10px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.22);
@@ -3205,6 +3210,7 @@ PAGE_TEMPLATE = """
       .arena-deck-grid {
         grid-template-columns: repeat(5, minmax(56px, 1fr));
         gap: 6px;
+        --arena-gap: 6px;
       }
 
       .arena-slot-card {
@@ -3263,7 +3269,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-lane-choice-panel {
-        width: min(160px, 40vw);
+        width: min(124px, 22vw);
         padding: 9px 8px 8px;
         border-radius: 14px;
       }
@@ -4771,11 +4777,11 @@ PAGE_TEMPLATE = """
         const totalRounds = result.interactive_total_rounds || 5;
         const activeRoundNumber = Math.min((result.interactive_round_index || 0) + 1, totalRounds);
         const arenaLanes = [
-          { percent: 14, x: 140 },
-          { percent: 32, x: 320 },
+          { percent: 10, x: 100 },
+          { percent: 30, x: 300 },
           { percent: 50, x: 500 },
-          { percent: 68, x: 680 },
-          { percent: 86, x: 860 },
+          { percent: 70, x: 700 },
+          { percent: 90, x: 900 },
         ];
         const interactivePanel = result.interactive_session_id
           ? `
