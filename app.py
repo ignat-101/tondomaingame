@@ -4338,6 +4338,8 @@ PAGE_TEMPLATE = """
     }
 
     function switchView(name) {
+      syncTmaMode();
+      syncTmaViewport();
       if (name !== 'modes') {
         resetModeChoice('');
       }
@@ -5801,6 +5803,7 @@ PAGE_TEMPLATE = """
     }
 
     async function checkDomains() {
+      await prepareFunctionalInteraction();
       setStatus(walletStatus, 'Проверяем NFT и 10K домены в кошельке...', 'warning');
       try {
         const data = await api('/api/wallet/domains', {
@@ -5842,6 +5845,7 @@ PAGE_TEMPLATE = """
     }
 
     async function openPack(source = 'daily', paymentId = null) {
+      await prepareFunctionalInteraction();
       if (state.packOpening) return;
       state.packOpening = true;
       setStatus(document.getElementById('pack-status'), 'Распаковываем 5 карточек из домена...', 'warning');
@@ -5885,6 +5889,7 @@ PAGE_TEMPLATE = """
     }
 
     async function buyPackWithTon() {
+      await prepareFunctionalInteraction();
       if (!state.wallet || !state.selectedDomain) return;
       if (!tonConnectUI) {
         setStatus(document.getElementById('pack-status'), 'TonConnect не инициализирован.', 'error');
@@ -6020,6 +6025,7 @@ PAGE_TEMPLATE = """
     }
 
     async function startMatchmaking(mode, forceLaunch = false) {
+      await prepareFunctionalInteraction();
       if (state.battleLaunchInFlight && !forceLaunch) return;
       setBattleLaunchInFlight(true);
       bumpUsage(`mode:${mode}`);
@@ -6061,6 +6067,7 @@ PAGE_TEMPLATE = """
     }
 
     async function cancelMatchmaking() {
+      await prepareFunctionalInteraction();
       if (!state.matchmakingMode) return;
       const mode = state.matchmakingMode;
       try {
@@ -6074,6 +6081,7 @@ PAGE_TEMPLATE = """
     }
 
     async function playMatch(mode) {
+      await prepareFunctionalInteraction();
       bumpUsage(`mode:${mode}`);
       const opponentWallet = document.getElementById('opponent-wallet').value.trim();
       const timeoutSeconds = Number(document.getElementById('invite-timeout').value || 60);
@@ -6126,6 +6134,7 @@ PAGE_TEMPLATE = """
     }
 
     async function playBotMatch(forceLaunch = false) {
+      await prepareFunctionalInteraction();
       if (state.battleLaunchInFlight && !forceLaunch) return;
       setBattleLaunchInFlight(true);
       bumpUsage('mode:bot');
@@ -6157,6 +6166,7 @@ PAGE_TEMPLATE = """
     }
 
     async function createRoom() {
+      await prepareFunctionalInteraction();
       if (!teamPanel) return;
       const teamUsername = document.getElementById('team-username');
       const teamRoomSize = document.getElementById('team-room-size');
@@ -6182,6 +6192,7 @@ PAGE_TEMPLATE = """
     }
 
     async function joinRoom() {
+      await prepareFunctionalInteraction();
       if (!teamPanel) return;
       const teamUsername = document.getElementById('team-username');
       const roomCodeInput = document.getElementById('room-code-input');
@@ -6208,6 +6219,7 @@ PAGE_TEMPLATE = """
     }
 
     async function refreshRoom() {
+      await prepareFunctionalInteraction();
       if (!teamPanel) return;
       const teamStatus = document.getElementById('team-status');
       if (!state.roomId) return;
@@ -6222,6 +6234,7 @@ PAGE_TEMPLATE = """
     }
 
     async function startRoom() {
+      await prepareFunctionalInteraction();
       if (!teamPanel) return;
       const teamStatus = document.getElementById('team-status');
       if (!state.roomId) return;
@@ -6248,6 +6261,7 @@ PAGE_TEMPLATE = """
     }
 
     async function showDeck() {
+      await prepareFunctionalInteraction();
       if (!state.wallet) return;
       try {
         const deck = await api(`/api/deck/${encodeURIComponent(state.wallet)}`);
