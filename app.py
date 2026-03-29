@@ -5574,6 +5574,7 @@ PAGE_TEMPLATE = """
         if (result.battle_session_id && prebattleStage) {
           prebattleStage.classList.add('accept-pop');
           setTimeout(() => prebattleStage.classList.remove('accept-pop'), 760);
+          focusBattleSetupPanel(prebattleStage);
         } else if (result.battle_session_id && showdownMain) {
           showdownMain.classList.add('accept-pop');
           setTimeout(() => showdownMain.classList.remove('accept-pop'), 760);
@@ -5764,6 +5765,13 @@ PAGE_TEMPLATE = """
       });
     }
 
+    function focusBattleSetupPanel(panel) {
+      if (!panel) return;
+      requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      });
+    }
+
     async function openModes() {
       await prepareFunctionalInteraction();
       clearInteractiveChoiceTimer();
@@ -5780,8 +5788,12 @@ PAGE_TEMPLATE = """
       await prepareFunctionalInteraction();
       clearFinalClimax();
       if (!state.lastResult) return;
+      battleResult.className = 'result-box';
+      battleResult.style.display = 'none';
+      document.body.classList.remove('showdown-open');
       renderBattleFlowView(state.lastResult);
       switchView('battleflow');
+      softCameraFocus(battleFlowView, 'start');
     }
 
     async function repeatLastMode() {
