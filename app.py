@@ -1261,6 +1261,110 @@ PAGE_TEMPLATE = """
       background: rgba(255, 211, 110, 0.1);
     }
 
+    .discipline-row.round-clash {
+      display: grid;
+      gap: 12px;
+      align-items: stretch;
+      justify-content: stretch;
+      padding: 14px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(69, 215, 255, 0.06), transparent 42%),
+        rgba(255, 255, 255, 0.03);
+      overflow: hidden;
+    }
+
+    .discipline-row.round-clash.visible {
+      animation: clashRowReveal 420ms cubic-bezier(.16,.84,.2,1);
+    }
+
+    .discipline-row.round-clash.visible .arena-clash-card.player {
+      animation: clashCardLeftIn 560ms cubic-bezier(.16,.84,.2,1);
+    }
+
+    .discipline-row.round-clash.visible .arena-clash-card.enemy {
+      animation: clashCardRightIn 560ms cubic-bezier(.16,.84,.2,1);
+    }
+
+    .discipline-row.round-clash.visible .arena-clash-versus {
+      animation: clashVersusPulse 520ms cubic-bezier(.16,.84,.2,1) 160ms both;
+    }
+
+    .discipline-row.round-clash.visible .arena-clash-winner {
+      animation: clashResultIn 420ms cubic-bezier(.16,.84,.2,1) 360ms both;
+    }
+
+    .discipline-row.round-clash.visible .arena-decision-chips .arena-decision-chip {
+      animation-duration: 440ms;
+      animation-fill-mode: both;
+    }
+
+    @keyframes clashRowReveal {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.985);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes clashCardLeftIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-28px) scale(0.94) rotate(-4deg);
+      }
+      60% {
+        opacity: 1;
+        transform: translateX(8px) scale(1.02) rotate(1deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1) rotate(0deg);
+      }
+    }
+
+    @keyframes clashCardRightIn {
+      0% {
+        opacity: 0;
+        transform: translateX(28px) scale(0.94) rotate(4deg);
+      }
+      60% {
+        opacity: 1;
+        transform: translateX(-8px) scale(1.02) rotate(-1deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1) rotate(0deg);
+      }
+    }
+
+    @keyframes clashVersusPulse {
+      0% {
+        opacity: 0;
+        transform: scale(0.82);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.08);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes clashResultIn {
+      0% {
+        opacity: 0;
+        transform: translateY(8px) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
     .strategy-note-strip {
       display: flex;
       flex-wrap: wrap;
@@ -5136,7 +5240,7 @@ PAGE_TEMPLATE = """
       }
       return `
         <div class="discipline-list">
-          ${rounds.map((round) => {
+          ${rounds.map((round, index) => {
             const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
             const marker = round.winner === 'player' ? 'WIN' : (round.winner === 'opponent' ? 'LOSE' : 'DRAW');
             const playerCardTitle = round.player_card?.title || 'Твоя карта';
@@ -5147,13 +5251,38 @@ PAGE_TEMPLATE = """
             const opponentStrategy = strategyMeta(round.opponent_strategy_key || 'balanced');
             const playerAction = actionRuleMeta(round.player_action || 'channel');
             const opponentAction = actionRuleMeta(round.opponent_action || 'channel');
+            const playerActionClass = round.player_action || 'channel';
+            const opponentActionClass = round.opponent_action || 'channel';
+            const delay = index * 120;
             return `
-              <div class="discipline-row ${roundClass} visible">
-                <span>${round.label}: слот ${playerSlot} (${playerCardTitle}) vs слот ${opponentSlot} (${opponentCardTitle})</span>
-                <span>${round.player_total} : ${round.opponent_total} • ${marker}</span>
-                <span class="tiny">Ход: ${playerAction.ruLabel} / ${opponentAction.ruLabel}</span>
-                <span class="tiny">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label} • бонус: +${round.player_strategy_bonus || 0} / +${round.opponent_strategy_bonus || 0}</span>
-                <span class="tiny">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
+              <div class="discipline-row round-clash ${roundClass} visible" style="animation-delay:${delay}ms;">
+                <div class="arena-decision-roundline">
+                  <strong>${round.label}</strong>
+                  <span class="arena-decision-score">${round.player_total} : ${round.opponent_total} • ${marker}</span>
+                </div>
+                <div class="arena-clash-lane">
+                  <div class="arena-clash-card player">
+                    <div class="arena-clash-slot">Слот ${playerSlot}</div>
+                    <div class="arena-clash-title">${playerCardTitle}</div>
+                    <div class="arena-clash-meta">Твой ход: ${playerAction.ruLabel}</div>
+                  </div>
+                  <div class="arena-clash-versus">
+                    <div class="arena-clash-badge">${playerAction.ruLabel} / ${opponentAction.ruLabel}</div>
+                    <div class="arena-clash-winner">${marker}</div>
+                  </div>
+                  <div class="arena-clash-card enemy">
+                    <div class="arena-clash-slot">Слот ${opponentSlot}</div>
+                    <div class="arena-clash-title">${opponentCardTitle}</div>
+                    <div class="arena-clash-meta">Ход соперника: ${opponentAction.ruLabel}</div>
+                  </div>
+                </div>
+                <div class="arena-decision-chips">
+                  <span class="arena-decision-chip action player ${playerActionClass}" style="animation-delay:${delay + 40}ms;">Твой выбор: ${playerAction.ruLabel}</span>
+                  <span class="arena-decision-chip action enemy ${opponentActionClass}" style="animation-delay:${delay + 90}ms;">Соперник: ${opponentAction.ruLabel}</span>
+                  <span class="arena-decision-chip strategy" style="animation-delay:${delay + 140}ms;">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label}</span>
+                  <span class="arena-decision-chip featured" style="animation-delay:${delay + 190}ms;">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
+                  <span class="arena-decision-chip outcome" style="animation-delay:${delay + 240}ms;">Итог раунда: ${marker}</span>
+                </div>
               </div>
             `;
           }).join('')}
