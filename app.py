@@ -4020,7 +4020,8 @@ PAGE_TEMPLATE = """
       matchmakingPolling: false,
       disciplineBuild: null,
       battleLaunchInFlight: false,
-      lastReplayTapAt: 0
+      lastReplayTapAt: 0,
+      interactiveActionInFlight: false
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -4999,6 +5000,89 @@ PAGE_TEMPLATE = """
       return data.result || null;
     }
 
+    async function handleInteractiveBattleChoice(actionKey, event = null, byTimeout = false) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      if (state.interactiveActionInFlight) {
+        return;
+      }
+      const liveResult = state.lastResult || {};
+      const sessionId = liveResult.interactive_session_id;
+      const actionPanel = battleResult.querySelector('#interactive-battle-panel');
+      const interactiveBattleStatus = battleResult.querySelector('#interactive-battle-status');
+      const interactiveTimer = battleResult.querySelector('#interactive-timer');
+      const interactiveActionButtons = Array.from(battleResult.querySelectorAll('.interactive-action-btn'));
+      const activeButton = event && event.currentTarget ? event.currentTarget : interactiveActionButtons.find((node) => node.dataset.actionKey === actionKey);
+      if (!sessionId || !state.wallet) {
+        if (interactiveBattleStatus) {
+          interactiveBattleStatus.textContent = 'Сессия боя потеряна. Обнови матч.';
+        }
+        return;
+      }
+
+      state.interactiveActionInFlight = true;
+      queueTmaModeSync();
+      clearInteractiveChoiceTimer();
+      interactiveActionButtons.forEach((node) => {
+        node.disabled = true;
+        node.classList.remove('choice-ready');
+      });
+      if (activeButton) {
+        activeButton.classList.add('choice-picked');
+      }
+      if (interactiveBattleStatus) {
+        const meta = actionRuleMeta(actionKey);
+        interactiveBattleStatus.textContent = byTimeout
+          ? `Время вышло. Автовыбор: ${meta.ruLabel}.`
+          : `Ты выбираешь: ${meta.ruLabel}.`;
+      }
+      await sleep(180);
+      try {
+        const data = await api('/api/solo-battle/action', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            session_id: sessionId,
+            action: actionKey
+          }
+        });
+        const nextResult = data.result || {};
+        const latestRound = Array.isArray(nextResult.rounds) && nextResult.rounds.length ? nextResult.rounds[nextResult.rounds.length - 1] : null;
+        const fxKey = latestRound?.winner === 'player' ? 'win' : (latestRound?.winner === 'opponent' ? 'lose' : 'draw');
+        playBattleFx(fxKey, 'round', actionPanel || battleResult.querySelector('.arena-core'));
+        nextResult.autostart_battle = true;
+        state.lastResult = nextResult;
+        state.interactiveActionInFlight = false;
+        renderBattleResult(nextResult);
+      } catch (error) {
+        try {
+          const synced = await syncSoloBattleState(sessionId);
+          if (synced) {
+            synced.autostart_battle = true;
+            state.lastResult = synced;
+            state.interactiveActionInFlight = false;
+            renderBattleResult(synced);
+            return;
+          }
+        } catch (syncError) {
+          if (interactiveBattleStatus) {
+            interactiveBattleStatus.textContent = syncError.message || error.message;
+          }
+        }
+        interactiveActionButtons.forEach((node) => {
+          node.disabled = false;
+          node.classList.remove('choice-picked');
+        });
+        if (interactiveBattleStatus) {
+          interactiveBattleStatus.textContent = error.message;
+        }
+        state.interactiveActionInFlight = false;
+        startInteractiveChoiceTimer(interactiveTimer, () => handleInteractiveBattleChoice('guard', null, true), 350);
+      }
+    }
+
     function battleFlowRoundsMarkup(result) {
       const rounds = Array.isArray(result && result.rounds) ? result.rounds : [];
       if (!rounds.length) {
@@ -5320,7 +5404,7 @@ PAGE_TEMPLATE = """
                           <div class="interactive-battle-actions">
                             ${['burst', 'guard'].map((key) => {
                               const meta = actionRuleMeta(key);
-                              return `<button class="interactive-action-btn ${key}" data-action-key="${key}">${meta.ruLabel}</button>`;
+                              return `<button class="interactive-action-btn ${key}" data-action-key="${key}" onclick="handleInteractiveBattleChoice('${key}', event)">${meta.ruLabel}</button>`;
                             }).join('')}
                           </div>
                         </div>
@@ -5440,14 +5524,12 @@ PAGE_TEMPLATE = """
         const interactiveBattlePanel = battleResult.querySelector('#interactive-battle-panel');
         const interactiveBattleStatus = battleResult.querySelector('#interactive-battle-status');
         const interactiveTimer = battleResult.querySelector('#interactive-timer');
-        const interactiveActionButtons = Array.from(battleResult.querySelectorAll('.interactive-action-btn'));
         const wireInteractiveBattle = () => {
           const rows = Array.from(battleResult.querySelectorAll('.discipline-row'));
           rows.forEach((row) => row.classList.add('visible'));
           animateScoreCounters(battleResult);
-          const latestRow = rows.length ? rows[rows.length - 1] : null;
           setScoreCountersInstant(battleResult);
-          if (!liveResult.interactive_live || !interactiveBattlePanel || !interactiveActionButtons.length) {
+          if (!liveResult.interactive_live || !interactiveBattlePanel) {
             if (!liveResult.interactive_live) {
               const showInteractiveOutcome = async () => {
                 await playFinalClimax(resultKey, result.result_label);
@@ -5461,100 +5543,12 @@ PAGE_TEMPLATE = """
             }
             return;
           }
+          state.interactiveActionInFlight = false;
           focusBattleChoiceMenu(interactiveBattlePanel);
-          let actionLocked = false;
-          const submitInteractiveAction = async (actionKey, activeButton = null, byTimeout = false) => {
-            if (actionLocked) return;
-            queueTmaModeSync();
-            if (!liveResult.interactive_session_id) {
-              if (interactiveBattleStatus) {
-                interactiveBattleStatus.textContent = 'Сессия боя потеряна. Обновляю состояние...';
-              }
-              try {
-                const synced = await syncSoloBattleState(liveResult.battle_session_id || '');
-                if (synced) {
-                  synced.autostart_battle = true;
-                  state.lastResult = synced;
-                  renderBattleResult(synced);
-                }
-              } catch (error) {
-                if (interactiveBattleStatus) {
-                  interactiveBattleStatus.textContent = error.message;
-                }
-              }
-              return;
-            }
-            actionLocked = true;
-            clearInteractiveChoiceTimer();
-            const actionPanel = interactiveBattlePanel;
-            interactiveActionButtons.forEach((node) => {
-              node.disabled = true;
-              node.classList.remove('choice-ready');
-            });
-            if (activeButton) {
-              activeButton.classList.add('choice-picked');
-            }
-            if (interactiveBattleStatus) {
-              const meta = actionRuleMeta(actionKey);
-              interactiveBattleStatus.textContent = byTimeout
-                ? `Время вышло. Автовыбор: ${meta.ruLabel}. Раунд раскрывается синхронно...`
-                : `Ты выбираешь: ${meta.ruLabel}. Раунд раскрывается синхронно...`;
-            }
-            await sleep(260);
-            try {
-              const data = await api('/api/solo-battle/action', {
-                method: 'POST',
-                body: {
-                  wallet: state.wallet,
-                  session_id: liveResult.interactive_session_id,
-                  action: actionKey
-                }
-              });
-              const nextResult = data.result || {};
-              const latestRound = Array.isArray(nextResult.rounds) && nextResult.rounds.length ? nextResult.rounds[nextResult.rounds.length - 1] : null;
-              const fxKey = latestRound?.winner === 'player' ? 'win' : (latestRound?.winner === 'opponent' ? 'lose' : 'draw');
-              playBattleFx(fxKey, 'round', actionPanel || battleResult.querySelector('.arena-core'));
-              nextResult.autostart_battle = true;
-              state.lastResult = nextResult;
-              renderBattleResult(nextResult);
-            } catch (error) {
-              try {
-                const synced = await syncSoloBattleState(liveResult.interactive_session_id);
-                if (synced) {
-                  synced.autostart_battle = true;
-                  state.lastResult = synced;
-                  renderBattleResult(synced);
-                  return;
-                }
-              } catch (syncError) {
-                if (interactiveBattleStatus) {
-                  interactiveBattleStatus.textContent = syncError.message || error.message;
-                }
-              }
-              interactiveActionButtons.forEach((node) => {
-                node.disabled = false;
-              });
-              if (interactiveBattleStatus) {
-                interactiveBattleStatus.textContent = error.message;
-              }
-              actionLocked = false;
-              startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('guard', null, true), 350);
-            }
-          };
-          startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('guard', null, true), 850);
-          interactiveActionButtons.forEach((button) => {
-            const handleBattleActionPress = async (event) => {
-              if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-              }
-              const actionKey = button.dataset.actionKey;
-              await submitInteractiveAction(actionKey, button, false);
-            };
-            button.addEventListener('pointerdown', handleBattleActionPress);
-            button.addEventListener('touchstart', handleBattleActionPress, { passive: false });
-            button.addEventListener('click', handleBattleActionPress);
-          });
+          if (interactiveBattleStatus) {
+            interactiveBattleStatus.textContent = 'Выбери действие';
+          }
+          startInteractiveChoiceTimer(interactiveTimer, () => handleInteractiveBattleChoice('guard', null, true), 850);
         };
         if (result.battle_session_id && prebattleStage) {
           prebattleStage.classList.add('accept-pop');
@@ -6622,6 +6616,7 @@ PAGE_TEMPLATE = """
     window.openModes = openModes;
     window.viewBattleFlow = viewBattleFlow;
     window.selectDeckDomain = selectDeckDomain;
+    window.handleInteractiveBattleChoice = handleInteractiveBattleChoice;
 
     syncTmaMode();
     syncTmaViewport();
