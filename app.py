@@ -195,6 +195,8 @@ PAGE_TEMPLATE = """
       margin: 0;
       font-size: clamp(40px, 7vw, 72px);
       line-height: 0.95;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .hero p {
@@ -7886,7 +7888,7 @@ def auto_tactical_slot(cards, build_points=None):
     return max(normalized, key=score).get('slot', 1)
 
 
-def apply_skill_bonus(skill_key, focus, base_self, base_opp, card_self, card_opp, round_index, previous_outcome):
+def apply_skill_bonus(skill_key, focus, phase, base_self, base_opp, card_self, card_opp, round_index, previous_outcome):
     card_self = normalize_card_profile(card_self)
     card_opp = normalize_card_profile(card_opp)
     diff = base_opp - base_self
@@ -8170,6 +8172,7 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
         skill_bonus_a, skill_note_a = apply_skill_bonus(
             (featured_a or {}).get('skill_key'),
             focus,
+            phase,
             value_a,
             value_b,
             featured_a or card_a,
@@ -8180,6 +8183,7 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
         skill_bonus_b, skill_note_b = apply_skill_bonus(
             (featured_b or {}).get('skill_key'),
             focus,
+            phase,
             value_b,
             value_a,
             featured_b or card_b,
@@ -9160,8 +9164,8 @@ def apply_solo_battle_action(session_id, wallet, action_key):
     action_bonus_a, action_bonus_b, action_note_a, action_note_b = action_round_resolution(action_key, action_b)
     strategy_bonus_a, strategy_note_a = strategy_round_bonus(state.get('strategy_key_a'), focus, phase, idx, action_key, prev_a, featured_a or card_a)
     strategy_bonus_b, strategy_note_b = strategy_round_bonus(state.get('strategy_key_b'), focus, phase, idx, action_b, prev_b, featured_b or card_b)
-    skill_bonus_a, skill_note_a = apply_skill_bonus((featured_a or {}).get('skill_key'), focus, value_a, value_b, featured_a or card_a, featured_b or card_b, idx, prev_a)
-    skill_bonus_b, skill_note_b = apply_skill_bonus((featured_b or {}).get('skill_key'), focus, value_b, value_a, featured_b or card_b, featured_a or card_a, idx, prev_b)
+    skill_bonus_a, skill_note_a = apply_skill_bonus((featured_a or {}).get('skill_key'), focus, phase, value_a, value_b, featured_a or card_a, featured_b or card_b, idx, prev_a)
+    skill_bonus_b, skill_note_b = apply_skill_bonus((featured_b or {}).get('skill_key'), focus, phase, value_b, value_a, featured_b or card_b, featured_a or card_a, idx, prev_b)
     featured_bonus_a, featured_note_a = featured_card_round_bonus(featured_a or card_a, featured_b or card_b, focus, phase, idx, prev_a)
     featured_bonus_b, featured_note_b = featured_card_round_bonus(featured_b or card_b, featured_a or card_a, focus, phase, idx, prev_b)
     swing_a, swing_b = (state.get('swing_pairs') or [[0, 0]])[idx]
