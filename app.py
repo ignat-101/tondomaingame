@@ -372,6 +372,8 @@ PAGE_TEMPLATE = """
     .mode-card {
       position: relative;
       z-index: 1;
+      overflow: hidden;
+      isolation: isolate;
       transform-style: preserve-3d;
       transition: transform 420ms cubic-bezier(.2,.8,.2,1), box-shadow 420ms ease, border-color 420ms ease;
     }
@@ -435,6 +437,42 @@ PAGE_TEMPLATE = """
     .mode-card.active-mode .mode-burst {
       opacity: 1;
       transform: scale(1);
+    }
+
+    .mode-grid.matchmaking-live {
+      perspective: none;
+    }
+
+    .mode-grid.matchmaking-live::before,
+    .mode-grid.matchmaking-live.mode-focus::before {
+      display: none;
+    }
+
+    .mode-grid.matchmaking-live .mode-card {
+      transform: none;
+      filter: none;
+      opacity: 0.82;
+    }
+
+    .mode-grid.matchmaking-live .mode-card:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .mode-grid.matchmaking-live .mode-card::after {
+      inset: 0;
+      opacity: 0;
+    }
+
+    .mode-grid.matchmaking-live .mode-card.active-mode {
+      opacity: 1;
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 16px 30px rgba(69, 215, 255, 0.14);
+      border-color: rgba(83, 246, 184, 0.5);
+    }
+
+    .mode-grid.matchmaking-live .mode-card.active-mode::after {
+      opacity: 1;
     }
 
     .mode-burst {
@@ -4771,6 +4809,12 @@ PAGE_TEMPLATE = """
       return topMode;
     }
 
+    function syncModeGridVisualState() {
+      const modeGrid = document.querySelector('.mode-grid');
+      if (!modeGrid) return;
+      modeGrid.classList.toggle('matchmaking-live', Boolean(state.matchmakingMode));
+    }
+
     function switchView(name) {
       resetHorizontalViewportDrift();
       syncTmaMode();
@@ -4806,6 +4850,7 @@ PAGE_TEMPLATE = """
       });
       const activeCard = document.querySelector(`[data-mode-card="${modeName}"]`);
       softCameraFocus(activeCard);
+      syncModeGridVisualState();
       window.clearTimeout(modeFocusTimer);
       modeFocusTimer = window.setTimeout(() => {
         if (modeGrid) {
@@ -4826,6 +4871,7 @@ PAGE_TEMPLATE = """
         teamPanel.style.display = 'none';
       }
       window.clearTimeout(modeFocusTimer);
+      syncModeGridVisualState();
       if (message) {
         matchmakingStatus.textContent = message;
       }
