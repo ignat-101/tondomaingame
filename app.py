@@ -1140,69 +1140,40 @@ PAGE_TEMPLATE = """
       opacity: 0.9;
     }
 
-    .arena-lane-versus {
+    .arena-lane-impact {
       position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, -50%) scale(0.84);
-      display: grid;
-      justify-items: center;
-      gap: 10px;
-      opacity: 0;
-      min-width: 56px;
-    }
-
-    .arena-lane-clash .battle-vs-orb {
-      width: 64px;
-      height: 64px;
-      min-width: 64px;
-      font-size: 20px;
-    }
-
-    .arena-lane-clash.visible .arena-lane-versus {
-      animation: clashVersusPulse 300ms cubic-bezier(.16,.84,.2,1) 220ms forwards;
-    }
-
-    .arena-lane-result {
-      position: absolute;
-      left: 50%;
-      top: calc(50% + 52px);
-      transform: translate(-50%, 8px) scale(0.92);
-      min-height: 30px;
-      padding: 0 12px;
+      width: 34px;
+      height: 34px;
       border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(216, 228, 255, 0.22);
-      background: rgba(216, 228, 255, 0.08);
-      color: #eef6ff;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
+      transform: translate(-50%, -50%) scale(0.3);
+      border: 2px solid rgba(216, 228, 255, 0.18);
+      background: radial-gradient(circle, rgba(216, 228, 255, 0.26), rgba(216, 228, 255, 0.02) 70%);
+      box-shadow: 0 0 24px rgba(216, 228, 255, 0.18);
       opacity: 0;
     }
 
-    .arena-lane-result.visible {
-      animation: clashResultIn 280ms cubic-bezier(.16,.84,.2,1) forwards;
+    .arena-lane-impact.visible {
+      animation: laneImpactPulse 300ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
-    .arena-lane-result.win {
+    .arena-lane-impact.win {
       border-color: rgba(83, 246, 184, 0.34);
-      background: rgba(83, 246, 184, 0.14);
-      color: #dfffee;
+      background: radial-gradient(circle, rgba(83, 246, 184, 0.28), rgba(83, 246, 184, 0.04) 72%);
+      box-shadow: 0 0 28px rgba(83, 246, 184, 0.26);
     }
 
-    .arena-lane-result.lose {
+    .arena-lane-impact.lose {
       border-color: rgba(255, 122, 134, 0.34);
-      background: rgba(255, 122, 134, 0.14);
-      color: #ffe0e5;
+      background: radial-gradient(circle, rgba(255, 122, 134, 0.28), rgba(255, 122, 134, 0.04) 72%);
+      box-shadow: 0 0 28px rgba(255, 122, 134, 0.24);
     }
 
-    .arena-lane-result.draw {
+    .arena-lane-impact.draw {
       border-color: rgba(255, 211, 110, 0.34);
-      background: rgba(255, 211, 110, 0.14);
-      color: #ffe9ad;
+      background: radial-gradient(circle, rgba(255, 211, 110, 0.26), rgba(255, 211, 110, 0.04) 72%);
+      box-shadow: 0 0 28px rgba(255, 211, 110, 0.2);
     }
 
     .arena-score-card {
@@ -1495,6 +1466,21 @@ PAGE_TEMPLATE = """
       100% {
         opacity: 1;
         transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes laneImpactPulse {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.28);
+      }
+      45% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.18);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.7);
       }
     }
 
@@ -5448,21 +5434,20 @@ PAGE_TEMPLATE = """
       const enemyImpactTop = centerY + impactGap;
       const playerPrepTop = playerActionKey === 'burst' ? playerTargetTop + 18 : playerTargetTop - 2;
       const enemyPrepTop = opponentActionKey === 'burst' ? enemyTargetTop - 18 : enemyTargetTop + 2;
-      const playerImpactScale = playerActionKey === 'burst' ? 1.12 : 1.01;
-      const enemyImpactScale = opponentActionKey === 'burst' ? 1.12 : 1.01;
-      const playerImpactRotate = playerActionKey === 'burst' ? '-7deg' : '0deg';
-      const enemyImpactRotate = opponentActionKey === 'burst' ? '7deg' : '0deg';
-      const playerImpactY = playerActionKey === 'burst' ? playerImpactTop + 6 : playerTargetTop + 2;
-      const enemyImpactY = opponentActionKey === 'burst' ? enemyImpactTop - 6 : enemyTargetTop - 2;
+      const playerImpactScale = playerActionKey === 'burst' ? 1.15 : 0.99;
+      const enemyImpactScale = opponentActionKey === 'burst' ? 1.15 : 0.99;
+      const playerImpactRotate = playerActionKey === 'burst' ? '-9deg' : '2deg';
+      const enemyImpactRotate = opponentActionKey === 'burst' ? '9deg' : '-2deg';
+      const playerImpactY = playerActionKey === 'burst' ? playerImpactTop + 10 : playerTargetTop + 6;
+      const enemyImpactY = opponentActionKey === 'burst' ? enemyImpactTop - 10 : enemyTargetTop - 6;
+      const playerRecoilY = playerActionKey === 'burst' ? playerImpactY - 14 : playerTargetTop + 1;
+      const enemyRecoilY = opponentActionKey === 'burst' ? enemyImpactY + 14 : enemyTargetTop - 1;
+      const playerRecoilScale = playerActionKey === 'burst' ? 1.04 : 1;
+      const enemyRecoilScale = opponentActionKey === 'burst' ? 1.04 : 1;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
       laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
       laneReveal.style.setProperty('--clash-card-height', `${clashCardHeight}px`);
-      laneReveal.innerHTML = `
-        <div class="arena-lane-versus">
-          <div class="battle-vs-orb">VS</div>
-        </div>
-      `;
       const playerClone = playerSource.cloneNode(true);
       playerClone.className = `${playerClone.className} arena-lane-card player`.trim();
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
@@ -5475,30 +5460,28 @@ PAGE_TEMPLATE = """
       enemyClone.style.top = `${enemyRect.top - coreRect.top}px`;
       enemyClone.style.width = `${clashCardWidth}px`;
       enemyClone.style.height = `${clashCardHeight}px`;
+      const impactNode = document.createElement('div');
+      impactNode.className = `arena-lane-impact ${resultKey}`;
       laneReveal.appendChild(playerClone);
       laneReveal.appendChild(enemyClone);
+      laneReveal.appendChild(impactNode);
       arenaCore.appendChild(laneReveal);
       requestAnimationFrame(() => laneReveal.classList.add('visible'));
       playerClone.animate([
         { opacity: 0.96, transform: 'translate3d(0, 0, 0) scale(1)' },
         { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerPrepTop - (playerRect.top - coreRect.top)}px, 0) scale(1.02)` },
-        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerImpactY - (playerRect.top - coreRect.top)}px, 0) rotate(${playerImpactRotate}) scale(${playerImpactScale})` }
-      ], { duration: 620, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
+        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerImpactY - (playerRect.top - coreRect.top)}px, 0) rotate(${playerImpactRotate}) scale(${playerImpactScale})` },
+        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerRecoilY - (playerRect.top - coreRect.top)}px, 0) rotate(0deg) scale(${playerRecoilScale})` }
+      ], { duration: 700, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
       enemyClone.animate([
         { opacity: 0.96, transform: 'translate3d(0, 0, 0) scale(1)' },
         { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyPrepTop - (enemyRect.top - coreRect.top)}px, 0) scale(1.02)` },
-        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyImpactY - (enemyRect.top - coreRect.top)}px, 0) rotate(${enemyImpactRotate}) scale(${enemyImpactScale})` }
-      ], { duration: 620, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
-      await sleep(640);
-      const versusNode = laneReveal.querySelector('.arena-lane-versus');
-      if (versusNode) {
-        const resultNode = document.createElement('div');
-        resultNode.className = `arena-lane-result ${resultKey}`;
-        resultNode.textContent = resultLabel;
-        versusNode.appendChild(resultNode);
-        requestAnimationFrame(() => resultNode.classList.add('visible'));
-      }
-      playBattleFx(resultKey, 'round', laneReveal.querySelector('.battle-vs-orb') || arenaCore);
+        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyImpactY - (enemyRect.top - coreRect.top)}px, 0) rotate(${enemyImpactRotate}) scale(${enemyImpactScale})` },
+        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyRecoilY - (enemyRect.top - coreRect.top)}px, 0) rotate(0deg) scale(${enemyRecoilScale})` }
+      ], { duration: 700, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
+      window.setTimeout(() => impactNode.classList.add('visible'), 360);
+      await sleep(700);
+      playBattleFx(resultKey, 'round', impactNode);
       await sleep(620);
       laneReveal.classList.add('resolving');
       await sleep(260);
