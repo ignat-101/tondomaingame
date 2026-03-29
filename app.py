@@ -183,6 +183,15 @@ PAGE_TEMPLATE = """
       flex-wrap: wrap;
     }
 
+    .hero-top > div:first-child {
+      min-width: 0;
+      flex: 1 1 520px;
+    }
+
+    .hero-top .badge-row {
+      flex: 0 0 auto;
+    }
+
     .eyebrow {
       color: var(--accent-2);
       text-transform: uppercase;
@@ -197,6 +206,7 @@ PAGE_TEMPLATE = """
       line-height: 0.95;
       overflow-wrap: anywhere;
       word-break: break-word;
+      max-width: 100%;
     }
 
     .hero p {
@@ -3667,6 +3677,11 @@ PAGE_TEMPLATE = """
 
     body.tma-app .hero {
       padding: 14px;
+    }
+
+    body.tma-app h1 {
+      font-size: clamp(34px, 11vw, 52px);
+      line-height: 0.94;
     }
 
     body.tma-app .mode-card.preferred-mode {
