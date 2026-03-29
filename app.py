@@ -1090,7 +1090,7 @@ PAGE_TEMPLATE = """
     }
 
     .arena-round-choice-slot.active .arena-lane-choice-panel {
-      margin-top: 26px;
+      margin-top: 20px;
       transform: none;
       pointer-events: auto;
     }
@@ -1104,9 +1104,9 @@ PAGE_TEMPLATE = """
 
     .arena-lane-choice-panel {
       width: var(--arena-card-width);
-      max-width: 160px;
-      min-width: 108px;
-      padding: 10px 8px 8px;
+      max-width: 176px;
+      min-width: 132px;
+      padding: 10px 10px 10px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.22);
       background:
@@ -1117,31 +1117,84 @@ PAGE_TEMPLATE = """
       pointer-events: auto;
       position: relative;
       z-index: 8;
+      display: grid;
+      gap: 8px;
+    }
+
+    .arena-lane-choice-panel .interactive-battle-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     .arena-lane-choice-panel .interactive-battle-title {
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 800;
+      margin: 0;
     }
 
     .arena-lane-choice-panel .interactive-timer {
-      min-width: 64px;
+      min-width: 52px;
+      min-height: 26px;
+      font-size: 11px;
+      margin: 0;
+    }
+
+    .interactive-battle-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .interactive-battle-metric {
+      min-height: 38px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background: rgba(255, 255, 255, 0.03);
+      display: grid;
+      gap: 2px;
+      align-content: center;
+      text-align: center;
+    }
+
+    .interactive-battle-metric strong {
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .interactive-battle-metric span {
+      font-size: 10px;
+      line-height: 1.1;
+      color: var(--muted);
+    }
+
+    .interactive-battle-prompt {
       min-height: 28px;
       font-size: 11px;
+      line-height: 1.2;
+      text-align: center;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .arena-lane-choice-panel .interactive-battle-actions {
-      grid-template-columns: repeat(2, minmax(0, 40px));
-      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 52px));
+      gap: 10px;
       justify-content: center;
       pointer-events: auto;
     }
 
     .arena-lane-choice-panel .interactive-action-btn {
-      min-height: 40px;
+      min-height: 52px;
       border-radius: 50%;
       aspect-ratio: 1 / 1;
-      padding: 0 4px;
-      font-size: 8px;
+      padding: 0 6px;
+      font-size: 10px;
       line-height: 1.1;
       text-align: center;
       position: relative;
@@ -4053,7 +4106,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot.active {
-        gap: 18px;
+        gap: 14px;
       }
 
       .arena-round-marker {
@@ -4070,14 +4123,15 @@ PAGE_TEMPLATE = """
       }
 
       .arena-lane-choice-panel {
-        width: min(108px, 20vw);
-        padding: 7px 5px 6px;
+        width: min(138px, 24vw);
+        min-width: 120px;
+        padding: 8px 7px 8px;
         border-radius: 14px;
         max-width: 100%;
       }
 
       .arena-round-choice-slot.active .arena-lane-choice-panel {
-        margin-top: 22px;
+        margin-top: 16px;
         transform: none;
       }
 
@@ -4099,17 +4153,36 @@ PAGE_TEMPLATE = """
       }
 
       .arena-lane-choice-panel .interactive-battle-title {
+        font-size: 11px;
+      }
+
+      .interactive-battle-metrics {
+        grid-template-columns: 1fr;
+        gap: 5px;
+      }
+
+      .interactive-battle-metric {
+        min-height: 34px;
+        padding: 5px 6px;
+      }
+
+      .interactive-battle-metric strong {
         font-size: 10px;
       }
 
+      .interactive-battle-metric span,
+      .interactive-battle-prompt {
+        font-size: 9px;
+      }
+
       .arena-lane-choice-panel .interactive-battle-actions {
-        grid-template-columns: repeat(2, minmax(0, 32px));
+        grid-template-columns: repeat(2, minmax(0, 42px));
         gap: 8px;
       }
 
       .arena-lane-choice-panel .interactive-action-btn {
-        min-height: 32px;
-        font-size: 7px;
+        min-height: 42px;
+        font-size: 8px;
       }
 
       .arena-lane-card {
@@ -6246,11 +6319,21 @@ PAGE_TEMPLATE = """
                       <div class="arena-round-marker"></div>
                       ${isActive ? `
                         <div class="interactive-battle-panel arena-lane-choice-panel" id="interactive-battle-panel">
-                          <div class="interactive-battle-title">Раунд ${roundNumber}</div>
-                          <div class="interactive-timer" id="interactive-timer">5 c</div>
-                          <div class="tiny" style="text-align:center;">Энергия: ${result.interactive_energy || 0}${result.interactive_active_ability && result.interactive_active_ability.name ? ` • ${result.interactive_active_ability.name}` : ''}</div>
-                          <div class="tiny" style="text-align:center;">Ability: ${result.interactive_active_ability && result.interactive_active_ability.name ? `charges ${(result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0} • cd ${(result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0}` : 'нет'}</div>
-                          <div class="tiny" id="interactive-battle-status" style="text-align:center; min-height:16px;">${result.interactive_hint || 'Выбери действие'}</div>
+                          <div class="interactive-battle-head">
+                            <div class="interactive-battle-title">Раунд ${roundNumber}</div>
+                            <div class="interactive-timer" id="interactive-timer">5 c</div>
+                          </div>
+                          <div class="interactive-battle-metrics">
+                            <div class="interactive-battle-metric">
+                              <strong>Energy ${result.interactive_energy || 0}</strong>
+                              <span>${result.interactive_active_ability && result.interactive_active_ability.name ? result.interactive_active_ability.name : 'base flow'}</span>
+                            </div>
+                            <div class="interactive-battle-metric">
+                              <strong>CD ${(result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0}</strong>
+                              <span>charges ${(result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0}</span>
+                            </div>
+                          </div>
+                          <div class="interactive-battle-prompt" id="interactive-battle-status">${result.interactive_hint || 'Выбери действие'}</div>
                           <div class="interactive-battle-actions">
                             ${(result.interactive_available_actions || ['burst', 'guard']).map((key) => {
                               const meta = actionRuleMeta(key);
