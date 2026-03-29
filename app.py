@@ -5502,7 +5502,10 @@ PAGE_TEMPLATE = """
       if (actionKey === 'burst') {
         return `
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M14.8 2.7 20.7 8.6 18.9 10.4 16.7 8.2 12.6 12.3 14.9 14.6 13 16.5 10.8 14.3 6.6 18.5 8.8 20.7 7 22.5 1.1 16.6 2.9 14.8 5.1 17 9.3 12.8 7 10.5 8.9 8.6 11.2 10.9 15.3 6.8 13 4.5z"/>
+            <path fill="currentColor" d="M15.4 2 21 7.6l-1.7 1.7-1.9-1.9-4.7 4.7-1.2-1.2 4.7-4.7-1.9-1.9z"/>
+            <path fill="currentColor" d="M10.7 11.1 12.9 13.3 7.5 18.7 5.3 16.5z"/>
+            <path fill="currentColor" d="M4.6 17.2 6.8 19.4 4.9 21.3 2.7 19.1z"/>
+            <path fill="currentColor" d="M7.1 9.2 10.8 12.9 9.4 14.3 5.7 10.6z"/>
           </svg>
         `;
       }
