@@ -1135,10 +1135,11 @@ PAGE_TEMPLATE = """
     }
 
     .arena-shell.lane-clash-live .arena-rail .arena-slot-card.active-slot {
-      opacity: 0.12;
+      opacity: 0;
+      visibility: hidden;
       transform: none;
       box-shadow: none;
-      transition: opacity 140ms ease;
+      transition: opacity 140ms ease, visibility 0s linear 140ms;
     }
 
     .arena-lane-card {
