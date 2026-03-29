@@ -1072,6 +1072,143 @@ PAGE_TEMPLATE = """
       pointer-events: auto;
     }
 
+    .arena-lane-clash {
+      width: min(260px, 42vw);
+      min-width: 180px;
+      display: grid;
+      gap: 10px;
+      margin-top: 22px;
+      padding: 12px 10px 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(69, 215, 255, 0.08), transparent 40%),
+        linear-gradient(180deg, rgba(8, 21, 37, 0.96), rgba(8, 17, 29, 0.98));
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+    }
+
+    .arena-lane-clash.visible {
+      animation: laneClashIn 240ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .arena-lane-clash.resolving {
+      animation: roundClashFadeOut 320ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .arena-lane-clash-line {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .arena-lane-card {
+      min-width: 0;
+      padding: 10px 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 11px;
+      line-height: 1.2;
+      opacity: 0;
+    }
+
+    .arena-lane-card.player {
+      text-align: left;
+    }
+
+    .arena-lane-card.enemy {
+      text-align: right;
+      border-color: rgba(255, 122, 134, 0.18);
+    }
+
+    .arena-lane-clash.visible .arena-lane-card.player {
+      animation: laneCardPlayerIn 360ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .arena-lane-clash.visible .arena-lane-card.enemy {
+      animation: laneCardEnemyIn 360ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .arena-lane-versus {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      min-width: 56px;
+      opacity: 0;
+      transform: scale(0.84);
+    }
+
+    .arena-lane-clash.visible .arena-lane-versus {
+      animation: clashVersusPulse 300ms cubic-bezier(.16,.84,.2,1) 120ms forwards;
+    }
+
+    .arena-lane-action {
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(121, 217, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: #eef6ff;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .arena-lane-action.burst {
+      border-color: rgba(255, 122, 134, 0.34);
+      background: rgba(255, 122, 134, 0.12);
+    }
+
+    .arena-lane-action.guard {
+      border-color: rgba(83, 246, 184, 0.34);
+      background: rgba(83, 246, 184, 0.12);
+    }
+
+    .arena-lane-result {
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(216, 228, 255, 0.22);
+      background: rgba(216, 228, 255, 0.08);
+      color: #eef6ff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      opacity: 0;
+      transform: translateY(8px) scale(0.92);
+    }
+
+    .arena-lane-result.visible {
+      animation: clashResultIn 280ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .arena-lane-result.win {
+      border-color: rgba(83, 246, 184, 0.34);
+      background: rgba(83, 246, 184, 0.14);
+      color: #dfffee;
+    }
+
+    .arena-lane-result.lose {
+      border-color: rgba(255, 122, 134, 0.34);
+      background: rgba(255, 122, 134, 0.14);
+      color: #ffe0e5;
+    }
+
+    .arena-lane-result.draw {
+      border-color: rgba(255, 211, 110, 0.34);
+      background: rgba(255, 211, 110, 0.14);
+      color: #ffe9ad;
+    }
+
     .arena-score-card {
       width: min(100%, 360px);
       display: grid;
@@ -1371,6 +1508,47 @@ PAGE_TEMPLATE = """
       }
       100% {
         opacity: 0;
+      }
+    }
+
+    @keyframes laneClashIn {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.96);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes laneCardPlayerIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-22px) scale(0.94);
+      }
+      68% {
+        opacity: 1;
+        transform: translateX(8px) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    @keyframes laneCardEnemyIn {
+      0% {
+        opacity: 0;
+        transform: translateX(22px) scale(0.94);
+      }
+      68% {
+        opacity: 1;
+        transform: translateX(-8px) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
       }
     }
 
@@ -5235,8 +5413,9 @@ PAGE_TEMPLATE = """
     }
 
     async function playRoundClashReveal(currentResult, nextResult, playerActionKey) {
+      const activeLane = battleResult.querySelector('.arena-round-choice-slot.active');
       const arenaCore = battleResult.querySelector('.arena-core');
-      if (!arenaCore) {
+      if (!activeLane || !arenaCore) {
         return;
       }
       const currentRoundIndex = Number(currentResult && currentResult.interactive_round_index || 0);
@@ -5251,45 +5430,36 @@ PAGE_TEMPLATE = """
       const opponentActionKey = latestRound.opponent_action || 'guard';
       const resultKey = latestRound.winner === 'player' ? 'win' : (latestRound.winner === 'opponent' ? 'lose' : 'draw');
       const resultLabel = resultKey === 'win' ? 'WIN' : (resultKey === 'lose' ? 'LOSE' : 'DRAW');
-      const overlay = document.createElement('div');
-      overlay.className = 'round-clash-overlay';
-      overlay.innerHTML = `
-        <div class="battle-cinematic round-reveal">
-          <div class="battle-cinematic-label">Раунд ${latestRound.round}</div>
-          <div class="battle-cinematic-floor"></div>
-          <div class="battle-fighter player">
-            <div class="battle-fighter-slot">Слот ${playerCard.slot}</div>
+      const laneReveal = document.createElement('div');
+      laneReveal.className = 'arena-lane-clash';
+      laneReveal.innerHTML = `
+        <div class="arena-lane-clash-line">
+          <div class="arena-lane-card player">
             <strong>${playerCard.title || 'Твоя карта'}</strong>
-            <div class="battle-fighter-cardline">
-              <span class="action-chip ${playerActionKey}">${actionRuleMeta(playerActionKey).ruLabel}</span>
-            </div>
           </div>
-          <div class="round-clash-actions">
+          <div class="arena-lane-versus">
+            <div class="arena-lane-action ${playerActionKey}">${actionRuleMeta(playerActionKey).ruLabel}</div>
             <div class="battle-vs-orb">VS</div>
-            <div class="arena-decision-chip action player ${playerActionKey}">Ты: ${actionRuleMeta(playerActionKey).ruLabel}</div>
-            <div class="arena-decision-chip action enemy ${opponentActionKey}">Бот: ${actionRuleMeta(opponentActionKey).ruLabel}</div>
-            <div class="round-clash-result ${resultKey}">${resultLabel}</div>
+            <div class="arena-lane-action ${opponentActionKey}">${actionRuleMeta(opponentActionKey).ruLabel}</div>
           </div>
-          <div class="battle-fighter enemy">
-            <div class="battle-fighter-slot">Слот ${opponentCard.slot}</div>
+          <div class="arena-lane-card enemy">
             <strong>${opponentCard.title || 'Карта соперника'}</strong>
-            <div class="battle-fighter-cardline">
-              <span class="action-chip ${opponentActionKey}">${actionRuleMeta(opponentActionKey).ruLabel}</span>
-            </div>
           </div>
         </div>
+        <div class="arena-lane-result ${resultKey}">${resultLabel}</div>
       `;
-      arenaCore.appendChild(overlay);
-      await sleep(520);
-      const resultNode = overlay.querySelector('.round-clash-result');
+      activeLane.appendChild(laneReveal);
+      requestAnimationFrame(() => laneReveal.classList.add('visible'));
+      await sleep(420);
+      const resultNode = laneReveal.querySelector('.arena-lane-result');
       if (resultNode) {
         resultNode.classList.add('visible');
       }
-      playBattleFx(resultKey, 'round', overlay.querySelector('.battle-vs-orb') || arenaCore);
-      await sleep(760);
-      overlay.classList.add('resolving');
-      await sleep(380);
-      overlay.remove();
+      playBattleFx(resultKey, 'round', laneReveal.querySelector('.battle-vs-orb') || arenaCore);
+      await sleep(620);
+      laneReveal.classList.add('resolving');
+      await sleep(260);
+      laneReveal.remove();
     }
 
     async function handleInteractiveBattleChoice(actionKey, event = null, byTimeout = false) {
