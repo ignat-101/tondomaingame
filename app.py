@@ -173,6 +173,7 @@ PAGE_TEMPLATE = """
       background: linear-gradient(150deg, rgba(12, 30, 55, 0.95), rgba(10, 18, 33, 0.9));
       box-shadow: var(--shadow);
       backdrop-filter: blur(14px);
+      overflow: hidden;
     }
 
     .hero-top {
@@ -181,11 +182,13 @@ PAGE_TEMPLATE = """
       gap: 16px;
       align-items: flex-start;
       flex-wrap: wrap;
+      min-width: 0;
     }
 
     .hero-top > div:first-child {
       min-width: 0;
       flex: 1 1 520px;
+      overflow: hidden;
     }
 
     .hero-top .badge-row {
@@ -4176,6 +4179,12 @@ PAGE_TEMPLATE = """
       });
     }
 
+    function resetHorizontalViewportDrift() {
+      document.documentElement.scrollLeft = 0;
+      document.body.scrollLeft = 0;
+      window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' });
+    }
+
     function shouldSyncForFunctionalTarget(target) {
       if (!target || typeof target.closest !== 'function') {
         return false;
@@ -4416,6 +4425,7 @@ PAGE_TEMPLATE = """
     }
 
     function switchView(name) {
+      resetHorizontalViewportDrift();
       syncTmaMode();
       syncTmaViewport();
       if (name !== 'modes') {
@@ -6668,6 +6678,7 @@ PAGE_TEMPLATE = """
 
     syncTmaMode();
     syncTmaViewport();
+    resetHorizontalViewportDrift();
     const tgWebApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tgWebApp && typeof tgWebApp.onEvent === 'function') {
       tgWebApp.onEvent('viewportChanged', queueTmaModeSync);
