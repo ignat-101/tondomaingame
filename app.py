@@ -4157,13 +4157,6 @@ PAGE_TEMPLATE = """
       return Boolean(target.closest('button, select, input, textarea, label[for], [role="button"], [data-mode-card], .mode-card, .mobile-nav button'));
     }
 
-    function functionalClickTarget(target) {
-      if (!target || typeof target.closest !== 'function') {
-        return null;
-      }
-      return target.closest('button:not(.wallet-domain-action), [role="button"], [data-mode-card], .mode-card, .mobile-nav button');
-    }
-
     function syncTmaModeForFunctionalAction(event) {
       if (shouldSyncForFunctionalTarget(event.target)) {
         queueTmaModeSync();
@@ -4197,22 +4190,6 @@ PAGE_TEMPLATE = """
         await prepareFunctionalInteraction();
         return handler(event);
       });
-    }
-
-    async function interceptFunctionalClick(event) {
-      const control = functionalClickTarget(event.target);
-      if (!control) {
-        return;
-      }
-      if (control.dataset.tmaPreflightReady === '1') {
-        delete control.dataset.tmaPreflightReady;
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      await prepareFunctionalInteraction();
-      control.dataset.tmaPreflightReady = '1';
-      control.click();
     }
 
     async function interceptDeckDomainAction(event) {
@@ -6645,9 +6622,6 @@ PAGE_TEMPLATE = """
     }, true);
     document.addEventListener('click', (event) => {
       interceptDeckDomainAction(event).catch(() => {});
-    }, true);
-    document.addEventListener('click', (event) => {
-      interceptFunctionalClick(event).catch(() => {});
     }, true);
     ['pointerdown', 'touchstart', 'click', 'change', 'focusin'].forEach((eventName) => {
       document.addEventListener(eventName, syncTmaModeForFunctionalAction, true);
