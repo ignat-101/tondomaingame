@@ -1021,6 +1021,8 @@ PAGE_TEMPLATE = """
       box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
       backdrop-filter: blur(14px);
       pointer-events: auto;
+      position: relative;
+      z-index: 8;
     }
 
     .arena-lane-choice-panel .interactive-battle-title {
@@ -1047,6 +1049,9 @@ PAGE_TEMPLATE = """
       font-size: 8px;
       line-height: 1.1;
       text-align: center;
+      position: relative;
+      z-index: 9;
+      touch-action: manipulation;
     }
 
     .arena-score-card {
@@ -5311,6 +5316,7 @@ PAGE_TEMPLATE = """
                         <div class="interactive-battle-panel arena-lane-choice-panel" id="interactive-battle-panel">
                           <div class="interactive-battle-title">Раунд ${roundNumber}</div>
                           <div class="interactive-timer" id="interactive-timer">5 c</div>
+                          <div class="tiny" id="interactive-battle-status" style="text-align:center; min-height:16px;">Выбери действие</div>
                           <div class="interactive-battle-actions">
                             ${['burst', 'guard'].map((key) => {
                               const meta = actionRuleMeta(key);
@@ -5537,10 +5543,17 @@ PAGE_TEMPLATE = """
           };
           startInteractiveChoiceTimer(interactiveTimer, () => submitInteractiveAction('guard', null, true), 850);
           interactiveActionButtons.forEach((button) => {
-            button.addEventListener('click', async () => {
+            const handleBattleActionPress = async (event) => {
+              if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
               const actionKey = button.dataset.actionKey;
               await submitInteractiveAction(actionKey, button, false);
-            });
+            };
+            button.addEventListener('pointerdown', handleBattleActionPress);
+            button.addEventListener('touchstart', handleBattleActionPress, { passive: false });
+            button.addEventListener('click', handleBattleActionPress);
           });
         };
         if (result.battle_session_id && prebattleStage) {
