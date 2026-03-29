@@ -1078,6 +1078,7 @@ PAGE_TEMPLATE = """
       pointer-events: none;
       z-index: 11;
       opacity: 0;
+      overflow: hidden;
     }
 
     .arena-lane-clash.visible {
@@ -1090,11 +1091,53 @@ PAGE_TEMPLATE = """
 
     .arena-lane-card {
       position: absolute;
-      width: var(--clash-card-width, 176px);
+      width: var(--clash-card-width, 102px);
+      min-height: var(--clash-card-height, 152px);
+      padding: 10px 9px 11px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.28);
+      background: linear-gradient(180deg, rgba(18, 33, 55, 0.98), rgba(8, 16, 29, 0.99));
+      box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.24),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
       pointer-events: none;
-      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.24);
       opacity: 0;
       transform-origin: center center;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow: hidden;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .arena-lane-card.player {
+      border-color: rgba(83, 246, 184, 0.4);
+      box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.28),
+        0 0 0 1px rgba(83, 246, 184, 0.16),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .arena-lane-card.enemy {
+      border-color: rgba(255, 122, 134, 0.34);
+      box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.28),
+        0 0 0 1px rgba(255, 122, 134, 0.14),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .arena-lane-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      line-height: 1.1;
+    }
+
+    .arena-lane-card .arena-slot-meta {
+      font-size: 10px;
+      line-height: 1.18;
+      opacity: 0.9;
     }
 
     .arena-lane-versus {
@@ -1107,6 +1150,13 @@ PAGE_TEMPLATE = """
       gap: 8px;
       opacity: 0;
       min-width: 56px;
+    }
+
+    .arena-lane-clash .battle-vs-orb {
+      width: 64px;
+      height: 64px;
+      min-width: 64px;
+      font-size: 20px;
     }
 
     .arena-lane-clash.visible .arena-lane-versus {
@@ -5411,12 +5461,20 @@ PAGE_TEMPLATE = """
       }
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
-      const clashCardWidth = Math.max(playerRect.width, enemyRect.width, 120);
-      const centerTop = coreRect.height * 0.5 - 34;
+      const clashCardWidth = Math.max(94, Math.min(110, laneRect.width * 0.72));
+      const clashCardHeight = Math.round(clashCardWidth * 1.48);
+      const clashGap = 14;
+      const centerY = coreRect.height * 0.5;
+      const playerTargetLeft = laneCenter - clashCardWidth / 2;
+      const enemyTargetLeft = laneCenter - clashCardWidth / 2;
+      const playerTargetTop = centerY - clashCardHeight - clashGap;
+      const enemyTargetTop = centerY + clashGap;
+      const playerImpactTop = centerY - clashCardHeight * 0.56;
+      const enemyImpactTop = centerY - clashCardHeight * 0.44;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
-      laneReveal.style.left = `${laneCenter}px`;
       laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
+      laneReveal.style.setProperty('--clash-card-height', `${clashCardHeight}px`);
       laneReveal.innerHTML = `
         <div class="arena-lane-versus">
           <div class="arena-lane-action ${playerActionKey}">${actionRuleMeta(playerActionKey).ruLabel}</div>
@@ -5429,25 +5487,29 @@ PAGE_TEMPLATE = """
       playerClone.className = `${playerClone.className} arena-lane-card player`.trim();
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
       playerClone.style.top = `${playerRect.top - coreRect.top}px`;
-      playerClone.style.width = `${playerRect.width}px`;
+      playerClone.style.width = `${clashCardWidth}px`;
+      playerClone.style.height = `${clashCardHeight}px`;
       const enemyClone = enemySource.cloneNode(true);
       enemyClone.className = `${enemyClone.className} arena-lane-card enemy`.trim();
       enemyClone.style.left = `${enemyRect.left - coreRect.left}px`;
       enemyClone.style.top = `${enemyRect.top - coreRect.top}px`;
-      enemyClone.style.width = `${enemyRect.width}px`;
+      enemyClone.style.width = `${clashCardWidth}px`;
+      enemyClone.style.height = `${clashCardHeight}px`;
       laneReveal.appendChild(playerClone);
       laneReveal.appendChild(enemyClone);
       arenaCore.appendChild(laneReveal);
       requestAnimationFrame(() => laneReveal.classList.add('visible'));
       playerClone.animate([
-        { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' },
-        { opacity: 1, transform: `translate3d(${laneCenter - (playerRect.left - coreRect.left) - playerRect.width / 2}px, ${centerTop - (playerRect.top - coreRect.top)}px, 0) scale(1.04)` }
-      ], { duration: 520, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
+        { opacity: 0.96, transform: 'translate3d(0, 0, 0) scale(1)' },
+        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerTargetTop - (playerRect.top - coreRect.top)}px, 0) scale(1.02)` },
+        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerImpactTop - (playerRect.top - coreRect.top)}px, 0) scale(1.06)` }
+      ], { duration: 620, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
       enemyClone.animate([
-        { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' },
-        { opacity: 1, transform: `translate3d(${laneCenter - (enemyRect.left - coreRect.left) - enemyRect.width / 2}px, ${centerTop - (enemyRect.top - coreRect.top)}px, 0) scale(1.04)` }
-      ], { duration: 520, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
-      await sleep(540);
+        { opacity: 0.96, transform: 'translate3d(0, 0, 0) scale(1)' },
+        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyTargetTop - (enemyRect.top - coreRect.top)}px, 0) scale(1.02)` },
+        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyImpactTop - (enemyRect.top - coreRect.top)}px, 0) scale(1.06)` }
+      ], { duration: 620, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
+      await sleep(640);
       const resultNode = laneReveal.querySelector('.arena-lane-result');
       if (resultNode) {
         resultNode.classList.add('visible');
