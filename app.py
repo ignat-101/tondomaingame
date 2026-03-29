@@ -375,7 +375,7 @@ PAGE_TEMPLATE = """
       overflow: hidden;
       isolation: isolate;
       transform-style: preserve-3d;
-      transition: transform 420ms cubic-bezier(.2,.8,.2,1), box-shadow 420ms ease, border-color 420ms ease;
+      transition: transform 320ms cubic-bezier(.2,.8,.2,1), box-shadow 320ms ease, border-color 320ms ease, opacity 260ms ease;
     }
 
     .mode-card.preferred-mode {
@@ -411,7 +411,7 @@ PAGE_TEMPLATE = """
     .mode-card::after {
       content: "";
       position: absolute;
-      inset: -1px;
+      inset: 0;
       border-radius: 20px;
       background: linear-gradient(135deg, rgba(69, 215, 255, 0.18), rgba(83, 246, 184, 0.14), transparent 70%);
       opacity: 0;
@@ -420,14 +420,14 @@ PAGE_TEMPLATE = """
     }
 
     .mode-card:hover {
-      transform: translateY(-6px) rotateX(7deg) rotateY(-7deg);
-      box-shadow: 0 28px 48px rgba(0, 0, 0, 0.28);
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
     }
 
     .mode-card.active-mode {
       border-color: rgba(83, 246, 184, 0.58);
-      box-shadow: 0 30px 60px rgba(69, 215, 255, 0.22);
-      transform: translateY(-18px) translateZ(90px) rotateX(14deg) rotateY(-14deg) scale(1.08);
+      box-shadow: 0 12px 30px rgba(69, 215, 255, 0.16);
+      transform: translateY(-4px) scale(1.01);
     }
 
     .mode-card.active-mode::after {
