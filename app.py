@@ -34,6 +34,7 @@ from config import (
     TONAPI_BASE_URL,
     TONAPI_KEY,
 )
+from tenkclub_service import explainDomainUniqueness, getDomainMetadata
 
 load_dotenv()
 
@@ -78,6 +79,7 @@ PACK_PRICE_NANO = int(os.getenv('PACK_PRICE_NANO', '1000000000'))  # 1 TON
 PACK_RECEIVER_WALLET = os.getenv('PACK_RECEIVER_WALLET', '').strip()
 ALLOW_GUEST_WITHOUT_DOMAIN = os.getenv('ALLOW_GUEST_WITHOUT_DOMAIN', '0').strip().lower() in {'1', 'true', 'yes', 'on'}
 ENV_FILE_PATH = Path(os.getenv('ENV_FILE_PATH', '.env'))
+PACK_PITY_THRESHOLD = int(os.getenv('PACK_PITY_THRESHOLD', '20'))
 
 DOMAIN_CACHE = {}
 TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
@@ -115,6 +117,33 @@ CARD_ABILITIES = [
     'Добавляет критический урон по рейтингу',
     'Стабилизирует итоговую сумму очков',
 ]
+
+PACK_TYPES = {
+    'common': {
+        'label': 'Common Pack',
+        'count': 3,
+        'weights': {'basic': 70, 'rare': 20, 'epic': 9, 'legendary': 1},
+        'lucky_bonus': False,
+    },
+    'rare': {
+        'label': 'Rare Pack',
+        'count': 4,
+        'weights': {'basic': 52, 'rare': 28, 'epic': 15, 'mythic': 4, 'legendary': 1},
+        'lucky_bonus': False,
+    },
+    'epic': {
+        'label': 'Epic Pack',
+        'count': 5,
+        'weights': {'basic': 35, 'rare': 33, 'epic': 22, 'mythic': 8, 'legendary': 2},
+        'lucky_bonus': False,
+    },
+    'lucky': {
+        'label': 'Lucky Pack',
+        'count': 4,
+        'weights': {'basic': 42, 'rare': 26, 'epic': 18, 'mythic': 10, 'legendary': 4},
+        'lucky_bonus': True,
+    },
+}
 
 PAGE_TEMPLATE = """
 <!doctype html>
@@ -5031,9 +5060,16 @@ PAGE_TEMPLATE = """
         mobileDeckView.innerHTML = emptyMarkup;
         return;
       }
+      const meta = (data.deck && data.deck.domain_metadata) || {};
       const markup = `
         <div class="user-item">
           <strong>${data.domain}.ton</strong>
+          <div class="tiny">Редкость: ${meta.rarityLabel || '-'} • Tier: ${meta.tierLabel || '-'}</div>
+          <div class="tiny">Score: ${meta.score || '-'} • Role/Class: ${meta.role ? `${meta.role} / ${meta.class}` : '-'}</div>
+          <div class="tiny">Atomic patterns: ${(meta.atomicPatterns && meta.atomicPatterns.length) ? meta.atomicPatterns.join(', ') : 'нет'}</div>
+          <div class="tiny">Super pattern: ${meta.superPattern || 'нет'} • Level: ${meta.level || 1}</div>
+          <div class="tiny">Passive: ${meta.passiveAbility ? meta.passiveAbility.name : '-'}</div>
+          <div class="tiny">Active: ${meta.activeAbility ? `${meta.activeAbility.name} • cost ${meta.activeAbility.cost} • cd ${meta.activeAbility.cooldown}` : '-'}</div>
           <div class="tiny">Свободный пул дисциплин: ${data.deck.discipline_pool || 0}</div>
           <div class="tiny">Вклад карт в колоду: ${data.deck.total_score}</div>
         </div>
@@ -5167,11 +5203,14 @@ PAGE_TEMPLATE = """
         <div class="user-item wallet-domain-card">
           <strong>${item.domain}.ton ${item.is_active || currentDomain === item.domain ? '(активная)' : ''}</strong>
           <div class="wallet-domain-stats">
+            <span class="wallet-domain-chip">Редкость: ${item.rarity || '-'}</span>
             <span class="wallet-domain-chip">Тир: ${item.tier || '-'}</span>
             <span class="wallet-domain-chip">Удача: ${item.luck || 0}</span>
             <span class="wallet-domain-chip">Пул: ${item.deck.discipline_pool || 0}</span>
           </div>
           <div class="wallet-domain-mainline">Вклад карт: ${item.deck.total_score} • ${item.deck.cards && item.deck.cards.length ? `карт: ${item.deck.cards.length}` : 'колода еще не открыта'}</div>
+          <div class="tiny">Role/Class: ${item.metadata && item.metadata.role ? `${item.metadata.role} / ${item.metadata.class}` : '-'}</div>
+          <div class="tiny">Passive: ${item.metadata && item.metadata.passiveAbility ? item.metadata.passiveAbility.name : '-'} • Active: ${item.metadata && item.metadata.activeAbility ? item.metadata.activeAbility.name : '-'}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary wallet-domain-action" data-domain-action="${item.domain}">Играть этим доменом</button>
           </div>
@@ -5349,6 +5388,7 @@ PAGE_TEMPLATE = """
           <h3>${domain.domain}.ton ${domain.is_guest ? '• гостевой' : ''}</h3>
           <div class="wallet-domain-stats">
             <span class="wallet-domain-chip">Источник: ${domain.source_label}</span>
+            <span class="wallet-domain-chip">Редкость: ${domain.rarity || '-'}</span>
             <span class="wallet-domain-chip">Тир: ${domain.tier || '-'}</span>
             <span class="wallet-domain-chip">Удача: ${domain.luck || 0}</span>
           </div>
@@ -5357,6 +5397,9 @@ PAGE_TEMPLATE = """
             <summary>Подробнее</summary>
             <div class="tiny">Паттерны: ${domain.patterns.length ? domain.patterns.join(', ') : 'базовый 10K домен'}</div>
             <div class="tiny">Спецколлекции: ${domain.special_collections && domain.special_collections.length ? domain.special_collections.join(', ') : 'нет'}</div>
+            <div class="tiny">Role/Class: ${domain.metadata && domain.metadata.role ? `${domain.metadata.role} / ${domain.metadata.class}` : '-'}</div>
+            <div class="tiny">Passive: ${domain.metadata && domain.metadata.passiveAbility ? domain.metadata.passiveAbility.name : '-'}</div>
+            <div class="tiny">Active: ${domain.metadata && domain.metadata.activeAbility ? domain.metadata.activeAbility.name : '-'}</div>
           </details>
           <button class="wallet-domain-action" data-domain-action="${domain.domain}">${state.selectedDomain === domain.domain ? 'Открыть колоду' : 'Выбрать домен'}</button>
         </div>
@@ -7586,6 +7629,35 @@ def init_db():
                 value TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS domain_progress (
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                level INTEGER NOT NULL DEFAULT 1,
+                experience INTEGER NOT NULL DEFAULT 0,
+                total_matches INTEGER NOT NULL DEFAULT 0,
+                total_wins INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, domain)
+            );
+
+            CREATE TABLE IF NOT EXISTS domain_telemetry (
+                id TEXT PRIMARY KEY,
+                wallet TEXT,
+                domain TEXT,
+                rarity_label TEXT,
+                event_type TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS pack_pity (
+                wallet TEXT NOT NULL,
+                pack_type TEXT NOT NULL,
+                opens_without_legendary INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, pack_type)
+            );
             '''
         )
         columns = {row['name'] for row in conn.execute("PRAGMA table_info(players)").fetchall()}
@@ -7653,6 +7725,32 @@ def ensure_runtime_tables():
                 magic INTEGER NOT NULL,
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (wallet, domain)
+            );
+            CREATE TABLE IF NOT EXISTS domain_progress (
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                level INTEGER NOT NULL DEFAULT 1,
+                experience INTEGER NOT NULL DEFAULT 0,
+                total_matches INTEGER NOT NULL DEFAULT 0,
+                total_wins INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, domain)
+            );
+            CREATE TABLE IF NOT EXISTS domain_telemetry (
+                id TEXT PRIMARY KEY,
+                wallet TEXT,
+                domain TEXT,
+                rarity_label TEXT,
+                event_type TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS pack_pity (
+                wallet TEXT NOT NULL,
+                pack_type TEXT NOT NULL,
+                opens_without_legendary INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, pack_type)
             );
             '''
         )
@@ -7845,9 +7943,102 @@ def guest_domain_for_wallet(wallet):
     return f'{int(digest[:8], 16) % 10000:04d}'
 
 
+def load_domain_progress(wallet, domain):
+    normalized = normalize_domain(domain)
+    if not wallet or not normalized:
+        return {'level': 1, 'experience': 0, 'total_matches': 0, 'total_wins': 0}
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            '''
+            SELECT level, experience, total_matches, total_wins
+            FROM domain_progress
+            WHERE wallet = ? AND domain = ?
+            ''',
+            (wallet, normalized),
+        ).fetchone()
+    if row is None:
+        return {'level': 1, 'experience': 0, 'total_matches': 0, 'total_wins': 0}
+    return dict(row)
+
+
+def grant_domain_experience(wallet, domain, amount, won=False):
+    normalized = normalize_domain(domain)
+    if not wallet or not normalized:
+        return {'level': 1, 'experience': 0, 'total_matches': 0, 'total_wins': 0}
+    ensure_runtime_tables()
+    current = load_domain_progress(wallet, normalized)
+    experience = int(current.get('experience', 0)) + max(0, int(amount or 0))
+    level = max(1, int(current.get('level', 1)))
+    while experience >= level * 100:
+        experience -= level * 100
+        level += 1
+    total_matches = int(current.get('total_matches', 0)) + 1
+    total_wins = int(current.get('total_wins', 0)) + (1 if won else 0)
+    updated = {
+        'level': level,
+        'experience': experience,
+        'total_matches': total_matches,
+        'total_wins': total_wins,
+    }
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO domain_progress (wallet, domain, level, experience, total_matches, total_wins, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(wallet, domain) DO UPDATE SET
+                level = excluded.level,
+                experience = excluded.experience,
+                total_matches = excluded.total_matches,
+                total_wins = excluded.total_wins,
+                updated_at = excluded.updated_at
+            ''',
+            (wallet, normalized, level, experience, total_matches, total_wins, now_iso()),
+        )
+        conn.commit()
+    return updated
+
+
+def log_domain_telemetry(event_type, *, wallet=None, domain=None, rarity_label=None, payload=None):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO domain_telemetry (id, wallet, domain, rarity_label, event_type, payload_json, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                uuid.uuid4().hex,
+                wallet,
+                normalize_domain(domain) if domain else None,
+                rarity_label,
+                str(event_type or 'unknown'),
+                json.dumps(payload or {}, ensure_ascii=False),
+                now_iso(),
+            ),
+        )
+        conn.commit()
+
+
+def get_domain_metadata_payload(domain, wallet=None):
+    normalized = normalize_domain(domain)
+    if not normalized:
+        return None
+    progress = load_domain_progress(wallet, normalized) if wallet else {'level': 1, 'experience': 0}
+    metadata = getDomainMetadata(normalized, progress=progress)
+    metadata['winRate'] = (
+        round(progress.get('total_wins', 0) / progress.get('total_matches', 1), 3)
+        if progress.get('total_matches', 0)
+        else 0
+    )
+    metadata['totalMatches'] = int(progress.get('total_matches', 0))
+    metadata['totalWins'] = int(progress.get('total_wins', 0))
+    return metadata
+
+
 def guest_domain_payload(wallet):
     domain = guest_domain_for_wallet(wallet)
-    base = score_from_domain(domain)
+    base = score_from_domain(domain, wallet=wallet)
     return {
         'domain': domain,
         'domain_exists': True,
@@ -7857,6 +8048,8 @@ def guest_domain_payload(wallet):
         'special_collections': base.get('special_collections', []),
         'luck': base.get('luck', 0),
         'score': base['score'],
+        'rarity': base.get('rarity'),
+        'metadata': base.get('metadata'),
         'is_guest': True,
     }
 
@@ -8182,47 +8375,64 @@ def detect_10k_patterns(domain):
     return patterns
 
 
-def score_from_domain(domain):
-    attack = ATTACK_BASE
-    defense = DEFENSE_BASE
-    luck = 0
-    patterns = []
-    tier = 'Tier-3'
-    special_collections = []
-    bonus_score = 0
+def score_from_domain(domain, wallet=None):
+    metadata = get_domain_metadata_payload(domain, wallet=wallet)
+    if metadata is None:
+        return {
+            'domain': normalize_domain(domain),
+            'attack': ATTACK_BASE,
+            'defense': DEFENSE_BASE,
+            'luck': 0,
+            'patterns': [],
+            'tier': 'Regular',
+            'tier_id': 'regular',
+            'rarity': 'Common',
+            'special_collections': [],
+            'bonus_score': 0,
+            'pool_base': 2500,
+            'pool_total': 2500,
+            'score': 2500,
+            'metadata': None,
+        }
 
-    try:
-        club = classify_domain_with_10k_config(domain)
-        patterns = club['patterns']
-        tier = club['tier']
-        special_collections = club['special_collections']
-        bonus_score = int(club.get('bonus_score') or 0)
-        luck = len(special_collections)
-        attack += bonus_score // 1500
-        defense += bonus_score // 1900
-    except (requests.RequestException, RuntimeError, ValueError, KeyError):
-        patterns = detect_10k_patterns(domain)
-        bonus_score = 0
-
-    score = 2500 + bonus_score
-    if tier == 'Tier-3':
-        for tier_config in TIERS:
-            if score >= tier_config['min_score']:
-                tier = tier_config['name']
-                break
+    score = int(metadata.get('score') or 2500)
+    level = max(1, int(metadata.get('level') or 1))
+    rarity = metadata.get('rarityLabel') or 'Common'
+    bonus_score = int(metadata.get('bonusScore') or 0)
+    base_score = int(metadata.get('baseScore') or 2500)
+    tier_bonus = {
+        'regular': 0,
+        'tier2': 3,
+        'tier1': 6,
+        'tier0': 9,
+    }.get(str(metadata.get('tierId') or 'regular').lower(), 0)
+    rarity_bonus = {
+        'Common': 0,
+        'Uncommon': 1,
+        'Rare': 2,
+        'Epic': 3,
+        'Legendary': 4,
+    }.get(rarity, 0)
+    bounded_domain_edge = min(8, max(0, round((score - 2500) / 12000)))
+    attack = ATTACK_BASE + rarity_bonus + tier_bonus + min(4, level - 1)
+    defense = DEFENSE_BASE + max(0, rarity_bonus - 1) + tier_bonus + min(4, level - 1)
+    luck = min(6, len(metadata.get('specialCollections') or []) + (1 if '8' in str(metadata.get('normalizedNumber') or '') else 0))
 
     return {
-        'domain': domain,
+        'domain': metadata['domain'].replace('.ton', ''),
         'attack': attack,
         'defense': defense,
         'luck': luck,
-        'patterns': patterns,
-        'tier': tier,
-        'special_collections': special_collections,
+        'patterns': list(metadata.get('atomicPatterns') or []),
+        'tier': metadata.get('tierLabel') or 'Regular',
+        'tier_id': metadata.get('tierId') or 'regular',
+        'rarity': rarity,
+        'special_collections': list(metadata.get('specialCollections') or []),
         'bonus_score': bonus_score,
-        'pool_base': 2500,
-        'pool_total': 2500 + bonus_score,
+        'pool_base': base_score,
+        'pool_total': 2500 + min(900, bounded_domain_edge * 90 + max(0, bonus_score // 80)),
         'score': score,
+        'metadata': metadata,
     }
 
 
@@ -8332,19 +8542,21 @@ def weighted_choice(weights, rng):
 
 def rarity_weights_for_domain(base):
     weights = {'basic': 70, 'rare': 19, 'epic': 7, 'mythic': 3, 'legendary': 1}
-    tier = (base.get('tier') or '').lower()
-    if 'tier-0' in tier:
+    tier_id = str(base.get('tier_id') or '').lower()
+    rarity = str(base.get('rarity') or '').lower()
+    if tier_id == 'tier0' or rarity == 'legendary':
         weights = {'basic': 30, 'rare': 28, 'epic': 21, 'mythic': 13, 'legendary': 8}
-    elif 'tier-1' in tier:
+    elif tier_id == 'tier1' or rarity == 'epic':
         weights = {'basic': 40, 'rare': 29, 'epic': 18, 'mythic': 9, 'legendary': 4}
-    elif 'tier-2' in tier:
+    elif tier_id == 'tier2' or rarity == 'rare':
         weights = {'basic': 52, 'rare': 27, 'epic': 14, 'mythic': 5, 'legendary': 2}
 
     patterns = set(base.get('patterns') or [])
     weights['rare'] += min(12, len(patterns) * 2)
     weights['epic'] += min(8, len(patterns))
     weights['mythic'] += min(5, len(patterns))
-    if patterns.intersection({'mirror', 'all_same', 'first_100', 'zero_frames'}):
+    pattern_signal = " ".join(patterns).lower()
+    if any(token in pattern_signal for token in ('зерк', 'палиндром', 'ступ', 'календар', 'первые')):
         weights['legendary'] += 2
         weights['mythic'] += 2
         weights['basic'] -= 5
@@ -8377,14 +8589,17 @@ def normalize_card_profile(card):
 
 
 def domain_bonus_pool(domain):
-    normalized = normalize_domain(domain)
-    if not normalized:
+    base = score_from_domain(domain)
+    metadata = base.get('metadata') or {}
+    if not metadata:
         return 0
-    try:
-        club = classify_domain_with_10k_config(normalized)
-        return max(0, int(club.get('bonus_score') or 0))
-    except (requests.RequestException, RuntimeError, ValueError, KeyError):
-        return 0
+    score = int(metadata.get('score') or 2500)
+    tier_id = str(metadata.get('tierId') or 'regular').lower()
+    level = max(1, int(metadata.get('level') or 1))
+    bounded = max(0, min(900, round((score - 2500) * 0.06)))
+    tier_flat = {'regular': 0, 'tier2': 80, 'tier1': 160, 'tier0': 260}.get(tier_id, 0)
+    level_bonus = min(120, (level - 1) * 12)
+    return bounded + tier_flat + level_bonus
 
 
 def deck_power_pool(cards, domain=None):
@@ -8512,17 +8727,63 @@ def materialize_card(card_template, domain, slot):
     }
 
 
-def generate_pack(domain, count=5, seed_value=None):
-    base = score_from_domain(domain)
+def pack_pity_status(wallet, pack_type):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            '''
+            SELECT opens_without_legendary
+            FROM pack_pity
+            WHERE wallet = ? AND pack_type = ?
+            ''',
+            (wallet, pack_type),
+        ).fetchone()
+    return int(row['opens_without_legendary']) if row else 0
+
+
+def update_pack_pity(wallet, pack_type, cards):
+    pity_value = 0 if any(str(card.get('rarity_key')) == 'legendary' for card in (cards or [])) else pack_pity_status(wallet, pack_type) + 1
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO pack_pity (wallet, pack_type, opens_without_legendary, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(wallet, pack_type) DO UPDATE SET
+                opens_without_legendary = excluded.opens_without_legendary,
+                updated_at = excluded.updated_at
+            ''',
+            (wallet, pack_type, pity_value, now_iso()),
+        )
+        conn.commit()
+    return pity_value
+
+
+def pack_config(pack_type):
+    return PACK_TYPES.get(str(pack_type or '').strip().lower()) or PACK_TYPES['common']
+
+
+def generate_pack(domain, count=None, seed_value=None, pack_type='common', guarantee_legendary=False, wallet=None):
+    base = score_from_domain(domain, wallet=wallet)
     seed_source = seed_value or f'deck:{domain}'
     rng = random.Random(hashlib.sha256(str(seed_source).encode()).hexdigest())
+    config = pack_config(pack_type)
+    count = int(count or config['count'])
     weights = rarity_weights_for_domain(base)
+    for rarity_key, weight in (config.get('weights') or {}).items():
+        weights[rarity_key] = max(weights.get(rarity_key, 0), int(weight))
+    if config.get('lucky_bonus'):
+        metadata = base.get('metadata') or {}
+        if metadata.get('superPattern') or (metadata.get('specialCollections') or []):
+            weights['legendary'] = weights.get('legendary', 0) + 2
+            weights['mythic'] = weights.get('mythic', 0) + 2
     cards = []
     for slot in range(1, count + 1):
-        rarity = weighted_choice(weights, rng)
+        rarity = 'legendary' if guarantee_legendary and slot == count else weighted_choice(weights, rng)
         template = rng.choice(CARD_CATALOG_BY_RARITY[rarity])
         card = materialize_card(template, domain, slot)
         card['patterns'] = base.get('patterns', [])
+        card['domain_metadata'] = base.get('metadata')
         cards.append(card)
     return cards
 
@@ -9049,6 +9310,7 @@ def latest_opened_domain_for_wallet(wallet):
 def deck_summary_for_domain(domain, wallet=None):
     if not domain:
         return None
+    metadata = get_domain_metadata_payload(domain, wallet=wallet)
     cards = load_active_deck_cards(wallet, domain) if wallet else None
     if not cards:
         cards = generate_pack(domain)
@@ -9064,6 +9326,7 @@ def deck_summary_for_domain(domain, wallet=None):
         'discipline_build': build['points'],
         'discipline_pool': build['pool'],
         'total_score': deck_score(cards),
+        'domain_metadata': metadata,
     }
 
 
@@ -9209,7 +9472,7 @@ def fetch_wallet_domains(wallet, force_refresh=False):
     for item in nft_items:
         for domain in extract_domain_candidates_from_nft(item):
             if domain not in unique_domains:
-                base = score_from_domain(domain)
+                base = score_from_domain(domain, wallet=wallet)
                 dns_info = check_dns_domain(domain)
                 unique_domains[domain] = {
                     'domain': domain,
@@ -9219,9 +9482,11 @@ def fetch_wallet_domains(wallet, force_refresh=False):
                     or 'TonAPI NFT item',
                     'patterns': base['patterns'],
                     'tier': base['tier'],
+                    'rarity': base.get('rarity'),
                     'special_collections': base.get('special_collections', []),
                     'luck': base.get('luck', 0),
                     'score': base['score'],
+                    'metadata': base.get('metadata'),
                 }
 
     domains = sorted(unique_domains.values(), key=lambda item: (-item['score'], item['domain']))
@@ -11022,9 +11287,11 @@ def api_decks(wallet):
             {
                 'domain': item['domain'],
                 'tier': item.get('tier'),
+                'rarity': item.get('rarity'),
                 'luck': item.get('luck', 0),
                 'score': item.get('score', summary['total_score']),
                 'special_collections': item.get('special_collections') or [],
+                'metadata': item.get('metadata') or summary.get('domain_metadata'),
                 'deck': summary,
                 'is_active': player.get('current_domain') == item['domain'],
             }
@@ -11205,6 +11472,20 @@ def api_wallet_domains():
     return jsonify({'wallet': wallet, 'domains': domains, 'marketplaces': MARKETPLACE_LINKS})
 
 
+@app.route('/api/domain/explain')
+def api_domain_explain():
+    domain = normalize_domain(request.args.get('domain'))
+    wallet = (request.args.get('wallet') or '').strip() or None
+    if not domain:
+        return json_error('Нужен 4-значный .ton домен.')
+    try:
+        progress = load_domain_progress(wallet, domain) if wallet else None
+        payload = explainDomainUniqueness(domain, progress=progress)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify(payload)
+
+
 @app.route('/api/pack', methods=['POST'])
 def api_pack():
     payload = request.get_json(silent=True) or {}
@@ -11212,12 +11493,15 @@ def api_pack():
     domain = normalize_domain(payload.get('domain'))
     source = (payload.get('source') or 'daily').strip().lower()
     payment_id = (payload.get('payment_id') or '').strip()
+    pack_type = str(payload.get('pack_type') or ('common' if source == 'daily' else 'lucky')).strip().lower()
     if not valid_wallet_address(wallet):
         return json_error('Кошелёк не подключен.')
     if not domain:
         return json_error('Нужно выбрать реальный домен.')
     if source not in {'daily', 'paid'}:
         return json_error('Неизвестный тип открытия пака.')
+    if pack_type not in PACK_TYPES:
+        return json_error('Неизвестный тип пака.')
     try:
         if not validate_wallet_owns_domain(wallet, domain):
             return json_error('Выбранный домен не найден в подключённом кошельке.', 403)
@@ -11236,11 +11520,43 @@ def api_pack():
             return json_error('Платёж не подтверждён.', 403)
 
     seed = f'{domain}:{wallet}:{source}:{payment_id or now_iso()}'
-    cards = generate_pack(domain, seed_value=seed)
+    guarantee_legendary = pack_pity_status(wallet, pack_type) >= PACK_PITY_THRESHOLD - 1
+    cards = generate_pack(domain, seed_value=seed, pack_type=pack_type, guarantee_legendary=guarantee_legendary, wallet=wallet)
     total = deck_score(cards)
     pack_id = store_pack_open(wallet, domain, source, cards, total, payment_id=payment_id or None)
     ensure_player(wallet, domain, domain)
-    return jsonify({'wallet': wallet, 'domain': domain, 'cards': cards, 'total_score': total, 'pack_id': pack_id, 'source': source})
+    pity_after = update_pack_pity(wallet, pack_type, cards)
+    progress = grant_domain_experience(wallet, domain, 12 if source == 'paid' else 6, won=False)
+    metadata = get_domain_metadata_payload(domain, wallet=wallet)
+    log_domain_telemetry(
+        'pack_open',
+        wallet=wallet,
+        domain=domain,
+        rarity_label=metadata.get('rarityLabel') if metadata else None,
+        payload={
+            'source': source,
+            'pack_type': pack_type,
+            'guarantee_legendary': guarantee_legendary,
+            'pity_after': pity_after,
+            'total_score': total,
+            'rarities': [card.get('rarity_key') for card in cards],
+        },
+    )
+    return jsonify(
+        {
+            'wallet': wallet,
+            'domain': domain,
+            'cards': cards,
+            'total_score': total,
+            'pack_id': pack_id,
+            'source': source,
+            'pack_type': pack_type,
+            'guarantee_legendary': guarantee_legendary,
+            'pity_after': pity_after,
+            'domain_metadata': metadata,
+            'progress': progress,
+        }
+    )
 
 
 @app.route('/api/cards/catalog')
