@@ -1073,77 +1073,74 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-clash {
-      width: min(260px, 42vw);
-      min-width: 180px;
+      position: absolute;
+      top: 18px;
+      bottom: 18px;
+      width: min(148px, 18vw);
+      min-width: 108px;
+      transform: translateX(-50%);
       display: grid;
-      gap: 10px;
-      margin-top: 22px;
-      padding: 12px 10px 10px;
-      border-radius: 18px;
-      border: 1px solid rgba(121, 217, 255, 0.22);
-      background:
-        radial-gradient(circle at 50% 50%, rgba(69, 215, 255, 0.08), transparent 40%),
-        linear-gradient(180deg, rgba(8, 21, 37, 0.96), rgba(8, 17, 29, 0.98));
-      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+      grid-template-rows: 1fr auto 1fr;
+      justify-items: center;
+      align-items: center;
       pointer-events: none;
+      z-index: 7;
       opacity: 0;
-      transform: translateY(10px) scale(0.96);
     }
 
     .arena-lane-clash.visible {
-      animation: laneClashIn 240ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: laneClashIn 180ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .arena-lane-clash.resolving {
-      animation: roundClashFadeOut 320ms cubic-bezier(.16,.84,.2,1) forwards;
-    }
-
-    .arena-lane-clash-line {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 8px;
+      animation: roundClashFadeOut 280ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .arena-lane-card {
+      width: 100%;
+      max-width: 148px;
       min-width: 0;
       padding: 10px 8px;
       border-radius: 14px;
       border: 1px solid rgba(121, 217, 255, 0.18);
-      background: rgba(255, 255, 255, 0.04);
+      background:
+        linear-gradient(180deg, rgba(10, 24, 40, 0.96), rgba(8, 16, 30, 0.98)),
+        rgba(255, 255, 255, 0.04);
       font-size: 11px;
       line-height: 1.2;
       opacity: 0;
+      text-align: center;
+      box-shadow: 0 14px 24px rgba(0, 0, 0, 0.2);
     }
 
     .arena-lane-card.player {
-      text-align: left;
+      align-self: start;
     }
 
     .arena-lane-card.enemy {
-      text-align: right;
+      align-self: end;
       border-color: rgba(255, 122, 134, 0.18);
     }
 
     .arena-lane-clash.visible .arena-lane-card.player {
-      animation: laneCardPlayerIn 360ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: laneCardTopDown 520ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .arena-lane-clash.visible .arena-lane-card.enemy {
-      animation: laneCardEnemyIn 360ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: laneCardBottomUp 520ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .arena-lane-versus {
       display: grid;
       justify-items: center;
-      gap: 6px;
-      min-width: 56px;
+      gap: 8px;
+      width: 100%;
       opacity: 0;
       transform: scale(0.84);
     }
 
     .arena-lane-clash.visible .arena-lane-versus {
-      animation: clashVersusPulse 300ms cubic-bezier(.16,.84,.2,1) 120ms forwards;
+      animation: clashVersusPulse 300ms cubic-bezier(.16,.84,.2,1) 220ms forwards;
     }
 
     .arena-lane-action {
@@ -1522,33 +1519,33 @@ PAGE_TEMPLATE = """
       }
     }
 
-    @keyframes laneCardPlayerIn {
+    @keyframes laneCardTopDown {
       0% {
         opacity: 0;
-        transform: translateX(-22px) scale(0.94);
+        transform: translateY(-86px) scale(0.92);
       }
-      68% {
+      72% {
         opacity: 1;
-        transform: translateX(8px) scale(1.02);
+        transform: translateY(14px) scale(1.03);
       }
       100% {
         opacity: 1;
-        transform: translateX(0) scale(1);
+        transform: translateY(0) scale(1);
       }
     }
 
-    @keyframes laneCardEnemyIn {
+    @keyframes laneCardBottomUp {
       0% {
         opacity: 0;
-        transform: translateX(22px) scale(0.94);
+        transform: translateY(86px) scale(0.92);
       }
-      68% {
+      72% {
         opacity: 1;
-        transform: translateX(-8px) scale(1.02);
+        transform: translateY(-14px) scale(1.03);
       }
       100% {
         opacity: 1;
-        transform: translateX(0) scale(1);
+        transform: translateY(0) scale(1);
       }
     }
 
@@ -5430,25 +5427,27 @@ PAGE_TEMPLATE = """
       const opponentActionKey = latestRound.opponent_action || 'guard';
       const resultKey = latestRound.winner === 'player' ? 'win' : (latestRound.winner === 'opponent' ? 'lose' : 'draw');
       const resultLabel = resultKey === 'win' ? 'WIN' : (resultKey === 'lose' ? 'LOSE' : 'DRAW');
+      const laneRect = activeLane.getBoundingClientRect();
+      const coreRect = arenaCore.getBoundingClientRect();
+      const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
+      laneReveal.style.left = `${laneCenter}px`;
       laneReveal.innerHTML = `
-        <div class="arena-lane-clash-line">
-          <div class="arena-lane-card player">
-            <strong>${playerCard.title || 'Твоя карта'}</strong>
-          </div>
-          <div class="arena-lane-versus">
-            <div class="arena-lane-action ${playerActionKey}">${actionRuleMeta(playerActionKey).ruLabel}</div>
-            <div class="battle-vs-orb">VS</div>
-            <div class="arena-lane-action ${opponentActionKey}">${actionRuleMeta(opponentActionKey).ruLabel}</div>
-          </div>
-          <div class="arena-lane-card enemy">
-            <strong>${opponentCard.title || 'Карта соперника'}</strong>
-          </div>
+        <div class="arena-lane-card player">
+          <strong>${playerCard.title || 'Твоя карта'}</strong>
         </div>
-        <div class="arena-lane-result ${resultKey}">${resultLabel}</div>
+        <div class="arena-lane-versus">
+          <div class="arena-lane-action ${playerActionKey}">${actionRuleMeta(playerActionKey).ruLabel}</div>
+          <div class="battle-vs-orb">VS</div>
+          <div class="arena-lane-action ${opponentActionKey}">${actionRuleMeta(opponentActionKey).ruLabel}</div>
+          <div class="arena-lane-result ${resultKey}">${resultLabel}</div>
+        </div>
+        <div class="arena-lane-card enemy">
+          <strong>${opponentCard.title || 'Карта соперника'}</strong>
+        </div>
       `;
-      activeLane.appendChild(laneReveal);
+      arenaCore.appendChild(laneReveal);
       requestAnimationFrame(() => laneReveal.classList.add('visible'));
       await sleep(420);
       const resultNode = laneReveal.querySelector('.arena-lane-result');
