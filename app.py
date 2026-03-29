@@ -1202,6 +1202,41 @@ PAGE_TEMPLATE = """
       opacity: 0.9;
     }
 
+    .arena-action-sticker {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(216, 228, 255, 0.18);
+      background: rgba(7, 16, 28, 0.38);
+      backdrop-filter: blur(4px);
+      opacity: 0.72;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .arena-action-sticker svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
+    .arena-action-sticker.burst {
+      border-color: rgba(255, 122, 134, 0.34);
+      background: rgba(74, 24, 37, 0.34);
+      color: rgba(255, 210, 216, 0.95);
+    }
+
+    .arena-action-sticker.guard {
+      border-color: rgba(83, 246, 184, 0.34);
+      background: rgba(18, 57, 50, 0.34);
+      color: rgba(215, 255, 239, 0.95);
+    }
+
     .arena-lane-impact {
       position: absolute;
       left: 50%;
@@ -5463,6 +5498,21 @@ PAGE_TEMPLATE = """
       return data.result || null;
     }
 
+    function actionStickerSvg(actionKey) {
+      if (actionKey === 'burst') {
+        return `
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M14.8 2.7 20.7 8.6 18.9 10.4 16.7 8.2 12.6 12.3 14.9 14.6 13 16.5 10.8 14.3 6.6 18.5 8.8 20.7 7 22.5 1.1 16.6 2.9 14.8 5.1 17 9.3 12.8 7 10.5 8.9 8.6 11.2 10.9 15.3 6.8 13 4.5z"/>
+          </svg>
+        `;
+      }
+      return `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M12 2 19 5v6.2c0 5.2-3.2 9.4-7 10.8-3.8-1.4-7-5.6-7-10.8V5zm0 3.1L7.4 7v4.1c0 3.6 2 6.7 4.6 8 2.6-1.3 4.6-4.4 4.6-8V7z"/>
+        </svg>
+      `;
+    }
+
     async function playRoundClashReveal(currentResult, nextResult, playerActionKey) {
       const activeLane = battleResult.querySelector('.arena-round-choice-slot.active');
       const arenaCore = battleResult.querySelector('.arena-core');
@@ -5524,12 +5574,14 @@ PAGE_TEMPLATE = """
       playerClone.style.top = `${playerRect.top - coreRect.top}px`;
       playerClone.style.width = `${clashCardWidth}px`;
       playerClone.style.height = `${clashCardHeight}px`;
+      playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
       const enemyClone = enemySource.cloneNode(true);
       enemyClone.className = `${enemyClone.className} arena-lane-card enemy ${opponentActionKey}`.trim();
       enemyClone.style.left = `${enemyRect.left - coreRect.left}px`;
       enemyClone.style.top = `${enemyRect.top - coreRect.top}px`;
       enemyClone.style.width = `${clashCardWidth}px`;
       enemyClone.style.height = `${clashCardHeight}px`;
+      enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
       const impactNode = document.createElement('div');
       impactNode.className = `arena-lane-impact ${resultKey}`;
       impactNode.style.left = `${laneCenter}px`;
