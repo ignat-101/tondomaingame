@@ -5633,6 +5633,14 @@ PAGE_TEMPLATE = """
       if (arenaShell) {
         arenaShell.classList.add('lane-clash-live');
       }
+      const playerSourceVisibility = playerSource.style.visibility;
+      const playerSourceOpacity = playerSource.style.opacity;
+      const enemySourceVisibility = enemySource.style.visibility;
+      const enemySourceOpacity = enemySource.style.opacity;
+      playerSource.style.visibility = 'hidden';
+      playerSource.style.opacity = '0';
+      enemySource.style.visibility = 'hidden';
+      enemySource.style.opacity = '0';
       const playerClone = playerSource.cloneNode(true);
       playerClone.className = `${playerClone.className} arena-lane-card player ${playerActionKey}`.trim();
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
@@ -5675,6 +5683,10 @@ PAGE_TEMPLATE = """
       laneReveal.classList.add('resolving');
       await sleep(260);
       laneReveal.remove();
+      playerSource.style.visibility = playerSourceVisibility;
+      playerSource.style.opacity = playerSourceOpacity;
+      enemySource.style.visibility = enemySourceVisibility;
+      enemySource.style.opacity = enemySourceOpacity;
       activeLane.classList.remove('clash-resolving');
       if (arenaShell) {
         arenaShell.classList.remove('lane-clash-live');
