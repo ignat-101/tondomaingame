@@ -4876,6 +4876,9 @@ PAGE_TEMPLATE = """
 
     function strategyMeta(strategyKey) {
       return {
+        attack_boost: {label: 'Attack boost', description: 'Больше давления в атакующих раундах.'},
+        defense_boost: {label: 'Defense boost', description: 'Надежнее держит контр-ход и защиту.'},
+        energy_boost: {label: 'Energy boost', description: 'Лучше раскрывает способности домена.'},
         aggressive: {label: 'Агрессия', description: 'Больше натиска и давления по раундам.'},
         balanced: {label: 'Баланс', description: 'Ровная стратегия без явных дыр.'},
         tricky: {label: 'Хитрость', description: 'Больше контров и неожиданных разменов.'},
@@ -6239,7 +6242,7 @@ PAGE_TEMPLATE = """
                     </div>
                     <div class="row" style="margin-top:10px;">
                       <select id="prebattle-strategy">
-                        ${['aggressive', 'balanced', 'tricky'].map((key) => {
+                        ${['attack_boost', 'defense_boost', 'energy_boost', 'balanced'].map((key) => {
                           const meta = strategyMeta(key);
                           return `<option value="${key}" ${String(result.strategy_key || 'balanced') === key ? 'selected' : ''}>${meta.label}</option>`;
                         }).join('')}
@@ -8025,6 +8028,75 @@ def log_domain_telemetry(event_type, *, wallet=None, domain=None, rarity_label=N
         conn.commit()
 
 
+def telemetry_summary(wallet=None):
+    ensure_runtime_tables()
+    params = []
+    where = ''
+    if wallet:
+        where = 'WHERE wallet = ?'
+        params.append(wallet)
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            f'''
+            SELECT wallet, domain, rarity_label, event_type, payload_json, created_at
+            FROM domain_telemetry
+            {where}
+            ORDER BY created_at DESC
+            ''',
+            tuple(params),
+        ).fetchall()
+    events = []
+    for row in rows:
+        item = dict(row)
+        try:
+            item['payload'] = json.loads(item.pop('payload_json') or '{}')
+        except json.JSONDecodeError:
+            item['payload'] = {}
+        events.append(item)
+
+    battle_events = [item for item in events if item['event_type'].endswith('_battle_complete')]
+    pack_events = [item for item in events if item['event_type'] == 'pack_open']
+    rarity_stats = {}
+    domain_stats = {}
+    ability_usage = 0
+    damage_distribution = []
+    match_durations = []
+    for item in battle_events:
+        payload = item.get('payload') or {}
+        rarity_key = item.get('rarity_label') or 'Unknown'
+        rarity_stats.setdefault(rarity_key, {'matches': 0, 'wins': 0})
+        rarity_stats[rarity_key]['matches'] += 1
+        if payload.get('result') == 'win':
+            rarity_stats[rarity_key]['wins'] += 1
+        domain_key = item.get('domain') or 'unknown'
+        domain_stats.setdefault(domain_key, {'matches': 0, 'wins': 0})
+        domain_stats[domain_key]['matches'] += 1
+        if payload.get('result') == 'win':
+            domain_stats[domain_key]['wins'] += 1
+        if payload.get('ability_used'):
+            ability_usage += 1
+        if payload.get('match_duration_rounds') is not None:
+            match_durations.append(int(payload.get('match_duration_rounds') or 0))
+        if payload.get('own_score') is not None and payload.get('opp_score') is not None:
+            damage_distribution.append({'own_score': payload.get('own_score'), 'opp_score': payload.get('opp_score')})
+
+    for bucket in list(rarity_stats.values()) + list(domain_stats.values()):
+        matches = max(1, int(bucket.get('matches', 0)))
+        bucket['win_rate'] = round(bucket.get('wins', 0) / matches, 3)
+
+    return {
+        'events_total': len(events),
+        'battle_events_total': len(battle_events),
+        'pack_events_total': len(pack_events),
+        'rarity_win_rates': rarity_stats,
+        'domain_win_rates': domain_stats,
+        'ability_usage_rate': round(ability_usage / max(1, len(battle_events)), 3),
+        'match_duration_avg': round(sum(match_durations) / max(1, len(match_durations)), 2) if match_durations else 0,
+        'damage_distribution': damage_distribution[-25:],
+        'recent_events': events[:25],
+    }
+
+
 def get_domain_metadata_payload(domain, wallet=None):
     normalized = normalize_domain(domain)
     if not normalized:
@@ -8500,6 +8572,21 @@ ACTION_RULES = {
     },
 }
 STRATEGY_PRESETS = {
+    'attack_boost': {
+        'label': 'Attack boost',
+        'description': 'Больше давления в атакующих раундах. Сильнее, если сам навязываешь темп.',
+        'plan': ['burst', 'burst', 'guard', 'burst', 'burst'],
+    },
+    'defense_boost': {
+        'label': 'Defense boost',
+        'description': 'Надежнее держит контр-ходы и затяжной бой. Сильнее против прямого давления.',
+        'plan': ['guard', 'guard', 'burst', 'guard', 'guard'],
+    },
+    'energy_boost': {
+        'label': 'Energy boost',
+        'description': 'Лучше раскрывает способности домена и тайминг ходов. Сильнее в mid/late game.',
+        'plan': ['guard', 'ability', 'burst', 'ability', 'burst'],
+    },
     'aggressive': {
         'label': 'Агрессия',
         'description': 'Сразу давит, лучше на добивании и против пассивной игры.',
@@ -9189,6 +9276,110 @@ def choose_bot_round_action(planned_action, energy, ability_state, metadata, pha
     return 'guard'
 
 
+def resolve_battle_round(*, seed_value, idx, focus, label, phase, card_a, card_b, build_a, build_b, featured_a, featured_b, action_a, action_b, strategy_key_a, strategy_key_b, prev_a, prev_b, domain_meta_a=None, domain_meta_b=None, ability_state_a=None, ability_state_b=None):
+    ability_state_a = dict(ability_state_a or {})
+    ability_state_b = dict(ability_state_b or {})
+    domain_meta_a = dict(domain_meta_a or {})
+    domain_meta_b = dict(domain_meta_b or {})
+    effective_action_a = effective_action_key(action_a, domain_meta_a)
+    effective_action_b = effective_action_key(action_b, domain_meta_b)
+    value_a = max(0, round(build_bonus_value(build_a, focus) / 7))
+    value_b = max(0, round(build_bonus_value(build_b, focus) / 7))
+    card_boost_a = matchup_strategy_bonus(card_a, card_b, phase, idx)
+    card_boost_b = matchup_strategy_bonus(card_b, card_a, phase, idx)
+    action_bonus_a, action_bonus_b, action_note_a, action_note_b = action_round_resolution(effective_action_a, effective_action_b)
+    strategy_bonus_a, strategy_note_a = strategy_round_bonus(strategy_key_a, focus, phase, idx, action_a, prev_a, featured_a or card_a)
+    strategy_bonus_b, strategy_note_b = strategy_round_bonus(strategy_key_b, focus, phase, idx, action_b, prev_b, featured_b or card_b)
+    skill_bonus_a, skill_note_a = apply_skill_bonus((featured_a or {}).get('skill_key'), focus, phase, value_a, value_b, featured_a or card_a, featured_b or card_b, idx, prev_a)
+    skill_bonus_b, skill_note_b = apply_skill_bonus((featured_b or {}).get('skill_key'), focus, phase, value_b, value_a, featured_b or card_b, featured_a or card_a, idx, prev_b)
+    featured_bonus_a, featured_note_a = featured_card_round_bonus(featured_a or card_a, featured_b or card_b, focus, phase, idx, prev_a)
+    featured_bonus_b, featured_note_b = featured_card_round_bonus(featured_b or card_b, featured_a or card_a, focus, phase, idx, prev_b)
+    passive_bonus_a, passive_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'pre_round', previous_outcome=prev_a, action_key=action_a)
+    passive_bonus_b, passive_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'pre_round', previous_outcome=prev_b, action_key=action_b)
+    active_bonus_a, active_note_a = active_ability_bonus(domain_meta_a, ability_state_a, phase, focus, action_a)
+    active_bonus_b, active_note_b = active_ability_bonus(domain_meta_b, ability_state_b, phase, focus, action_b)
+    counter_bonus_a, counter_note_a = class_counter_bonus(domain_meta_a, domain_meta_b, action_a)
+    counter_bonus_b, counter_note_b = class_counter_bonus(domain_meta_b, domain_meta_a, action_b)
+    roll_rng = random.Random(hashlib.sha256(f"{seed_value}:{idx}:{action_a}:{action_b}".encode()).hexdigest())
+    roll_bonus_a, crit_a = energy_roll_bonus(action_a, roll_rng)
+    roll_bonus_b, crit_b = energy_roll_bonus(action_b, roll_rng)
+    passive_roll_a, passive_roll_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'roll', previous_outcome=prev_a, action_key=action_a)
+    passive_roll_b, passive_roll_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'roll', previous_outcome=prev_b, action_key=action_b)
+    if crit_a:
+        roll_bonus_a += 6
+    if crit_b:
+        roll_bonus_b += 6
+    swing_rng = random.Random(hashlib.sha256(f"{seed_value}:swing:{idx}".encode()).hexdigest())
+    swing_a = swing_rng.randint(0, 2)
+    swing_b = swing_rng.randint(0, 2)
+    domain_bonus_a = passive_bonus_a + active_bonus_a + counter_bonus_a + passive_roll_a
+    domain_bonus_b = passive_bonus_b + active_bonus_b + counter_bonus_b + passive_roll_b
+    total_a = value_a + card_boost_a + action_bonus_a + strategy_bonus_a + skill_bonus_a + featured_bonus_a + roll_bonus_a + domain_bonus_a + swing_a
+    total_b = value_b + card_boost_b + action_bonus_b + strategy_bonus_b + skill_bonus_b + featured_bonus_b + roll_bonus_b + domain_bonus_b + swing_b
+    if total_a > total_b:
+        winner = 'a'
+        next_prev_a, next_prev_b = 'win', 'loss'
+    elif total_b > total_a:
+        winner = 'b'
+        next_prev_a, next_prev_b = 'loss', 'win'
+    else:
+        winner = 'draw'
+        next_prev_a = next_prev_b = 'draw'
+    energy_spent_a = action_energy_cost(action_a, (ability_state_a or {}).get('active'))
+    energy_spent_b = action_energy_cost(action_b, (ability_state_b or {}).get('active'))
+    return {
+        'round': idx + 1,
+        'label': label,
+        'focus': focus,
+        'phase': phase,
+        'action_a': action_a,
+        'action_b': action_b,
+        'action_bonus_a': action_bonus_a,
+        'action_bonus_b': action_bonus_b,
+        'action_note_a': action_note_a,
+        'action_note_b': action_note_b,
+        'strategy_key_a': strategy_key_a,
+        'strategy_key_b': strategy_key_b,
+        'strategy_bonus_a': strategy_bonus_a,
+        'strategy_bonus_b': strategy_bonus_b,
+        'strategy_note_a': strategy_note_a,
+        'strategy_note_b': strategy_note_b,
+        'card_a': {'slot': card_a.get('slot'), 'title': card_a.get('title')},
+        'card_b': {'slot': card_b.get('slot'), 'title': card_b.get('title')},
+        'value_a': value_a,
+        'value_b': value_b,
+        'boost_a': card_boost_a,
+        'boost_b': card_boost_b,
+        'skill_bonus_a': skill_bonus_a,
+        'skill_bonus_b': skill_bonus_b,
+        'skill_note_a': skill_note_a,
+        'skill_note_b': skill_note_b,
+        'featured_bonus_a': featured_bonus_a,
+        'featured_bonus_b': featured_bonus_b,
+        'featured_note_a': featured_note_a,
+        'featured_note_b': featured_note_b,
+        'energy_spent_a': energy_spent_a,
+        'energy_spent_b': energy_spent_b,
+        'roll_bonus_a': roll_bonus_a,
+        'roll_bonus_b': roll_bonus_b,
+        'crit_a': crit_a,
+        'crit_b': crit_b,
+        'domain_bonus_a': domain_bonus_a,
+        'domain_bonus_b': domain_bonus_b,
+        'domain_note_a': ' • '.join(part for part in [passive_note_a, active_note_a, counter_note_a, passive_roll_note_a] if part),
+        'domain_note_b': ' • '.join(part for part in [passive_note_b, active_note_b, counter_note_b, passive_roll_note_b] if part),
+        'swing_a': swing_a,
+        'swing_b': swing_b,
+        'total_a': total_a,
+        'total_b': total_b,
+        'winner': winner,
+        'next_prev_a': next_prev_a,
+        'next_prev_b': next_prev_b,
+        'next_ability_state_a': spend_ability_state(ability_state_a, action_a),
+        'next_ability_state_b': spend_ability_state(ability_state_b, action_b),
+    }
+
+
 def normalize_strategy_key(strategy_key):
     key = str(strategy_key or '').strip().lower()
     return key if key in STRATEGY_PRESETS else 'balanced'
@@ -9248,7 +9439,28 @@ def strategy_round_bonus(strategy_key, focus, phase, round_index, action_key, pr
     strategy_key = normalize_strategy_key(strategy_key)
     featured_card = normalize_card_profile(featured_card)
     skill_key = featured_card.get('skill_key')
-    if strategy_key == 'aggressive':
+    if strategy_key == 'attack_boost':
+        bonus = 30 if action_key in {'burst', 'ability'} else 10
+        if focus in {'attack', 'magic'}:
+            bonus += 10
+        if phase in {'opening', 'finisher'}:
+            bonus += 6
+        note = 'Attack boost усиливает атакующие окна'
+    elif strategy_key == 'defense_boost':
+        bonus = 30 if action_key == 'guard' else 10
+        if focus in {'defense', 'speed'}:
+            bonus += 10
+        if phase in {'counter', 'tempo'}:
+            bonus += 6
+        note = 'Defense boost усиливает удержание темпа'
+    elif strategy_key == 'energy_boost':
+        bonus = 22 if action_key == 'ability' else 16
+        if phase in {'risk', 'tempo', 'finisher'}:
+            bonus += 9
+        if previous_outcome == 'loss':
+            bonus += 4
+        note = 'Energy boost раскрывает способность домена'
+    elif strategy_key == 'aggressive':
         bonus = 34 if action_key == 'burst' else 12
         if phase in {'opening', 'finisher'}:
             bonus += 10
@@ -9280,7 +9492,7 @@ def strategy_round_bonus(strategy_key, focus, phase, round_index, action_key, pr
     return bonus, note
 
 
-def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, featured_slot_a=None, featured_slot_b=None, strategy_key_a='balanced', strategy_key_b='balanced'):
+def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, featured_slot_a=None, featured_slot_b=None, strategy_key_a='balanced', strategy_key_b='balanced', domain_a=None, domain_b=None, wallet_a=None, wallet_b=None):
     rounds = []
     wins_a = 0
     wins_b = 0
@@ -9290,11 +9502,14 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
 
     featured_a = find_card_by_slot(cards_a, featured_slot_a)
     featured_b = find_card_by_slot(cards_b, featured_slot_b)
+    domain_meta_a = battle_domain_metadata(domain_a, wallet=wallet_a) if domain_a else {}
+    domain_meta_b = battle_domain_metadata(domain_b, wallet=wallet_b) if domain_b else {}
+    ability_state_a = ability_state_from_metadata(domain_meta_a)
+    ability_state_b = ability_state_from_metadata(domain_meta_b)
     strategy_key_a = normalize_strategy_key(strategy_key_a)
     strategy_key_b = normalize_strategy_key(strategy_key_b)
     action_plan_a = auto_action_plan(cards_a, featured_slot_a, strategy_key_a)
     action_plan_b = auto_action_plan(cards_b, featured_slot_b, strategy_key_b)
-    rng = random.Random(hashlib.sha256(f'wikigachi:{seed_value}'.encode()).hexdigest())
     rounds_count = min(len(cards_a), len(cards_b), len(WIKIGACHI_ROUND_PLAN))
     prev_a = None
     prev_b = None
@@ -9305,112 +9520,49 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
         card_b = cards_b[idx]
         action_a = action_plan_a[idx]
         action_b = action_plan_b[idx]
-        value_a = max(0, round(build_bonus_value(build_a, focus) / 7))
-        value_b = max(0, round(build_bonus_value(build_b, focus) / 7))
-        card_boost_a = matchup_strategy_bonus(card_a, card_b, phase, idx)
-        card_boost_b = matchup_strategy_bonus(card_b, card_a, phase, idx)
-        action_bonus_a, action_bonus_b, action_note_a, action_note_b = action_round_resolution(action_a, action_b)
-        strategy_bonus_a, strategy_note_a = strategy_round_bonus(strategy_key_a, focus, phase, idx, action_a, prev_a, featured_a or card_a)
-        strategy_bonus_b, strategy_note_b = strategy_round_bonus(strategy_key_b, focus, phase, idx, action_b, prev_b, featured_b or card_b)
-        skill_bonus_a, skill_note_a = apply_skill_bonus(
-            (featured_a or {}).get('skill_key'),
-            focus,
-            phase,
-            value_a,
-            value_b,
-            featured_a or card_a,
-            featured_b or card_b,
-            idx,
-            prev_a,
+        if action_a not in available_actions_for_state(3, ability_state_a):
+            action_a = 'burst' if 'burst' in available_actions_for_state(3, ability_state_a) else 'guard'
+        if action_b not in available_actions_for_state(3, ability_state_b):
+            action_b = 'burst' if 'burst' in available_actions_for_state(3, ability_state_b) else 'guard'
+        round_data = resolve_battle_round(
+            seed_value=f'wikigachi:{seed_value}',
+            idx=idx,
+            focus=focus,
+            label=label,
+            phase=phase,
+            card_a=card_a,
+            card_b=card_b,
+            build_a=build_a,
+            build_b=build_b,
+            featured_a=featured_a or card_a,
+            featured_b=featured_b or card_b,
+            action_a=action_a,
+            action_b=action_b,
+            strategy_key_a=strategy_key_a,
+            strategy_key_b=strategy_key_b,
+            prev_a=prev_a,
+            prev_b=prev_b,
+            domain_meta_a=domain_meta_a,
+            domain_meta_b=domain_meta_b,
+            ability_state_a=ability_state_a,
+            ability_state_b=ability_state_b,
         )
-        skill_bonus_b, skill_note_b = apply_skill_bonus(
-            (featured_b or {}).get('skill_key'),
-            focus,
-            phase,
-            value_b,
-            value_a,
-            featured_b or card_b,
-            featured_a or card_a,
-            idx,
-            prev_b,
-        )
-        featured_bonus_a, featured_note_a = featured_card_round_bonus(
-            featured_a or card_a,
-            featured_b or card_b,
-            focus,
-            phase,
-            idx,
-            prev_a,
-        )
-        featured_bonus_b, featured_note_b = featured_card_round_bonus(
-            featured_b or card_b,
-            featured_a or card_a,
-            focus,
-            phase,
-            idx,
-            prev_b,
-        )
-
-        # Small deterministic swing for a less predictable duel flow.
-        swing_a = rng.randint(0, 2)
-        swing_b = rng.randint(0, 2)
-        total_a = value_a + card_boost_a + action_bonus_a + strategy_bonus_a + skill_bonus_a + featured_bonus_a + swing_a
-        total_b = value_b + card_boost_b + action_bonus_b + strategy_bonus_b + skill_bonus_b + featured_bonus_b + swing_b
-
+        total_a = round_data['total_a']
+        total_b = round_data['total_b']
         if total_a > total_b:
             round_winner = 'a'
             wins_a += 1
-            prev_a = 'win'
-            prev_b = 'loss'
         elif total_b > total_a:
             round_winner = 'b'
             wins_b += 1
-            prev_a = 'loss'
-            prev_b = 'win'
         else:
             round_winner = 'draw'
-            prev_a = 'draw'
-            prev_b = 'draw'
-
-        rounds.append(
-            {
-                'round': idx + 1,
-                'label': label,
-                'focus': focus,
-                'phase': phase,
-                'action_a': action_a,
-                'action_b': action_b,
-                'action_bonus_a': action_bonus_a,
-                'action_bonus_b': action_bonus_b,
-                'action_note_a': action_note_a,
-                'action_note_b': action_note_b,
-                'strategy_key_a': strategy_key_a,
-                'strategy_key_b': strategy_key_b,
-                'strategy_bonus_a': strategy_bonus_a,
-                'strategy_bonus_b': strategy_bonus_b,
-                'strategy_note_a': strategy_note_a,
-                'strategy_note_b': strategy_note_b,
-                'card_a': {'slot': card_a.get('slot'), 'title': card_a.get('title')},
-                'card_b': {'slot': card_b.get('slot'), 'title': card_b.get('title')},
-                'value_a': value_a,
-                'value_b': value_b,
-                'boost_a': card_boost_a,
-                'boost_b': card_boost_b,
-                'skill_bonus_a': skill_bonus_a,
-                'skill_bonus_b': skill_bonus_b,
-                'skill_note_a': skill_note_a,
-                'skill_note_b': skill_note_b,
-                'featured_bonus_a': featured_bonus_a,
-                'featured_bonus_b': featured_bonus_b,
-                'featured_note_a': featured_note_a,
-                'featured_note_b': featured_note_b,
-                'swing_a': swing_a,
-                'swing_b': swing_b,
-                'total_a': total_a,
-                'total_b': total_b,
-                'winner': round_winner,
-            }
-        )
+        prev_a = round_data.pop('next_prev_a')
+        prev_b = round_data.pop('next_prev_b')
+        ability_state_a = round_data.pop('next_ability_state_a')
+        ability_state_b = round_data.pop('next_ability_state_b')
+        round_data['winner'] = round_winner
+        rounds.append(round_data)
 
     tie_breaker = False
     if wins_a > wins_b:
@@ -9943,6 +10095,31 @@ def record_non_ranked_game(wallet, domain=None):
         conn.commit()
 
 
+def apply_non_ranked_domain_progress(match, mode='casual'):
+    for wallet, domain, result in (
+        (match['wallet_a'], match['domain_a'], 'win' if match.get('winner') == match['wallet_a'] else ('draw' if match.get('winner') is None else 'loss')),
+        (match['wallet_b'], match['domain_b'], 'win' if match.get('winner') == match['wallet_b'] else ('draw' if match.get('winner') is None else 'loss')),
+    ):
+        grant_domain_experience(wallet, domain, 16 if mode == 'casual' else 18, won=result == 'win')
+        metadata = get_domain_metadata_payload(domain, wallet=wallet)
+        log_domain_telemetry(
+            f'{mode}_battle_complete',
+            wallet=wallet,
+            domain=domain,
+            rarity_label=(metadata or {}).get('rarityLabel'),
+            payload={
+                'result': result,
+                'own_score': match['score_a'] if wallet == match['wallet_a'] else match['score_b'],
+                'opp_score': match['score_b'] if wallet == match['wallet_a'] else match['score_a'],
+                'ability_used': any(
+                    (round_item.get('action_a') if wallet == match['wallet_a'] else round_item.get('action_b')) == 'ability'
+                    for round_item in match.get('rounds', [])
+                ),
+                'match_duration_rounds': len(match.get('rounds', [])),
+            },
+        )
+
+
 def global_player_rows(limit=200):
     with closing(get_db()) as conn:
         rows = conn.execute(
@@ -10046,6 +10223,10 @@ def head_to_head_result(wallet_a, domain_a, wallet_b, domain_b, selected_slot_a=
         featured_slot_b=selected_slot_b,
         strategy_key_a=strategy_key_a,
         strategy_key_b=strategy_key_b,
+        domain_a=domain_a,
+        domain_b=domain_b,
+        wallet_a=wallet_a,
+        wallet_b=wallet_b,
     )
     score_a = duel['score_a']
     score_b = duel['score_b']
@@ -10578,6 +10759,29 @@ def apply_ranked_result_duel(match):
             )
         conn.commit()
 
+    for wallet, domain, result in (
+        (match['wallet_a'], match['domain_a'], result_label(match['wallet_a'])),
+        (match['wallet_b'], match['domain_b'], result_label(match['wallet_b'])),
+    ):
+        grant_domain_experience(wallet, domain, 24, won=result == 'win')
+        metadata = get_domain_metadata_payload(domain, wallet=wallet)
+        log_domain_telemetry(
+            'ranked_battle_complete',
+            wallet=wallet,
+            domain=domain,
+            rarity_label=(metadata or {}).get('rarityLabel'),
+            payload={
+                'result': result,
+                'own_score': match['score_a'] if wallet == match['wallet_a'] else match['score_b'],
+                'opp_score': match['score_b'] if wallet == match['wallet_a'] else match['score_a'],
+                'ability_used': any(
+                    (round_item.get('action_a') if wallet == match['wallet_a'] else round_item.get('action_b')) == 'ability'
+                    for round_item in match.get('rounds', [])
+                ),
+                'match_duration_rounds': len(match.get('rounds', [])),
+            },
+        )
+
     return (
         get_player(match['wallet_a']),
         get_player(match['wallet_b']),
@@ -10642,6 +10846,14 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
                 'opponent_featured_bonus': item.get('featured_bonus_b', 0) if viewer_is_a else item.get('featured_bonus_a', 0),
                 'player_featured_note': item.get('featured_note_a', '') if viewer_is_a else item.get('featured_note_b', ''),
                 'opponent_featured_note': item.get('featured_note_b', '') if viewer_is_a else item.get('featured_note_a', ''),
+                'player_energy_spent': item.get('energy_spent_a', 0) if viewer_is_a else item.get('energy_spent_b', 0),
+                'opponent_energy_spent': item.get('energy_spent_b', 0) if viewer_is_a else item.get('energy_spent_a', 0),
+                'player_roll_bonus': item.get('roll_bonus_a', 0) if viewer_is_a else item.get('roll_bonus_b', 0),
+                'opponent_roll_bonus': item.get('roll_bonus_b', 0) if viewer_is_a else item.get('roll_bonus_a', 0),
+                'player_domain_bonus': item.get('domain_bonus_a', 0) if viewer_is_a else item.get('domain_bonus_b', 0),
+                'opponent_domain_bonus': item.get('domain_bonus_b', 0) if viewer_is_a else item.get('domain_bonus_a', 0),
+                'player_domain_note': item.get('domain_note_a', '') if viewer_is_a else item.get('domain_note_b', ''),
+                'opponent_domain_note': item.get('domain_note_b', '') if viewer_is_a else item.get('domain_note_a', ''),
                 'player_total': item['total_a'] if viewer_is_a else item['total_b'],
                 'opponent_total': item['total_b'] if viewer_is_a else item['total_a'],
                 'winner': (
@@ -10693,6 +10905,8 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
         'player_build': (own_build or {}).get('points') if isinstance(own_build, dict) else {},
         'player_build_pool': (own_build or {}).get('pool') if isinstance(own_build, dict) else 0,
         'opponent_build': (opp_build or {}).get('points') if isinstance(opp_build, dict) else {},
+        'player_domain_metadata': get_domain_metadata_payload(own_domain, wallet=own_wallet),
+        'opponent_domain_metadata': get_domain_metadata_payload(opp_domain, wallet=opp_wallet),
         'result': own_result if own_result != 'loss' else 'lose',
         'result_label': result_labels[own_result],
     }
@@ -10961,6 +11175,7 @@ def finalize_battle_session(conn, row):
     else:
         record_non_ranked_game(wallet_a, domain_a)
         record_non_ranked_game(wallet_b, domain_b)
+        apply_non_ranked_domain_progress(match, mode=mode)
     fresh_a = invite_result_payload({'mode': mode}, match, wallet_a, rating_meta=rating_meta)
     fresh_b = invite_result_payload({'mode': mode}, match, wallet_b, rating_meta=rating_meta)
     fresh_a['battle_session_id'] = row['id']
@@ -11118,6 +11333,7 @@ def finalize_invite(invite):
     else:
         record_non_ranked_game(invite['inviter_wallet'], invite['inviter_domain'])
         record_non_ranked_game(invite['invitee_wallet'], invite['invitee_domain'])
+        apply_non_ranked_domain_progress(match, mode=invite['mode'])
     result = {
         'for_inviter': invite_result_payload(invite, match, invite['inviter_wallet'], rating_meta=rating_meta),
         'for_invitee': invite_result_payload(invite, match, invite['invitee_wallet'], rating_meta=rating_meta),
@@ -11849,7 +12065,24 @@ def api_cards_catalog():
         }
         for skill in CARD_SKILLS
     ]
-    return jsonify({'cards': CARD_CATALOG, 'skills': skills, 'total': len(CARD_CATALOG)})
+    pack_types = [
+        {
+            'key': key,
+            'label': value['label'],
+            'count': value['count'],
+            'weights': value['weights'],
+            'lucky_bonus': bool(value.get('lucky_bonus')),
+        }
+        for key, value in PACK_TYPES.items()
+    ]
+    return jsonify({'cards': CARD_CATALOG, 'skills': skills, 'pack_types': pack_types, 'pity_threshold': PACK_PITY_THRESHOLD, 'total': len(CARD_CATALOG)})
+
+
+@app.route('/api/telemetry/<wallet>')
+def api_domain_telemetry(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    return jsonify({'wallet': wallet, 'summary': telemetry_summary(wallet=wallet)})
 
 
 @app.route('/api/pack/payment-intent', methods=['POST'])
@@ -12116,6 +12349,7 @@ def api_match(mode):
             match = head_to_head_result(wallet, domain, opponent_wallet, opponent_domain, selected_slot_a=selected_slot)
             record_non_ranked_game(wallet, domain)
             record_non_ranked_game(opponent_wallet, opponent_domain)
+            apply_non_ranked_domain_progress(match, mode='duel')
             result = invite_result_payload({'mode': 'duel'}, match, wallet)
             return jsonify({'result': result, 'player': get_player(wallet), 'delivery': 'site'})
 
