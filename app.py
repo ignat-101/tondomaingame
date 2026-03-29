@@ -4059,6 +4059,33 @@ PAGE_TEMPLATE = """
         font-size: 7px;
       }
 
+      .arena-lane-card {
+        padding: 7px 6px 8px;
+        border-radius: 14px;
+      }
+
+      .arena-lane-card strong {
+        font-size: 10px;
+        margin-bottom: 4px;
+      }
+
+      .arena-lane-card .arena-slot-meta {
+        font-size: 8px;
+        line-height: 1.12;
+      }
+
+      .arena-action-sticker {
+        right: 6px;
+        bottom: 6px;
+        width: 28px;
+        height: 28px;
+      }
+
+      .arena-action-sticker svg {
+        width: 14px;
+        height: 14px;
+      }
+
       .interactive-battle-actions {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -5543,13 +5570,21 @@ PAGE_TEMPLATE = """
       }
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
-      const clashCardWidth = Math.max(82, Math.min(94, laneRect.width * 0.64));
-      const clashCardHeight = Math.round(clashCardWidth * 1.46);
+      const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
+      const clashCardWidth = compactClash
+        ? Math.max(64, Math.min(76, laneRect.width * 0.5))
+        : Math.max(82, Math.min(94, laneRect.width * 0.64));
+      const clashCardHeight = Math.round(clashCardWidth * (compactClash ? 1.4 : 1.46));
       const clashGap = 18;
       const impactGap = 8;
       const centerY = coreRect.height * 0.5;
-      const playerTargetLeft = laneCenter - clashCardWidth / 2;
-      const enemyTargetLeft = laneCenter - clashCardWidth / 2;
+      const clashLanePadding = compactClash ? 6 : 10;
+      const laneTargetLeft = Math.max(
+        clashLanePadding,
+        Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
+      );
+      const playerTargetLeft = laneTargetLeft;
+      const enemyTargetLeft = laneTargetLeft;
       const playerTargetTop = centerY - clashCardHeight - clashGap;
       const enemyTargetTop = centerY + clashGap;
       const playerAttack = playerActionKey === 'burst';
@@ -5587,7 +5622,7 @@ PAGE_TEMPLATE = """
       enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
       const impactNode = document.createElement('div');
       impactNode.className = `arena-lane-impact ${resultKey}`;
-      impactNode.style.left = `${laneCenter}px`;
+      impactNode.style.left = `${laneTargetLeft + clashCardWidth / 2}px`;
       impactNode.style.top = `${impactCenterY}px`;
       laneReveal.appendChild(playerClone);
       laneReveal.appendChild(enemyClone);
