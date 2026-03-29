@@ -5446,14 +5446,14 @@ PAGE_TEMPLATE = """
       const enemyTargetTop = centerY + clashGap;
       const playerImpactTop = centerY - clashCardHeight - impactGap;
       const enemyImpactTop = centerY + impactGap;
-      const playerPrepTop = playerActionKey === 'burst' ? playerTargetTop + 8 : playerTargetTop - 2;
-      const enemyPrepTop = opponentActionKey === 'burst' ? enemyTargetTop - 8 : enemyTargetTop + 2;
-      const playerImpactScale = playerActionKey === 'burst' ? 1.08 : 1.01;
-      const enemyImpactScale = opponentActionKey === 'burst' ? 1.08 : 1.01;
-      const playerImpactRotate = playerActionKey === 'burst' ? '-4deg' : '0deg';
-      const enemyImpactRotate = opponentActionKey === 'burst' ? '4deg' : '0deg';
-      const playerImpactY = playerActionKey === 'burst' ? playerImpactTop : playerTargetTop + 2;
-      const enemyImpactY = opponentActionKey === 'burst' ? enemyImpactTop : enemyTargetTop - 2;
+      const playerPrepTop = playerActionKey === 'burst' ? playerTargetTop + 18 : playerTargetTop - 2;
+      const enemyPrepTop = opponentActionKey === 'burst' ? enemyTargetTop - 18 : enemyTargetTop + 2;
+      const playerImpactScale = playerActionKey === 'burst' ? 1.12 : 1.01;
+      const enemyImpactScale = opponentActionKey === 'burst' ? 1.12 : 1.01;
+      const playerImpactRotate = playerActionKey === 'burst' ? '-7deg' : '0deg';
+      const enemyImpactRotate = opponentActionKey === 'burst' ? '7deg' : '0deg';
+      const playerImpactY = playerActionKey === 'burst' ? playerImpactTop + 6 : playerTargetTop + 2;
+      const enemyImpactY = opponentActionKey === 'burst' ? enemyImpactTop - 6 : enemyTargetTop - 2;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
       laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
@@ -5461,7 +5461,6 @@ PAGE_TEMPLATE = """
       laneReveal.innerHTML = `
         <div class="arena-lane-versus">
           <div class="battle-vs-orb">VS</div>
-          <div class="arena-lane-result ${resultKey}">${resultLabel}</div>
         </div>
       `;
       const playerClone = playerSource.cloneNode(true);
@@ -5491,9 +5490,13 @@ PAGE_TEMPLATE = """
         { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyImpactY - (enemyRect.top - coreRect.top)}px, 0) rotate(${enemyImpactRotate}) scale(${enemyImpactScale})` }
       ], { duration: 620, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
       await sleep(640);
-      const resultNode = laneReveal.querySelector('.arena-lane-result');
-      if (resultNode) {
-        resultNode.classList.add('visible');
+      const versusNode = laneReveal.querySelector('.arena-lane-versus');
+      if (versusNode) {
+        const resultNode = document.createElement('div');
+        resultNode.className = `arena-lane-result ${resultKey}`;
+        resultNode.textContent = resultLabel;
+        versusNode.appendChild(resultNode);
+        requestAnimationFrame(() => resultNode.classList.add('visible'));
       }
       playBattleFx(resultKey, 'round', laneReveal.querySelector('.battle-vs-orb') || arenaCore);
       await sleep(620);
