@@ -5444,6 +5444,7 @@ PAGE_TEMPLATE = """
       const enemyRecoilY = opponentActionKey === 'burst' ? enemyImpactY + 14 : enemyTargetTop - 1;
       const playerRecoilScale = playerActionKey === 'burst' ? 1.04 : 1;
       const enemyRecoilScale = opponentActionKey === 'burst' ? 1.04 : 1;
+      const impactCenterY = ((playerImpactY + clashCardHeight) + enemyImpactY) / 2;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
       laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
@@ -5462,6 +5463,8 @@ PAGE_TEMPLATE = """
       enemyClone.style.height = `${clashCardHeight}px`;
       const impactNode = document.createElement('div');
       impactNode.className = `arena-lane-impact ${resultKey}`;
+      impactNode.style.left = `${laneCenter}px`;
+      impactNode.style.top = `${impactCenterY}px`;
       laneReveal.appendChild(playerClone);
       laneReveal.appendChild(enemyClone);
       laneReveal.appendChild(impactNode);
