@@ -1165,6 +1165,30 @@ PAGE_TEMPLATE = """
         inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     }
 
+    .arena-lane-card.burst {
+      border-color: rgba(255, 122, 134, 0.56);
+      background:
+        linear-gradient(180deg, rgba(54, 27, 40, 0.92), rgba(14, 14, 26, 0.98)),
+        linear-gradient(180deg, rgba(18, 33, 55, 0.98), rgba(8, 16, 29, 0.99));
+      box-shadow:
+        0 20px 36px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 122, 134, 0.24),
+        0 0 28px rgba(255, 122, 134, 0.16),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .arena-lane-card.guard {
+      border-color: rgba(83, 246, 184, 0.56);
+      background:
+        linear-gradient(180deg, rgba(18, 46, 42, 0.92), rgba(8, 16, 29, 0.99)),
+        linear-gradient(180deg, rgba(18, 33, 55, 0.98), rgba(8, 16, 29, 0.99));
+      box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.28),
+        0 0 0 1px rgba(83, 246, 184, 0.22),
+        0 0 24px rgba(83, 246, 184, 0.14),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
     .arena-lane-card strong {
       display: block;
       margin-bottom: 5px;
@@ -5456,7 +5480,6 @@ PAGE_TEMPLATE = """
       }
       const opponentActionKey = latestRound.opponent_action || 'guard';
       const resultKey = latestRound.winner === 'player' ? 'win' : (latestRound.winner === 'opponent' ? 'lose' : 'draw');
-      const resultLabel = resultKey === 'win' ? 'WIN' : (resultKey === 'lose' ? 'LOSE' : 'DRAW');
       const laneRect = activeLane.getBoundingClientRect();
       const coreRect = arenaCore.getBoundingClientRect();
       const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
@@ -5476,33 +5499,33 @@ PAGE_TEMPLATE = """
       const enemyTargetLeft = laneCenter - clashCardWidth / 2;
       const playerTargetTop = centerY - clashCardHeight - clashGap;
       const enemyTargetTop = centerY + clashGap;
-      const playerImpactTop = centerY - clashCardHeight - impactGap;
-      const enemyImpactTop = centerY + impactGap;
-      const playerPrepTop = playerActionKey === 'burst' ? playerTargetTop + 18 : playerTargetTop - 2;
-      const enemyPrepTop = opponentActionKey === 'burst' ? enemyTargetTop - 18 : enemyTargetTop + 2;
-      const playerImpactScale = playerActionKey === 'burst' ? 1.15 : 0.99;
-      const enemyImpactScale = opponentActionKey === 'burst' ? 1.15 : 0.99;
-      const playerImpactRotate = playerActionKey === 'burst' ? '-9deg' : '2deg';
-      const enemyImpactRotate = opponentActionKey === 'burst' ? '9deg' : '-2deg';
-      const playerImpactY = playerActionKey === 'burst' ? playerImpactTop + 10 : playerTargetTop + 6;
-      const enemyImpactY = opponentActionKey === 'burst' ? enemyImpactTop - 10 : enemyTargetTop - 6;
-      const playerRecoilY = playerActionKey === 'burst' ? playerImpactY - 14 : playerTargetTop + 1;
-      const enemyRecoilY = opponentActionKey === 'burst' ? enemyImpactY + 14 : enemyTargetTop - 1;
-      const playerRecoilScale = playerActionKey === 'burst' ? 1.04 : 1;
-      const enemyRecoilScale = opponentActionKey === 'burst' ? 1.04 : 1;
-      const impactCenterY = ((playerImpactY + clashCardHeight) + enemyImpactY) / 2;
+      const playerAttack = playerActionKey === 'burst';
+      const enemyAttack = opponentActionKey === 'burst';
+      const playerPrepTop = playerAttack ? playerTargetTop + 20 : playerTargetTop - 4;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop - 20 : enemyTargetTop + 4;
+      const playerImpactTop = playerAttack ? centerY - clashCardHeight - impactGap + 14 : playerTargetTop + 4;
+      const enemyImpactTop = enemyAttack ? centerY + impactGap - 14 : enemyTargetTop - 4;
+      const playerImpactScale = playerAttack ? 1.16 : 1.02;
+      const enemyImpactScale = enemyAttack ? 1.16 : 1.02;
+      const playerImpactRotate = playerAttack ? '-11deg' : '3deg';
+      const enemyImpactRotate = enemyAttack ? '11deg' : '-3deg';
+      const playerRecoilY = playerAttack ? playerImpactTop - 18 : playerTargetTop - 1;
+      const enemyRecoilY = enemyAttack ? enemyImpactTop + 18 : enemyTargetTop + 1;
+      const playerRecoilScale = playerAttack ? 1.03 : 1;
+      const enemyRecoilScale = enemyAttack ? 1.03 : 1;
+      const impactCenterY = ((playerImpactTop + clashCardHeight) + enemyImpactTop) / 2;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
       laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
       laneReveal.style.setProperty('--clash-card-height', `${clashCardHeight}px`);
       const playerClone = playerSource.cloneNode(true);
-      playerClone.className = `${playerClone.className} arena-lane-card player`.trim();
+      playerClone.className = `${playerClone.className} arena-lane-card player ${playerActionKey}`.trim();
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
       playerClone.style.top = `${playerRect.top - coreRect.top}px`;
       playerClone.style.width = `${clashCardWidth}px`;
       playerClone.style.height = `${clashCardHeight}px`;
       const enemyClone = enemySource.cloneNode(true);
-      enemyClone.className = `${enemyClone.className} arena-lane-card enemy`.trim();
+      enemyClone.className = `${enemyClone.className} arena-lane-card enemy ${opponentActionKey}`.trim();
       enemyClone.style.left = `${enemyRect.left - coreRect.left}px`;
       enemyClone.style.top = `${enemyRect.top - coreRect.top}px`;
       enemyClone.style.width = `${clashCardWidth}px`;
@@ -5519,13 +5542,13 @@ PAGE_TEMPLATE = """
       playerClone.animate([
         { opacity: 0.96, transform: 'translate3d(0, 0, 0) scale(1)' },
         { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerPrepTop - (playerRect.top - coreRect.top)}px, 0) scale(1.02)` },
-        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerImpactY - (playerRect.top - coreRect.top)}px, 0) rotate(${playerImpactRotate}) scale(${playerImpactScale})` },
+        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerImpactTop - (playerRect.top - coreRect.top)}px, 0) rotate(${playerImpactRotate}) scale(${playerImpactScale})` },
         { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerRecoilY - (playerRect.top - coreRect.top)}px, 0) rotate(0deg) scale(${playerRecoilScale})` }
       ], { duration: 700, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
       enemyClone.animate([
         { opacity: 0.96, transform: 'translate3d(0, 0, 0) scale(1)' },
         { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyPrepTop - (enemyRect.top - coreRect.top)}px, 0) scale(1.02)` },
-        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyImpactY - (enemyRect.top - coreRect.top)}px, 0) rotate(${enemyImpactRotate}) scale(${enemyImpactScale})` },
+        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyImpactTop - (enemyRect.top - coreRect.top)}px, 0) rotate(${enemyImpactRotate}) scale(${enemyImpactScale})` },
         { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyRecoilY - (enemyRect.top - coreRect.top)}px, 0) rotate(0deg) scale(${enemyRecoilScale})` }
       ], { duration: 700, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
       window.setTimeout(() => impactNode.classList.add('visible'), 360);
