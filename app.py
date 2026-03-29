@@ -923,7 +923,7 @@ PAGE_TEMPLATE = """
     .arena-round-choice-strip {
       position: absolute;
       inset: 0;
-      pointer-events: auto;
+      pointer-events: none;
       z-index: 2;
     }
 
@@ -935,7 +935,7 @@ PAGE_TEMPLATE = """
       justify-items: center;
       gap: 8px;
       min-width: 40px;
-      pointer-events: auto;
+      pointer-events: none;
     }
 
     .arena-round-choice-slot.active {
@@ -1006,6 +1006,7 @@ PAGE_TEMPLATE = """
     .arena-round-choice-slot.active .arena-lane-choice-panel {
       margin-top: 26px;
       transform: none;
+      pointer-events: auto;
     }
 
     .arena-lane-choice-panel {
@@ -1039,6 +1040,7 @@ PAGE_TEMPLATE = """
       grid-template-columns: repeat(2, minmax(0, 40px));
       gap: 12px;
       justify-content: center;
+      pointer-events: auto;
     }
 
     .arena-lane-choice-panel .interactive-action-btn {
@@ -1052,6 +1054,7 @@ PAGE_TEMPLATE = """
       position: relative;
       z-index: 9;
       touch-action: manipulation;
+      pointer-events: auto;
     }
 
     .arena-score-card {
@@ -4233,6 +4236,22 @@ PAGE_TEMPLATE = """
       }
     }
 
+    async function interceptInteractiveBattleAction(event) {
+      const control = event.target && typeof event.target.closest === 'function'
+        ? event.target.closest('.interactive-action-btn[data-action-key]')
+        : null;
+      if (!control) {
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const actionKey = (control.dataset.actionKey || '').trim();
+      if (!actionKey) {
+        return;
+      }
+      await handleInteractiveBattleChoice(actionKey);
+    }
+
     function setStatus(element, text, kind = '') {
       element.className = `status ${kind}`.trim();
       element.textContent = text;
@@ -5404,7 +5423,7 @@ PAGE_TEMPLATE = """
                           <div class="interactive-battle-actions">
                             ${['burst', 'guard'].map((key) => {
                               const meta = actionRuleMeta(key);
-                              return `<button class="interactive-action-btn ${key}" data-action-key="${key}" onclick="handleInteractiveBattleChoice('${key}', event)">${meta.ruLabel}</button>`;
+                              return `<button type="button" class="interactive-action-btn ${key}" data-action-key="${key}" onclick="handleInteractiveBattleChoice('${key}', event)">${meta.ruLabel}</button>`;
                             }).join('')}
                           </div>
                         </div>
@@ -6630,6 +6649,12 @@ PAGE_TEMPLATE = """
     }, true);
     document.addEventListener('click', (event) => {
       interceptDeckDomainAction(event).catch(() => {});
+    }, true);
+    document.addEventListener('pointerdown', (event) => {
+      interceptInteractiveBattleAction(event).catch(() => {});
+    }, true);
+    document.addEventListener('click', (event) => {
+      interceptInteractiveBattleAction(event).catch(() => {});
     }, true);
     ['pointerdown', 'touchstart', 'click', 'change', 'focusin'].forEach((eventName) => {
       document.addEventListener(eventName, syncTmaModeForFunctionalAction, true);
