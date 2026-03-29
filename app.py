@@ -1365,6 +1365,15 @@ PAGE_TEMPLATE = """
       }
     }
 
+    @keyframes roundClashFadeOut {
+      0% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+
     .strategy-note-strip {
       display: flex;
       flex-wrap: wrap;
@@ -2148,6 +2157,81 @@ PAGE_TEMPLATE = """
         inset 0 0 0 1px rgba(121, 217, 255, 0.04),
         0 22px 40px rgba(0, 0, 0, 0.24);
       isolation: isolate;
+    }
+
+    .battle-cinematic.round-reveal {
+      margin: 0;
+      min-height: 100%;
+      padding: 22px 16px 18px;
+      border-radius: 22px;
+      border-color: rgba(121, 217, 255, 0.18);
+    }
+
+    .round-clash-overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(12, 34, 48, 0.28), transparent 42%),
+        rgba(4, 10, 18, 0.82);
+      backdrop-filter: blur(12px);
+      z-index: 12;
+      pointer-events: none;
+    }
+
+    .round-clash-overlay.resolving {
+      animation: roundClashFadeOut 420ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .round-clash-overlay .battle-fighter {
+      opacity: 1;
+    }
+
+    .round-clash-actions {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      margin-top: 10px;
+    }
+
+    .round-clash-result {
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(216, 228, 255, 0.22);
+      background: rgba(216, 228, 255, 0.08);
+      color: #eef6ff;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      opacity: 0;
+      transform: translateY(10px) scale(0.92);
+    }
+
+    .round-clash-result.visible {
+      animation: clashResultIn 320ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .round-clash-result.win {
+      border-color: rgba(83, 246, 184, 0.34);
+      background: rgba(83, 246, 184, 0.14);
+      color: #dfffee;
+    }
+
+    .round-clash-result.lose {
+      border-color: rgba(255, 122, 134, 0.34);
+      background: rgba(255, 122, 134, 0.14);
+      color: #ffe0e5;
+    }
+
+    .round-clash-result.draw {
+      border-color: rgba(255, 211, 110, 0.34);
+      background: rgba(255, 211, 110, 0.14);
+      color: #ffe9ad;
     }
 
     .battle-cinematic::before {
@@ -5150,6 +5234,64 @@ PAGE_TEMPLATE = """
       return data.result || null;
     }
 
+    async function playRoundClashReveal(currentResult, nextResult, playerActionKey) {
+      const arenaCore = battleResult.querySelector('.arena-core');
+      if (!arenaCore) {
+        return;
+      }
+      const currentRoundIndex = Number(currentResult && currentResult.interactive_round_index || 0);
+      const playerCard = (currentResult.player_cards || [])[currentRoundIndex];
+      const opponentCard = (currentResult.opponent_cards || [])[currentRoundIndex];
+      const latestRound = Array.isArray(nextResult && nextResult.rounds) && nextResult.rounds.length
+        ? nextResult.rounds[nextResult.rounds.length - 1]
+        : null;
+      if (!playerCard || !opponentCard || !latestRound) {
+        return;
+      }
+      const opponentActionKey = latestRound.opponent_action || 'guard';
+      const resultKey = latestRound.winner === 'player' ? 'win' : (latestRound.winner === 'opponent' ? 'lose' : 'draw');
+      const resultLabel = resultKey === 'win' ? 'WIN' : (resultKey === 'lose' ? 'LOSE' : 'DRAW');
+      const overlay = document.createElement('div');
+      overlay.className = 'round-clash-overlay';
+      overlay.innerHTML = `
+        <div class="battle-cinematic round-reveal">
+          <div class="battle-cinematic-label">Раунд ${latestRound.round}</div>
+          <div class="battle-cinematic-floor"></div>
+          <div class="battle-fighter player">
+            <div class="battle-fighter-slot">Слот ${playerCard.slot}</div>
+            <strong>${playerCard.title || 'Твоя карта'}</strong>
+            <div class="battle-fighter-cardline">
+              <span class="action-chip ${playerActionKey}">${actionRuleMeta(playerActionKey).ruLabel}</span>
+            </div>
+          </div>
+          <div class="round-clash-actions">
+            <div class="battle-vs-orb">VS</div>
+            <div class="arena-decision-chip action player ${playerActionKey}">Ты: ${actionRuleMeta(playerActionKey).ruLabel}</div>
+            <div class="arena-decision-chip action enemy ${opponentActionKey}">Бот: ${actionRuleMeta(opponentActionKey).ruLabel}</div>
+            <div class="round-clash-result ${resultKey}">${resultLabel}</div>
+          </div>
+          <div class="battle-fighter enemy">
+            <div class="battle-fighter-slot">Слот ${opponentCard.slot}</div>
+            <strong>${opponentCard.title || 'Карта соперника'}</strong>
+            <div class="battle-fighter-cardline">
+              <span class="action-chip ${opponentActionKey}">${actionRuleMeta(opponentActionKey).ruLabel}</span>
+            </div>
+          </div>
+        </div>
+      `;
+      arenaCore.appendChild(overlay);
+      await sleep(520);
+      const resultNode = overlay.querySelector('.round-clash-result');
+      if (resultNode) {
+        resultNode.classList.add('visible');
+      }
+      playBattleFx(resultKey, 'round', overlay.querySelector('.battle-vs-orb') || arenaCore);
+      await sleep(760);
+      overlay.classList.add('resolving');
+      await sleep(380);
+      overlay.remove();
+    }
+
     async function handleInteractiveBattleChoice(actionKey, event = null, byTimeout = false) {
       if (event) {
         event.preventDefault();
@@ -5199,9 +5341,7 @@ PAGE_TEMPLATE = """
           }
         });
         const nextResult = data.result || {};
-        const latestRound = Array.isArray(nextResult.rounds) && nextResult.rounds.length ? nextResult.rounds[nextResult.rounds.length - 1] : null;
-        const fxKey = latestRound?.winner === 'player' ? 'win' : (latestRound?.winner === 'opponent' ? 'lose' : 'draw');
-        playBattleFx(fxKey, 'round', actionPanel || battleResult.querySelector('.arena-core'));
+        await playRoundClashReveal(liveResult, nextResult, actionKey);
         nextResult.autostart_battle = true;
         state.lastResult = nextResult;
         state.interactiveActionInFlight = false;
