@@ -1134,6 +1134,13 @@ PAGE_TEMPLATE = """
       animation: roundClashFadeOut 280ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
+    .arena-shell.lane-clash-live .arena-rail .arena-slot-card.active-slot {
+      opacity: 0.12;
+      transform: none;
+      box-shadow: none;
+      transition: opacity 140ms ease;
+    }
+
     .arena-lane-card {
       position: absolute;
       width: var(--clash-card-width, 92px);
@@ -5573,6 +5580,7 @@ PAGE_TEMPLATE = """
       const resultKey = latestRound.winner === 'player' ? 'win' : (latestRound.winner === 'opponent' ? 'lose' : 'draw');
       const laneRect = activeLane.getBoundingClientRect();
       const coreRect = arenaCore.getBoundingClientRect();
+      const arenaShell = battleResult.querySelector('.arena-shell');
       const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
       const playerSource = battleResult.querySelector('.arena-rail.player .arena-slot-card.active-slot') || battleResult.querySelector('.arena-rail.player .arena-slot-card');
       const enemySource = battleResult.querySelector('.arena-rail.enemy .arena-slot-card.active-slot') || battleResult.querySelector('.arena-rail.enemy .arena-slot-card');
@@ -5582,15 +5590,13 @@ PAGE_TEMPLATE = """
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
-      const clashCardWidth = compactClash
-        ? Math.max(58, Math.min(70, laneRect.width * 0.44))
-        : Math.max(82, Math.min(94, laneRect.width * 0.64));
-      const clashCardHeight = Math.round(clashCardWidth * (compactClash ? 1.4 : 1.46));
-      const clashGap = 18;
-      const impactGap = 8;
-      const centerY = coreRect.height * (compactClash ? 0.6 : 0.5);
+      const clashCardWidth = compactClash ? 64 : 88;
+      const clashCardHeight = compactClash ? 92 : 128;
+      const clashGap = compactClash ? 10 : 18;
+      const impactGap = compactClash ? 4 : 8;
+      const centerY = coreRect.height * (compactClash ? 0.58 : 0.5);
       const clashLanePadding = compactClash ? 6 : 10;
-      const verticalPadding = compactClash ? 48 : 20;
+      const verticalPadding = compactClash ? 42 : 20;
       const laneTargetLeft = Math.max(
         clashLanePadding,
         Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
@@ -5603,26 +5609,29 @@ PAGE_TEMPLATE = """
       const enemyTargetTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawEnemyTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop + (compactClash ? 14 : 20) : playerTargetTop - 4;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop - (compactClash ? 14 : 20) : enemyTargetTop + 4;
-      const rawPlayerImpactTop = playerAttack ? centerY - clashCardHeight - impactGap + 14 : playerTargetTop + 4;
-      const rawEnemyImpactTop = enemyAttack ? centerY + impactGap - 14 : enemyTargetTop - 4;
+      const playerPrepTop = playerAttack ? playerTargetTop + (compactClash ? 10 : 18) : playerTargetTop - 2;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop - (compactClash ? 10 : 18) : enemyTargetTop + 2;
+      const rawPlayerImpactTop = playerAttack ? centerY - clashCardHeight - impactGap + (compactClash ? 6 : 12) : playerTargetTop + 2;
+      const rawEnemyImpactTop = enemyAttack ? centerY + impactGap - (compactClash ? 6 : 12) : enemyTargetTop - 2;
       const playerImpactTop = Math.max(verticalPadding, rawPlayerImpactTop);
       const enemyImpactTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawEnemyImpactTop);
-      const playerImpactScale = playerAttack ? 1.16 : 1.02;
-      const enemyImpactScale = enemyAttack ? 1.16 : 1.02;
-      const playerImpactRotate = playerAttack ? '-11deg' : '3deg';
-      const enemyImpactRotate = enemyAttack ? '11deg' : '-3deg';
-      const playerRecoilY = playerAttack ? playerImpactTop - 18 : playerTargetTop - 1;
-      const enemyRecoilY = enemyAttack ? enemyImpactTop + 18 : enemyTargetTop + 1;
-      const playerRecoilScale = playerAttack ? 1.03 : 1;
-      const enemyRecoilScale = enemyAttack ? 1.03 : 1;
+      const playerImpactScale = playerAttack ? (compactClash ? 1.1 : 1.14) : 1.01;
+      const enemyImpactScale = enemyAttack ? (compactClash ? 1.1 : 1.14) : 1.01;
+      const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
+      const enemyImpactRotate = enemyAttack ? '8deg' : '-2deg';
+      const playerRecoilY = playerAttack ? playerImpactTop - (compactClash ? 10 : 16) : playerTargetTop;
+      const enemyRecoilY = enemyAttack ? enemyImpactTop + (compactClash ? 10 : 16) : enemyTargetTop;
+      const playerRecoilScale = playerAttack ? 1.02 : 1;
+      const enemyRecoilScale = enemyAttack ? 1.02 : 1;
       const impactCenterY = ((playerImpactTop + clashCardHeight) + enemyImpactTop) / 2;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
       laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
       laneReveal.style.setProperty('--clash-card-height', `${clashCardHeight}px`);
       activeLane.classList.add('clash-resolving');
+      if (arenaShell) {
+        arenaShell.classList.add('lane-clash-live');
+      }
       const playerClone = playerSource.cloneNode(true);
       playerClone.className = `${playerClone.className} arena-lane-card player ${playerActionKey}`.trim();
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
@@ -5666,6 +5675,9 @@ PAGE_TEMPLATE = """
       await sleep(260);
       laneReveal.remove();
       activeLane.classList.remove('clash-resolving');
+      if (arenaShell) {
+        arenaShell.classList.remove('lane-clash-live');
+      }
     }
 
     async function handleInteractiveBattleChoice(actionKey, event = null, byTimeout = false) {
