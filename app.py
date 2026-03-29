@@ -8200,6 +8200,30 @@ def shuffle_deck_cards(cards, seed_value):
     return reseat_cards(shuffled)
 
 
+def ensure_battle_ready_cards(cards, domain, seed_value=None):
+    normalized_domain = normalize_domain(domain)
+    prepared = [normalize_card_profile(card) for card in (cards or [])][:CARD_POOL_SIZE]
+    if normalized_domain and len(prepared) < CARD_POOL_SIZE:
+        filler_seed = seed_value or f'battle-ready:{normalized_domain}:{len(prepared)}'
+        rng = random.Random(hashlib.sha256(str(filler_seed).encode()).hexdigest())
+        base = score_from_domain(normalized_domain)
+        weights = rarity_weights_for_domain(base)
+        taken_slots = {int(card.get('slot') or 0) for card in prepared}
+        for slot_value in range(1, CARD_POOL_SIZE + 1):
+            if len(prepared) >= CARD_POOL_SIZE:
+                break
+            if slot_value in taken_slots:
+                continue
+            rarity = weighted_choice(weights, rng)
+            template = rng.choice(CARD_CATALOG_BY_RARITY[rarity])
+            filler = materialize_card(template, normalized_domain, slot_value)
+            filler['patterns'] = base.get('patterns', [])
+            filler['domain_metadata'] = base.get('metadata')
+            prepared.append(normalize_card_profile(filler))
+            taken_slots.add(slot_value)
+    return reseat_cards(prepared[:CARD_POOL_SIZE])
+
+
 def create_pack_payment(wallet, domain):
     payment_id = uuid.uuid4().hex
     memo = f'PACK:{payment_id}:{wallet[:8]}'
@@ -8923,7 +8947,7 @@ def generate_pack(domain, count=None, seed_value=None, pack_type='common', guara
         card['patterns'] = base.get('patterns', [])
         card['domain_metadata'] = base.get('metadata')
         cards.append(card)
-    return cards
+    return ensure_battle_ready_cards(cards, domain, seed_value=seed_source)
 
 
 def deck_score(cards):
@@ -9613,7 +9637,7 @@ def load_active_deck_cards(wallet, domain):
         try:
             parsed = json.loads(row['cards_json'])
             if isinstance(parsed, list) and parsed:
-                return [normalize_card_profile(card) for card in parsed]
+                return ensure_battle_ready_cards(parsed, domain, seed_value=f'load-deck:{wallet}:{domain}')
         except json.JSONDecodeError:
             return None
     return None
