@@ -8851,7 +8851,7 @@ def random_bot_cards(seed_value, count=5):
         cards.append(
             {
                 'slot': slot,
-                'title': CARD_TITLES[rng.randrange(len(CARD_TITLES))],
+                'title': template['title'],
                 'ability': skill['description'],
                 'pool_value': pool_value,
                 'base_power': pool_value,
@@ -8881,11 +8881,12 @@ def bot_cards_slightly_weaker_than_player(player_cards, seed_value):
         rarity_key = str(source.get('rarity_key') or 'basic').lower()
         if rarity_key not in RARITY_LABELS:
             rarity_key = 'basic'
-        skill = skill_for_card(rarity_key, f'bot-{seed_value}', slot, source.get('title', 'Bot Card'))
+        template = CARD_CATALOG_BY_RARITY[rarity_key][0]
+        skill = skill_for_card(rarity_key, f'bot-{seed_value}', slot, template['title'])
         cards.append(
             {
                 'slot': slot,
-                'title': CARD_TITLES[rng.randrange(len(CARD_TITLES))],
+                'title': template['title'],
                 'ability': skill['description'],
                 'pool_value': score,
                 'base_power': score,
