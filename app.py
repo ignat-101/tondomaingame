@@ -1860,7 +1860,7 @@ PAGE_TEMPLATE = """
 
     .interactive-battle-actions {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
       gap: 10px;
       perspective: 1200px;
     }
@@ -1893,7 +1893,8 @@ PAGE_TEMPLATE = """
       background: linear-gradient(135deg, rgba(83, 246, 184, 0.18), rgba(255, 255, 255, 0.04));
     }
 
-    .interactive-action-btn.channel {
+    .interactive-action-btn.channel,
+    .interactive-action-btn.ability {
       border-color: rgba(69, 215, 255, 0.42);
       background: linear-gradient(135deg, rgba(69, 215, 255, 0.18), rgba(255, 255, 255, 0.04));
     }
@@ -4847,9 +4848,12 @@ PAGE_TEMPLATE = """
     }
 
     function actionRuleMeta(actionKey) {
+      const liveResult = state.lastResult || {};
+      const activeAbility = liveResult.interactive_active_ability || {};
       return {
         burst: {ruLabel: 'Натиск', beats: 'Блок', losesTo: 'Блок'},
         guard: {ruLabel: 'Блок', beats: 'Натиск', losesTo: 'Натиск'},
+        ability: {ruLabel: activeAbility.name || 'Способность', beats: 'Тайминг', losesTo: 'Кулдаун'},
       }[actionKey] || {ruLabel: 'Блок', cost: 0, beats: 'Натиск', losesTo: 'Натиск'};
     }
 
@@ -6163,9 +6167,10 @@ PAGE_TEMPLATE = """
                         <div class="interactive-battle-panel arena-lane-choice-panel" id="interactive-battle-panel">
                           <div class="interactive-battle-title">Раунд ${roundNumber}</div>
                           <div class="interactive-timer" id="interactive-timer">5 c</div>
-                          <div class="tiny" id="interactive-battle-status" style="text-align:center; min-height:16px;">Выбери действие</div>
+                          <div class="tiny" style="text-align:center;">Энергия: ${result.interactive_energy || 0}${result.interactive_active_ability && result.interactive_active_ability.name ? ` • ${result.interactive_active_ability.name}` : ''}</div>
+                          <div class="tiny" id="interactive-battle-status" style="text-align:center; min-height:16px;">${result.interactive_hint || 'Выбери действие'}</div>
                           <div class="interactive-battle-actions">
-                            ${['burst', 'guard'].map((key) => {
+                            ${(result.interactive_available_actions || ['burst', 'guard']).map((key) => {
                               const meta = actionRuleMeta(key);
                               return `<button type="button" class="interactive-action-btn ${key}" data-action-key="${key}" onclick="handleInteractiveBattleChoice('${key}', event)">${meta.ruLabel}</button>`;
                             }).join('')}
@@ -8473,6 +8478,7 @@ ACTION_RULES = {
         'label': 'Burst',
         'ru_label': 'Натиск',
         'beats': 'guard',
+        'cost': 2,
         'color': 'rgba(255, 122, 134, 0.9)',
         'description': 'Давит напрямую. Слабее против блока.',
     },
@@ -8480,8 +8486,17 @@ ACTION_RULES = {
         'label': 'Guard',
         'ru_label': 'Блок',
         'beats': 'burst',
+        'cost': 1,
         'color': 'rgba(83, 246, 184, 0.9)',
         'description': 'Сдерживает натиск.',
+    },
+    'ability': {
+        'label': 'Ability',
+        'ru_label': 'Способность',
+        'beats': None,
+        'cost': 3,
+        'color': 'rgba(69, 215, 255, 0.9)',
+        'description': 'Активная способность домена. Сильна в нужный тайминг.',
     },
 }
 STRATEGY_PRESETS = {
@@ -8500,6 +8515,42 @@ STRATEGY_PRESETS = {
         'description': 'Чаще ловит соперника на контрах и неожиданных сменах темпа.',
         'plan': ['guard', 'guard', 'burst', 'burst', 'guard'],
     },
+}
+
+ROLE_ACTION_STANCE = {
+    'Tank': 'guard',
+    'Guardian': 'guard',
+    'Support': 'guard',
+    'Fortune': 'guard',
+    'Control': 'burst',
+    'Damage': 'burst',
+    'Trickster': 'burst',
+    'Combo': 'burst',
+    'Disruptor': 'burst',
+    'Sniper': 'burst',
+}
+
+COUNTER_CLASS_MAP = {
+    'Tank': {'Executioner', 'Breaker', 'Focus'},
+    'Bulwark': {'Executioner', 'Breaker', 'Focus'},
+    'Damage': {'Bulwark', 'Aegis'},
+    'Executioner': {'Bulwark', 'Aegis'},
+    'Control': {'Lucky Star', 'Signal'},
+    'Cipher': {'Lucky Star', 'Signal'},
+    'Support': {'Mirage', 'Breaker'},
+    'Signal': {'Mirage', 'Breaker'},
+    'Trickster': {'Signal', 'Cipher'},
+    'Mirage': {'Signal', 'Cipher'},
+    'Guardian': {'Executioner', 'Sequence'},
+    'Aegis': {'Executioner', 'Sequence'},
+    'Fortune': {'Bulwark', 'Cipher'},
+    'Lucky Star': {'Bulwark', 'Cipher'},
+    'Combo': {'Breaker', 'Aegis'},
+    'Sequence': {'Breaker', 'Aegis'},
+    'Disruptor': {'Sequence', 'Focus'},
+    'Breaker': {'Sequence', 'Focus'},
+    'Sniper': {'Bulwark', 'Signal'},
+    'Focus': {'Bulwark', 'Signal'},
 }
 
 
@@ -9010,6 +9061,132 @@ def featured_match_bonus(featured_card):
 
 def default_action_plan():
     return list(STRATEGY_PRESETS['balanced']['plan'])
+
+
+def action_energy_cost(action_key, active_ability=None):
+    if action_key == 'ability':
+        return int((active_ability or {}).get('cost', 3) or 3)
+    return int((ACTION_RULES.get(action_key) or ACTION_RULES['guard']).get('cost', 1) or 1)
+
+
+def battle_domain_metadata(domain, wallet=None):
+    return get_domain_metadata_payload(domain, wallet=wallet) or {}
+
+
+def ability_state_from_metadata(metadata):
+    active = dict((metadata or {}).get('activeAbility') or {})
+    cooldown = int(active.get('cooldown', 0) or 0)
+    charges = int(active.get('charges', 0) or 0)
+    if charges <= 0:
+        charges = 1 if active else 0
+    return {
+        'cooldown_remaining': 0,
+        'charges_remaining': charges,
+        'used_once': False,
+        'active': active,
+    }
+
+
+def ability_ready(ability_state, energy):
+    active = dict((ability_state or {}).get('active') or {})
+    if not active:
+        return False
+    if int((ability_state or {}).get('charges_remaining', 0)) <= 0:
+        return False
+    if int((ability_state or {}).get('cooldown_remaining', 0)) > 0:
+        return False
+    if bool(active.get('once_per_battle')) and bool((ability_state or {}).get('used_once')):
+        return False
+    return int(energy or 0) >= int(active.get('cost', 3) or 3)
+
+
+def available_actions_for_state(energy, ability_state):
+    actions = [key for key in ('burst', 'guard') if action_energy_cost(key) <= int(energy or 0)]
+    if ability_ready(ability_state, energy):
+        actions.append('ability')
+    return actions or ['guard']
+
+
+def effective_action_key(action_key, metadata):
+    if action_key != 'ability':
+        return action_key
+    role = str((metadata or {}).get('role') or '')
+    return ROLE_ACTION_STANCE.get(role, 'burst')
+
+
+def energy_roll_bonus(action_key, rng):
+    if action_key == 'burst':
+        return rng.randint(8, 12), rng.random() < rng.uniform(0.05, 0.12)
+    if action_key == 'guard':
+        return rng.randint(3, 6), rng.random() < rng.uniform(0.05, 0.08)
+    return rng.randint(6, 10), rng.random() < rng.uniform(0.08, 0.15)
+
+
+def class_counter_bonus(own_meta, opp_meta, action_key):
+    own_class = str((own_meta or {}).get('class') or (own_meta or {}).get('className') or '')
+    opp_class = str((opp_meta or {}).get('class') or (opp_meta or {}).get('className') or '')
+    counters = COUNTER_CLASS_MAP.get(own_class) or set()
+    if opp_class not in counters:
+        return 0, ''
+    bonus = 5 if action_key in {'burst', 'ability'} else 3
+    return bonus, f'{own_class} контрит {opp_class}'
+
+
+def passive_ability_bonus(metadata, ability_state, trigger, *, previous_outcome=None, action_key=None):
+    passive = dict((metadata or {}).get('passiveAbility') or {})
+    if not passive:
+        return 0, ''
+    passive_trigger = str(passive.get('trigger') or '')
+    if passive_trigger == 'on_round_loss' and previous_outcome == 'loss' and trigger == 'pre_round':
+        return int(passive.get('power', 0) or 0) + 2, passive.get('name', 'Passive')
+    if passive_trigger == 'after_guard_win' and previous_outcome == 'win' and action_key == 'guard':
+        return int(passive.get('power', 0) or 0) + 1, passive.get('name', 'Passive')
+    if passive_trigger == 'on_round_win' and previous_outcome == 'win' and trigger == 'pre_round':
+        return int(passive.get('power', 0) or 0), passive.get('name', 'Passive')
+    if passive_trigger == 'on_attack_roll' and action_key in {'burst', 'ability'} and trigger == 'roll':
+        return int(passive.get('power', 0) or 0), passive.get('name', 'Passive')
+    return 0, ''
+
+
+def active_ability_bonus(metadata, ability_state, phase, focus, action_key):
+    active = dict((ability_state or {}).get('active') or {})
+    if action_key != 'ability' or not active:
+        return 0, ''
+    role = str((metadata or {}).get('role') or '')
+    base = int(active.get('power', 0) or 0) + 4
+    if role in {'Tank', 'Guardian', 'Support'} and focus in {'defense', 'luck', 'speed'}:
+        return base + 3, active.get('name', 'Ability')
+    if role in {'Damage', 'Sniper', 'Combo'} and focus in {'attack', 'magic'}:
+        return base + 4, active.get('name', 'Ability')
+    if role in {'Control', 'Disruptor', 'Trickster'} and phase in {'counter', 'risk', 'tempo'}:
+        return base + 4, active.get('name', 'Ability')
+    return base, active.get('name', 'Ability')
+
+
+def spend_ability_state(ability_state, action_key):
+    state = dict(ability_state or {})
+    active = dict(state.get('active') or {})
+    cooldown_remaining = max(0, int(state.get('cooldown_remaining', 0)) - 1)
+    state['cooldown_remaining'] = cooldown_remaining
+    if action_key == 'ability' and active:
+        state['charges_remaining'] = max(0, int(state.get('charges_remaining', 0)) - 1)
+        state['cooldown_remaining'] = int(active.get('cooldown', 0) or 0)
+        if bool(active.get('once_per_battle')):
+            state['used_once'] = True
+    return state
+
+
+def choose_bot_round_action(planned_action, energy, ability_state, metadata, phase):
+    actions = available_actions_for_state(energy, ability_state)
+    if 'ability' in actions:
+        role = str((metadata or {}).get('role') or '')
+        if phase in {'finisher', 'risk'} or role in {'Control', 'Disruptor', 'Damage', 'Sniper'}:
+            return 'ability'
+    if planned_action in actions:
+        return planned_action
+    if 'burst' in actions:
+        return 'burst'
+    return 'guard'
 
 
 def normalize_strategy_key(strategy_key):
@@ -9939,6 +10116,16 @@ def solo_round_payload(item):
         'opponent_featured_note': item.get('featured_note_b', ''),
         'player_total': item.get('total_a', 0),
         'opponent_total': item.get('total_b', 0),
+        'player_energy_spent': item.get('energy_spent_a', 0),
+        'opponent_energy_spent': item.get('energy_spent_b', 0),
+        'player_roll_bonus': item.get('roll_bonus_a', 0),
+        'opponent_roll_bonus': item.get('roll_bonus_b', 0),
+        'player_crit': bool(item.get('crit_a')),
+        'opponent_crit': bool(item.get('crit_b')),
+        'player_domain_bonus': item.get('domain_bonus_a', 0),
+        'opponent_domain_bonus': item.get('domain_bonus_b', 0),
+        'player_domain_note': item.get('domain_note_a', ''),
+        'opponent_domain_note': item.get('domain_note_b', ''),
         'winner': 'draw' if item.get('winner') == 'draw' else ('player' if item.get('winner') == 'a' else 'opponent'),
     }
 
@@ -9980,14 +10167,21 @@ def build_solo_live_payload(state):
         'player_build': state.get('build_a', {}),
         'player_build_pool': state.get('build_pool_a', 0),
         'opponent_build': state.get('build_b', {}),
+        'player_domain_metadata': state.get('domain_meta_a'),
+        'opponent_domain_metadata': state.get('domain_meta_b'),
+        'interactive_energy': int(state.get('energy_a', 0)),
+        'interactive_opponent_energy': int(state.get('energy_b', 0)),
+        'interactive_active_ability': ((state.get('ability_state_a') or {}).get('active') or {}),
+        'interactive_ability_ready': ability_ready(state.get('ability_state_a') or {}, state.get('energy_a', 0)),
+        'interactive_ability_state': state.get('ability_state_a') or {},
         'result': result_code,
         'result_label': result_label,
         'interactive_live': not bool(state.get('complete')),
         'interactive_session_id': state['id'],
         'interactive_round_index': int(state.get('current_round', 0)),
         'interactive_total_rounds': int(state.get('rounds_total', len(WIKIGACHI_ROUND_PLAN))),
-        'interactive_available_actions': list(ACTION_RULES.keys()),
-        'interactive_hint': 'Выбирай действие на каждый раунд. Ход и карта теперь реально двигают матч.',
+        'interactive_available_actions': available_actions_for_state(state.get('energy_a', 0), state.get('ability_state_a') or {}),
+        'interactive_hint': f"Энергия: {int(state.get('energy_a', 0))}. Натиск стоит 2, блок 1, способность домена 3.",
     }
 
 
@@ -9997,6 +10191,8 @@ def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, oppone
     opponent_cards = [normalize_card_profile(card) for card in (opponent_cards or [])]
     featured_a = find_card_by_slot(player_cards, selected_slot_a)
     featured_b = find_card_by_slot(opponent_cards, selected_slot_b)
+    domain_meta_a = battle_domain_metadata(domain, wallet=wallet)
+    domain_meta_b = battle_domain_metadata(opponent_domain, wallet=opponent_wallet)
     session_id = uuid.uuid4().hex
     action_plan_b = auto_action_plan(opponent_cards, selected_slot_b, strategy_key_b)
     rng = random.Random(hashlib.sha256(f'solo-live:{mode}:{wallet}:{domain}:{opponent_domain}:{session_id}'.encode()).hexdigest())
@@ -10019,11 +10215,17 @@ def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, oppone
         'selected_slot_b': selected_slot_b,
         'featured_a': featured_a,
         'featured_b': featured_b,
+        'domain_meta_a': domain_meta_a,
+        'domain_meta_b': domain_meta_b,
+        'ability_state_a': ability_state_from_metadata(domain_meta_a),
+        'ability_state_b': ability_state_from_metadata(domain_meta_b),
         'strategy_key_a': normalize_strategy_key(strategy_key_a),
         'strategy_key_b': normalize_strategy_key(strategy_key_b),
         'opponent_action_plan': action_plan_b,
         'current_round': 0,
         'rounds_total': rounds_total,
+        'energy_a': 3,
+        'energy_b': 3,
         'score_a': 0,
         'score_b': 0,
         'prev_a': None,
@@ -10107,7 +10309,8 @@ def apply_solo_battle_action(session_id, wallet, action_key):
         payload['interactive_live'] = False
         return payload
 
-    action_key = sanitize_action_plan([action_key])[0]
+    raw_action_key = str(action_key or '').strip().lower()
+    action_key = raw_action_key if raw_action_key in ACTION_RULES else sanitize_action_plan([raw_action_key])[0]
     idx = int(state.get('current_round', 0))
     rounds_total = int(state.get('rounds_total', 0))
     if idx >= rounds_total:
@@ -10121,27 +10324,55 @@ def apply_solo_battle_action(session_id, wallet, action_key):
     opponent_cards = [normalize_card_profile(card) for card in state.get('opponent_cards', [])]
     card_a = player_cards[idx]
     card_b = opponent_cards[idx]
-    action_b = (state.get('opponent_action_plan') or default_action_plan())[idx]
+    ability_state_a = dict(state.get('ability_state_a') or {})
+    ability_state_b = dict(state.get('ability_state_b') or {})
+    domain_meta_a = dict(state.get('domain_meta_a') or {})
+    domain_meta_b = dict(state.get('domain_meta_b') or {})
+    state['energy_a'] = 3
+    state['energy_b'] = 3
+    if action_key not in available_actions_for_state(state.get('energy_a', 0), ability_state_a):
+        raise ValueError('Недостаточно энергии или способность недоступна.')
+    planned_action_b = (state.get('opponent_action_plan') or default_action_plan())[idx]
+    action_b = choose_bot_round_action(planned_action_b, state.get('energy_b', 0), ability_state_b, domain_meta_b, phase)
     build_a = state.get('build_a') or {}
     build_b = state.get('build_b') or {}
     featured_a = normalize_card_profile(state.get('featured_a') or card_a)
     featured_b = normalize_card_profile(state.get('featured_b') or card_b)
     prev_a = state.get('prev_a')
     prev_b = state.get('prev_b')
+    effective_action_a = effective_action_key(action_key, domain_meta_a)
+    effective_action_b = effective_action_key(action_b, domain_meta_b)
     value_a = max(0, round(build_bonus_value(build_a, focus) / 7))
     value_b = max(0, round(build_bonus_value(build_b, focus) / 7))
     card_boost_a = matchup_strategy_bonus(card_a, card_b, phase, idx)
     card_boost_b = matchup_strategy_bonus(card_b, card_a, phase, idx)
-    action_bonus_a, action_bonus_b, action_note_a, action_note_b = action_round_resolution(action_key, action_b)
+    action_bonus_a, action_bonus_b, action_note_a, action_note_b = action_round_resolution(effective_action_a, effective_action_b)
     strategy_bonus_a, strategy_note_a = strategy_round_bonus(state.get('strategy_key_a'), focus, phase, idx, action_key, prev_a, featured_a or card_a)
     strategy_bonus_b, strategy_note_b = strategy_round_bonus(state.get('strategy_key_b'), focus, phase, idx, action_b, prev_b, featured_b or card_b)
     skill_bonus_a, skill_note_a = apply_skill_bonus((featured_a or {}).get('skill_key'), focus, phase, value_a, value_b, featured_a or card_a, featured_b or card_b, idx, prev_a)
     skill_bonus_b, skill_note_b = apply_skill_bonus((featured_b or {}).get('skill_key'), focus, phase, value_b, value_a, featured_b or card_b, featured_a or card_a, idx, prev_b)
     featured_bonus_a, featured_note_a = featured_card_round_bonus(featured_a or card_a, featured_b or card_b, focus, phase, idx, prev_a)
     featured_bonus_b, featured_note_b = featured_card_round_bonus(featured_b or card_b, featured_a or card_a, focus, phase, idx, prev_b)
+    passive_bonus_a, passive_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'pre_round', previous_outcome=prev_a, action_key=action_key)
+    passive_bonus_b, passive_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'pre_round', previous_outcome=prev_b, action_key=action_b)
+    active_bonus_a, active_note_a = active_ability_bonus(domain_meta_a, ability_state_a, phase, focus, action_key)
+    active_bonus_b, active_note_b = active_ability_bonus(domain_meta_b, ability_state_b, phase, focus, action_b)
+    counter_bonus_a, counter_note_a = class_counter_bonus(domain_meta_a, domain_meta_b, action_key)
+    counter_bonus_b, counter_note_b = class_counter_bonus(domain_meta_b, domain_meta_a, action_b)
+    roll_rng = random.Random(hashlib.sha256(f"solo-roll:{session_id}:{idx}:{action_key}:{action_b}".encode()).hexdigest())
+    roll_bonus_a, crit_a = energy_roll_bonus(action_key, roll_rng)
+    roll_bonus_b, crit_b = energy_roll_bonus(action_b, roll_rng)
+    passive_roll_a, passive_roll_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'roll', previous_outcome=prev_a, action_key=action_key)
+    passive_roll_b, passive_roll_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'roll', previous_outcome=prev_b, action_key=action_b)
+    if crit_a:
+        roll_bonus_a += 6
+    if crit_b:
+        roll_bonus_b += 6
     swing_a, swing_b = (state.get('swing_pairs') or [[0, 0]])[idx]
-    total_a = value_a + card_boost_a + action_bonus_a + strategy_bonus_a + skill_bonus_a + featured_bonus_a + swing_a
-    total_b = value_b + card_boost_b + action_bonus_b + strategy_bonus_b + skill_bonus_b + featured_bonus_b + swing_b
+    domain_bonus_a = passive_bonus_a + active_bonus_a + counter_bonus_a + passive_roll_a
+    domain_bonus_b = passive_bonus_b + active_bonus_b + counter_bonus_b + passive_roll_b
+    total_a = value_a + card_boost_a + action_bonus_a + strategy_bonus_a + skill_bonus_a + featured_bonus_a + roll_bonus_a + domain_bonus_a + swing_a
+    total_b = value_b + card_boost_b + action_bonus_b + strategy_bonus_b + skill_bonus_b + featured_bonus_b + roll_bonus_b + domain_bonus_b + swing_b
 
     if total_a > total_b:
         winner = 'a'
@@ -10157,6 +10388,13 @@ def apply_solo_battle_action(session_id, wallet, action_key):
         winner = 'draw'
         state['prev_a'] = 'draw'
         state['prev_b'] = 'draw'
+
+    energy_spent_a = action_energy_cost(action_key, (ability_state_a or {}).get('active'))
+    energy_spent_b = action_energy_cost(action_b, (ability_state_b or {}).get('active'))
+    state['energy_a'] = max(0, 3 - energy_spent_a)
+    state['energy_b'] = max(0, 3 - energy_spent_b)
+    state['ability_state_a'] = spend_ability_state(ability_state_a, action_key)
+    state['ability_state_b'] = spend_ability_state(ability_state_b, action_b)
 
     state.setdefault('rounds', []).append(
         {
@@ -10190,6 +10428,16 @@ def apply_solo_battle_action(session_id, wallet, action_key):
             'featured_bonus_b': featured_bonus_b,
             'featured_note_a': featured_note_a,
             'featured_note_b': featured_note_b,
+            'energy_spent_a': energy_spent_a,
+            'energy_spent_b': energy_spent_b,
+            'roll_bonus_a': roll_bonus_a,
+            'roll_bonus_b': roll_bonus_b,
+            'crit_a': crit_a,
+            'crit_b': crit_b,
+            'domain_bonus_a': domain_bonus_a,
+            'domain_bonus_b': domain_bonus_b,
+            'domain_note_a': ' • '.join(part for part in [passive_note_a, active_note_a, counter_note_a, passive_roll_note_a] if part),
+            'domain_note_b': ' • '.join(part for part in [passive_note_b, active_note_b, counter_note_b, passive_roll_note_b] if part),
             'swing_a': swing_a,
             'swing_b': swing_b,
             'total_a': total_a,
@@ -10202,6 +10450,25 @@ def apply_solo_battle_action(session_id, wallet, action_key):
         state['complete'] = True
         finalize_solo_battle_state(state)
         record_non_ranked_game(state['wallet'], state['domain'])
+        won = state.get('winner') == 'a'
+        grant_domain_experience(state['wallet'], state['domain'], 18, won=won)
+        log_domain_telemetry(
+            'solo_battle_complete',
+            wallet=state['wallet'],
+            domain=state['domain'],
+            rarity_label=(domain_meta_a or {}).get('rarityLabel'),
+            payload={
+                'mode': state.get('mode'),
+                'result': state.get('result'),
+                'score_a': state.get('score_a'),
+                'score_b': state.get('score_b'),
+                'ability_used': any(round_item.get('action_a') == 'ability' for round_item in state.get('rounds', [])),
+                'match_duration_rounds': len(state.get('rounds', [])),
+            },
+        )
+    else:
+        state['energy_a'] = 3
+        state['energy_b'] = 3
     save_solo_battle(state)
     return build_solo_live_payload(state)
 
