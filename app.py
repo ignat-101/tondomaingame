@@ -5077,6 +5077,7 @@ PAGE_TEMPLATE = """
           <div class="tiny">Super pattern: ${meta.superPattern || 'нет'} • Level: ${meta.level || 1}</div>
           <div class="tiny">Passive: ${meta.passiveAbility ? meta.passiveAbility.name : '-'}</div>
           <div class="tiny">Active: ${meta.activeAbility ? `${meta.activeAbility.name} • cost ${meta.activeAbility.cost} • cd ${meta.activeAbility.cooldown}` : '-'}</div>
+          <div class="tiny">Синергии: ${data.deck.synergies && data.deck.synergies.labels && data.deck.synergies.labels.length ? data.deck.synergies.labels.join(' • ') : 'нет'}</div>
           <div class="tiny">Свободный пул дисциплин: ${data.deck.discipline_pool || 0}</div>
           <div class="tiny">Вклад карт в колоду: ${data.deck.total_score}</div>
         </div>
@@ -5194,6 +5195,8 @@ PAGE_TEMPLATE = """
           <div class="tiny">Кошелёк: ${state.wallet ? shortAddress(state.wallet) : '-'}</div>
           <div class="tiny">Активный домен: ${state.selectedDomain ? `${state.selectedDomain}.ton` : '-'}</div>
           <div class="tiny">Рейтинг: ${profileRating.textContent} • Матчей: ${profileGames.textContent}</div>
+          <div class="tiny">Награды: ${state.playerProfile && state.playerProfile.rewards ? `shards ${state.playerProfile.rewards.pack_shards} • rare ${state.playerProfile.rewards.rare_tokens} • lucky ${state.playerProfile.rewards.lucky_tokens}` : '-'}</div>
+          <div class="tiny">Синергии: ${state.playerProfile && state.playerProfile.synergies && state.playerProfile.synergies.labels && state.playerProfile.synergies.labels.length ? state.playerProfile.synergies.labels.join(' • ') : 'нет'}</div>
         </div>
       `;
       document.getElementById('mobile-show-deck-btn').disabled = showDeckBtn.disabled;
@@ -5218,6 +5221,7 @@ PAGE_TEMPLATE = """
           <div class="wallet-domain-mainline">Вклад карт: ${item.deck.total_score} • ${item.deck.cards && item.deck.cards.length ? `карт: ${item.deck.cards.length}` : 'колода еще не открыта'}</div>
           <div class="tiny">Role/Class: ${item.metadata && item.metadata.role ? `${item.metadata.role} / ${item.metadata.class}` : '-'}</div>
           <div class="tiny">Passive: ${item.metadata && item.metadata.passiveAbility ? item.metadata.passiveAbility.name : '-'} • Active: ${item.metadata && item.metadata.activeAbility ? item.metadata.activeAbility.name : '-'}</div>
+          <div class="tiny">Синергии: ${item.deck && item.deck.synergies && item.deck.synergies.labels && item.deck.synergies.labels.length ? item.deck.synergies.labels.join(' • ') : 'нет'}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary wallet-domain-action" data-domain-action="${item.domain}">Играть этим доменом</button>
           </div>
@@ -5407,6 +5411,7 @@ PAGE_TEMPLATE = """
             <div class="tiny">Role/Class: ${domain.metadata && domain.metadata.role ? `${domain.metadata.role} / ${domain.metadata.class}` : '-'}</div>
             <div class="tiny">Passive: ${domain.metadata && domain.metadata.passiveAbility ? domain.metadata.passiveAbility.name : '-'}</div>
             <div class="tiny">Active: ${domain.metadata && domain.metadata.activeAbility ? domain.metadata.activeAbility.name : '-'}</div>
+            <div class="tiny">Level/XP: ${domain.metadata ? `${domain.metadata.level} / ${domain.metadata.experience}` : '-'}</div>
           </details>
           <button class="wallet-domain-action" data-domain-action="${domain.domain}">${state.selectedDomain === domain.domain ? 'Открыть колоду' : 'Выбрать домен'}</button>
         </div>
@@ -7666,6 +7671,19 @@ def init_db():
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (wallet, pack_type)
             );
+
+            CREATE TABLE IF NOT EXISTS player_rewards (
+                wallet TEXT PRIMARY KEY,
+                pack_shards INTEGER NOT NULL DEFAULT 0,
+                rare_tokens INTEGER NOT NULL DEFAULT 0,
+                lucky_tokens INTEGER NOT NULL DEFAULT 0,
+                season_points INTEGER NOT NULL DEFAULT 0,
+                season_level INTEGER NOT NULL DEFAULT 1,
+                wins_for_quest INTEGER NOT NULL DEFAULT 0,
+                wins_claimed INTEGER NOT NULL DEFAULT 0,
+                daily_claimed_on TEXT,
+                updated_at TEXT NOT NULL
+            );
             '''
         )
         columns = {row['name'] for row in conn.execute("PRAGMA table_info(players)").fetchall()}
@@ -7759,6 +7777,18 @@ def ensure_runtime_tables():
                 opens_without_legendary INTEGER NOT NULL DEFAULT 0,
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (wallet, pack_type)
+            );
+            CREATE TABLE IF NOT EXISTS player_rewards (
+                wallet TEXT PRIMARY KEY,
+                pack_shards INTEGER NOT NULL DEFAULT 0,
+                rare_tokens INTEGER NOT NULL DEFAULT 0,
+                lucky_tokens INTEGER NOT NULL DEFAULT 0,
+                season_points INTEGER NOT NULL DEFAULT 0,
+                season_level INTEGER NOT NULL DEFAULT 1,
+                wins_for_quest INTEGER NOT NULL DEFAULT 0,
+                wins_claimed INTEGER NOT NULL DEFAULT 0,
+                daily_claimed_on TEXT,
+                updated_at TEXT NOT NULL
             );
             '''
         )
@@ -8026,6 +8056,139 @@ def log_domain_telemetry(event_type, *, wallet=None, domain=None, rarity_label=N
             ),
         )
         conn.commit()
+
+
+def ensure_player_rewards(wallet):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM player_rewards WHERE wallet = ?', (wallet,)).fetchone()
+        if row is None:
+            conn.execute(
+                '''
+                INSERT INTO player_rewards (
+                    wallet, pack_shards, rare_tokens, lucky_tokens, season_points,
+                    season_level, wins_for_quest, wins_claimed, daily_claimed_on, updated_at
+                ) VALUES (?, 0, 0, 0, 0, 1, 0, 0, NULL, ?)
+                ''',
+                (wallet, now_iso()),
+            )
+            conn.commit()
+            row = conn.execute('SELECT * FROM player_rewards WHERE wallet = ?', (wallet,)).fetchone()
+    return dict(row)
+
+
+def reward_summary(wallet):
+    rewards = ensure_player_rewards(wallet)
+    rewards['daily_available'] = rewards.get('daily_claimed_on') != today_utc_str()
+    rewards['quest_ready'] = int(rewards.get('wins_for_quest', 0)) - int(rewards.get('wins_claimed', 0)) >= 3
+    rewards['next_quest_target'] = int(rewards.get('wins_claimed', 0)) + 3
+    return rewards
+
+
+def grant_match_rewards(wallet, *, won=False, ranked=False):
+    rewards = ensure_player_rewards(wallet)
+    pack_shards = int(rewards.get('pack_shards', 0)) + (2 if won else 1)
+    rare_tokens = int(rewards.get('rare_tokens', 0))
+    lucky_tokens = int(rewards.get('lucky_tokens', 0))
+    season_points = int(rewards.get('season_points', 0)) + (3 if ranked else 2) + (2 if won else 0)
+    wins_for_quest = int(rewards.get('wins_for_quest', 0)) + (1 if won else 0)
+    wins_claimed = int(rewards.get('wins_claimed', 0))
+    season_level = max(1, int(rewards.get('season_level', 1)))
+    while season_points >= season_level * 12:
+        season_points -= season_level * 12
+        season_level += 1
+        lucky_tokens += 1
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            UPDATE player_rewards
+            SET pack_shards = ?, rare_tokens = ?, lucky_tokens = ?, season_points = ?,
+                season_level = ?, wins_for_quest = ?, wins_claimed = ?, updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (pack_shards, rare_tokens, lucky_tokens, season_points, season_level, wins_for_quest, wins_claimed, now_iso(), wallet),
+        )
+        conn.commit()
+    return reward_summary(wallet)
+
+
+def claim_daily_reward(wallet):
+    rewards = ensure_player_rewards(wallet)
+    if rewards.get('daily_claimed_on') == today_utc_str():
+        raise ValueError('Ежедневная награда уже получена.')
+    pack_shards = int(rewards.get('pack_shards', 0)) + 3
+    season_points = int(rewards.get('season_points', 0)) + 2
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            UPDATE player_rewards
+            SET pack_shards = ?, season_points = ?, daily_claimed_on = ?, updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (pack_shards, season_points, today_utc_str(), now_iso(), wallet),
+        )
+        conn.commit()
+    return reward_summary(wallet)
+
+
+def claim_win_quest_reward(wallet):
+    rewards = ensure_player_rewards(wallet)
+    available = int(rewards.get('wins_for_quest', 0)) - int(rewards.get('wins_claimed', 0))
+    if available < 3:
+        raise ValueError('Квест на победы ещё не готов.')
+    rare_tokens = int(rewards.get('rare_tokens', 0)) + 1
+    wins_claimed = int(rewards.get('wins_claimed', 0)) + 3
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            UPDATE player_rewards
+            SET rare_tokens = ?, wins_claimed = ?, updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (rare_tokens, wins_claimed, now_iso(), wallet),
+        )
+        conn.commit()
+    return reward_summary(wallet)
+
+
+def extract_trait_flags(meta):
+    return set(meta.get('traitFlags') or [])
+
+
+def compute_domain_synergies(wallet, domains=None):
+    if not wallet:
+        return {'attack': 0, 'defense': 0, 'luck': 0, 'energy': 0, 'labels': []}
+    if domains is None:
+        try:
+            domains = wallet_domains_for_game(wallet, allow_fallback=True)
+        except Exception:
+            domains = []
+    metas = []
+    for item in domains or []:
+        domain = item.get('domain') if isinstance(item, dict) else normalize_domain(item)
+        if not domain:
+            continue
+        metas.append(get_domain_metadata_payload(domain, wallet=wallet))
+    flags = [extract_trait_flags(meta or {}) for meta in metas]
+    labels = []
+    attack = defense = luck = energy = 0
+    pairish = sum(1 for item in flags if {'low-entropy', 'palindrome'} & item or 'double-pair' in item)
+    has_eight = sum(1 for item in flags if 'has-eight' in item)
+    mirrorish = sum(1 for item in flags if 'palindrome' in item)
+    zeroish = sum(1 for item in flags if 'has-zero' in item)
+    if pairish >= 2:
+        defense += 1
+        labels.append('2 домена с повтором: +1 Defense synergy')
+    if has_eight >= 3:
+        luck += 1
+        labels.append('3 домена с 8: +1 Luck synergy')
+    if mirrorish >= 2:
+        energy += 1
+        labels.append('2 зеркальных домена: +1 Energy synergy')
+    if zeroish >= 2:
+        attack += 1
+        labels.append('2 домена с 0: +1 Attack synergy')
+    return {'attack': attack, 'defense': defense, 'luck': luck, 'energy': energy, 'labels': labels}
 
 
 def telemetry_summary(wallet=None):
@@ -9305,10 +9468,21 @@ def resolve_battle_round(*, seed_value, idx, focus, label, phase, card_a, card_b
     ability_state_b = dict(ability_state_b or {})
     domain_meta_a = dict(domain_meta_a or {})
     domain_meta_b = dict(domain_meta_b or {})
+    synergy_a = dict(domain_meta_a.get('_synergy') or {})
+    synergy_b = dict(domain_meta_b.get('_synergy') or {})
     effective_action_a = effective_action_key(action_a, domain_meta_a)
     effective_action_b = effective_action_key(action_b, domain_meta_b)
     value_a = max(0, round(build_bonus_value(build_a, focus) / 7))
     value_b = max(0, round(build_bonus_value(build_b, focus) / 7))
+    if focus == 'attack':
+        value_a += int(synergy_a.get('attack', 0))
+        value_b += int(synergy_b.get('attack', 0))
+    if focus == 'defense':
+        value_a += int(synergy_a.get('defense', 0))
+        value_b += int(synergy_b.get('defense', 0))
+    if focus == 'luck':
+        value_a += int(synergy_a.get('luck', 0))
+        value_b += int(synergy_b.get('luck', 0))
     card_boost_a = matchup_strategy_bonus(card_a, card_b, phase, idx)
     card_boost_b = matchup_strategy_bonus(card_b, card_a, phase, idx)
     action_bonus_a, action_bonus_b, action_note_a, action_note_b = action_round_resolution(effective_action_a, effective_action_b)
@@ -9528,6 +9702,8 @@ def wikigachi_duel(cards_a, cards_b, seed_value, build_a=None, build_b=None, fea
     featured_b = find_card_by_slot(cards_b, featured_slot_b)
     domain_meta_a = battle_domain_metadata(domain_a, wallet=wallet_a) if domain_a else {}
     domain_meta_b = battle_domain_metadata(domain_b, wallet=wallet_b) if domain_b else {}
+    domain_meta_a['_synergy'] = compute_domain_synergies(wallet_a) if wallet_a else {}
+    domain_meta_b['_synergy'] = compute_domain_synergies(wallet_b) if wallet_b else {}
     ability_state_a = ability_state_from_metadata(domain_meta_a)
     ability_state_b = ability_state_from_metadata(domain_meta_b)
     strategy_key_a = normalize_strategy_key(strategy_key_a)
@@ -9664,6 +9840,7 @@ def deck_summary_for_domain(domain, wallet=None):
     if not domain:
         return None
     metadata = get_domain_metadata_payload(domain, wallet=wallet)
+    synergies = compute_domain_synergies(wallet) if wallet else {'attack': 0, 'defense': 0, 'luck': 0, 'energy': 0, 'labels': []}
     cards = load_active_deck_cards(wallet, domain) if wallet else None
     if not cards:
         cards = generate_pack(domain)
@@ -9680,6 +9857,7 @@ def deck_summary_for_domain(domain, wallet=None):
         'discipline_pool': build['pool'],
         'total_score': deck_score(cards),
         'domain_metadata': metadata,
+        'synergies': synergies,
     }
 
 
@@ -10099,6 +10277,8 @@ def get_player(wallet):
         'telegram_linked': telegram_wallet_link(wallet) is not None,
         'display_name': display_name_for_wallet(wallet),
         'deck_summary': current_deck,
+        'rewards': reward_summary(wallet),
+        'synergies': compute_domain_synergies(wallet),
     }
 
 
@@ -10124,6 +10304,7 @@ def apply_non_ranked_domain_progress(match, mode='casual'):
         (match['wallet_a'], match['domain_a'], 'win' if match.get('winner') == match['wallet_a'] else ('draw' if match.get('winner') is None else 'loss')),
         (match['wallet_b'], match['domain_b'], 'win' if match.get('winner') == match['wallet_b'] else ('draw' if match.get('winner') is None else 'loss')),
     ):
+        grant_match_rewards(wallet, won=result == 'win', ranked=False)
         grant_domain_experience(wallet, domain, 16 if mode == 'casual' else 18, won=result == 'win')
         metadata = get_domain_metadata_payload(domain, wallet=wallet)
         log_domain_telemetry(
@@ -10379,6 +10560,8 @@ def build_solo_live_payload(state):
         'interactive_active_ability': ((state.get('ability_state_a') or {}).get('active') or {}),
         'interactive_ability_ready': ability_ready(state.get('ability_state_a') or {}, state.get('energy_a', 0)),
         'interactive_ability_state': state.get('ability_state_a') or {},
+        'player_synergies': state.get('synergy_a') or {},
+        'opponent_synergies': state.get('synergy_b') or {},
         'result': result_code,
         'result_label': result_label,
         'interactive_live': not bool(state.get('complete')),
@@ -10398,6 +10581,8 @@ def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, oppone
     featured_b = find_card_by_slot(opponent_cards, selected_slot_b)
     domain_meta_a = battle_domain_metadata(domain, wallet=wallet)
     domain_meta_b = battle_domain_metadata(opponent_domain, wallet=opponent_wallet)
+    synergy_a = compute_domain_synergies(wallet)
+    synergy_b = compute_domain_synergies(opponent_wallet) if opponent_wallet and opponent_wallet != 'bot' else {'attack': 0, 'defense': 0, 'luck': 0, 'energy': 0, 'labels': []}
     session_id = uuid.uuid4().hex
     action_plan_b = auto_action_plan(opponent_cards, selected_slot_b, strategy_key_b)
     rng = random.Random(hashlib.sha256(f'solo-live:{mode}:{wallet}:{domain}:{opponent_domain}:{session_id}'.encode()).hexdigest())
@@ -10422,6 +10607,8 @@ def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, oppone
         'featured_b': featured_b,
         'domain_meta_a': domain_meta_a,
         'domain_meta_b': domain_meta_b,
+        'synergy_a': synergy_a,
+        'synergy_b': synergy_b,
         'ability_state_a': ability_state_from_metadata(domain_meta_a),
         'ability_state_b': ability_state_from_metadata(domain_meta_b),
         'strategy_key_a': normalize_strategy_key(strategy_key_a),
@@ -10429,8 +10616,8 @@ def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, oppone
         'opponent_action_plan': action_plan_b,
         'current_round': 0,
         'rounds_total': rounds_total,
-        'energy_a': 3,
-        'energy_b': 3,
+        'energy_a': 3 + int(synergy_a.get('energy', 0)),
+        'energy_b': 3 + int(synergy_b.get('energy', 0)),
         'score_a': 0,
         'score_b': 0,
         'prev_a': None,
@@ -10533,6 +10720,8 @@ def apply_solo_battle_action(session_id, wallet, action_key):
     ability_state_b = dict(state.get('ability_state_b') or {})
     domain_meta_a = dict(state.get('domain_meta_a') or {})
     domain_meta_b = dict(state.get('domain_meta_b') or {})
+    domain_meta_a['_synergy'] = dict(state.get('synergy_a') or {})
+    domain_meta_b['_synergy'] = dict(state.get('synergy_b') or {})
     state['energy_a'] = 3
     state['energy_b'] = 3
     if action_key not in available_actions_for_state(state.get('energy_a', 0), ability_state_a):
@@ -10787,6 +10976,7 @@ def apply_ranked_result_duel(match):
         (match['wallet_a'], match['domain_a'], result_label(match['wallet_a'])),
         (match['wallet_b'], match['domain_b'], result_label(match['wallet_b'])),
     ):
+        grant_match_rewards(wallet, won=result == 'win', ranked=True)
         grant_domain_experience(wallet, domain, 24, won=result == 'win')
         metadata = get_domain_metadata_payload(domain, wallet=wallet)
         log_domain_telemetry(
@@ -12107,6 +12297,40 @@ def api_domain_telemetry(wallet):
     if not valid_wallet_address(wallet):
         return json_error('Некорректный адрес кошелька.')
     return jsonify({'wallet': wallet, 'summary': telemetry_summary(wallet=wallet)})
+
+
+@app.route('/api/rewards/<wallet>')
+def api_rewards(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    ensure_player(wallet)
+    return jsonify({'wallet': wallet, 'rewards': reward_summary(wallet)})
+
+
+@app.route('/api/rewards/daily', methods=['POST'])
+def api_rewards_daily():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    try:
+        rewards = claim_daily_reward(wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'wallet': wallet, 'rewards': rewards})
+
+
+@app.route('/api/rewards/quest', methods=['POST'])
+def api_rewards_quest():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    try:
+        rewards = claim_win_quest_reward(wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'wallet': wallet, 'rewards': rewards})
 
 
 @app.route('/api/pack/payment-intent', methods=['POST'])
