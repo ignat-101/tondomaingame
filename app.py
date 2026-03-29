@@ -920,7 +920,7 @@ PAGE_TEMPLATE = """
     }
 
     .arena-choice-panel .interactive-battle-actions {
-      grid-template-columns: repeat(3, minmax(0, 88px));
+      grid-template-columns: repeat(2, minmax(0, 88px));
       justify-content: center;
       gap: 14px;
     }
@@ -1074,22 +1074,14 @@ PAGE_TEMPLATE = """
 
     .arena-lane-clash {
       position: absolute;
-      top: 18px;
-      bottom: 18px;
-      width: min(148px, 18vw);
-      min-width: 108px;
-      transform: translateX(-50%);
-      display: grid;
-      grid-template-rows: 1fr auto 1fr;
-      justify-items: center;
-      align-items: center;
+      inset: 0;
       pointer-events: none;
-      z-index: 7;
+      z-index: 11;
       opacity: 0;
     }
 
     .arena-lane-clash.visible {
-      animation: laneClashIn 180ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: laneClashIn 160ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .arena-lane-clash.resolving {
@@ -1097,46 +1089,24 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-card {
-      width: 100%;
-      max-width: 148px;
-      min-width: 0;
-      padding: 10px 8px;
-      border-radius: 14px;
-      border: 1px solid rgba(121, 217, 255, 0.18);
-      background:
-        linear-gradient(180deg, rgba(10, 24, 40, 0.96), rgba(8, 16, 30, 0.98)),
-        rgba(255, 255, 255, 0.04);
-      font-size: 11px;
-      line-height: 1.2;
+      position: absolute;
+      width: var(--clash-card-width, 176px);
+      pointer-events: none;
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.24);
       opacity: 0;
-      text-align: center;
-      box-shadow: 0 14px 24px rgba(0, 0, 0, 0.2);
-    }
-
-    .arena-lane-card.player {
-      align-self: start;
-    }
-
-    .arena-lane-card.enemy {
-      align-self: end;
-      border-color: rgba(255, 122, 134, 0.18);
-    }
-
-    .arena-lane-clash.visible .arena-lane-card.player {
-      animation: laneCardTopDown 520ms cubic-bezier(.16,.84,.2,1) forwards;
-    }
-
-    .arena-lane-clash.visible .arena-lane-card.enemy {
-      animation: laneCardBottomUp 520ms cubic-bezier(.16,.84,.2,1) forwards;
+      transform-origin: center center;
     }
 
     .arena-lane-versus {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0.84);
       display: grid;
       justify-items: center;
       gap: 8px;
-      width: 100%;
       opacity: 0;
-      transform: scale(0.84);
+      min-width: 56px;
     }
 
     .arena-lane-clash.visible .arena-lane-versus {
@@ -1144,17 +1114,19 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-action {
+      width: 16px;
+      min-width: 16px;
       min-height: 26px;
-      padding: 0 10px;
+      padding: 0;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border: 1px solid rgba(121, 217, 255, 0.2);
       background: rgba(255, 255, 255, 0.05);
-      color: #eef6ff;
-      font-size: 10px;
-      white-space: nowrap;
+      color: transparent;
+      font-size: 0;
+      box-shadow: 0 0 18px rgba(255, 255, 255, 0.06);
     }
 
     .arena-lane-action.burst {
@@ -1168,6 +1140,10 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-result {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + 52px);
+      transform: translate(-50%, 8px) scale(0.92);
       min-height: 30px;
       padding: 0 12px;
       border-radius: 999px;
@@ -1181,7 +1157,6 @@ PAGE_TEMPLATE = """
       font-weight: 800;
       letter-spacing: 0.08em;
       opacity: 0;
-      transform: translateY(8px) scale(0.92);
     }
 
     .arena-lane-result.visible {
@@ -1734,7 +1709,7 @@ PAGE_TEMPLATE = """
 
     .interactive-battle-actions {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
       perspective: 1200px;
     }
@@ -3908,7 +3883,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-choice-panel .interactive-battle-actions {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
       }
 
@@ -3978,7 +3953,7 @@ PAGE_TEMPLATE = """
       }
 
       .interactive-battle-actions {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .wallet-domain-chip {
@@ -4691,10 +4666,9 @@ PAGE_TEMPLATE = """
 
     function actionRuleMeta(actionKey) {
       return {
-        burst: {ruLabel: 'Натиск', beats: 'Фокус', losesTo: 'Блок'},
-        guard: {ruLabel: 'Блок', beats: 'Натиск', losesTo: 'Фокус'},
-        channel: {ruLabel: 'Фокус', beats: 'Блок', losesTo: 'Натиск'},
-      }[actionKey] || {ruLabel: actionKey || '-', cost: 0, beats: '-', losesTo: '-'};
+        burst: {ruLabel: 'Натиск', beats: 'Блок', losesTo: 'Блок'},
+        guard: {ruLabel: 'Блок', beats: 'Натиск', losesTo: 'Натиск'},
+      }[actionKey] || {ruLabel: 'Блок', cost: 0, beats: 'Натиск', losesTo: 'Натиск'};
     }
 
     function skillCounterText(card) {
@@ -5430,26 +5404,50 @@ PAGE_TEMPLATE = """
       const laneRect = activeLane.getBoundingClientRect();
       const coreRect = arenaCore.getBoundingClientRect();
       const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
+      const playerSource = battleResult.querySelector('.arena-rail.player .arena-slot-card.active-slot') || battleResult.querySelector('.arena-rail.player .arena-slot-card');
+      const enemySource = battleResult.querySelector('.arena-rail.enemy .arena-slot-card.active-slot') || battleResult.querySelector('.arena-rail.enemy .arena-slot-card');
+      if (!playerSource || !enemySource) {
+        return;
+      }
+      const playerRect = playerSource.getBoundingClientRect();
+      const enemyRect = enemySource.getBoundingClientRect();
+      const clashCardWidth = Math.max(playerRect.width, enemyRect.width, 120);
+      const centerTop = coreRect.height * 0.5 - 34;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
       laneReveal.style.left = `${laneCenter}px`;
+      laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
       laneReveal.innerHTML = `
-        <div class="arena-lane-card player">
-          <strong>${playerCard.title || 'Твоя карта'}</strong>
-        </div>
         <div class="arena-lane-versus">
           <div class="arena-lane-action ${playerActionKey}">${actionRuleMeta(playerActionKey).ruLabel}</div>
           <div class="battle-vs-orb">VS</div>
           <div class="arena-lane-action ${opponentActionKey}">${actionRuleMeta(opponentActionKey).ruLabel}</div>
           <div class="arena-lane-result ${resultKey}">${resultLabel}</div>
         </div>
-        <div class="arena-lane-card enemy">
-          <strong>${opponentCard.title || 'Карта соперника'}</strong>
-        </div>
       `;
+      const playerClone = playerSource.cloneNode(true);
+      playerClone.className = `${playerClone.className} arena-lane-card player`.trim();
+      playerClone.style.left = `${playerRect.left - coreRect.left}px`;
+      playerClone.style.top = `${playerRect.top - coreRect.top}px`;
+      playerClone.style.width = `${playerRect.width}px`;
+      const enemyClone = enemySource.cloneNode(true);
+      enemyClone.className = `${enemyClone.className} arena-lane-card enemy`.trim();
+      enemyClone.style.left = `${enemyRect.left - coreRect.left}px`;
+      enemyClone.style.top = `${enemyRect.top - coreRect.top}px`;
+      enemyClone.style.width = `${enemyRect.width}px`;
+      laneReveal.appendChild(playerClone);
+      laneReveal.appendChild(enemyClone);
       arenaCore.appendChild(laneReveal);
       requestAnimationFrame(() => laneReveal.classList.add('visible'));
-      await sleep(420);
+      playerClone.animate([
+        { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' },
+        { opacity: 1, transform: `translate3d(${laneCenter - (playerRect.left - coreRect.left) - playerRect.width / 2}px, ${centerTop - (playerRect.top - coreRect.top)}px, 0) scale(1.04)` }
+      ], { duration: 520, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
+      enemyClone.animate([
+        { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' },
+        { opacity: 1, transform: `translate3d(${laneCenter - (enemyRect.left - coreRect.left) - enemyRect.width / 2}px, ${centerTop - (enemyRect.top - coreRect.top)}px, 0) scale(1.04)` }
+      ], { duration: 520, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
+      await sleep(540);
       const resultNode = laneReveal.querySelector('.arena-lane-result');
       if (resultNode) {
         resultNode.classList.add('visible');
@@ -8026,40 +8024,33 @@ ACTION_RULES = {
     'burst': {
         'label': 'Burst',
         'ru_label': 'Натиск',
-        'beats': 'channel',
+        'beats': 'guard',
         'color': 'rgba(255, 122, 134, 0.9)',
-        'description': 'Силен против накопления. Слабее против блока.',
+        'description': 'Давит напрямую. Слабее против блока.',
     },
     'guard': {
         'label': 'Guard',
         'ru_label': 'Блок',
         'beats': 'burst',
         'color': 'rgba(83, 246, 184, 0.9)',
-        'description': 'Сдерживает натиск. Слабее против подготовки.',
-    },
-    'channel': {
-        'label': 'Channel',
-        'ru_label': 'Фокус',
-        'beats': 'guard',
-        'color': 'rgba(69, 215, 255, 0.9)',
-        'description': 'Наказывает блок. Слабее против прямого натиска.',
+        'description': 'Сдерживает натиск.',
     },
 }
 STRATEGY_PRESETS = {
     'aggressive': {
         'label': 'Агрессия',
         'description': 'Сразу давит, лучше на добивании и против пассивной игры.',
-        'plan': ['burst', 'burst', 'channel', 'burst', 'guard'],
+        'plan': ['burst', 'burst', 'burst', 'burst', 'guard'],
     },
     'balanced': {
         'label': 'Баланс',
         'description': 'Самая ровная стратегия, меньше провалов по матчапам.',
-        'plan': ['burst', 'guard', 'channel', 'guard', 'burst'],
+        'plan': ['burst', 'guard', 'guard', 'guard', 'burst'],
     },
     'tricky': {
         'label': 'Хитрость',
         'description': 'Чаще ловит соперника на контрах и неожиданных сменах темпа.',
-        'plan': ['channel', 'guard', 'channel', 'burst', 'channel'],
+        'plan': ['guard', 'guard', 'burst', 'burst', 'guard'],
     },
 }
 
@@ -8539,16 +8530,16 @@ def auto_action_plan(cards, featured_slot=None, strategy_key='balanced'):
         plan[0] = 'burst'
         plan[4] = 'burst'
     if skill_key == 'wildcard':
-        plan[2] = 'channel'
+        plan[2] = 'burst'
     if skill_key == 'tempo':
         plan[1] = 'burst'
         plan[3] = 'burst'
     if skill_key == 'mirror':
         plan[0] = 'guard'
-        plan[2] = 'channel'
+        plan[2] = 'guard'
     if skill_key == 'underdog':
         plan[2] = 'burst'
-        plan[4] = 'channel'
+        plan[4] = 'guard'
     return plan
 
 
@@ -8560,14 +8551,14 @@ def sanitize_action_plan(plan):
     for key in plan[:len(WIKIGACHI_ROUND_PLAN)]:
         action_key = str(key or '').strip().lower()
         if action_key not in ACTION_RULES:
-            action_key = 'channel'
+            action_key = 'guard'
         normalized.append(action_key)
     return normalized
 
 
 def action_round_resolution(action_a, action_b):
-    meta_a = ACTION_RULES.get(action_a) or ACTION_RULES['channel']
-    meta_b = ACTION_RULES.get(action_b) or ACTION_RULES['channel']
+    meta_a = ACTION_RULES.get(action_a) or ACTION_RULES['guard']
+    meta_b = ACTION_RULES.get(action_b) or ACTION_RULES['guard']
     if meta_a['beats'] == action_b and meta_b['beats'] != action_a:
         return 44, 2, f"{meta_a['ru_label']} контрит {meta_b['ru_label']}", f"{meta_b['ru_label']} попал под контр"
     if meta_b['beats'] == action_a and meta_a['beats'] != action_b:
@@ -8591,7 +8582,7 @@ def strategy_round_bonus(strategy_key, focus, phase, round_index, action_key, pr
             bonus += 10
         note = 'Агрессия давит темпом'
     elif strategy_key == 'tricky':
-        bonus = 32 if action_key == 'channel' else 13
+        bonus = 32 if action_key == 'guard' else 13
         if phase in {'counter', 'risk'}:
             bonus += 10
         if previous_outcome == 'loss':
