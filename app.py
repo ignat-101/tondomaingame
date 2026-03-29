@@ -5459,7 +5459,7 @@ PAGE_TEMPLATE = """
           let actionLocked = false;
           const submitInteractiveAction = async (actionKey, activeButton = null, byTimeout = false) => {
             if (actionLocked) return;
-            await prepareFunctionalInteraction();
+            queueTmaModeSync();
             if (!liveResult.interactive_session_id) {
               if (interactiveBattleStatus) {
                 interactiveBattleStatus.textContent = 'Сессия боя потеряна. Обновляю состояние...';
@@ -5568,7 +5568,7 @@ PAGE_TEMPLATE = """
         }
         if (startBtn) {
           startBtn.addEventListener('click', async () => {
-            await prepareFunctionalInteraction();
+            queueTmaModeSync();
             const launchBattle = () => {
               startBtn.disabled = true;
               startBtn.textContent = 'Бой идёт...';
