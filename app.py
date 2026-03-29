@@ -5540,10 +5540,10 @@ PAGE_TEMPLATE = """
       if (actionKey === 'burst') {
         return `
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M15.4 2 21 7.6l-1.7 1.7-1.9-1.9-4.7 4.7-1.2-1.2 4.7-4.7-1.9-1.9z"/>
-            <path fill="currentColor" d="M10.7 11.1 12.9 13.3 7.5 18.7 5.3 16.5z"/>
-            <path fill="currentColor" d="M4.6 17.2 6.8 19.4 4.9 21.3 2.7 19.1z"/>
-            <path fill="currentColor" d="M7.1 9.2 10.8 12.9 9.4 14.3 5.7 10.6z"/>
+            <path fill="currentColor" d="M12 2 15.3 5.3 13.8 6.8 12.9 5.9v8.5h-1.8V5.9l-.9.9-1.5-1.5z"/>
+            <path fill="currentColor" d="M8.1 13.4h7.8v1.9H8.1z"/>
+            <path fill="currentColor" d="M10.2 15.3h3.6v4.2h-3.6z"/>
+            <circle cx="12" cy="21" r="1.6" fill="currentColor"/>
           </svg>
         `;
       }
@@ -5588,9 +5588,9 @@ PAGE_TEMPLATE = """
       const clashCardHeight = Math.round(clashCardWidth * (compactClash ? 1.4 : 1.46));
       const clashGap = 18;
       const impactGap = 8;
-      const centerY = coreRect.height * 0.5;
+      const centerY = coreRect.height * (compactClash ? 0.6 : 0.5);
       const clashLanePadding = compactClash ? 6 : 10;
-      const verticalPadding = compactClash ? 28 : 20;
+      const verticalPadding = compactClash ? 48 : 20;
       const laneTargetLeft = Math.max(
         clashLanePadding,
         Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
@@ -5603,8 +5603,8 @@ PAGE_TEMPLATE = """
       const enemyTargetTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawEnemyTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop + 20 : playerTargetTop - 4;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop - 20 : enemyTargetTop + 4;
+      const playerPrepTop = playerAttack ? playerTargetTop + (compactClash ? 14 : 20) : playerTargetTop - 4;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop - (compactClash ? 14 : 20) : enemyTargetTop + 4;
       const rawPlayerImpactTop = playerAttack ? centerY - clashCardHeight - impactGap + 14 : playerTargetTop + 4;
       const rawEnemyImpactTop = enemyAttack ? centerY + impactGap - 14 : enemyTargetTop - 4;
       const playerImpactTop = Math.max(verticalPadding, rawPlayerImpactTop);
