@@ -508,7 +508,7 @@ def getDomainMetadata(domain: str, *, http: requests.Session | None = None, inde
     cached = index.get(number)
     if isinstance(cached, dict):
         source = dict(cached)
-        source.setdefault("dataSource", "tenkclub-index")
+        source["dataSource"] = "tenkclub-index"
         data = build_domain_rank_data(number, source, level=int(progress.get("level", 1)), experience=int(progress.get("experience", 0)))
         return data.to_dict()
     try:

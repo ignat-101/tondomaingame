@@ -124,24 +124,28 @@ PACK_TYPES = {
         'count': 3,
         'weights': {'basic': 70, 'rare': 20, 'epic': 9, 'legendary': 1},
         'lucky_bonus': False,
+        'costs': {'pack_shards': 3},
     },
     'rare': {
         'label': 'Rare Pack',
         'count': 4,
         'weights': {'basic': 52, 'rare': 28, 'epic': 15, 'mythic': 4, 'legendary': 1},
         'lucky_bonus': False,
+        'costs': {'rare_tokens': 1},
     },
     'epic': {
         'label': 'Epic Pack',
         'count': 5,
         'weights': {'basic': 35, 'rare': 33, 'epic': 22, 'mythic': 8, 'legendary': 2},
         'lucky_bonus': False,
+        'costs': {'pack_shards': 6, 'rare_tokens': 1},
     },
     'lucky': {
         'label': 'Lucky Pack',
         'count': 4,
         'weights': {'basic': 42, 'rare': 26, 'epic': 18, 'mythic': 10, 'legendary': 4},
         'lucky_bonus': True,
+        'costs': {'lucky_tokens': 1},
     },
 }
 
@@ -4384,6 +4388,22 @@ PAGE_TEMPLATE = """
             <button id="buy-pack-btn" disabled>Открыть пак за 1 TON</button>
           </div>
 
+          <div class="result-box" id="pack-economy-box" style="margin-top:12px;">
+            <strong>Pack Economy</strong>
+            <div class="tiny" id="pack-rewards-summary">Подключи кошелёк, чтобы видеть `shards / tokens` и сезонный прогресс.</div>
+            <div class="tiny" id="pack-season-summary" style="margin-top:6px;">Season: -</div>
+            <div class="actions" style="margin-top:10px;">
+              <button class="secondary" id="claim-daily-reward-btn" disabled>Забрать daily reward</button>
+              <button class="secondary" id="claim-quest-reward-btn" disabled>Забрать win quest</button>
+            </div>
+            <div class="actions" style="margin-top:10px;">
+              <button class="secondary reward-pack-btn" data-reward-pack="common" disabled>Common за 3 shards</button>
+              <button class="secondary reward-pack-btn" data-reward-pack="rare" disabled>Rare за 1 rare</button>
+              <button class="secondary reward-pack-btn" data-reward-pack="epic" disabled>Epic за 6 shards + 1 rare</button>
+              <button class="secondary reward-pack-btn" data-reward-pack="lucky" disabled>Lucky за 1 lucky</button>
+            </div>
+          </div>
+
           <div class="pack-showcase" id="pack-showcase">
             <div class="pack-counter" id="pack-counter" style="display:none;"></div>
             <p class="pack-note" id="pack-note">TAP TO OPEN</p>
@@ -4560,6 +4580,8 @@ PAGE_TEMPLATE = """
       allPlayers: [],
       achievements: [],
       cardCatalog: [],
+      packTypes: [],
+      packPityThreshold: 20,
       matchmakingMode: null,
       matchmakingPolling: false,
       disciplineBuild: null,
@@ -4606,6 +4628,10 @@ PAGE_TEMPLATE = """
     const packCounter = document.getElementById('pack-counter');
     const packNote = document.getElementById('pack-note');
     const buyPackBtn = document.getElementById('buy-pack-btn');
+    const packRewardsSummary = document.getElementById('pack-rewards-summary');
+    const packSeasonSummary = document.getElementById('pack-season-summary');
+    const claimDailyRewardBtn = document.getElementById('claim-daily-reward-btn');
+    const claimQuestRewardBtn = document.getElementById('claim-quest-reward-btn');
     const cardCatalogList = document.getElementById('card-catalog-list');
     const oneCardSlot = document.getElementById('one-card-slot');
     const battleCardSlot = document.getElementById('battle-card-slot');
@@ -4885,6 +4911,49 @@ PAGE_TEMPLATE = """
       }[strategyKey] || {label: 'Баланс', description: 'Ровная стратегия без явных дыр.'};
     }
 
+    function packTypeMeta(packType) {
+      return (state.packTypes || []).find((item) => item.key === packType) || null;
+    }
+
+    function packCostText(costs) {
+      const entries = Object.entries(costs || {}).filter(([, value]) => Number(value || 0) > 0);
+      if (!entries.length) return 'free';
+      return entries.map(([key, value]) => {
+        const label = key === 'pack_shards' ? 'shards' : (key === 'rare_tokens' ? 'rare' : (key === 'lucky_tokens' ? 'lucky' : key));
+        return `${value} ${label}`;
+      }).join(' + ');
+    }
+
+    function canAffordPack(costs, rewards) {
+      const balances = rewards || {};
+      return Object.entries(costs || {}).every(([key, value]) => Number(balances[key] || 0) >= Number(value || 0));
+    }
+
+    function renderPackEconomy() {
+      const rewards = state.playerProfile && state.playerProfile.rewards ? state.playerProfile.rewards : null;
+      if (!rewards) {
+        packRewardsSummary.textContent = 'Подключи кошелёк и выбери домен, чтобы открывать reward-паки.';
+        packSeasonSummary.textContent = 'Season: -';
+        claimDailyRewardBtn.disabled = true;
+        claimQuestRewardBtn.disabled = true;
+        document.querySelectorAll('.reward-pack-btn').forEach((button) => {
+          button.disabled = true;
+        });
+        return;
+      }
+      const seasonTarget = Number(rewards.season_target || (Number(rewards.season_level || 1) * 12));
+      packRewardsSummary.textContent = `Баланс: ${rewards.pack_shards || 0} shards • ${rewards.rare_tokens || 0} rare • ${rewards.lucky_tokens || 0} lucky`;
+      packSeasonSummary.textContent = `Season ${rewards.season_level || 1} • ${rewards.season_points || 0}/${seasonTarget} pts • daily ${rewards.daily_available ? 'готов' : 'получен'} • quest ${rewards.quest_ready ? 'готов' : `${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} wins`}`;
+      claimDailyRewardBtn.disabled = !(state.wallet && rewards.daily_available);
+      claimQuestRewardBtn.disabled = !(state.wallet && rewards.quest_ready);
+      document.querySelectorAll('.reward-pack-btn').forEach((button) => {
+        const meta = packTypeMeta(button.dataset.rewardPack);
+        const costs = (meta && meta.costs) || {};
+        button.textContent = `${meta ? meta.label : button.dataset.rewardPack} за ${packCostText(costs)}`;
+        button.disabled = !(state.wallet && state.selectedDomain && canAffordPack(costs, rewards));
+      });
+    }
+
     function api(path, options = {}) {
       const config = {
         method: options.method || 'GET',
@@ -5075,9 +5144,10 @@ PAGE_TEMPLATE = """
           <div class="tiny">Score: ${meta.score || '-'} • Role/Class: ${meta.role ? `${meta.role} / ${meta.class}` : '-'}</div>
           <div class="tiny">Atomic patterns: ${(meta.atomicPatterns && meta.atomicPatterns.length) ? meta.atomicPatterns.join(', ') : 'нет'}</div>
           <div class="tiny">Super pattern: ${meta.superPattern || 'нет'} • Level: ${meta.level || 1}</div>
-          <div class="tiny">Passive: ${meta.passiveAbility ? meta.passiveAbility.name : '-'}</div>
-          <div class="tiny">Active: ${meta.activeAbility ? `${meta.activeAbility.name} • cost ${meta.activeAbility.cost} • cd ${meta.activeAbility.cooldown}` : '-'}</div>
+          <div class="tiny">Passive: ${meta.passiveAbility ? `${meta.passiveAbility.name} • proc ${(Number(meta.passiveAbility.probability || 0) * 100).toFixed(0)}%` : '-'}</div>
+          <div class="tiny">Active: ${meta.activeAbility ? `${meta.activeAbility.name} • cost ${meta.activeAbility.cost} • cd ${meta.activeAbility.cooldown} • charges ${meta.activeAbility.charges} • proc ${(Number(meta.activeAbility.probability || 0) * 100).toFixed(0)}%` : '-'}</div>
           <div class="tiny">Синергии: ${data.deck.synergies && data.deck.synergies.labels && data.deck.synergies.labels.length ? data.deck.synergies.labels.join(' • ') : 'нет'}</div>
+          <div class="tiny">Winrate домена: ${meta.totalMatches ? `${Math.round((meta.winRate || 0) * 100)}% из ${meta.totalMatches}` : 'нет матчей'}</div>
           <div class="tiny">Свободный пул дисциплин: ${data.deck.discipline_pool || 0}</div>
           <div class="tiny">Вклад карт в колоду: ${data.deck.total_score}</div>
         </div>
@@ -5196,10 +5266,12 @@ PAGE_TEMPLATE = """
           <div class="tiny">Активный домен: ${state.selectedDomain ? `${state.selectedDomain}.ton` : '-'}</div>
           <div class="tiny">Рейтинг: ${profileRating.textContent} • Матчей: ${profileGames.textContent}</div>
           <div class="tiny">Награды: ${state.playerProfile && state.playerProfile.rewards ? `shards ${state.playerProfile.rewards.pack_shards} • rare ${state.playerProfile.rewards.rare_tokens} • lucky ${state.playerProfile.rewards.lucky_tokens}` : '-'}</div>
+          <div class="tiny">Season: ${state.playerProfile && state.playerProfile.rewards ? `lvl ${state.playerProfile.rewards.season_level} • ${state.playerProfile.rewards.season_points}/${state.playerProfile.rewards.season_target}` : '-'}</div>
           <div class="tiny">Синергии: ${state.playerProfile && state.playerProfile.synergies && state.playerProfile.synergies.labels && state.playerProfile.synergies.labels.length ? state.playerProfile.synergies.labels.join(' • ') : 'нет'}</div>
         </div>
       `;
       document.getElementById('mobile-show-deck-btn').disabled = showDeckBtn.disabled;
+      renderPackEconomy();
     }
 
     function renderOwnedDecks(decks, currentDomain) {
@@ -5380,6 +5452,7 @@ PAGE_TEMPLATE = """
       cancelMatchmakingBtn.disabled = !searching;
       saveBuildBtn.disabled = !(connected && hasDomain);
       walletOpenPackBtn.disabled = !(connected && hasDomain);
+      renderPackEconomy();
     }
 
     function renderDomains(domains) {
@@ -6176,6 +6249,7 @@ PAGE_TEMPLATE = """
                           <div class="interactive-battle-title">Раунд ${roundNumber}</div>
                           <div class="interactive-timer" id="interactive-timer">5 c</div>
                           <div class="tiny" style="text-align:center;">Энергия: ${result.interactive_energy || 0}${result.interactive_active_ability && result.interactive_active_ability.name ? ` • ${result.interactive_active_ability.name}` : ''}</div>
+                          <div class="tiny" style="text-align:center;">Ability: ${result.interactive_active_ability && result.interactive_active_ability.name ? `charges ${(result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0} • cd ${(result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0}` : 'нет'}</div>
                           <div class="tiny" id="interactive-battle-status" style="text-align:center; min-height:16px;">${result.interactive_hint || 'Выбери действие'}</div>
                           <div class="interactive-battle-actions">
                             ${(result.interactive_available_actions || ['burst', 'guard']).map((key) => {
@@ -6692,11 +6766,12 @@ PAGE_TEMPLATE = """
       }
     }
 
-    async function openPack(source = 'daily', paymentId = null) {
+    async function openPack(source = 'daily', paymentId = null, packType = null) {
       await prepareFunctionalInteraction();
       if (state.packOpening) return;
+      const resolvedPackType = packType || (source === 'paid' ? 'lucky' : 'common');
       state.packOpening = true;
-      setStatus(document.getElementById('pack-status'), 'Распаковываем 5 карточек из домена...', 'warning');
+      setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
       foilPack.classList.remove('opening');
       foilPack.classList.remove('vanishing');
       packShowcase.classList.remove('opened');
@@ -6706,17 +6781,20 @@ PAGE_TEMPLATE = """
       try {
         const data = await api('/api/pack', {
           method: 'POST',
-          body: {wallet: state.wallet, domain: state.selectedDomain, source, payment_id: paymentId}
+          body: {wallet: state.wallet, domain: state.selectedDomain, source, payment_id: paymentId, pack_type: resolvedPackType}
         });
         state.cards = data.cards;
         state.pendingPackSource = null;
         state.pendingPackPaymentId = null;
+        if (state.playerProfile && data.rewards) {
+          state.playerProfile.rewards = data.rewards;
+        }
         await sleep(1300);
         packShowcase.classList.add('opened');
         packNote.textContent = 'Cards incoming';
         await renderPack(data.cards, data.total_score);
         packShowcase.classList.remove('cinematic');
-        setStatus(document.getElementById('pack-status'), `Колода готова. Вклад карт: ${data.total_score}. Свободный пул пересчитан от домена.`, 'success');
+        setStatus(document.getElementById('pack-status'), `Колода готова. ${packTypeMeta(resolvedPackType)?.label || resolvedPackType} дал вклад ${data.total_score}.`, 'success');
         updateButtons();
         showDeck();
         await loadDisciplineBuild();
@@ -6733,6 +6811,45 @@ PAGE_TEMPLATE = """
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       } finally {
         state.packOpening = false;
+      }
+    }
+
+    async function openRewardPack(packType) {
+      if (!state.wallet || !state.selectedDomain) return;
+      await openPack('reward', null, packType);
+    }
+
+    async function claimDailyReward() {
+      if (!state.wallet) return;
+      try {
+        const data = await api('/api/rewards/daily', {
+          method: 'POST',
+          body: {wallet: state.wallet}
+        });
+        if (state.playerProfile) {
+          state.playerProfile.rewards = data.rewards;
+        }
+        renderProfile();
+        setStatus(document.getElementById('pack-status'), 'Daily reward получен.', 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
+    async function claimQuestReward() {
+      if (!state.wallet) return;
+      try {
+        const data = await api('/api/rewards/quest', {
+          method: 'POST',
+          body: {wallet: state.wallet}
+        });
+        if (state.playerProfile) {
+          state.playerProfile.rewards = data.rewards;
+        }
+        renderProfile();
+        setStatus(document.getElementById('pack-status'), 'Quest reward получен.', 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
     }
 
@@ -6781,7 +6898,10 @@ PAGE_TEMPLATE = """
     async function loadCardCatalog() {
       try {
         const data = await api('/api/cards/catalog');
+        state.packTypes = data.pack_types || [];
+        state.packPityThreshold = Number(data.pity_threshold || 20);
         renderCardCatalog(data.cards || [], data.skills || []);
+        renderPackEconomy();
       } catch (error) {
         cardCatalogList.innerHTML = `<div class="user-item error">${error.message}</div>`;
       }
@@ -7328,16 +7448,21 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(document.getElementById('shuffle-deck-btn'), shuffleDeck);
     bindFunctionalControl(document.getElementById('open-pack-btn'), () => openPack('daily'));
     bindFunctionalControl(buyPackBtn, buyPackWithTon);
+    bindFunctionalControl(claimDailyRewardBtn, claimDailyReward);
+    bindFunctionalControl(claimQuestRewardBtn, claimQuestReward);
+    document.querySelectorAll('.reward-pack-btn').forEach((button) => {
+      bindFunctionalControl(button, () => openRewardPack(button.dataset.rewardPack));
+    });
     bindFunctionalControl(foilPack, () => {
       if (state.packOpening) {
         return;
       }
       if (state.pendingPackSource === 'paid' && state.pendingPackPaymentId) {
-        openPack('paid', state.pendingPackPaymentId);
+        openPack('paid', state.pendingPackPaymentId, 'lucky');
         return;
       }
       if (!document.getElementById('open-pack-btn').disabled) {
-        openPack('daily');
+        openPack('daily', null, 'common');
       }
     });
     bindFunctionalControl(document.getElementById('continue-to-modes-btn'), () => switchView('modes'));
@@ -8077,11 +8202,32 @@ def ensure_player_rewards(wallet):
     return dict(row)
 
 
+def normalize_reward_progress_fields(*, pack_shards, rare_tokens, lucky_tokens, season_points, season_level, wins_for_quest, wins_claimed):
+    season_level = max(1, int(season_level or 1))
+    season_points = max(0, int(season_points or 0))
+    lucky_tokens = max(0, int(lucky_tokens or 0))
+    while season_points >= season_level * 12:
+        season_points -= season_level * 12
+        season_level += 1
+        lucky_tokens += 1
+    return {
+        'pack_shards': max(0, int(pack_shards or 0)),
+        'rare_tokens': max(0, int(rare_tokens or 0)),
+        'lucky_tokens': lucky_tokens,
+        'season_points': season_points,
+        'season_level': season_level,
+        'wins_for_quest': max(0, int(wins_for_quest or 0)),
+        'wins_claimed': max(0, int(wins_claimed or 0)),
+    }
+
+
 def reward_summary(wallet):
     rewards = ensure_player_rewards(wallet)
     rewards['daily_available'] = rewards.get('daily_claimed_on') != today_utc_str()
     rewards['quest_ready'] = int(rewards.get('wins_for_quest', 0)) - int(rewards.get('wins_claimed', 0)) >= 3
     rewards['next_quest_target'] = int(rewards.get('wins_claimed', 0)) + 3
+    rewards['season_target'] = max(12, int(rewards.get('season_level', 1)) * 12)
+    rewards['season_progress'] = round(int(rewards.get('season_points', 0)) / max(1, rewards['season_target']), 3)
     return rewards
 
 
@@ -8093,11 +8239,15 @@ def grant_match_rewards(wallet, *, won=False, ranked=False):
     season_points = int(rewards.get('season_points', 0)) + (3 if ranked else 2) + (2 if won else 0)
     wins_for_quest = int(rewards.get('wins_for_quest', 0)) + (1 if won else 0)
     wins_claimed = int(rewards.get('wins_claimed', 0))
-    season_level = max(1, int(rewards.get('season_level', 1)))
-    while season_points >= season_level * 12:
-        season_points -= season_level * 12
-        season_level += 1
-        lucky_tokens += 1
+    normalized = normalize_reward_progress_fields(
+        pack_shards=pack_shards,
+        rare_tokens=rare_tokens,
+        lucky_tokens=lucky_tokens,
+        season_points=season_points,
+        season_level=rewards.get('season_level', 1),
+        wins_for_quest=wins_for_quest,
+        wins_claimed=wins_claimed,
+    )
     with closing(get_db()) as conn:
         conn.execute(
             '''
@@ -8106,7 +8256,17 @@ def grant_match_rewards(wallet, *, won=False, ranked=False):
                 season_level = ?, wins_for_quest = ?, wins_claimed = ?, updated_at = ?
             WHERE wallet = ?
             ''',
-            (pack_shards, rare_tokens, lucky_tokens, season_points, season_level, wins_for_quest, wins_claimed, now_iso(), wallet),
+            (
+                normalized['pack_shards'],
+                normalized['rare_tokens'],
+                normalized['lucky_tokens'],
+                normalized['season_points'],
+                normalized['season_level'],
+                normalized['wins_for_quest'],
+                normalized['wins_claimed'],
+                now_iso(),
+                wallet,
+            ),
         )
         conn.commit()
     return reward_summary(wallet)
@@ -8116,16 +8276,31 @@ def claim_daily_reward(wallet):
     rewards = ensure_player_rewards(wallet)
     if rewards.get('daily_claimed_on') == today_utc_str():
         raise ValueError('Ежедневная награда уже получена.')
-    pack_shards = int(rewards.get('pack_shards', 0)) + 3
-    season_points = int(rewards.get('season_points', 0)) + 2
+    normalized = normalize_reward_progress_fields(
+        pack_shards=int(rewards.get('pack_shards', 0)) + 3,
+        rare_tokens=rewards.get('rare_tokens', 0),
+        lucky_tokens=rewards.get('lucky_tokens', 0),
+        season_points=int(rewards.get('season_points', 0)) + 2,
+        season_level=rewards.get('season_level', 1),
+        wins_for_quest=rewards.get('wins_for_quest', 0),
+        wins_claimed=rewards.get('wins_claimed', 0),
+    )
     with closing(get_db()) as conn:
         conn.execute(
             '''
             UPDATE player_rewards
-            SET pack_shards = ?, season_points = ?, daily_claimed_on = ?, updated_at = ?
+            SET pack_shards = ?, lucky_tokens = ?, season_points = ?, season_level = ?, daily_claimed_on = ?, updated_at = ?
             WHERE wallet = ?
             ''',
-            (pack_shards, season_points, today_utc_str(), now_iso(), wallet),
+            (
+                normalized['pack_shards'],
+                normalized['lucky_tokens'],
+                normalized['season_points'],
+                normalized['season_level'],
+                today_utc_str(),
+                now_iso(),
+                wallet,
+            ),
         )
         conn.commit()
     return reward_summary(wallet)
@@ -8146,6 +8321,56 @@ def claim_win_quest_reward(wallet):
             WHERE wallet = ?
             ''',
             (rare_tokens, wins_claimed, now_iso(), wallet),
+        )
+        conn.commit()
+    return reward_summary(wallet)
+
+
+def pack_costs(pack_type):
+    return dict(pack_config(pack_type).get('costs') or {})
+
+
+def can_afford_pack_type(wallet, pack_type):
+    rewards = ensure_player_rewards(wallet)
+    costs = pack_costs(pack_type)
+    missing = {
+        key: max(0, int(value or 0) - int(rewards.get(key, 0) or 0))
+        for key, value in costs.items()
+        if int(rewards.get(key, 0) or 0) < int(value or 0)
+    }
+    return {'ok': not missing, 'costs': costs, 'missing': missing, 'rewards': rewards}
+
+
+def spend_pack_currency(wallet, pack_type):
+    affordability = can_afford_pack_type(wallet, pack_type)
+    if not affordability['ok']:
+        details = ', '.join(f'{key}:{value}' for key, value in affordability['missing'].items())
+        raise ValueError(f'Недостаточно валюты для {pack_config(pack_type)["label"]}: {details}')
+    rewards = affordability['rewards']
+    costs = affordability['costs']
+    normalized = normalize_reward_progress_fields(
+        pack_shards=int(rewards.get('pack_shards', 0)) - int(costs.get('pack_shards', 0)),
+        rare_tokens=int(rewards.get('rare_tokens', 0)) - int(costs.get('rare_tokens', 0)),
+        lucky_tokens=int(rewards.get('lucky_tokens', 0)) - int(costs.get('lucky_tokens', 0)),
+        season_points=rewards.get('season_points', 0),
+        season_level=rewards.get('season_level', 1),
+        wins_for_quest=rewards.get('wins_for_quest', 0),
+        wins_claimed=rewards.get('wins_claimed', 0),
+    )
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            UPDATE player_rewards
+            SET pack_shards = ?, rare_tokens = ?, lucky_tokens = ?, updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (
+                normalized['pack_shards'],
+                normalized['rare_tokens'],
+                normalized['lucky_tokens'],
+                now_iso(),
+                wallet,
+            ),
         )
         conn.commit()
     return reward_summary(wallet)
@@ -9351,13 +9576,30 @@ def ability_state_from_metadata(metadata):
     active = dict((metadata or {}).get('activeAbility') or {})
     cooldown = int(active.get('cooldown', 0) or 0)
     charges = int(active.get('charges', 0) or 0)
+    role = str((metadata or {}).get('role') or '')
+    profile = {
+        'Tank': {'extra_charges': 0, 'cooldown_delta': 1, 'passive_proc_mul': 1.0, 'active_proc_mul': 0.92},
+        'Guardian': {'extra_charges': 1, 'cooldown_delta': 0, 'passive_proc_mul': 1.12, 'active_proc_mul': 0.94},
+        'Damage': {'extra_charges': 0, 'cooldown_delta': 0, 'passive_proc_mul': 1.0, 'active_proc_mul': 1.05},
+        'Sniper': {'extra_charges': 0, 'cooldown_delta': 0, 'passive_proc_mul': 1.04, 'active_proc_mul': 1.08},
+        'Control': {'extra_charges': 1, 'cooldown_delta': 0, 'passive_proc_mul': 1.08, 'active_proc_mul': 0.98},
+        'Disruptor': {'extra_charges': 1, 'cooldown_delta': 0, 'passive_proc_mul': 1.1, 'active_proc_mul': 0.96},
+        'Trickster': {'extra_charges': 0, 'cooldown_delta': -1, 'passive_proc_mul': 1.16, 'active_proc_mul': 0.9},
+        'Support': {'extra_charges': 1, 'cooldown_delta': 0, 'passive_proc_mul': 1.18, 'active_proc_mul': 0.94},
+        'Fortune': {'extra_charges': 1, 'cooldown_delta': 0, 'passive_proc_mul': 1.22, 'active_proc_mul': 0.9},
+        'Combo': {'extra_charges': 1, 'cooldown_delta': -1, 'passive_proc_mul': 1.06, 'active_proc_mul': 1.02},
+    }.get(role, {'extra_charges': 0, 'cooldown_delta': 0, 'passive_proc_mul': 1.0, 'active_proc_mul': 1.0})
     if charges <= 0:
         charges = 1 if active else 0
+    charges += int(profile.get('extra_charges', 0))
+    if active:
+        cooldown = max(1, cooldown + int(profile.get('cooldown_delta', 0)))
     return {
         'cooldown_remaining': 0,
         'charges_remaining': charges,
         'used_once': False,
         'active': active,
+        'profile': profile,
     }
 
 
@@ -9396,45 +9638,97 @@ def energy_roll_bonus(action_key, rng):
     return rng.randint(6, 10), rng.random() < rng.uniform(0.08, 0.15)
 
 
+def deterministic_probability(seed_value, probability):
+    chance = max(0.0, min(1.0, float(probability or 0.0)))
+    if chance <= 0:
+        return False
+    if chance >= 1:
+        return True
+    digest = hashlib.sha256(str(seed_value).encode()).hexdigest()
+    roll = int(digest[:8], 16) / 0xFFFFFFFF
+    return roll <= chance
+
+
 def class_counter_bonus(own_meta, opp_meta, action_key):
     own_class = str((own_meta or {}).get('class') or (own_meta or {}).get('className') or '')
     opp_class = str((opp_meta or {}).get('class') or (opp_meta or {}).get('className') or '')
     counters = COUNTER_CLASS_MAP.get(own_class) or set()
-    if opp_class not in counters:
+    role = str((own_meta or {}).get('role') or '')
+    class_matrix = {
+        'Bulwark': {'Executioner': {'guard': 6}, 'Focus': {'guard': 5, 'ability': 4}},
+        'Executioner': {'Bulwark': {'burst': 6, 'ability': 5}, 'Aegis': {'burst': 5}},
+        'Cipher': {'Sequence': {'ability': 6}, 'Lucky Star': {'ability': 4, 'guard': 2}},
+        'Signal': {'Executioner': {'guard': 4}, 'Focus': {'guard': 5, 'ability': 3}},
+        'Mirage': {'Focus': {'guard': 4, 'ability': 4}, 'Executioner': {'guard': 3}},
+        'Aegis': {'Executioner': {'guard': 5}, 'Focus': {'guard': 4, 'ability': 4}},
+        'Lucky Star': {'Mirage': {'burst': 4, 'ability': 5}, 'Breaker': {'ability': 3}},
+        'Sequence': {'Signal': {'burst': 4, 'ability': 4}, 'Lucky Star': {'burst': 3}},
+        'Breaker': {'Sequence': {'ability': 6}, 'Cipher': {'ability': 5}, 'Signal': {'burst': 5}},
+        'Focus': {'Bulwark': {'burst': 5, 'ability': 6}, 'Aegis': {'burst': 4, 'ability': 5}},
+    }
+    role_bias = {
+        'Tank': {'guard': 2},
+        'Guardian': {'guard': 3},
+        'Damage': {'burst': 2, 'ability': 2},
+        'Sniper': {'burst': 3, 'ability': 2},
+        'Control': {'ability': 2},
+        'Disruptor': {'ability': 3},
+        'Fortune': {'ability': 1, 'guard': 1},
+        'Combo': {'burst': 2},
+    }.get(role, {})
+    matrix_bonus = int((((class_matrix.get(own_class) or {}).get(opp_class) or {}).get(action_key, 0)) or 0)
+    base_bonus = 0
+    if opp_class in counters:
+        base_bonus = 5 if action_key in {'burst', 'ability'} else 3
+    total_bonus = base_bonus + matrix_bonus + int(role_bias.get(action_key, 0) or 0)
+    if total_bonus <= 0:
         return 0, ''
-    bonus = 5 if action_key in {'burst', 'ability'} else 3
-    return bonus, f'{own_class} контрит {opp_class}'
+    return total_bonus, f'{own_class} давит {opp_class}'
 
 
-def passive_ability_bonus(metadata, ability_state, trigger, *, previous_outcome=None, action_key=None):
+def passive_ability_bonus(metadata, ability_state, trigger, *, previous_outcome=None, action_key=None, proc_seed=''):
     passive = dict((metadata or {}).get('passiveAbility') or {})
     if not passive:
         return 0, ''
+    profile = dict((ability_state or {}).get('profile') or {})
+    proc_probability = max(0.1, min(1.0, float(passive.get('probability', 1.0) or 1.0) * float(profile.get('passive_proc_mul', 1.0) or 1.0)))
     passive_trigger = str(passive.get('trigger') or '')
     if passive_trigger == 'on_round_loss' and previous_outcome == 'loss' and trigger == 'pre_round':
+        if not deterministic_probability(f'{proc_seed}:loss', proc_probability):
+            return 0, ''
         return int(passive.get('power', 0) or 0) + 2, passive.get('name', 'Passive')
     if passive_trigger == 'after_guard_win' and previous_outcome == 'win' and action_key == 'guard':
+        if not deterministic_probability(f'{proc_seed}:guard-win', proc_probability):
+            return 0, ''
         return int(passive.get('power', 0) or 0) + 1, passive.get('name', 'Passive')
     if passive_trigger == 'on_round_win' and previous_outcome == 'win' and trigger == 'pre_round':
+        if not deterministic_probability(f'{proc_seed}:win', proc_probability):
+            return 0, ''
         return int(passive.get('power', 0) or 0), passive.get('name', 'Passive')
     if passive_trigger == 'on_attack_roll' and action_key in {'burst', 'ability'} and trigger == 'roll':
+        if not deterministic_probability(f'{proc_seed}:roll', proc_probability):
+            return 0, ''
         return int(passive.get('power', 0) or 0), passive.get('name', 'Passive')
     return 0, ''
 
 
-def active_ability_bonus(metadata, ability_state, phase, focus, action_key):
+def active_ability_bonus(metadata, ability_state, phase, focus, action_key, *, proc_seed=''):
     active = dict((ability_state or {}).get('active') or {})
     if action_key != 'ability' or not active:
         return 0, ''
     role = str((metadata or {}).get('role') or '')
+    profile = dict((ability_state or {}).get('profile') or {})
     base = int(active.get('power', 0) or 0) + 4
+    proc_probability = max(0.55, min(1.0, float(active.get('probability', 1.0) or 1.0) * float(profile.get('active_proc_mul', 1.0) or 1.0)))
     if role in {'Tank', 'Guardian', 'Support'} and focus in {'defense', 'luck', 'speed'}:
-        return base + 3, active.get('name', 'Ability')
-    if role in {'Damage', 'Sniper', 'Combo'} and focus in {'attack', 'magic'}:
-        return base + 4, active.get('name', 'Ability')
-    if role in {'Control', 'Disruptor', 'Trickster'} and phase in {'counter', 'risk', 'tempo'}:
-        return base + 4, active.get('name', 'Ability')
-    return base, active.get('name', 'Ability')
+        base += 3
+    elif role in {'Damage', 'Sniper', 'Combo'} and focus in {'attack', 'magic'}:
+        base += 4
+    elif role in {'Control', 'Disruptor', 'Trickster'} and phase in {'counter', 'risk', 'tempo'}:
+        base += 4
+    if deterministic_probability(f'{proc_seed}:active', proc_probability):
+        return base, active.get('name', 'Ability')
+    return max(2, base // 2), f"{active.get('name', 'Ability')} частично"
 
 
 def spend_ability_state(ability_state, action_key):
@@ -9492,17 +9786,17 @@ def resolve_battle_round(*, seed_value, idx, focus, label, phase, card_a, card_b
     skill_bonus_b, skill_note_b = apply_skill_bonus((featured_b or {}).get('skill_key'), focus, phase, value_b, value_a, featured_b or card_b, featured_a or card_a, idx, prev_b)
     featured_bonus_a, featured_note_a = featured_card_round_bonus(featured_a or card_a, featured_b or card_b, focus, phase, idx, prev_a)
     featured_bonus_b, featured_note_b = featured_card_round_bonus(featured_b or card_b, featured_a or card_a, focus, phase, idx, prev_b)
-    passive_bonus_a, passive_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'pre_round', previous_outcome=prev_a, action_key=action_a)
-    passive_bonus_b, passive_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'pre_round', previous_outcome=prev_b, action_key=action_b)
-    active_bonus_a, active_note_a = active_ability_bonus(domain_meta_a, ability_state_a, phase, focus, action_a)
-    active_bonus_b, active_note_b = active_ability_bonus(domain_meta_b, ability_state_b, phase, focus, action_b)
+    passive_bonus_a, passive_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'pre_round', previous_outcome=prev_a, action_key=action_a, proc_seed=f'{seed_value}:{idx}:a:pre')
+    passive_bonus_b, passive_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'pre_round', previous_outcome=prev_b, action_key=action_b, proc_seed=f'{seed_value}:{idx}:b:pre')
+    active_bonus_a, active_note_a = active_ability_bonus(domain_meta_a, ability_state_a, phase, focus, action_a, proc_seed=f'{seed_value}:{idx}:a')
+    active_bonus_b, active_note_b = active_ability_bonus(domain_meta_b, ability_state_b, phase, focus, action_b, proc_seed=f'{seed_value}:{idx}:b')
     counter_bonus_a, counter_note_a = class_counter_bonus(domain_meta_a, domain_meta_b, action_a)
     counter_bonus_b, counter_note_b = class_counter_bonus(domain_meta_b, domain_meta_a, action_b)
     roll_rng = random.Random(hashlib.sha256(f"{seed_value}:{idx}:{action_a}:{action_b}".encode()).hexdigest())
     roll_bonus_a, crit_a = energy_roll_bonus(action_a, roll_rng)
     roll_bonus_b, crit_b = energy_roll_bonus(action_b, roll_rng)
-    passive_roll_a, passive_roll_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'roll', previous_outcome=prev_a, action_key=action_a)
-    passive_roll_b, passive_roll_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'roll', previous_outcome=prev_b, action_key=action_b)
+    passive_roll_a, passive_roll_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'roll', previous_outcome=prev_a, action_key=action_a, proc_seed=f'{seed_value}:{idx}:a:roll')
+    passive_roll_b, passive_roll_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'roll', previous_outcome=prev_b, action_key=action_b, proc_seed=f'{seed_value}:{idx}:b:roll')
     if crit_a:
         roll_bonus_a += 6
     if crit_b:
@@ -10747,17 +11041,17 @@ def apply_solo_battle_action(session_id, wallet, action_key):
     skill_bonus_b, skill_note_b = apply_skill_bonus((featured_b or {}).get('skill_key'), focus, phase, value_b, value_a, featured_b or card_b, featured_a or card_a, idx, prev_b)
     featured_bonus_a, featured_note_a = featured_card_round_bonus(featured_a or card_a, featured_b or card_b, focus, phase, idx, prev_a)
     featured_bonus_b, featured_note_b = featured_card_round_bonus(featured_b or card_b, featured_a or card_a, focus, phase, idx, prev_b)
-    passive_bonus_a, passive_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'pre_round', previous_outcome=prev_a, action_key=action_key)
-    passive_bonus_b, passive_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'pre_round', previous_outcome=prev_b, action_key=action_b)
-    active_bonus_a, active_note_a = active_ability_bonus(domain_meta_a, ability_state_a, phase, focus, action_key)
-    active_bonus_b, active_note_b = active_ability_bonus(domain_meta_b, ability_state_b, phase, focus, action_b)
+    passive_bonus_a, passive_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'pre_round', previous_outcome=prev_a, action_key=action_key, proc_seed=f'{session_id}:{idx}:a:pre')
+    passive_bonus_b, passive_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'pre_round', previous_outcome=prev_b, action_key=action_b, proc_seed=f'{session_id}:{idx}:b:pre')
+    active_bonus_a, active_note_a = active_ability_bonus(domain_meta_a, ability_state_a, phase, focus, action_key, proc_seed=f'{session_id}:{idx}:a')
+    active_bonus_b, active_note_b = active_ability_bonus(domain_meta_b, ability_state_b, phase, focus, action_b, proc_seed=f'{session_id}:{idx}:b')
     counter_bonus_a, counter_note_a = class_counter_bonus(domain_meta_a, domain_meta_b, action_key)
     counter_bonus_b, counter_note_b = class_counter_bonus(domain_meta_b, domain_meta_a, action_b)
     roll_rng = random.Random(hashlib.sha256(f"solo-roll:{session_id}:{idx}:{action_key}:{action_b}".encode()).hexdigest())
     roll_bonus_a, crit_a = energy_roll_bonus(action_key, roll_rng)
     roll_bonus_b, crit_b = energy_roll_bonus(action_b, roll_rng)
-    passive_roll_a, passive_roll_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'roll', previous_outcome=prev_a, action_key=action_key)
-    passive_roll_b, passive_roll_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'roll', previous_outcome=prev_b, action_key=action_b)
+    passive_roll_a, passive_roll_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'roll', previous_outcome=prev_a, action_key=action_key, proc_seed=f'{session_id}:{idx}:a:roll')
+    passive_roll_b, passive_roll_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'roll', previous_outcome=prev_b, action_key=action_b, proc_seed=f'{session_id}:{idx}:b:roll')
     if crit_a:
         roll_bonus_a += 6
     if crit_b:
@@ -12190,12 +12484,12 @@ def api_pack():
     domain = normalize_domain(payload.get('domain'))
     source = (payload.get('source') or 'daily').strip().lower()
     payment_id = (payload.get('payment_id') or '').strip()
-    pack_type = str(payload.get('pack_type') or ('common' if source == 'daily' else 'lucky')).strip().lower()
+    pack_type = str(payload.get('pack_type') or ('common' if source == 'daily' else ('lucky' if source == 'paid' else 'common'))).strip().lower()
     if not valid_wallet_address(wallet):
         return json_error('Кошелёк не подключен.')
     if not domain:
         return json_error('Нужно выбрать реальный домен.')
-    if source not in {'daily', 'paid'}:
+    if source not in {'daily', 'paid', 'reward'}:
         return json_error('Неизвестный тип открытия пака.')
     if pack_type not in PACK_TYPES:
         return json_error('Неизвестный тип пака.')
@@ -12207,6 +12501,8 @@ def api_pack():
 
     if source == 'daily' and not can_open_daily_pack(wallet, domain):
         return json_error('Ежедневный пак уже открыт. Попробуй снова завтра или открой платный пак.', 403)
+    if source == 'daily' and pack_type != 'common':
+        return json_error('Ежедневное открытие работает только для Common Pack.', 400)
 
     if source == 'paid':
         if not payment_id:
@@ -12215,6 +12511,14 @@ def api_pack():
             payment = conn.execute('SELECT * FROM pack_payments WHERE id = ?', (payment_id,)).fetchone()
         if payment is None or payment['wallet'] != wallet or payment['domain'] != domain or payment['status'] != 'confirmed':
             return json_error('Платёж не подтверждён.', 403)
+        pack_type = 'lucky'
+
+    rewards = reward_summary(wallet)
+    if source == 'reward':
+        try:
+            rewards = spend_pack_currency(wallet, pack_type)
+        except ValueError as exc:
+            return json_error(str(exc), 400)
 
     seed = f'{domain}:{wallet}:{source}:{payment_id or now_iso()}'
     guarantee_legendary = pack_pity_status(wallet, pack_type) >= PACK_PITY_THRESHOLD - 1
@@ -12252,6 +12556,7 @@ def api_pack():
             'pity_after': pity_after,
             'domain_metadata': metadata,
             'progress': progress,
+            'rewards': rewards,
         }
     )
 
@@ -12286,6 +12591,7 @@ def api_cards_catalog():
             'count': value['count'],
             'weights': value['weights'],
             'lucky_bonus': bool(value.get('lucky_bonus')),
+            'costs': value.get('costs') or {},
         }
         for key, value in PACK_TYPES.items()
     ]
