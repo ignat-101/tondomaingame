@@ -6522,6 +6522,8 @@ PAGE_TEMPLATE = """
       const laneRect = activeLane.getBoundingClientRect();
       const coreRect = arenaCore.getBoundingClientRect();
       const arenaShell = battleResult.querySelector('.arena-shell');
+      const playerRail = battleResult.querySelector('.arena-rail.player');
+      const enemyRail = battleResult.querySelector('.arena-rail.enemy');
       const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
       const playerActiveSlot = Number(playerCard.slot || currentRoundIndex + 1);
       const opponentActiveSlot = Number(opponentCard.slot || currentRoundIndex + 1);
@@ -6538,6 +6540,8 @@ PAGE_TEMPLATE = """
       }
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
+      const playerRailRect = playerRail ? playerRail.getBoundingClientRect() : playerRect;
+      const enemyRailRect = enemyRail ? enemyRail.getBoundingClientRect() : enemyRect;
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
       const clashCardWidth = compactClash ? 46 : 78;
       const clashCardHeight = compactClash ? 64 : 112;
@@ -6602,7 +6606,7 @@ PAGE_TEMPLATE = """
       playerClone.style.visibility = 'visible';
       playerClone.style.opacity = '1';
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
-      playerClone.style.top = `${Math.max(verticalPadding - 6, playerRect.top - coreRect.top)}px`;
+      playerClone.style.top = `${Math.min(coreRect.height - clashCardHeight - verticalPadding + 6, Math.max(laneBottomBound - clashCardHeight, playerRailRect.top - coreRect.top))}px`;
       playerClone.style.width = `${clashCardWidth}px`;
       playerClone.style.height = `${clashCardHeight}px`;
       playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
@@ -6611,7 +6615,7 @@ PAGE_TEMPLATE = """
       enemyClone.style.visibility = 'visible';
       enemyClone.style.opacity = '1';
       enemyClone.style.left = `${enemyRect.left - coreRect.left}px`;
-      enemyClone.style.top = `${Math.min(coreRect.height - clashCardHeight - verticalPadding + 6, enemyRect.top - coreRect.top)}px`;
+      enemyClone.style.top = `${Math.max(verticalPadding - 6, Math.min(laneTopBound, enemyRailRect.bottom - coreRect.top - clashCardHeight))}px`;
       enemyClone.style.width = `${clashCardWidth}px`;
       enemyClone.style.height = `${clashCardHeight}px`;
       enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
@@ -6628,17 +6632,21 @@ PAGE_TEMPLATE = """
       laneReveal.appendChild(impactNode);
       arenaCore.appendChild(laneReveal);
       requestAnimationFrame(() => laneReveal.classList.add('visible'));
+      const playerStartLeft = playerRect.left - coreRect.left;
+      const enemyStartLeft = enemyRect.left - coreRect.left;
+      const playerStartTop = Math.min(coreRect.height - clashCardHeight - verticalPadding + 6, Math.max(laneBottomBound - clashCardHeight, playerRailRect.top - coreRect.top));
+      const enemyStartTop = Math.max(verticalPadding - 6, Math.min(laneTopBound, enemyRailRect.bottom - coreRect.top - clashCardHeight));
       playerClone.animate([
         { opacity: 0.96, transform: 'translate3d(0, 0, 0) scale(1)' },
-        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerPrepTop - (playerRect.top - coreRect.top)}px, 0) scale(1.02)` },
-        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerImpactTop - (playerRect.top - coreRect.top)}px, 0) rotate(${playerImpactRotate}) scale(${playerImpactScale})` },
-        { opacity: 1, transform: `translate3d(${playerTargetLeft - (playerRect.left - coreRect.left)}px, ${playerRecoilY - (playerRect.top - coreRect.top)}px, 0) rotate(0deg) scale(${playerRecoilScale})` }
+        { opacity: 1, transform: `translate3d(${playerTargetLeft - playerStartLeft}px, ${playerPrepTop - playerStartTop}px, 0) scale(1.02)` },
+        { opacity: 1, transform: `translate3d(${playerTargetLeft - playerStartLeft}px, ${playerImpactTop - playerStartTop}px, 0) rotate(${playerImpactRotate}) scale(${playerImpactScale})` },
+        { opacity: 1, transform: `translate3d(${playerTargetLeft - playerStartLeft}px, ${playerRecoilY - playerStartTop}px, 0) rotate(0deg) scale(${playerRecoilScale})` }
       ], { duration: 700, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
       enemyClone.animate([
         { opacity: 0.96, transform: 'translate3d(0, 0, 0) scale(1)' },
-        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyPrepTop - (enemyRect.top - coreRect.top)}px, 0) scale(1.02)` },
-        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyImpactTop - (enemyRect.top - coreRect.top)}px, 0) rotate(${enemyImpactRotate}) scale(${enemyImpactScale})` },
-        { opacity: 1, transform: `translate3d(${enemyTargetLeft - (enemyRect.left - coreRect.left)}px, ${enemyRecoilY - (enemyRect.top - coreRect.top)}px, 0) rotate(0deg) scale(${enemyRecoilScale})` }
+        { opacity: 1, transform: `translate3d(${enemyTargetLeft - enemyStartLeft}px, ${enemyPrepTop - enemyStartTop}px, 0) scale(1.02)` },
+        { opacity: 1, transform: `translate3d(${enemyTargetLeft - enemyStartLeft}px, ${enemyImpactTop - enemyStartTop}px, 0) rotate(${enemyImpactRotate}) scale(${enemyImpactScale})` },
+        { opacity: 1, transform: `translate3d(${enemyTargetLeft - enemyStartLeft}px, ${enemyRecoilY - enemyStartTop}px, 0) rotate(0deg) scale(${enemyRecoilScale})` }
       ], { duration: 700, easing: 'cubic-bezier(.16,.84,.2,1)', fill: 'forwards' });
       window.setTimeout(() => impactNode.classList.add('visible'), 360);
       await sleep(700);
