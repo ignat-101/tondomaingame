@@ -1229,6 +1229,35 @@ PAGE_TEMPLATE = """
       min-width: 210px;
     }
 
+    .currency-float {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background: rgba(7, 16, 26, 0.92);
+      backdrop-filter: blur(14px);
+      z-index: 60;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+    }
+
+    .currency-float-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 11px;
+      color: rgba(234, 248, 255, 0.94);
+      white-space: nowrap;
+    }
+
     .battle-reward-line {
       width: 100%;
       text-align: center;
@@ -3385,6 +3414,30 @@ PAGE_TEMPLATE = """
       background: rgba(3, 9, 18, 0.36);
     }
 
+    .pack-showcase.pack-type-common {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(69, 215, 255, 0.18), transparent 38%),
+        linear-gradient(180deg, rgba(8, 16, 30, 0.98), rgba(5, 8, 14, 0.97));
+    }
+
+    .pack-showcase.pack-type-rare {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(83, 246, 184, 0.18), transparent 38%),
+        linear-gradient(180deg, rgba(8, 22, 24, 0.98), rgba(5, 9, 12, 0.97));
+    }
+
+    .pack-showcase.pack-type-epic {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(188, 126, 255, 0.22), transparent 38%),
+        linear-gradient(180deg, rgba(20, 11, 33, 0.98), rgba(8, 7, 14, 0.97));
+    }
+
+    .pack-showcase.pack-type-lucky {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 212, 92, 0.22), transparent 38%),
+        linear-gradient(180deg, rgba(20, 14, 5, 0.98), rgba(5, 5, 5, 0.97));
+    }
+
     .pack-counter {
       display: inline-flex;
       align-items: center;
@@ -4424,6 +4477,21 @@ PAGE_TEMPLATE = """
         min-width: 0;
       }
 
+      .currency-float {
+        top: calc(8px + env(safe-area-inset-top));
+        right: 8px;
+        left: auto;
+        max-width: calc(100vw - 16px);
+        padding: 6px 8px;
+        gap: 6px;
+      }
+
+      .currency-float-chip {
+        min-height: 22px;
+        padding: 0 7px;
+        font-size: 10px;
+      }
+
       .arena-lane-card {
         padding: 7px 6px 8px;
         border-radius: 14px;
@@ -4709,6 +4777,8 @@ PAGE_TEMPLATE = """
             <button id="buy-pack-btn" disabled>Открыть пак за 1 TON</button>
           </div>
 
+          <div class="actions" id="pack-type-picker" style="margin-top:10px;"></div>
+
           <div class="result-box" id="pack-economy-box" style="margin-top:12px;">
             <strong>Экономика паков</strong>
             <div class="tiny" id="pack-rewards-summary">Подключи кошелёк, чтобы видеть осколки, токены и сезонный прогресс.</div>
@@ -4885,6 +4955,12 @@ PAGE_TEMPLATE = """
     <button id="nav-achievements">Достижения</button>
   </nav>
 
+  <div class="currency-float" id="global-currency-float">
+    <span class="currency-float-chip">💠 <span id="global-currency-shards">0</span></span>
+    <span class="currency-float-chip">🎟️ <span id="global-currency-rare">0</span></span>
+    <span class="currency-float-chip">✨ <span id="global-currency-lucky">0</span></span>
+  </div>
+
   <script>
     const state = {
       wallet: null,
@@ -4907,6 +4983,7 @@ PAGE_TEMPLATE = """
       achievements: [],
       cardCatalog: [],
       packTypes: [],
+      selectedPackType: 'common',
       packPityThreshold: 20,
       canRestorePreviousDeck: false,
       matchmakingMode: null,
@@ -4927,6 +5004,9 @@ PAGE_TEMPLATE = """
     const walletQuickWallet = document.getElementById('wallet-quick-wallet');
     const walletQuickDomain = document.getElementById('wallet-quick-domain');
     const walletQuickCurrency = document.getElementById('wallet-quick-currency');
+    const globalCurrencyShards = document.getElementById('global-currency-shards');
+    const globalCurrencyRare = document.getElementById('global-currency-rare');
+    const globalCurrencyLucky = document.getElementById('global-currency-lucky');
     const walletOpenPackBtn = document.getElementById('wallet-open-pack-btn');
     const profileWallet = document.getElementById('profile-wallet');
     const profileDomain = document.getElementById('profile-domain');
@@ -4959,6 +5039,7 @@ PAGE_TEMPLATE = """
     const packCounter = document.getElementById('pack-counter');
     const packNote = document.getElementById('pack-note');
     const buyPackBtn = document.getElementById('buy-pack-btn');
+    const packTypePicker = document.getElementById('pack-type-picker');
     const packRewardsSummary = document.getElementById('pack-rewards-summary');
     const packSeasonSummary = document.getElementById('pack-season-summary');
     const packRestoreActions = document.getElementById('pack-restore-actions');
@@ -5287,6 +5368,47 @@ PAGE_TEMPLATE = """
       });
     }
 
+    function syncSelectedPackVisuals() {
+      if (!packShowcase) return;
+      packShowcase.classList.remove('pack-type-common', 'pack-type-rare', 'pack-type-epic', 'pack-type-lucky');
+      packShowcase.classList.add(`pack-type-${state.selectedPackType || 'common'}`);
+      const meta = packTypeMeta(state.selectedPackType || 'common');
+      if (packCounter) {
+        packCounter.style.display = meta ? 'inline-flex' : 'none';
+        packCounter.textContent = meta ? meta.label : '';
+      }
+    }
+
+    function renderPackTypePicker() {
+      if (!packTypePicker) return;
+      const items = (state.packTypes || []).filter((item) => ['common', 'rare', 'epic', 'lucky'].includes(item.key));
+      if (!items.length) {
+        packTypePicker.innerHTML = '';
+        syncSelectedPackVisuals();
+        return;
+      }
+      packTypePicker.innerHTML = items.map((item) => {
+        const active = state.selectedPackType === item.key;
+        const tone = item.key === 'common' ? 'rgba(69, 215, 255, 0.16)'
+          : item.key === 'rare' ? 'rgba(83, 246, 184, 0.16)'
+          : item.key === 'epic' ? 'rgba(188, 126, 255, 0.18)'
+          : 'rgba(255, 211, 110, 0.18)';
+        const border = item.key === 'common' ? 'rgba(69, 215, 255, 0.34)'
+          : item.key === 'rare' ? 'rgba(83, 246, 184, 0.34)'
+          : item.key === 'epic' ? 'rgba(188, 126, 255, 0.34)'
+          : 'rgba(255, 211, 110, 0.36)';
+        return `<button type="button" class="${active ? '' : 'secondary'}" data-pack-type="${item.key}" style="background:${tone}; border-color:${border};">${item.label}</button>`;
+      }).join('');
+      packTypePicker.querySelectorAll('[data-pack-type]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.selectedPackType = button.dataset.packType || 'common';
+          renderPackTypePicker();
+          updateButtons();
+        });
+      });
+      syncSelectedPackVisuals();
+    }
+
     function updatePreviousDeckRestoreButton() {
       if (!packRestoreActions || !restorePreviousDeckBtn) return;
       const visible = Boolean(state.canRestorePreviousDeck && state.wallet && state.selectedDomain);
@@ -5598,18 +5720,21 @@ PAGE_TEMPLATE = """
     }
 
     function renderProfile() {
+      const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
       walletBadge.textContent = state.wallet ? `Подключён: ${shortAddress(state.wallet)}` : 'Кошелёк не подключен';
       currencyBadge.textContent = state.playerProfile && state.playerProfile.rewards
-        ? `Осколки: ${state.playerProfile.rewards.pack_shards || 0} • Редкие: ${state.playerProfile.rewards.rare_tokens || 0} • Lucky: ${state.playerProfile.rewards.lucky_tokens || 0}`
+        ? `Осколки: ${rewards.pack_shards || 0} • Редкие: ${rewards.rare_tokens || 0} • Lucky: ${rewards.lucky_tokens || 0}`
         : 'Осколки: 0 • Редкие: 0 • Lucky: 0';
       if (walletQuickCurrency) {
-        const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
         walletQuickCurrency.innerHTML = `
           <span class="wallet-currency-chip">💠 ${Number(rewards.pack_shards || 0)}</span>
           <span class="wallet-currency-chip">🎟️ ${Number(rewards.rare_tokens || 0)}</span>
           <span class="wallet-currency-chip">✨ ${Number(rewards.lucky_tokens || 0)}</span>
         `;
       }
+      if (globalCurrencyShards) globalCurrencyShards.textContent = Number(rewards.pack_shards || 0);
+      if (globalCurrencyRare) globalCurrencyRare.textContent = Number(rewards.rare_tokens || 0);
+      if (globalCurrencyLucky) globalCurrencyLucky.textContent = Number(rewards.lucky_tokens || 0);
       walletQuickWallet.textContent = state.wallet ? shortAddress(state.wallet) : 'Не подключен';
       walletQuickDomain.textContent = state.selectedDomain ? `${state.selectedDomain}.ton` : 'Не выбран';
       profileWallet.textContent = state.wallet ? shortAddress(state.wallet) : '-';
@@ -5818,10 +5943,14 @@ PAGE_TEMPLATE = """
       const hasDomain = Boolean(state.selectedDomain);
       const hasCards = state.cards.length === 5;
       const searching = Boolean(state.matchmakingMode);
+      const selectedPack = state.selectedPackType || 'common';
+      const selectedPackMeta = packTypeMeta(selectedPack);
       document.getElementById('check-domains-btn').disabled = !connected;
       document.getElementById('shuffle-deck-btn').disabled = !(connected && hasDomain && hasCards);
-      document.getElementById('open-pack-btn').disabled = !(connected && hasDomain);
-      buyPackBtn.disabled = !(connected && hasDomain && tonConnectUI);
+      document.getElementById('open-pack-btn').disabled = !(connected && hasDomain) || selectedPack !== 'common';
+      document.getElementById('open-pack-btn').textContent = selectedPack === 'common' ? 'Открыть ежедневный пак' : 'Ежедневный пак: только Common';
+      buyPackBtn.disabled = !(connected && hasDomain && tonConnectUI && selectedPackMeta);
+      buyPackBtn.textContent = `Оплатить ${selectedPackMeta ? selectedPackMeta.label : 'пак'} за 1 TON`;
       document.getElementById('continue-to-modes-btn').disabled = !hasCards;
       document.getElementById('play-ranked-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards) || searching;
@@ -5840,6 +5969,7 @@ PAGE_TEMPLATE = """
       saveBuildBtn.disabled = !(connected && hasDomain);
       walletOpenPackBtn.disabled = !(connected && hasDomain);
       renderPackEconomy();
+      renderPackTypePicker();
       updatePreviousDeckRestoreButton();
     }
 
@@ -7254,7 +7384,7 @@ PAGE_TEMPLATE = """
     async function openPack(source = 'daily', paymentId = null, packType = null) {
       await prepareFunctionalInteraction();
       if (state.packOpening) return;
-      const resolvedPackType = packType || (source === 'paid' ? 'lucky' : 'common');
+      const resolvedPackType = packType || (source === 'paid' ? (state.selectedPackType || 'lucky') : 'common');
       const hadPreviousDeck = Array.isArray(state.cards) && state.cards.length === 5;
       state.packOpening = true;
       setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
@@ -7369,15 +7499,16 @@ PAGE_TEMPLATE = """
     async function buyPackWithTon() {
       await prepareFunctionalInteraction();
       if (!state.wallet || !state.selectedDomain) return;
+      const selectedPackType = state.selectedPackType || 'lucky';
       if (!tonConnectUI) {
         setStatus(document.getElementById('pack-status'), 'TonConnect не инициализирован.', 'error');
         return;
       }
       try {
-        setStatus(document.getElementById('pack-status'), 'Создаём TON-платёж на 1 TON...', 'warning');
+        setStatus(document.getElementById('pack-status'), `Создаём TON-платёж для ${packTypeMeta(selectedPackType)?.label || selectedPackType}...`, 'warning');
         const intent = await api('/api/pack/payment-intent', {
           method: 'POST',
-          body: { wallet: state.wallet, domain: state.selectedDomain }
+          body: { wallet: state.wallet, domain: state.selectedDomain, pack_type: selectedPackType }
         });
         const tx = await tonConnectUI.sendTransaction({
           validUntil: intent.valid_until,
@@ -7398,11 +7529,12 @@ PAGE_TEMPLATE = """
         });
         state.pendingPackSource = 'paid';
         state.pendingPackPaymentId = intent.payment_id;
+        state.selectedPackType = selectedPackType;
         packShowcase.classList.remove('opened');
         foilPack.classList.remove('opening');
         foilPack.classList.remove('vanishing');
-        packNote.textContent = 'Tap pack to open';
-        setStatus(document.getElementById('pack-status'), 'Платёж подтверждён. Нажми на пак, чтобы открыть его.', 'success');
+        packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
+        setStatus(document.getElementById('pack-status'), `Платёж подтверждён. Нажми на пак, чтобы открыть ${packTypeMeta(selectedPackType)?.label || selectedPackType}.`, 'success');
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
@@ -7412,9 +7544,13 @@ PAGE_TEMPLATE = """
       try {
         const data = await api('/api/cards/catalog');
         state.packTypes = data.pack_types || [];
+        if (!(state.packTypes || []).some((item) => item.key === state.selectedPackType)) {
+          state.selectedPackType = 'common';
+        }
         state.packPityThreshold = Number(data.pity_threshold || 20);
         renderCardCatalog(data.cards || [], data.skills || []);
         renderPackEconomy();
+        renderPackTypePicker();
       } catch (error) {
         cardCatalogList.innerHTML = `<div class="user-item error">${error.message}</div>`;
       }
@@ -7976,7 +8112,7 @@ PAGE_TEMPLATE = """
         return;
       }
       if (state.pendingPackSource === 'paid' && state.pendingPackPaymentId) {
-        openPack('paid', state.pendingPackPaymentId, 'lucky');
+        openPack('paid', state.pendingPackPaymentId, state.selectedPackType || 'lucky');
         return;
       }
       if (!document.getElementById('open-pack-btn').disabled) {
@@ -9421,6 +9557,7 @@ def score_from_domain(domain, wallet=None):
         'Legendary': 4,
     }.get(rarity, 0)
     bounded_domain_edge = min(8, max(0, round((score - 2500) / 12000)))
+    translated_bonus = max(0, round(bonus_score / 5))
     attack = ATTACK_BASE + rarity_bonus + tier_bonus + min(4, level - 1)
     defense = DEFENSE_BASE + max(0, rarity_bonus - 1) + tier_bonus + min(4, level - 1)
     luck = min(6, len(metadata.get('specialCollections') or []) + (1 if '8' in str(metadata.get('normalizedNumber') or '') else 0))
@@ -9437,7 +9574,7 @@ def score_from_domain(domain, wallet=None):
         'special_collections': list(metadata.get('specialCollections') or []),
         'bonus_score': bonus_score,
         'pool_base': base_score,
-        'pool_total': 2500 + min(900, bounded_domain_edge * 90 + max(0, bonus_score // 80)),
+        'pool_total': 2500 + min(900, translated_bonus + bounded_domain_edge * 8),
         'score': score,
         'metadata': metadata,
     }
@@ -13105,7 +13242,7 @@ def api_pack():
             payment = conn.execute('SELECT * FROM pack_payments WHERE id = ?', (payment_id,)).fetchone()
         if payment is None or payment['wallet'] != wallet or payment['domain'] != domain or payment['status'] != 'confirmed':
             return json_error('Платёж не подтверждён.', 403)
-        pack_type = 'lucky'
+        pack_type = str(pack_type or 'lucky').strip().lower()
 
     rewards = reward_summary(wallet)
     if source == 'reward':
