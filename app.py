@@ -1480,6 +1480,18 @@ PAGE_TEMPLATE = """
         inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     }
 
+    .arena-lane-card.ability {
+      border-color: rgba(255, 211, 110, 0.58);
+      background:
+        linear-gradient(180deg, rgba(56, 42, 18, 0.92), rgba(14, 14, 24, 0.99)),
+        linear-gradient(180deg, rgba(18, 33, 55, 0.98), rgba(8, 16, 29, 0.99));
+      box-shadow:
+        0 20px 36px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 211, 110, 0.24),
+        0 0 28px rgba(255, 211, 110, 0.16),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
     .arena-lane-card strong {
       display: block;
       margin-bottom: 5px;
@@ -1526,6 +1538,12 @@ PAGE_TEMPLATE = """
       border-color: rgba(83, 246, 184, 0.34);
       background: rgba(18, 57, 50, 0.34);
       color: rgba(215, 255, 239, 0.95);
+    }
+
+    .arena-action-sticker.ability {
+      border-color: rgba(255, 211, 110, 0.38);
+      background: rgba(92, 67, 20, 0.36);
+      color: rgba(255, 238, 179, 0.98);
     }
 
     .arena-lane-impact {
@@ -2140,10 +2158,14 @@ PAGE_TEMPLATE = """
       background: linear-gradient(135deg, rgba(83, 246, 184, 0.18), rgba(255, 255, 255, 0.04));
     }
 
-    .interactive-action-btn.channel,
-    .interactive-action-btn.ability {
+    .interactive-action-btn.channel {
       border-color: rgba(69, 215, 255, 0.42);
       background: linear-gradient(135deg, rgba(69, 215, 255, 0.18), rgba(255, 255, 255, 0.04));
+    }
+
+    .interactive-action-btn.ability {
+      border-color: rgba(255, 211, 110, 0.48);
+      background: linear-gradient(135deg, rgba(255, 211, 110, 0.22), rgba(255, 255, 255, 0.04));
     }
 
     .interactive-action-btn.choice-ready {
@@ -3144,6 +3166,12 @@ PAGE_TEMPLATE = """
 
     .arena-decision-chip.guard {
       border-color: rgba(83, 246, 184, 0.36);
+    }
+
+    .arena-decision-chip.ability {
+      border-color: rgba(255, 211, 110, 0.4);
+      background: rgba(255, 211, 110, 0.12);
+      color: #ffe7a4;
     }
 
     .arena-decision-chip.channel {
@@ -5445,7 +5473,7 @@ PAGE_TEMPLATE = """
           <div class="user-item">
             <strong>${card.title}</strong>
             <div class="tiny">Слот ${card.slot} • ${card.rarity}</div>
-            <div class="tiny">Вклад в пул: ${card.pool_value || card.base_power || 0}</div>
+            <div class="tiny">Базовая сила: ${card.pool_value || card.base_power || 0}</div>
             <div class="tiny">Скилл: ${card.skill_name || '-'} </div>
             <div class="tiny">${card.skill_description || card.ability || ''}</div>
           </div>
@@ -5708,7 +5736,7 @@ PAGE_TEMPLATE = """
             <article class="catalog-card ${card.rarity}">
               <strong>${card.id.toUpperCase()} • ${card.title}</strong>
               <div class="tiny">Редкость: ${card.rarity_label}</div>
-              <div class="tiny">Вклад в пул: ${card.pool_min}-${card.pool_max}</div>
+              <div class="tiny">Базовая сила: ${card.pool_min}-${card.pool_max}</div>
               <div class="tiny">Скиллы в бою распределяются по картам при открытии пака.</div>
             </article>
           `).join('')}
@@ -5924,7 +5952,7 @@ PAGE_TEMPLATE = """
           <div class="tiny">${card.rarity}</div>
           <h3>${card.title}</h3>
           <p>${card.domain}.ton • слот ${card.slot}</p>
-          <div class="team-line"><span>Вклад в пул</span><strong>${card.pool_value || card.base_power || 0}</strong></div>
+          <div class="team-line"><span>Базовая сила</span><strong>${card.pool_value || card.base_power || 0}</strong></div>
           <div class="team-line"><span>Скилл</span><strong>${card.skill_name || '-'}</strong></div>
           <p>${card.ability}</p>
         </article>
@@ -5950,7 +5978,7 @@ PAGE_TEMPLATE = """
         <div class="showdown-card">
           <strong>${index + 1}. ${card.title || 'Карта'}</strong>
           <div class="tiny">${card.rarity || '-'}</div>
-          <div class="tiny">Вклад в пул: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
+          <div class="tiny">Базовая сила: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
           <div class="tiny">Скилл: ${card.skill_name || '-'}</div>
         </div>
       `).join('');
@@ -5971,7 +5999,7 @@ PAGE_TEMPLATE = """
           <div class="arena-slot-card ${side === 'enemy' ? 'enemy-card' : 'player-card'} ${isActive ? 'active-slot' : ''} ${isFeatured ? 'featured-slot' : ''}">
             <strong>${slot}. ${card.title || 'Карта'}</strong>
             <div class="arena-slot-meta">${card.rarity || '-'}</div>
-            <div class="arena-slot-meta">Вклад: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
+            <div class="arena-slot-meta">Базовая сила: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
             <div class="arena-slot-meta">${card.skill_name || '-'}</div>
           </div>
         `;
@@ -5994,6 +6022,13 @@ PAGE_TEMPLATE = """
             <path fill="currentColor" d="M8.1 13.4h7.8v1.9H8.1z"/>
             <path fill="currentColor" d="M10.2 15.3h3.6v4.2h-3.6z"/>
             <circle cx="12" cy="21" r="1.6" fill="currentColor"/>
+          </svg>
+        `;
+      }
+      if (actionKey === 'ability') {
+        return `
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 2.5 14.4 8l5.9.5-4.5 3.8 1.4 5.7L12 15l-5.2 3 1.4-5.7-4.5-3.8L9.6 8z"/>
           </svg>
         `;
       }
@@ -6242,6 +6277,7 @@ PAGE_TEMPLATE = """
           ${rounds.map((round, index) => {
             const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
             const marker = round.winner === 'player' ? 'WIN' : (round.winner === 'opponent' ? 'LOSE' : 'DRAW');
+            const whyLabel = round.winner === 'player' ? 'Почему победа' : (round.winner === 'opponent' ? 'Почему поражение' : 'Почему ничья');
             const playerCardTitle = round.player_card?.title || 'Твоя карта';
             const opponentCardTitle = round.opponent_card?.title || 'Карта соперника';
             const playerSlot = round.player_card?.slot || '-';
@@ -6252,6 +6288,20 @@ PAGE_TEMPLATE = """
             const opponentAction = actionRuleMeta(round.opponent_action || 'channel');
             const playerActionClass = round.player_action || 'channel';
             const opponentActionClass = round.opponent_action || 'channel';
+            const reasons = [
+              round.player_action_note,
+              round.player_domain_note,
+              round.player_strategy_note,
+              round.player_skill_note,
+            ].filter(Boolean);
+            const impactParts = [
+              `база ${round.player_value || 0}/${round.opponent_value || 0}`,
+              `действие ${round.player_action_bonus || 0}/${round.opponent_action_bonus || 0}`,
+              `стратегия ${round.player_strategy_bonus || 0}/${round.opponent_strategy_bonus || 0}`,
+              `навык ${round.player_skill_bonus || 0}/${round.opponent_skill_bonus || 0}`,
+              `домен ${round.player_domain_bonus || 0}/${round.opponent_domain_bonus || 0}`,
+              `удача ${round.player_roll_bonus || 0}/${round.opponent_roll_bonus || 0}`,
+            ];
             const delay = index * 120;
             return `
               <div class="discipline-row round-clash ${roundClass} visible" style="animation-delay:${delay}ms;">
@@ -6281,10 +6331,8 @@ PAGE_TEMPLATE = """
                   <span class="arena-decision-chip strategy" style="animation-delay:${delay + 140}ms;">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label}</span>
                   <span class="arena-decision-chip featured" style="animation-delay:${delay + 190}ms;">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
                   <span class="arena-decision-chip outcome" style="animation-delay:${delay + 240}ms;">Итог раунда: ${marker}</span>
-                  ${reasonChip('Действие', round.player_action_note, 'player')}
-                  ${reasonChip('Контр-эффект', round.player_domain_note, 'featured')}
-                  ${reasonChip('Стратегия', round.player_strategy_note, 'strategy')}
-                  ${reasonChip('Навык', round.player_skill_note, 'featured')}
+                  ${reasonChip(whyLabel, reasons.join(' • ') || 'Разница получилась из базовой силы, выбора действия и броска удачи.', 'outcome')}
+                  ${reasonChip('Откуда перевес', impactParts.join(' • '), 'strategy')}
                   ${(round.player_crit || round.opponent_crit) ? `<span class="arena-decision-chip outcome">${round.player_crit ? 'Твой crit' : ''}${round.player_crit && round.opponent_crit ? ' / ' : ''}${round.opponent_crit ? 'Crit соперника' : ''}</span>` : ''}
                 </div>
               </div>
