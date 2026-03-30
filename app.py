@@ -120,28 +120,28 @@ CARD_ABILITIES = [
 
 PACK_TYPES = {
     'common': {
-        'label': 'Common Pack',
+        'label': 'Обычный пак',
         'count': 3,
         'weights': {'basic': 70, 'rare': 20, 'epic': 9, 'legendary': 1},
         'lucky_bonus': False,
         'costs': {'pack_shards': 3},
     },
     'rare': {
-        'label': 'Rare Pack',
+        'label': 'Редкий пак',
         'count': 4,
         'weights': {'basic': 52, 'rare': 28, 'epic': 15, 'mythic': 4, 'legendary': 1},
         'lucky_bonus': False,
         'costs': {'rare_tokens': 1},
     },
     'epic': {
-        'label': 'Epic Pack',
+        'label': 'Эпический пак',
         'count': 5,
         'weights': {'basic': 35, 'rare': 33, 'epic': 22, 'mythic': 8, 'legendary': 2},
         'lucky_bonus': False,
         'costs': {'pack_shards': 6, 'rare_tokens': 1},
     },
     'lucky': {
-        'label': 'Lucky Pack',
+        'label': 'Счастливый пак',
         'count': 4,
         'weights': {'basic': 42, 'rare': 26, 'epic': 18, 'mythic': 10, 'legendary': 4},
         'lucky_bonus': True,
@@ -1090,7 +1090,7 @@ PAGE_TEMPLATE = """
     }
 
     .arena-round-choice-slot.active .arena-lane-choice-panel {
-      margin-top: 20px;
+      margin-top: 24px;
       transform: none;
       pointer-events: auto;
     }
@@ -1103,10 +1103,10 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-choice-panel {
-      width: var(--arena-card-width);
-      max-width: 176px;
-      min-width: 132px;
-      padding: 10px 10px 10px;
+      width: clamp(188px, calc(var(--arena-card-width) + 36px), 224px);
+      max-width: 224px;
+      min-width: 188px;
+      padding: 12px 12px 12px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.22);
       background:
@@ -1118,7 +1118,7 @@ PAGE_TEMPLATE = """
       position: relative;
       z-index: 8;
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }
 
     .arena-lane-choice-panel .interactive-battle-head {
@@ -1126,13 +1126,17 @@ PAGE_TEMPLATE = """
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      flex-wrap: nowrap;
+      min-width: 0;
     }
 
     .arena-lane-choice-panel .interactive-battle-title {
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1;
       font-weight: 800;
       margin: 0;
+      flex: 1 1 auto;
+      white-space: nowrap;
     }
 
     .arena-lane-choice-panel .interactive-timer {
@@ -1145,12 +1149,12 @@ PAGE_TEMPLATE = """
     .interactive-battle-metrics {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px;
+      gap: 8px;
     }
 
     .interactive-battle-metric {
-      min-height: 38px;
-      padding: 6px 8px;
+      min-height: 42px;
+      padding: 7px 8px;
       border-radius: 12px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background: rgba(255, 255, 255, 0.03);
@@ -1174,7 +1178,7 @@ PAGE_TEMPLATE = """
     .interactive-battle-prompt {
       min-height: 28px;
       font-size: 11px;
-      line-height: 1.2;
+      line-height: 1.3;
       text-align: center;
       color: var(--muted);
       display: flex;
@@ -4462,24 +4466,24 @@ PAGE_TEMPLATE = """
           </div>
 
           <div class="result-box" id="pack-economy-box" style="margin-top:12px;">
-            <strong>Pack Economy</strong>
-            <div class="tiny" id="pack-rewards-summary">Подключи кошелёк, чтобы видеть `shards / tokens` и сезонный прогресс.</div>
-            <div class="tiny" id="pack-season-summary" style="margin-top:6px;">Season: -</div>
+            <strong>Экономика паков</strong>
+            <div class="tiny" id="pack-rewards-summary">Подключи кошелёк, чтобы видеть осколки, токены и сезонный прогресс.</div>
+            <div class="tiny" id="pack-season-summary" style="margin-top:6px;">Сезон: -</div>
             <div class="actions" style="margin-top:10px;">
-              <button class="secondary" id="claim-daily-reward-btn" disabled>Забрать daily reward</button>
-              <button class="secondary" id="claim-quest-reward-btn" disabled>Забрать win quest</button>
+              <button class="secondary" id="claim-daily-reward-btn" disabled>Забрать дейлик</button>
+              <button class="secondary" id="claim-quest-reward-btn" disabled>Забрать квест побед</button>
             </div>
             <div class="actions" style="margin-top:10px;">
-              <button class="secondary reward-pack-btn" data-reward-pack="common" disabled>Common за 3 shards</button>
-              <button class="secondary reward-pack-btn" data-reward-pack="rare" disabled>Rare за 1 rare</button>
-              <button class="secondary reward-pack-btn" data-reward-pack="epic" disabled>Epic за 6 shards + 1 rare</button>
-              <button class="secondary reward-pack-btn" data-reward-pack="lucky" disabled>Lucky за 1 lucky</button>
+              <button class="secondary reward-pack-btn" data-reward-pack="common" disabled>Обычный пак за 3 осколка</button>
+              <button class="secondary reward-pack-btn" data-reward-pack="rare" disabled>Редкий пак за 1 редкий токен</button>
+              <button class="secondary reward-pack-btn" data-reward-pack="epic" disabled>Эпический пак за 6 осколков + 1 редкий токен</button>
+              <button class="secondary reward-pack-btn" data-reward-pack="lucky" disabled>Счастливый пак за 1 lucky-токен</button>
             </div>
           </div>
 
           <div class="pack-showcase" id="pack-showcase">
             <div class="pack-counter" id="pack-counter" style="display:none;"></div>
-            <p class="pack-note" id="pack-note">TAP TO OPEN</p>
+            <p class="pack-note" id="pack-note">НАЖМИ, ЧТОБЫ ОТКРЫТЬ</p>
             <div class="foil-pack" id="foil-pack">
               <div class="pack-cap"></div>
               <div class="foil-pack-frame" aria-hidden="true">
@@ -4488,7 +4492,7 @@ PAGE_TEMPLATE = """
                 <div class="pack-face"></div>
               </div>
             </div>
-            <div class="pack-tap">Tap To Open</div>
+            <div class="pack-tap">Нажми, чтобы открыть</div>
           </div>
 
           <div class="status" id="pack-status"></div>
@@ -4979,9 +4983,9 @@ PAGE_TEMPLATE = """
 
     function strategyMeta(strategyKey) {
       return {
-        attack_boost: {label: 'Attack boost', description: 'Больше давления в атакующих раундах.'},
-        defense_boost: {label: 'Defense boost', description: 'Надежнее держит контр-ход и защиту.'},
-        energy_boost: {label: 'Energy boost', description: 'Лучше раскрывает способности домена.'},
+        attack_boost: {label: 'Атакующий буст', description: 'Больше давления в атакующих раундах.'},
+        defense_boost: {label: 'Защитный буст', description: 'Надежнее держит контр-ход и защиту.'},
+        energy_boost: {label: 'Энергобуст', description: 'Лучше раскрывает способности домена.'},
         aggressive: {label: 'Агрессия', description: 'Больше натиска и давления по раундам.'},
         balanced: {label: 'Баланс', description: 'Ровная стратегия без явных дыр.'},
         tricky: {label: 'Хитрость', description: 'Больше контров и неожиданных разменов.'},
@@ -4996,7 +5000,7 @@ PAGE_TEMPLATE = """
       const entries = Object.entries(costs || {}).filter(([, value]) => Number(value || 0) > 0);
       if (!entries.length) return 'free';
       return entries.map(([key, value]) => {
-        const label = key === 'pack_shards' ? 'shards' : (key === 'rare_tokens' ? 'rare' : (key === 'lucky_tokens' ? 'lucky' : key));
+        const label = key === 'pack_shards' ? 'осколка' : (key === 'rare_tokens' ? 'редкий токен' : (key === 'lucky_tokens' ? 'lucky-токен' : key));
         return `${value} ${label}`;
       }).join(' + ');
     }
@@ -5009,8 +5013,8 @@ PAGE_TEMPLATE = """
     function renderPackEconomy() {
       const rewards = state.playerProfile && state.playerProfile.rewards ? state.playerProfile.rewards : null;
       if (!rewards) {
-        packRewardsSummary.textContent = 'Подключи кошелёк и выбери домен, чтобы открывать reward-паки.';
-        packSeasonSummary.textContent = 'Season: -';
+        packRewardsSummary.textContent = 'Подключи кошелёк и выбери домен, чтобы открывать наградные паки.';
+        packSeasonSummary.textContent = 'Сезон: -';
         claimDailyRewardBtn.disabled = true;
         claimQuestRewardBtn.disabled = true;
         document.querySelectorAll('.reward-pack-btn').forEach((button) => {
@@ -5019,8 +5023,8 @@ PAGE_TEMPLATE = """
         return;
       }
       const seasonTarget = Number(rewards.season_target || (Number(rewards.season_level || 1) * 12));
-      packRewardsSummary.textContent = `Баланс: ${rewards.pack_shards || 0} shards • ${rewards.rare_tokens || 0} rare • ${rewards.lucky_tokens || 0} lucky`;
-      packSeasonSummary.textContent = `Season ${rewards.season_level || 1} • ${rewards.season_points || 0}/${seasonTarget} pts • daily ${rewards.daily_available ? 'готов' : 'получен'} • quest ${rewards.quest_ready ? 'готов' : `${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} wins`}`;
+      packRewardsSummary.textContent = `Баланс: ${rewards.pack_shards || 0} осколков • ${rewards.rare_tokens || 0} редких токенов • ${rewards.lucky_tokens || 0} lucky-токенов`;
+      packSeasonSummary.textContent = `Сезон ${rewards.season_level || 1} • ${rewards.season_points || 0}/${seasonTarget} очков • дейлик ${rewards.daily_available ? 'готов' : 'получен'} • квест ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}`;
       claimDailyRewardBtn.disabled = !(state.wallet && rewards.daily_available);
       claimQuestRewardBtn.disabled = !(state.wallet && rewards.quest_ready);
       document.querySelectorAll('.reward-pack-btn').forEach((button) => {
@@ -5036,13 +5040,13 @@ PAGE_TEMPLATE = """
       const synergies = state.playerProfile && state.playerProfile.synergies ? state.playerProfile.synergies : null;
       const content = rewards ? `
         <div class="user-item">
-          <strong>Rewards / Season</strong>
-          <div class="tiny">Shards: ${rewards.pack_shards || 0} • Rare: ${rewards.rare_tokens || 0} • Lucky: ${rewards.lucky_tokens || 0}</div>
-          <div class="tiny">Season: lvl ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 12} pts</div>
-          <div class="tiny">Daily: ${rewards.daily_available ? 'готов' : 'получен'} • Quest: ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} wins`}</div>
+          <strong>Награды и сезон</strong>
+          <div class="tiny">Осколки: ${rewards.pack_shards || 0} • Редкие токены: ${rewards.rare_tokens || 0} • Lucky-токены: ${rewards.lucky_tokens || 0}</div>
+          <div class="tiny">Сезон: ур. ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 12} очков</div>
+          <div class="tiny">Дейлик: ${rewards.daily_available ? 'готов' : 'получен'} • Квест: ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}</div>
           <div class="tiny">Синергии: ${synergies && synergies.labels && synergies.labels.length ? synergies.labels.join(' • ') : 'нет'}</div>
         </div>
-      ` : '<div class="user-item muted">Подключи кошелёк, чтобы видеть rewards и season progress.</div>';
+      ` : '<div class="user-item muted">Подключи кошелёк, чтобы видеть награды и сезонный прогресс.</div>';
       if (profileRewardsPanel) profileRewardsPanel.innerHTML = content;
       if (mobileRewardsPanel) mobileRewardsPanel.innerHTML = content;
     }
@@ -5233,12 +5237,12 @@ PAGE_TEMPLATE = """
       const markup = `
         <div class="user-item">
           <strong>${data.domain}.ton</strong>
-          <div class="tiny">Редкость: ${meta.rarityLabel || '-'} • Tier: ${meta.tierLabel || '-'}</div>
-          <div class="tiny">Score: ${meta.score || '-'} • Role/Class: ${meta.role ? `${meta.role} / ${meta.class}` : '-'}</div>
-          <div class="tiny">Atomic patterns: ${(meta.atomicPatterns && meta.atomicPatterns.length) ? meta.atomicPatterns.join(', ') : 'нет'}</div>
-          <div class="tiny">Super pattern: ${meta.superPattern || 'нет'} • Level: ${meta.level || 1}</div>
-          <div class="tiny">Passive: ${meta.passiveAbility ? `${meta.passiveAbility.name} • proc ${(Number(meta.passiveAbility.probability || 0) * 100).toFixed(0)}%` : '-'}</div>
-          <div class="tiny">Active: ${meta.activeAbility ? `${meta.activeAbility.name} • cost ${meta.activeAbility.cost} • cd ${meta.activeAbility.cooldown} • charges ${meta.activeAbility.charges} • proc ${(Number(meta.activeAbility.probability || 0) * 100).toFixed(0)}%` : '-'}</div>
+          <div class="tiny">Редкость: ${meta.rarityLabel || '-'} • Тир: ${meta.tierLabel || '-'}</div>
+          <div class="tiny">Счёт: ${meta.score || '-'} • Роль/класс: ${meta.role ? `${meta.role} / ${meta.class}` : '-'}</div>
+          <div class="tiny">Атомарные паттерны: ${(meta.atomicPatterns && meta.atomicPatterns.length) ? meta.atomicPatterns.join(', ') : 'нет'}</div>
+          <div class="tiny">Суперпаттерн: ${meta.superPattern || 'нет'} • Уровень: ${meta.level || 1}</div>
+          <div class="tiny">Пассивная: ${meta.passiveAbility ? `${meta.passiveAbility.name} • шанс ${(Number(meta.passiveAbility.probability || 0) * 100).toFixed(0)}%` : '-'}</div>
+          <div class="tiny">Активная: ${meta.activeAbility ? `${meta.activeAbility.name} • цена ${meta.activeAbility.cost} • кд ${meta.activeAbility.cooldown} • заряды ${meta.activeAbility.charges} • шанс ${(Number(meta.activeAbility.probability || 0) * 100).toFixed(0)}%` : '-'}</div>
           <div class="tiny">Синергии: ${data.deck.synergies && data.deck.synergies.labels && data.deck.synergies.labels.length ? data.deck.synergies.labels.join(' • ') : 'нет'}</div>
           <div class="tiny">Winrate домена: ${meta.totalMatches ? `${Math.round((meta.winRate || 0) * 100)}% из ${meta.totalMatches}` : 'нет матчей'}</div>
           <div class="tiny">Свободный пул дисциплин: ${data.deck.discipline_pool || 0}</div>
@@ -5358,8 +5362,8 @@ PAGE_TEMPLATE = """
           <div class="tiny">Кошелёк: ${state.wallet ? shortAddress(state.wallet) : '-'}</div>
           <div class="tiny">Активный домен: ${state.selectedDomain ? `${state.selectedDomain}.ton` : '-'}</div>
           <div class="tiny">Рейтинг: ${profileRating.textContent} • Матчей: ${profileGames.textContent}</div>
-          <div class="tiny">Награды: ${state.playerProfile && state.playerProfile.rewards ? `shards ${state.playerProfile.rewards.pack_shards} • rare ${state.playerProfile.rewards.rare_tokens} • lucky ${state.playerProfile.rewards.lucky_tokens}` : '-'}</div>
-          <div class="tiny">Season: ${state.playerProfile && state.playerProfile.rewards ? `lvl ${state.playerProfile.rewards.season_level} • ${state.playerProfile.rewards.season_points}/${state.playerProfile.rewards.season_target}` : '-'}</div>
+          <div class="tiny">Награды: ${state.playerProfile && state.playerProfile.rewards ? `осколки ${state.playerProfile.rewards.pack_shards} • редкие ${state.playerProfile.rewards.rare_tokens} • lucky ${state.playerProfile.rewards.lucky_tokens}` : '-'}</div>
+          <div class="tiny">Сезон: ${state.playerProfile && state.playerProfile.rewards ? `ур. ${state.playerProfile.rewards.season_level} • ${state.playerProfile.rewards.season_points}/${state.playerProfile.rewards.season_target}` : '-'}</div>
           <div class="tiny">Синергии: ${state.playerProfile && state.playerProfile.synergies && state.playerProfile.synergies.labels && state.playerProfile.synergies.labels.length ? state.playerProfile.synergies.labels.join(' • ') : 'нет'}</div>
         </div>
       `;
@@ -5385,8 +5389,8 @@ PAGE_TEMPLATE = """
             <span class="wallet-domain-chip">Пул: ${item.deck.discipline_pool || 0}</span>
           </div>
           <div class="wallet-domain-mainline">Вклад карт: ${item.deck.total_score} • ${item.deck.cards && item.deck.cards.length ? `карт: ${item.deck.cards.length}` : 'колода еще не открыта'}</div>
-          <div class="tiny">Role/Class: ${item.metadata && item.metadata.role ? `${item.metadata.role} / ${item.metadata.class}` : '-'}</div>
-          <div class="tiny">Passive: ${item.metadata && item.metadata.passiveAbility ? item.metadata.passiveAbility.name : '-'} • Active: ${item.metadata && item.metadata.activeAbility ? item.metadata.activeAbility.name : '-'}</div>
+          <div class="tiny">Роль / класс: ${item.metadata && item.metadata.role ? `${item.metadata.role} / ${item.metadata.class}` : '-'}</div>
+          <div class="tiny">Пассивная: ${item.metadata && item.metadata.passiveAbility ? item.metadata.passiveAbility.name : '-'} • Активная: ${item.metadata && item.metadata.activeAbility ? item.metadata.activeAbility.name : '-'}</div>
           <div class="tiny">Синергии: ${item.deck && item.deck.synergies && item.deck.synergies.labels && item.deck.synergies.labels.length ? item.deck.synergies.labels.join(' • ') : 'нет'}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary wallet-domain-action" data-domain-action="${item.domain}">Играть этим доменом</button>
@@ -5449,15 +5453,15 @@ PAGE_TEMPLATE = """
       const packGuide = (state.packTypes || []).length
         ? `
           <div class="panel" style="margin-bottom:14px; padding:16px;">
-            <h3 style="margin-bottom:10px;">Pack Types / Pity</h3>
+            <h3 style="margin-bottom:10px;">Типы паков и гарантия</h3>
             <div class="catalog-grid">
               ${state.packTypes.map((pack) => `
                 <article class="catalog-card skill-card">
-                  <div class="catalog-kicker">Pack</div>
+                  <div class="catalog-kicker">Пак</div>
                   <strong>${pack.label}</strong>
                   <div class="tiny">Карт: ${pack.count} • Стоимость: ${packCostText(pack.costs || {})}</div>
                   <div class="tiny">Шансы: ${Object.entries(pack.weights || {}).map(([key, value]) => `${key} ${value}%`).join(' • ')}</div>
-                  <div class="tiny">Lucky bonus: ${pack.lucky_bonus ? 'есть' : 'нет'} • pity: ${state.packPityThreshold} без Legendary</div>
+                  <div class="tiny">Lucky-бонус: ${pack.lucky_bonus ? 'есть' : 'нет'} • гарантия после ${state.packPityThreshold} паков без легендарки</div>
                 </article>
               `).join('')}
             </div>
@@ -5472,7 +5476,7 @@ PAGE_TEMPLATE = """
             <div class="catalog-grid">
               ${skills.map((skill) => `
                 <article class="catalog-card skill-card">
-                  <div class="catalog-kicker">Strategic Card</div>
+                  <div class="catalog-kicker">Стратегическая карта</div>
                   <strong>${skill.name}</strong>
                   <div class="tiny">${skill.description}</div>
                   <div class="tiny" style="margin-top:8px;">Сильнее всего: ${skill.strong_against}</div>
@@ -5485,13 +5489,13 @@ PAGE_TEMPLATE = """
             <h3 style="margin-bottom:10px;">Когда выгоден Натиск и Блок</h3>
             <div class="catalog-grid">
               <article class="catalog-card skill-card">
-                <div class="catalog-kicker">Battle Choice</div>
+                <div class="catalog-kicker">Выбор в бою</div>
                 <strong>Натиск</strong>
                 <div class="tiny">Выгоден, когда хочешь продавить раунд силой и поймать соперника на пассивной игре.</div>
                 <div class="tiny" style="margin-top:8px;">Лучше всего: когда твоя карта сильнее по темпу, нужно добить перевес или закончить серию в свою пользу.</div>
               </article>
               <article class="catalog-card skill-card">
-                <div class="catalog-kicker">Battle Choice</div>
+                <div class="catalog-kicker">Выбор в бою</div>
                 <strong>Блок</strong>
                 <div class="tiny">Выгоден, когда ждёшь агрессию соперника и хочешь пережить его сильный заход.</div>
                 <div class="tiny" style="margin-top:8px;">Лучше всего: когда раунд надо стабилизировать, у соперника выглядит очевидный пуш или нужно сохранить преимущество.</div>
@@ -5594,10 +5598,10 @@ PAGE_TEMPLATE = """
             <summary>Подробнее</summary>
             <div class="tiny">Паттерны: ${domain.patterns.length ? domain.patterns.join(', ') : 'базовый 10K домен'}</div>
             <div class="tiny">Спецколлекции: ${domain.special_collections && domain.special_collections.length ? domain.special_collections.join(', ') : 'нет'}</div>
-            <div class="tiny">Role/Class: ${domain.metadata && domain.metadata.role ? `${domain.metadata.role} / ${domain.metadata.class}` : '-'}</div>
-            <div class="tiny">Passive: ${domain.metadata && domain.metadata.passiveAbility ? domain.metadata.passiveAbility.name : '-'}</div>
-            <div class="tiny">Active: ${domain.metadata && domain.metadata.activeAbility ? domain.metadata.activeAbility.name : '-'}</div>
-            <div class="tiny">Level/XP: ${domain.metadata ? `${domain.metadata.level} / ${domain.metadata.experience}` : '-'}</div>
+            <div class="tiny">Роль / класс: ${domain.metadata && domain.metadata.role ? `${domain.metadata.role} / ${domain.metadata.class}` : '-'}</div>
+            <div class="tiny">Пассивная: ${domain.metadata && domain.metadata.passiveAbility ? domain.metadata.passiveAbility.name : '-'}</div>
+            <div class="tiny">Активная: ${domain.metadata && domain.metadata.activeAbility ? domain.metadata.activeAbility.name : '-'}</div>
+            <div class="tiny">Уровень / опыт: ${domain.metadata ? `${domain.metadata.level} / ${domain.metadata.experience}` : '-'}</div>
           </details>
           <button class="wallet-domain-action" data-domain-action="${domain.domain}">${state.selectedDomain === domain.domain ? 'Открыть колоду' : 'Выбрать домен'}</button>
         </div>
@@ -6032,7 +6036,7 @@ PAGE_TEMPLATE = """
         <div class="discipline-list">
           ${rounds.map((round, index) => {
             const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
-            const marker = round.winner === 'player' ? 'WIN' : (round.winner === 'opponent' ? 'LOSE' : 'DRAW');
+            const marker = round.winner === 'player' ? 'ПОБЕДА' : (round.winner === 'opponent' ? 'ПОРАЖЕНИЕ' : 'НИЧЬЯ');
             const playerCardTitle = round.player_card?.title || 'Твоя карта';
             const opponentCardTitle = round.opponent_card?.title || 'Карта соперника';
             const playerSlot = round.player_card?.slot || '-';
@@ -6072,10 +6076,10 @@ PAGE_TEMPLATE = """
                   <span class="arena-decision-chip strategy" style="animation-delay:${delay + 140}ms;">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label}</span>
                   <span class="arena-decision-chip featured" style="animation-delay:${delay + 190}ms;">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
                   <span class="arena-decision-chip outcome" style="animation-delay:${delay + 240}ms;">Итог раунда: ${marker}</span>
-                  ${reasonChip('Action', round.player_action_note, 'player')}
-                  ${reasonChip('Counter', round.player_domain_note, 'featured')}
-                  ${reasonChip('Strategy', round.player_strategy_note, 'strategy')}
-                  ${reasonChip('Skill', round.player_skill_note, 'featured')}
+                  ${reasonChip('Действие', round.player_action_note, 'player')}
+                  ${reasonChip('Контр-эффект', round.player_domain_note, 'featured')}
+                  ${reasonChip('Стратегия', round.player_strategy_note, 'strategy')}
+                  ${reasonChip('Навык', round.player_skill_note, 'featured')}
                   ${(round.player_crit || round.opponent_crit) ? `<span class="arena-decision-chip outcome">${round.player_crit ? 'Твой crit' : ''}${round.player_crit && round.opponent_crit ? ' / ' : ''}${round.opponent_crit ? 'Crit соперника' : ''}</span>` : ''}
                 </div>
               </div>
@@ -6148,7 +6152,7 @@ PAGE_TEMPLATE = """
         core.className = `final-core ${resultKey}`;
         core.innerHTML = `
           <div class="final-boom"></div>
-          <div class="final-label">${resultKey === 'draw' ? 'DRAW' : (resultKey === 'win' ? 'WIN' : 'LOSE')}</div>
+          <div class="final-label">${resultKey === 'draw' ? 'НИЧЬЯ' : (resultKey === 'win' ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ')}</div>
           <div class="final-sub">${resultLabel || ''}</div>
           <div class="final-buttons">
             <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
@@ -6361,7 +6365,7 @@ PAGE_TEMPLATE = """
                   const isResolved = !result.interactive_live || roundNumber < activeRoundNumber;
                   const roundResult = Array.isArray(result.rounds) ? result.rounds[index] : null;
                   const roundOutcomeClass = roundResult?.winner === 'player' ? 'win' : (roundResult?.winner === 'opponent' ? 'lose' : 'draw');
-                  const roundOutcomeLabel = roundResult?.winner === 'player' ? 'WIN' : (roundResult?.winner === 'opponent' ? 'LOSE' : (roundResult ? 'DRAW' : 'Ждёт'));
+                  const roundOutcomeLabel = roundResult?.winner === 'player' ? 'Победа' : (roundResult?.winner === 'opponent' ? 'Поражение' : (roundResult ? 'Ничья' : 'Ждёт'));
                   const left = (arenaLanes[index] && arenaLanes[index].percent) || 50;
                   return `
                     <div class="arena-round-choice-slot ${isActive ? 'active' : ''} ${isResolved ? 'resolved' : ''}" style="left:${left}%;">
@@ -6374,12 +6378,12 @@ PAGE_TEMPLATE = """
                           </div>
                           <div class="interactive-battle-metrics">
                             <div class="interactive-battle-metric">
-                              <strong>Energy ${result.interactive_energy || 0}</strong>
-                              <span>${result.interactive_active_ability && result.interactive_active_ability.name ? result.interactive_active_ability.name : 'base flow'}</span>
+                              <strong>Энергия ${result.interactive_energy || 0}</strong>
+                              <span>${result.interactive_active_ability && result.interactive_active_ability.name ? result.interactive_active_ability.name : 'Базовый режим'}</span>
                             </div>
                             <div class="interactive-battle-metric">
-                              <strong>CD ${(result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0}</strong>
-                              <span>charges ${(result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0}</span>
+                              <strong>КД ${(result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0}</strong>
+                              <span>Заряды ${(result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0}</span>
                             </div>
                           </div>
                           <div class="interactive-battle-prompt" id="interactive-battle-status">${result.interactive_hint || 'Выбери действие'}</div>
@@ -6789,7 +6793,7 @@ PAGE_TEMPLATE = """
       packScoreLabel.textContent = 'Вклад карт: -';
       packShowcase.classList.remove('opened');
       foilPack.classList.remove('opening');
-      packNote.textContent = 'TAP TO OPEN';
+      packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
       battleResult.style.display = 'none';
       battleResult.className = 'result-box';
       document.body.classList.remove('showdown-open');
@@ -6823,7 +6827,7 @@ PAGE_TEMPLATE = """
           <div class="tiny">Статус: ${room.status === 'waiting' ? 'ожидание игроков' : 'завершена'}</div>
           ${room.players.map((player) => `
             <div class="team-line">
-              <span>${player.username} • ${player.domain}.ton ${player.wallet === room.owner_wallet ? '(owner)' : ''}</span>
+              <span>${player.username} • ${player.domain}.ton ${player.wallet === room.owner_wallet ? '(создатель)' : ''}</span>
               <strong>${shortAddress(player.wallet)}</strong>
             </div>
           `).join('')}
@@ -6909,7 +6913,7 @@ PAGE_TEMPLATE = """
       packShowcase.classList.remove('opened');
       packShowcase.classList.add('cinematic');
       requestAnimationFrame(() => foilPack.classList.add('opening'));
-      packNote.textContent = 'Opening...';
+      packNote.textContent = 'Открываем...';
       try {
         const data = await api('/api/pack', {
           method: 'POST',
@@ -6923,7 +6927,7 @@ PAGE_TEMPLATE = """
         }
         await sleep(1300);
         packShowcase.classList.add('opened');
-        packNote.textContent = 'Cards incoming';
+        packNote.textContent = 'Карты уже летят';
         await renderPack(data.cards, data.total_score);
         packShowcase.classList.remove('cinematic');
         setStatus(document.getElementById('pack-status'), `Колода готова. ${packTypeMeta(resolvedPackType)?.label || resolvedPackType} дал вклад ${data.total_score}.`, 'success');
@@ -6939,7 +6943,7 @@ PAGE_TEMPLATE = """
         foilPack.classList.remove('opening');
         foilPack.classList.remove('vanishing');
         packShowcase.classList.remove('cinematic');
-        packNote.textContent = 'TAP TO OPEN';
+        packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       } finally {
         state.packOpening = false;
@@ -7407,7 +7411,7 @@ PAGE_TEMPLATE = """
         state.packOpening = false;
         packShowcase.classList.remove('opened');
         foilPack.classList.remove('opening');
-        packNote.textContent = 'TAP TO OPEN';
+        packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
         renderProfile();
         renderDomains(state.domains);
         renderDeck({ wallet: state.wallet, domain: data.domain, deck: data.deck });
@@ -7532,7 +7536,7 @@ PAGE_TEMPLATE = """
           packScoreLabel.textContent = 'Вклад карт: -';
           packShowcase.classList.remove('opened');
           foilPack.classList.remove('opening');
-          packNote.textContent = 'TAP TO OPEN';
+          packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
           renderDomains([]);
           renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
         }
@@ -8535,16 +8539,16 @@ def compute_domain_synergies(wallet, domains=None):
     zeroish = sum(1 for item in flags if 'has-zero' in item)
     if pairish >= 2:
         defense += 1
-        labels.append('2 домена с повтором: +1 Defense synergy')
+        labels.append('2 домена с повтором: +1 к защите')
     if has_eight >= 3:
         luck += 1
-        labels.append('3 домена с 8: +1 Luck synergy')
+        labels.append('3 домена с 8: +1 к удаче')
     if mirrorish >= 2:
         energy += 1
-        labels.append('2 зеркальных домена: +1 Energy synergy')
+        labels.append('2 зеркальных домена: +1 к энергии')
     if zeroish >= 2:
         attack += 1
-        labels.append('2 домена с 0: +1 Attack synergy')
+        labels.append('2 домена с 0: +1 к атаке')
     return {'attack': attack, 'defense': defense, 'luck': luck, 'energy': energy, 'labels': labels}
 
 
@@ -9117,18 +9121,18 @@ ACTION_RULES = {
 }
 STRATEGY_PRESETS = {
     'attack_boost': {
-        'label': 'Attack boost',
+        'label': 'Атакующий буст',
         'description': 'Больше давления в атакующих раундах. Сильнее, если сам навязываешь темп.',
         'plan': ['burst', 'burst', 'guard', 'burst', 'burst'],
     },
     'defense_boost': {
-        'label': 'Defense boost',
+        'label': 'Защитный буст',
         'description': 'Надежнее держит контр-ходы и затяжной бой. Сильнее против прямого давления.',
         'plan': ['guard', 'guard', 'burst', 'guard', 'guard'],
     },
     'energy_boost': {
-        'label': 'Energy boost',
-        'description': 'Лучше раскрывает способности домена и тайминг ходов. Сильнее в mid/late game.',
+        'label': 'Энергобуст',
+        'description': 'Лучше раскрывает способности домена и тайминг ходов. Сильнее в середине и конце матча.',
         'plan': ['guard', 'ability', 'burst', 'ability', 'burst'],
     },
     'aggressive': {
@@ -10100,21 +10104,21 @@ def strategy_round_bonus(strategy_key, focus, phase, round_index, action_key, pr
             bonus += 10
         if phase in {'opening', 'finisher'}:
             bonus += 6
-        note = 'Attack boost усиливает атакующие окна'
+        note = 'Атакующий буст усиливает атакующие окна'
     elif strategy_key == 'defense_boost':
         bonus = 30 if action_key == 'guard' else 10
         if focus in {'defense', 'speed'}:
             bonus += 10
         if phase in {'counter', 'tempo'}:
             bonus += 6
-        note = 'Defense boost усиливает удержание темпа'
+        note = 'Защитный буст усиливает удержание темпа'
     elif strategy_key == 'energy_boost':
         bonus = 22 if action_key == 'ability' else 16
         if phase in {'risk', 'tempo', 'finisher'}:
             bonus += 9
         if previous_outcome == 'loss':
             bonus += 4
-        note = 'Energy boost раскрывает способность домена'
+        note = 'Энергобуст раскрывает способность домена'
     elif strategy_key == 'aggressive':
         bonus = 34 if action_key == 'burst' else 12
         if phase in {'opening', 'finisher'}:
@@ -12665,7 +12669,7 @@ def api_pack():
     if source == 'daily' and not can_open_daily_pack(wallet, domain):
         return json_error('Ежедневный пак уже открыт. Попробуй снова завтра или открой платный пак.', 403)
     if source == 'daily' and pack_type != 'common':
-        return json_error('Ежедневное открытие работает только для Common Pack.', 400)
+        return json_error('Ежедневное открытие работает только для обычного пака.', 400)
 
     if source == 'paid':
         if not payment_id:
