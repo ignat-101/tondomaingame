@@ -4566,6 +4566,7 @@ PAGE_TEMPLATE = """
         <section class="panel view" id="view-profile">
           <h2>Профиль</h2>
           <div id="mobile-profile-summary" class="deck-list"></div>
+          <div id="mobile-rewards-panel" class="deck-list" style="margin-top:14px;"></div>
           <div class="actions" style="margin-top:14px;">
             <button class="secondary" id="mobile-show-deck-btn">Моя колода</button>
           </div>
@@ -4604,6 +4605,7 @@ PAGE_TEMPLATE = """
           <div class="kv"><span class="muted">Активный домен</span><span id="profile-domain">-</span></div>
           <div class="kv"><span class="muted">Рейтинг</span><span id="profile-rating">1000</span></div>
           <div class="kv"><span class="muted">Сыграно матчей</span><span id="profile-games">0</span></div>
+          <div id="profile-rewards-panel" class="deck-list" style="margin-top:14px;"></div>
         </section>
 
         <section class="panel">
@@ -4687,9 +4689,11 @@ PAGE_TEMPLATE = """
     const marketplacesLinks = document.getElementById('marketplaces-links');
     const activeUsersList = document.getElementById('active-users-list');
     const deckView = document.getElementById('deck-view');
+    const profileRewardsPanel = document.getElementById('profile-rewards-panel');
     const showDeckBtn = document.getElementById('show-deck-btn');
     const toggleDeckBtn = document.getElementById('toggle-deck-btn');
     const mobileProfileSummary = document.getElementById('mobile-profile-summary');
+    const mobileRewardsPanel = document.getElementById('mobile-rewards-panel');
     const mobileLeaderboard = document.getElementById('mobile-leaderboard');
     const mobileDeckView = document.getElementById('mobile-deck-view');
     const mobileGlobalPlayersList = document.getElementById('mobile-global-players-list');
@@ -5027,6 +5031,22 @@ PAGE_TEMPLATE = """
       });
     }
 
+    function renderRewardsPanels() {
+      const rewards = state.playerProfile && state.playerProfile.rewards ? state.playerProfile.rewards : null;
+      const synergies = state.playerProfile && state.playerProfile.synergies ? state.playerProfile.synergies : null;
+      const content = rewards ? `
+        <div class="user-item">
+          <strong>Rewards / Season</strong>
+          <div class="tiny">Shards: ${rewards.pack_shards || 0} • Rare: ${rewards.rare_tokens || 0} • Lucky: ${rewards.lucky_tokens || 0}</div>
+          <div class="tiny">Season: lvl ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 12} pts</div>
+          <div class="tiny">Daily: ${rewards.daily_available ? 'готов' : 'получен'} • Quest: ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} wins`}</div>
+          <div class="tiny">Синергии: ${synergies && synergies.labels && synergies.labels.length ? synergies.labels.join(' • ') : 'нет'}</div>
+        </div>
+      ` : '<div class="user-item muted">Подключи кошелёк, чтобы видеть rewards и season progress.</div>';
+      if (profileRewardsPanel) profileRewardsPanel.innerHTML = content;
+      if (mobileRewardsPanel) mobileRewardsPanel.innerHTML = content;
+    }
+
     function api(path, options = {}) {
       const config = {
         method: options.method || 'GET',
@@ -5344,6 +5364,7 @@ PAGE_TEMPLATE = """
         </div>
       `;
       document.getElementById('mobile-show-deck-btn').disabled = showDeckBtn.disabled;
+      renderRewardsPanels();
       renderPackEconomy();
     }
 
@@ -5425,6 +5446,24 @@ PAGE_TEMPLATE = """
         cardCatalogList.innerHTML = '<div class="user-item muted">Каталог карт загружается...</div>';
         return;
       }
+      const packGuide = (state.packTypes || []).length
+        ? `
+          <div class="panel" style="margin-bottom:14px; padding:16px;">
+            <h3 style="margin-bottom:10px;">Pack Types / Pity</h3>
+            <div class="catalog-grid">
+              ${state.packTypes.map((pack) => `
+                <article class="catalog-card skill-card">
+                  <div class="catalog-kicker">Pack</div>
+                  <strong>${pack.label}</strong>
+                  <div class="tiny">Карт: ${pack.count} • Стоимость: ${packCostText(pack.costs || {})}</div>
+                  <div class="tiny">Шансы: ${Object.entries(pack.weights || {}).map(([key, value]) => `${key} ${value}%`).join(' • ')}</div>
+                  <div class="tiny">Lucky bonus: ${pack.lucky_bonus ? 'есть' : 'нет'} • pity: ${state.packPityThreshold} без Legendary</div>
+                </article>
+              `).join('')}
+            </div>
+          </div>
+        `
+        : '';
       const tacticalGuide = (skills || []).length
         ? `
           <div class="panel" style="margin-bottom:14px; padding:16px;">
@@ -5462,6 +5501,7 @@ PAGE_TEMPLATE = """
         `
         : '';
       cardCatalogList.innerHTML = `
+        ${packGuide}
         ${tacticalGuide}
         <div class="catalog-grid">
           ${state.cardCatalog.map((card) => `

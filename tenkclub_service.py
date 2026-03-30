@@ -359,21 +359,35 @@ def _build_abilities(number: str, role: str, rarity: str, score: int, patterns: 
     rarity_bonus = {"Common": 0, "Uncommon": 1, "Rare": 2, "Epic": 3, "Legendary": 4}[rarity]
     passive_power = min(4, 1 + rarity_bonus)
     active_power = min(6, 2 + rarity_bonus)
+    passive_proc = min(1.0, 0.22 + rarity_bonus * 0.12)
+    active_proc = min(1.0, 0.72 + rarity_bonus * 0.06)
+    active_charges = 1 + (1 if rarity in {"Epic", "Legendary"} else 0)
+    passive_charges = 2 + (1 if rarity in {"Rare", "Epic", "Legendary"} else 0)
+    active_cooldown = 3 if rarity == "Common" else (2 if rarity in {"Uncommon", "Rare"} else 1)
+    if tier_id == "tier0":
+        active_proc = min(1.0, active_proc + 0.08)
+        passive_proc = min(1.0, passive_proc + 0.08)
+        active_charges += 1
+    elif tier_id == "tier1":
+        active_proc = min(1.0, active_proc + 0.04)
+        passive_proc = min(1.0, passive_proc + 0.05)
+    elif tier_id == "tier2":
+        passive_proc = min(1.0, passive_proc + 0.03)
     if role in {"Tank", "Guardian"}:
-        passive = DomainAbility("bulwark_passive", _ability_name("Bulwark", number, role), "Получает щит в начале первого проигранного раунда.", "on_round_loss", 2, 0, 1.0, 1, False, passive_power)
-        active = DomainAbility("fortify_active", _ability_name("Fortify", number, role), "Усиливает блок и режет входящий урон в этом раунде.", "manual", 2, 3, 1.0, 1, False, active_power)
+        passive = DomainAbility("bulwark_passive", _ability_name("Bulwark", number, role), "Получает щит в начале первого проигранного раунда.", "on_round_loss", 2, 0, max(passive_proc, 0.72), 1, False, passive_power)
+        active = DomainAbility("fortify_active", _ability_name("Fortify", number, role), "Усиливает блок и режет входящий урон в этом раунде.", "manual", active_cooldown, 3, max(active_proc, 0.86), active_charges, False, active_power)
     elif role in {"Damage", "Sniper"}:
-        passive = DomainAbility("focus_passive", _ability_name("Focus", number, role), "Немного повышает шанс крита после успешного блока.", "after_guard_win", 2, 0, 0.55, 2, False, passive_power)
-        active = DomainAbility("pierce_active", _ability_name("Pierce", number, role), "Следующий натиск частично игнорирует защиту.", "manual", 2, 3, 1.0, 1, False, active_power)
+        passive = DomainAbility("focus_passive", _ability_name("Focus", number, role), "Немного повышает шанс крита после успешного блока.", "after_guard_win", 2, 0, max(passive_proc, 0.48), passive_charges, False, passive_power)
+        active = DomainAbility("pierce_active", _ability_name("Pierce", number, role), "Следующий натиск частично игнорирует защиту.", "manual", active_cooldown, 3, active_proc, active_charges, False, active_power)
     elif role in {"Control", "Disruptor", "Trickster"}:
-        passive = DomainAbility("jam_passive", _ability_name("Jam", number, role), "Редко снижает силу вражеской активной способности.", "on_enemy_ability", 3, 0, 0.35, 2, False, passive_power)
-        active = DomainAbility("disrupt_active", _ability_name("Disrupt", number, role), "Ломает темп соперника и режет его энергию в раунде.", "manual", 3, 3, 1.0, 1, False, active_power)
+        passive = DomainAbility("jam_passive", _ability_name("Jam", number, role), "Редко снижает силу вражеской активной способности.", "on_enemy_ability", 3, 0, max(passive_proc - 0.08, 0.35), passive_charges, False, passive_power)
+        active = DomainAbility("disrupt_active", _ability_name("Disrupt", number, role), "Ломает темп соперника и режет его энергию в раунде.", "manual", active_cooldown + 1, 3, max(active_proc - 0.06, 0.74), active_charges, False, active_power)
     elif role in {"Fortune", "Support"}:
-        passive = DomainAbility("lucky_passive", _ability_name("Luck", number, role), "Иногда добавляет небольшой бонус к диапазону урона.", "on_attack_roll", 1, 0, 0.28, 99, False, passive_power)
-        active = DomainAbility("surge_active", _ability_name("Surge", number, role), "Даёт дополнительную энергию и усиливает следующий выбор.", "manual", 2, 3, 1.0, 1, False, active_power)
+        passive = DomainAbility("lucky_passive", _ability_name("Luck", number, role), "Иногда добавляет небольшой бонус к диапазону урона.", "on_attack_roll", 1, 0, max(passive_proc - 0.06, 0.28), 99, False, passive_power)
+        active = DomainAbility("surge_active", _ability_name("Surge", number, role), "Даёт дополнительную энергию и усиливает следующий выбор.", "manual", max(1, active_cooldown - 1), 3, max(active_proc - 0.04, 0.78), active_charges, False, active_power)
     else:
-        passive = DomainAbility("combo_passive", _ability_name("Combo", number, role), "После победы в раунде слегка усиливает следующий ход.", "on_round_win", 2, 0, 1.0, 2, False, passive_power)
-        active = DomainAbility("sequence_active", _ability_name("Sequence", number, role), "Усиливает натиск, если до этого был блок.", "manual", 2, 3, 1.0, 1, False, active_power)
+        passive = DomainAbility("combo_passive", _ability_name("Combo", number, role), "После победы в раунде слегка усиливает следующий ход.", "on_round_win", 2, 0, max(passive_proc, 0.62), passive_charges, False, passive_power)
+        active = DomainAbility("sequence_active", _ability_name("Sequence", number, role), "Усиливает натиск, если до этого был блок.", "manual", active_cooldown, 3, max(active_proc, 0.82), active_charges, False, active_power)
     return passive, active
 
 
