@@ -6253,10 +6253,10 @@ PAGE_TEMPLATE = """
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
-      const clashCardWidth = compactClash ? 56 : 82;
-      const clashCardHeight = compactClash ? 80 : 118;
-      const clashGap = compactClash ? 2 : 4;
-      const impactGap = compactClash ? 1 : 2;
+      const clashCardWidth = compactClash ? 54 : 78;
+      const clashCardHeight = compactClash ? 76 : 112;
+      const clashGap = compactClash ? 8 : 12;
+      const impactGap = compactClash ? 4 : 6;
       const centerY = coreRect.height * (compactClash ? 0.54 : 0.5);
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 42 : 14;
@@ -6272,14 +6272,14 @@ PAGE_TEMPLATE = """
       const playerTargetTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawPlayerTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 6 : 12) : playerTargetTop;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 6 : 12) : enemyTargetTop;
-      const rawPlayerImpactTop = playerAttack ? centerY + impactGap - (compactClash ? 4 : 8) : playerTargetTop - 1;
-      const rawEnemyImpactTop = enemyAttack ? centerY - clashCardHeight - impactGap + (compactClash ? 4 : 8) : enemyTargetTop + 1;
+      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 8 : 14) : playerTargetTop;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 8 : 14) : enemyTargetTop;
+      const rawPlayerImpactTop = playerAttack ? centerY + impactGap + (compactClash ? 10 : 12) : playerTargetTop;
+      const rawEnemyImpactTop = enemyAttack ? centerY - clashCardHeight - impactGap - (compactClash ? 10 : 12) : enemyTargetTop;
       const playerImpactTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawPlayerImpactTop);
       const enemyImpactTop = Math.max(verticalPadding, rawEnemyImpactTop);
-      const playerImpactScale = playerAttack ? (compactClash ? 1.08 : 1.12) : 1.01;
-      const enemyImpactScale = enemyAttack ? (compactClash ? 1.08 : 1.12) : 1.01;
+      const playerImpactScale = playerAttack ? (compactClash ? 1.06 : 1.1) : 1.01;
+      const enemyImpactScale = enemyAttack ? (compactClash ? 1.06 : 1.1) : 1.01;
       const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
       const enemyImpactRotate = enemyAttack ? '8deg' : '-2deg';
       const playerRecoilY = playerAttack ? playerImpactTop + (compactClash ? 8 : 12) : playerTargetTop;
@@ -10428,19 +10428,43 @@ def spend_ability_state(ability_state, action_key):
     return state
 
 
-def choose_bot_round_action(planned_action, energy, ability_state, metadata, phase):
+def choose_bot_round_action(planned_action, energy, ability_state, metadata, phase, round_index=0, previous_outcome=None, rng_seed=''):
     actions = available_actions_for_state(energy, ability_state)
+    if not actions:
+        return 'guard'
+    role = str((metadata or {}).get('role') or '')
+    rng = random.Random(hashlib.sha256(f'bot-live:{rng_seed}:{round_index}:{phase}:{previous_outcome}:{planned_action}'.encode()).hexdigest())
+    weights = {action: 1 for action in actions}
     if planned_action in actions:
-        return planned_action
+        weights[planned_action] += 3
+    if 'guard' in actions and phase in {'control', 'setup'}:
+        weights['guard'] += 2
+    if 'burst' in actions and phase in {'pressure', 'risk', 'finisher'}:
+        weights['burst'] += 2
+    if previous_outcome == 'loss' and 'burst' in actions:
+        weights['burst'] += 2
+    if previous_outcome == 'win' and 'guard' in actions:
+        weights['guard'] += 1
     if 'ability' in actions:
-        role = str((metadata or {}).get('role') or '')
-        if planned_action == 'ability' and phase in {'finisher', 'risk'} and role in {'Control', 'Disruptor', 'Damage', 'Sniper'}:
-            return 'ability'
-        if phase == 'finisher' and role in {'Damage', 'Sniper'}:
-            return 'ability'
-    if 'burst' in actions:
-        return 'burst'
-    return 'guard'
+        ability_weight = 0
+        if phase in {'risk', 'finisher'}:
+            ability_weight += 2
+        if role in {'Control', 'Disruptor', 'Damage', 'Sniper'}:
+            ability_weight += 1
+        if previous_outcome == 'loss':
+            ability_weight += 1
+        if ability_weight > 0:
+            weights['ability'] += ability_weight
+    total_weight = sum(max(0, int(value)) for value in weights.values())
+    if total_weight <= 0:
+        return actions[0]
+    roll = rng.uniform(0, total_weight)
+    cursor = 0.0
+    for action in actions:
+        cursor += max(0, int(weights.get(action, 0)))
+        if roll <= cursor:
+            return action
+    return actions[-1]
 
 
 def resolve_battle_round(*, seed_value, idx, focus, label, phase, card_a, card_b, build_a, build_b, featured_a, featured_b, action_a, action_b, strategy_key_a, strategy_key_b, prev_a, prev_b, domain_meta_a=None, domain_meta_b=None, ability_state_a=None, ability_state_b=None):
@@ -11744,16 +11768,25 @@ def apply_solo_battle_action(session_id, wallet, action_key):
     domain_meta_b['_synergy'] = dict(state.get('synergy_b') or {})
     state['energy_a'] = 3
     state['energy_b'] = 3
+    prev_a = state.get('prev_a')
+    prev_b = state.get('prev_b')
     if action_key not in available_actions_for_state(state.get('energy_a', 0), ability_state_a):
         raise ValueError('Недостаточно энергии или способность недоступна.')
     planned_action_b = (state.get('opponent_action_plan') or default_action_plan())[idx]
-    action_b = choose_bot_round_action(planned_action_b, state.get('energy_b', 0), ability_state_b, domain_meta_b, phase)
+    action_b = choose_bot_round_action(
+        planned_action_b,
+        state.get('energy_b', 0),
+        ability_state_b,
+        domain_meta_b,
+        phase,
+        round_index=idx,
+        previous_outcome=prev_b,
+        rng_seed=session_id,
+    )
     build_a = state.get('build_a') or {}
     build_b = state.get('build_b') or {}
     featured_a = normalize_card_profile(state.get('featured_a') or card_a)
     featured_b = normalize_card_profile(state.get('featured_b') or card_b)
-    prev_a = state.get('prev_a')
-    prev_b = state.get('prev_b')
     effective_action_a = effective_action_key(action_key, domain_meta_a)
     effective_action_b = effective_action_key(action_b, domain_meta_b)
     value_a = max(0, round(build_bonus_value(build_a, focus) / 7))
