@@ -5835,6 +5835,9 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${escapeHtml(item.message)}</div>
+          <div class="actions" style="margin-top:8px;">
+            <button class="secondary" data-social-action="report" data-reference="${escapeHtml(item.wallet)}" data-scope="lobby">Пожаловаться</button>
+          </div>
         </div>
       `).join('') || '<div class="user-item muted">Лобби пустое.</div>';
       socialPanel.innerHTML = `
@@ -5943,6 +5946,9 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${escapeHtml(item.message)}</div>
+          <div class="actions" style="margin-top:8px;">
+            <button class="secondary" data-social-action="report" data-reference="${escapeHtml(item.wallet)}" data-scope="guild">Пожаловаться</button>
+          </div>
         </div>
       `).join('') || '<div class="user-item muted">Чат пуст.</div>';
       const announcements = (current.announcements || []).map((item) => `
@@ -8103,6 +8109,20 @@ PAGE_TEMPLATE = """
       renderSocialPanel();
     }
 
+    async function submitUserReport(reference, scope) {
+      if (!state.wallet || !reference) return;
+      await api('/api/report', {
+        method: 'POST',
+        body: {
+          wallet: state.wallet,
+          reference,
+          scope: scope || 'general',
+          reason: `Жалоба из ${scope || 'general'}`
+        }
+      });
+      setStatus(walletStatus, 'Жалоба отправлена. Спасибо.', 'success');
+    }
+
     async function handleSocialAction(action, dataset) {
       if (!state.wallet) return;
       if (action === 'request-friend') {
@@ -8141,6 +8161,10 @@ PAGE_TEMPLATE = """
         });
         state.socialData = data.social || state.socialData;
         renderSocialPanel();
+        return;
+      }
+      if (action === 'report') {
+        await submitUserReport(dataset.reference, dataset.scope || 'general');
         return;
       }
       if (action === 'duel') {
@@ -9400,6 +9424,15 @@ def init_db():
                 PRIMARY KEY (owner_wallet, blocked_wallet)
             );
 
+            CREATE TABLE IF NOT EXISTS reports (
+                id TEXT PRIMARY KEY,
+                reporter_wallet TEXT NOT NULL,
+                target_wallet TEXT NOT NULL,
+                scope TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS guilds (
                 id TEXT PRIMARY KEY,
                 slug TEXT NOT NULL UNIQUE,
@@ -9567,6 +9600,14 @@ def init_db():
                 blocked_wallet TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 PRIMARY KEY (owner_wallet, blocked_wallet)
+            );
+            CREATE TABLE IF NOT EXISTS reports (
+                id TEXT PRIMARY KEY,
+                reporter_wallet TEXT NOT NULL,
+                target_wallet TEXT NOT NULL,
+                scope TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                created_at TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS guilds (
                 id TEXT PRIMARY KEY,
@@ -9740,6 +9781,14 @@ def ensure_runtime_tables():
                 attempts INTEGER NOT NULL DEFAULT 0,
                 wins INTEGER NOT NULL DEFAULT 0,
                 updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS reports (
+                id TEXT PRIMARY KEY,
+                reporter_wallet TEXT NOT NULL,
+                target_wallet TEXT NOT NULL,
+                scope TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                created_at TEXT NOT NULL
             );
             '''
         )
@@ -12777,6 +12826,21 @@ def unblock_player(owner_wallet, target_reference):
     return target_wallet
 
 
+def create_player_report(reporter_wallet, target_reference, scope, reason=''):
+    target_wallet = resolve_player_reference(target_reference)
+    if target_wallet == reporter_wallet:
+        raise ValueError('Нельзя отправить жалобу на себя.')
+    scope_value = str(scope or 'general').strip().lower()[:32] or 'general'
+    reason_value = clean_public_text(reason or 'Проверить поведение игрока', 240)
+    with closing(get_db()) as conn:
+        conn.execute(
+            'INSERT INTO reports (id, reporter_wallet, target_wallet, scope, reason, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            (uuid.uuid4().hex[:12], reporter_wallet, target_wallet, scope_value, reason_value, now_iso()),
+        )
+        conn.commit()
+    return target_wallet
+
+
 def social_suggestions(wallet, limit=8):
     friend_wallets = {item['wallet'] for item in friend_rows(wallet)}
     blocked = blocked_wallets(wallet)
@@ -15623,6 +15687,22 @@ def api_block_player():
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'target_wallet': target_wallet, 'social': social_overview(wallet)})
+
+
+@app.route('/api/report', methods=['POST'])
+def api_report_player():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    reference = (payload.get('reference') or '').strip()
+    scope = (payload.get('scope') or 'general').strip()
+    reason = payload.get('reason') or ''
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        target_wallet = create_player_report(wallet, reference, scope, reason)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'target_wallet': target_wallet})
 
 
 @app.route('/api/lobby-chat', methods=['GET', 'POST'])
