@@ -5620,6 +5620,7 @@ PAGE_TEMPLATE = """
           <strong>${data.domain}.ton</strong>
           <div class="tiny">Редкость: ${meta.rarityLabel || '-'} • Тир: ${meta.tierLabel || '-'}</div>
           <div class="tiny">Счёт: ${meta.score || '-'} • Роль/класс: ${meta.role ? `${meta.role} / ${meta.class}` : '-'}</div>
+          <div class="tiny">Бонус 10K Club: +${meta.bonusScore || 0} • База: ${meta.baseScore || 2500}</div>
           <div class="tiny">Атомарные паттерны: ${(meta.atomicPatterns && meta.atomicPatterns.length) ? meta.atomicPatterns.join(', ') : 'нет'}</div>
           <div class="tiny">Суперпаттерн: ${meta.superPattern || 'нет'} • Уровень: ${meta.level || 1}</div>
           <div class="tiny">Пассивная: ${meta.passiveAbility ? `${meta.passiveAbility.name} • шанс ${(Number(meta.passiveAbility.probability || 0) * 100).toFixed(0)}%` : '-'}</div>
@@ -9557,7 +9558,6 @@ def score_from_domain(domain, wallet=None):
         'Legendary': 4,
     }.get(rarity, 0)
     bounded_domain_edge = min(8, max(0, round((score - 2500) / 12000)))
-    translated_bonus = max(0, round(bonus_score / 5))
     attack = ATTACK_BASE + rarity_bonus + tier_bonus + min(4, level - 1)
     defense = DEFENSE_BASE + max(0, rarity_bonus - 1) + tier_bonus + min(4, level - 1)
     luck = min(6, len(metadata.get('specialCollections') or []) + (1 if '8' in str(metadata.get('normalizedNumber') or '') else 0))
@@ -9574,7 +9574,7 @@ def score_from_domain(domain, wallet=None):
         'special_collections': list(metadata.get('specialCollections') or []),
         'bonus_score': bonus_score,
         'pool_base': base_score,
-        'pool_total': 2500 + min(900, translated_bonus + bounded_domain_edge * 8),
+        'pool_total': 2500 + max(0, bonus_score),
         'score': score,
         'metadata': metadata,
     }
