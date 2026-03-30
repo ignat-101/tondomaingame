@@ -6254,31 +6254,41 @@ PAGE_TEMPLATE = """
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
-      const clashCardWidth = compactClash ? 48 : 78;
-      const clashCardHeight = compactClash ? 68 : 112;
+      const clashCardWidth = compactClash ? 46 : 78;
+      const clashCardHeight = compactClash ? 64 : 112;
       const clashGap = compactClash ? 18 : 12;
       const impactGap = compactClash ? 10 : 6;
-      const centerY = coreRect.height * (compactClash ? 0.5 : 0.5);
+      const centerY = coreRect.height * 0.5;
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 50 : 14;
+      const laneTop = laneRect.top - coreRect.top;
+      const laneBottom = laneRect.bottom - coreRect.top;
+      const laneTopBound = compactClash ? Math.max(verticalPadding, laneTop + 10) : verticalPadding;
+      const laneBottomBound = compactClash ? Math.min(coreRect.height - verticalPadding, laneBottom - 10) : (coreRect.height - verticalPadding);
+      const laneMidY = compactClash ? ((laneTopBound + laneBottomBound) / 2) : centerY;
+      const compactMidGap = compactClash ? 10 : 0;
       const laneTargetLeft = Math.max(
         clashLanePadding,
         Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
       );
       const playerTargetLeft = laneTargetLeft;
       const enemyTargetLeft = laneTargetLeft;
-      const rawEnemyTargetTop = centerY - clashCardHeight - clashGap;
-      const rawPlayerTargetTop = centerY + clashGap;
-      const enemyTargetTop = Math.max(verticalPadding, rawEnemyTargetTop);
-      const playerTargetTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawPlayerTargetTop);
+      const rawEnemyTargetTop = compactClash ? laneTopBound : (centerY - clashCardHeight - clashGap);
+      const rawPlayerTargetTop = compactClash ? (laneBottomBound - clashCardHeight) : (centerY + clashGap);
+      const enemyTargetTop = Math.max(laneTopBound, rawEnemyTargetTop);
+      const playerTargetTop = Math.min(laneBottomBound - clashCardHeight, rawPlayerTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
       const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 10 : 14) : playerTargetTop;
       const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 14) : enemyTargetTop;
-      const rawPlayerImpactTop = playerAttack ? centerY + impactGap + (compactClash ? 16 : 12) : playerTargetTop;
-      const rawEnemyImpactTop = enemyAttack ? centerY - clashCardHeight - impactGap - (compactClash ? 16 : 12) : enemyTargetTop;
-      const playerImpactTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawPlayerImpactTop);
-      const enemyImpactTop = Math.max(verticalPadding, rawEnemyImpactTop);
+      const rawPlayerImpactTop = compactClash
+        ? Math.max(laneMidY + compactMidGap, playerTargetTop - (playerAttack ? 8 : 0))
+        : (playerAttack ? centerY + impactGap + 12 : playerTargetTop);
+      const rawEnemyImpactTop = compactClash
+        ? Math.min(laneMidY - clashCardHeight - compactMidGap, enemyTargetTop + (enemyAttack ? 8 : 0))
+        : (enemyAttack ? centerY - clashCardHeight - impactGap - 12 : enemyTargetTop);
+      const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, rawPlayerImpactTop);
+      const enemyImpactTop = Math.max(laneTopBound, rawEnemyImpactTop);
       const playerImpactScale = playerAttack ? (compactClash ? 1.03 : 1.1) : 1.01;
       const enemyImpactScale = enemyAttack ? (compactClash ? 1.03 : 1.1) : 1.01;
       const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
