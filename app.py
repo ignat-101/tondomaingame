@@ -1193,6 +1193,14 @@ PAGE_TEMPLATE = """
       gap: 3px;
     }
 
+    .arena-resource-pill.tutorial-focus {
+      border-color: rgba(255, 211, 110, 0.42);
+      box-shadow:
+        0 0 0 1px rgba(255, 211, 110, 0.18),
+        0 0 18px rgba(255, 211, 110, 0.16);
+      animation: tutorialPulse 1.45s ease-in-out infinite;
+    }
+
     .arena-resource-topline {
       display: flex;
       align-items: center;
@@ -1242,6 +1250,48 @@ PAGE_TEMPLATE = """
       line-height: 1.15;
       color: var(--muted);
       word-break: break-word;
+    }
+
+    .tutorial-action-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    .tutorial-action-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(8, 20, 36, 0.84);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .tutorial-action-chip.recommended {
+      border-color: rgba(255, 211, 110, 0.36);
+      background: rgba(255, 211, 110, 0.1);
+      color: rgba(255, 240, 205, 0.98);
+    }
+
+    .tutorial-prebattle-guide {
+      display: grid;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 211, 110, 0.16);
+      background: rgba(255, 211, 110, 0.08);
+      text-align: left;
+    }
+
+    .tutorial-prebattle-guide .tiny {
+      color: rgba(255, 240, 205, 0.92);
     }
 
     .arena-core.clash-live .arena-battle-dock {
@@ -4539,6 +4589,15 @@ PAGE_TEMPLATE = """
         font-size: 9px;
       }
 
+      .tutorial-action-legend {
+        gap: 5px;
+      }
+
+      .tutorial-action-chip {
+        font-size: 9px;
+        padding: 5px 8px;
+      }
+
       .interactive-battle-prompt {
         min-height: 20px;
         font-size: 10px;
@@ -5596,6 +5655,27 @@ PAGE_TEMPLATE = """
       if (skipBtn) bindFunctionalControl(skipBtn, skipTutorialBattle);
     }
 
+    function tutorialActionLegendHtml(tutorial, roundIndex, liveResult) {
+      if (!tutorial || !tutorial.active) return '';
+      const recommended = String(((tutorial.recommended_actions || [])[roundIndex]) || '').toLowerCase();
+      const activeAbility = (liveResult && liveResult.interactive_active_ability) || {};
+      const items = [
+        { key: 'guard', label: 'Блок', cost: 1 },
+        { key: 'burst', label: 'Натиск', cost: 2 },
+        { key: 'ability', label: activeAbility.name || 'Способность', cost: Number(activeAbility.cost || 3) || 3 },
+      ];
+      return `
+        <div class="tutorial-action-legend">
+          ${items.map((item) => `
+            <span class="tutorial-action-chip ${recommended === item.key ? 'recommended' : ''}">
+              <strong>${item.label}</strong>
+              <span>${item.cost} маны</span>
+            </span>
+          `).join('')}
+        </div>
+      `;
+    }
+
     function applyTutorialVisualFocus(result) {
       const tutorial = result && result.tutorial;
       if (!tutorial || !tutorial.active) return;
@@ -5619,6 +5699,16 @@ PAGE_TEMPLATE = """
       if ((focus === 'action' || focus === 'featured') && recommended) {
         const actionBtn = battleResult.querySelector(`.interactive-action-btn[data-action-key="${recommended}"]`);
         if (actionBtn) actionBtn.classList.add('tutorial-focus');
+      }
+      if (recommended === 'burst' || recommended === 'guard') {
+        const manaPill = battleResult.querySelector('.arena-resource-pill.mana');
+        if (manaPill) manaPill.classList.add('tutorial-focus');
+      }
+      if (recommended === 'ability') {
+        const abilityPill = battleResult.querySelector('.arena-resource-pill.ability');
+        const cooldownPill = battleResult.querySelector('.arena-resource-pill.cooldown');
+        if (abilityPill) abilityPill.classList.add('tutorial-focus');
+        if (cooldownPill) cooldownPill.classList.add('tutorial-focus');
       }
     }
 
@@ -7260,6 +7350,9 @@ PAGE_TEMPLATE = """
         const energyNow = Number(result.interactive_energy || 0);
         const tutorialMeta = result.tutorial || null;
         const tutorialCurrentTip = tutorialMeta && (tutorialMeta.current_tip || ((tutorialMeta.tips || [])[Math.min(result.interactive_round_index || 0, Math.max((tutorialMeta.tips || []).length - 1, 0))])) || null;
+        const tutorialLegendMarkup = tutorialMeta && tutorialMeta.active
+          ? tutorialActionLegendHtml(tutorialMeta, Number(result.interactive_round_index || 0), result)
+          : '';
         const energyFill = `${Math.max(0, Math.min(100, (energyNow / 3) * 100))}%`;
         const cooldownFill = `${Math.max(0, Math.min(100, (activeAbilityCooldownNow / activeAbilityCooldownMax) * 100))}%`;
         const chargesFill = `${Math.max(0, Math.min(100, (activeAbilityChargesNow / activeAbilityChargesMax) * 100))}%`;
@@ -7312,6 +7405,7 @@ PAGE_TEMPLATE = """
                     </div>
                   ` : ''}
                   <div class="interactive-battle-prompt" id="interactive-battle-status">${result.interactive_hint || 'Выбери действие'}</div>
+                  ${tutorialLegendMarkup}
                   <div class="interactive-battle-actions" style="grid-template-columns: repeat(${Math.max(interactiveActionKeys.length, 1)}, minmax(0, 1fr));">
                     ${interactiveActionKeys.map((key) => {
                       const meta = actionRuleMeta(key);
@@ -7388,6 +7482,13 @@ PAGE_TEMPLATE = """
                 <div class="arena-choice-hub">
                   <div class="prebattle-stage arena-choice-panel" id="prebattle-stage">
                     <div class="tiny" id="prebattle-ready-status">Колоды готовы. Нажми "Готов".</div>
+                    ${tutorialMeta && tutorialMeta.active ? `
+                      <div class="tutorial-prebattle-guide" style="margin-top:10px;">
+                        <div class="tiny"><strong>Порядок колоды:</strong> снизу твои карты, сверху карты бота. Туториал ведёт по раундам слева направо.</div>
+                        <div class="tiny"><strong>Тактическая карта:</strong> выбери слот и запомни его. В 3-м раунде подсказка поведёт именно к ней.</div>
+                        <div class="tiny"><strong>Ресурсы:</strong> Блок стоит 1, Натиск 2, Способность 3 маны.</div>
+                      </div>
+                    ` : ''}
                     <div class="row" style="margin-top:10px;">
                       <select id="prebattle-tactical-slot">
                         ${(result.player_cards || []).map((card) => `
