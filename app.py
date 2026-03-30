@@ -5895,7 +5895,18 @@ PAGE_TEMPLATE = """
         </div>
       `).join('') || '<div class="user-item muted">Открытых кланов пока нет.</div>';
       if (!current) {
+        const firstRecommended = (data.recommended_guilds || [])[0];
         guildPanel.innerHTML = `
+          ${firstRecommended ? `
+            <div class="user-item">
+              <strong>Быстрый вход в рекомендованный клан</strong>
+              <div class="tiny">${escapeHtml(firstRecommended.name)} • участников ${Number(firstRecommended.member_count || 0)} • язык ${escapeHtml(firstRecommended.language || 'ru')}</div>
+              <div class="tiny">${escapeHtml(firstRecommended.description || 'Открытый активный клан')}</div>
+              <div class="actions" style="margin-top:10px;">
+                <button data-guild-action="apply" data-guild-id="${escapeHtml(firstRecommended.id)}">Вступить в рекомендованный клан</button>
+              </div>
+            </div>
+          ` : ''}
           <div class="user-item">
             <strong>Создать клан</strong>
             <div class="row" style="margin-top:10px;">
@@ -5950,6 +5961,15 @@ PAGE_TEMPLATE = """
           </div>
         </div>
       `).join('');
+      const todayHelp = (current.goals && current.goals.today_help) || [];
+      const todayActionButtons = [];
+      if (todayHelp.some((item) => /побед|матч|бой/i.test(item))) {
+        todayActionButtons.push('<button id="guild-help-battle-btn">Играть матч</button>');
+      }
+      if (todayHelp.some((item) => /пак|сундук/i.test(item))) {
+        todayActionButtons.push('<button class="secondary" id="guild-help-pack-btn">Открыть пак</button>');
+      }
+      todayActionButtons.push('<button class="secondary" id="guild-help-profile-btn">К профилю</button>');
       guildPanel.innerHTML = `
         <div class="user-item">
           <strong>${escapeHtml(current.name)}</strong>
@@ -5962,6 +5982,7 @@ PAGE_TEMPLATE = """
             <span class="summary-chip">Заявки: ${(current.pending_requests || []).length}</span>
             <span class="summary-chip">Чат: ${(current.chat || []).length}</span>
           </div>
+          <div class="actions" style="margin-top:10px;">${todayActionButtons.join('')}</div>
         </div>
         <h4 style="margin:18px 0 8px;">Объявления</h4>
         <div class="deck-list">${announcements}</div>
@@ -5986,9 +6007,15 @@ PAGE_TEMPLATE = """
       const chatBtn = document.getElementById('send-guild-chat-btn');
       const announcementBtn = document.getElementById('send-guild-announcement-btn');
       const inviteBtn = document.getElementById('send-guild-invite-btn');
+      const guildHelpBattleBtn = document.getElementById('guild-help-battle-btn');
+      const guildHelpPackBtn = document.getElementById('guild-help-pack-btn');
+      const guildHelpProfileBtn = document.getElementById('guild-help-profile-btn');
       if (chatBtn) bindFunctionalControl(chatBtn, sendGuildChatMessage);
       if (announcementBtn && !announcementBtn.disabled) bindFunctionalControl(announcementBtn, sendGuildAnnouncement);
       if (inviteBtn && !inviteBtn.disabled) bindFunctionalControl(inviteBtn, sendGuildInvite);
+      if (guildHelpBattleBtn) bindFunctionalControl(guildHelpBattleBtn, () => switchView('modes'));
+      if (guildHelpPackBtn) bindFunctionalControl(guildHelpPackBtn, () => switchView('pack'));
+      if (guildHelpProfileBtn) bindFunctionalControl(guildHelpProfileBtn, () => switchView('profile'));
       renderSocialGuildBadges();
     }
 
