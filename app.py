@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import html
 import json
 import os
 import random
@@ -4902,6 +4903,12 @@ PAGE_TEMPLATE = """
           <h2>Профиль</h2>
           <div id="mobile-profile-summary" class="deck-list"></div>
           <div id="mobile-rewards-panel" class="deck-list" style="margin-top:14px;"></div>
+          <h3 style="margin-top:20px;">Социальный профиль</h3>
+          <div id="profile-identity-panel" class="deck-list"></div>
+          <h3 style="margin-top:20px;">Друзья и лобби</h3>
+          <div id="social-panel" class="deck-list"></div>
+          <h3 style="margin-top:20px;">Кланы / гильдии</h3>
+          <div id="guild-panel" class="deck-list"></div>
           <div class="actions" style="margin-top:14px;">
             <button class="secondary" id="mobile-show-deck-btn">Моя колода</button>
           </div>
@@ -4992,6 +4999,8 @@ PAGE_TEMPLATE = """
       room: null,
       activeUsers: [],
       friends: [],
+      socialData: null,
+      guildData: null,
       ownedDecks: [],
       allPlayers: [],
       achievements: [],
@@ -5042,6 +5051,9 @@ PAGE_TEMPLATE = """
     const toggleDeckBtn = document.getElementById('toggle-deck-btn');
     const mobileProfileSummary = document.getElementById('mobile-profile-summary');
     const mobileRewardsPanel = document.getElementById('mobile-rewards-panel');
+    const profileIdentityPanel = document.getElementById('profile-identity-panel');
+    const socialPanel = document.getElementById('social-panel');
+    const guildPanel = document.getElementById('guild-panel');
     const mobileLeaderboard = document.getElementById('mobile-leaderboard');
     const mobileDeckView = document.getElementById('mobile-deck-view');
     const mobileGlobalPlayersList = document.getElementById('mobile-global-players-list');
@@ -5253,9 +5265,46 @@ PAGE_TEMPLATE = """
       await handleInteractiveBattleChoice(actionKey);
     }
 
+    async function interceptSocialAction(event) {
+      const control = event.target && typeof event.target.closest === 'function'
+        ? event.target.closest('[data-social-action]')
+        : null;
+      if (!control) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      try {
+        await handleSocialAction(control.dataset.socialAction, control.dataset);
+      } catch (error) {
+        setStatus(walletStatus, error.message, 'error');
+      }
+    }
+
+    async function interceptGuildAction(event) {
+      const control = event.target && typeof event.target.closest === 'function'
+        ? event.target.closest('[data-guild-action]')
+        : null;
+      if (!control) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      try {
+        await handleGuildAction(control.dataset.guildAction, control.dataset);
+      } catch (error) {
+        setStatus(walletStatus, error.message, 'error');
+      }
+    }
+
     function setStatus(element, text, kind = '') {
       element.className = `status ${kind}`.trim();
       element.textContent = text;
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
     function clearInteractiveChoiceTimer() {
@@ -5446,6 +5495,221 @@ PAGE_TEMPLATE = """
       if (mobileRewardsPanel) mobileRewardsPanel.innerHTML = content;
     }
 
+    function renderIdentityPanel() {
+      if (!profileIdentityPanel) return;
+      const profile = state.socialData && state.socialData.profile;
+      if (!state.wallet || !profile) {
+        profileIdentityPanel.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы настроить ник и профиль.</div>';
+        return;
+      }
+      profileIdentityPanel.innerHTML = `
+        <div class="user-item">
+          <strong>Публичный профиль</strong>
+          <div class="row" style="margin-top:10px;">
+            <input id="profile-avatar-input" value="${escapeHtml(profile.avatar || '🜂')}" maxlength="4" placeholder="Аватар" style="max-width:90px;">
+            <input id="profile-nickname-input" value="${escapeHtml(profile.nickname || '')}" maxlength="24" placeholder="Ник / имя для матчей">
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <input id="profile-bio-input" value="${escapeHtml(profile.bio || '')}" maxlength="160" placeholder="Короткое описание профиля">
+          </div>
+          <div class="tiny" style="margin-top:10px;">Твой публичный идентификатор: ${escapeHtml(profile.display_name || shortAddress(state.wallet))} • ${profile.domain ? `${escapeHtml(profile.domain)}.ton` : 'домен не выбран'}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button id="save-profile-btn">Сохранить профиль</button>
+            <button class="secondary" id="share-last-result-btn"${state.lastResult ? '' : ' disabled'}>Поделиться последним матчем</button>
+          </div>
+        </div>
+      `;
+      const saveBtn = document.getElementById('save-profile-btn');
+      const shareBtn = document.getElementById('share-last-result-btn');
+      if (saveBtn) bindFunctionalControl(saveBtn, saveProfileIdentity);
+      if (shareBtn) bindFunctionalControl(shareBtn, shareLastResultToTelegram);
+    }
+
+    function renderSocialPanel() {
+      if (!socialPanel) return;
+      const social = state.socialData;
+      if (!state.wallet || !social) {
+        socialPanel.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы увидеть друзей, заявки и лобби.</div>';
+        return;
+      }
+      const friends = (social.friends || []).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • рейтинг ${item.rating || 1000}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" data-social-action="duel" data-reference="${escapeHtml(item.wallet)}">Вызвать</button>
+            <button class="secondary" data-social-action="remove-friend" data-reference="${escapeHtml(item.wallet)}">Убрать</button>
+            <button class="secondary" data-social-action="block" data-reference="${escapeHtml(item.wallet)}">Блок</button>
+          </div>
+        </div>
+      `).join('') || '<div class="user-item muted">Друзей пока нет.</div>';
+      const incoming = (social.incoming_requests || []).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • заявка в друзья</div>
+          <div class="actions" style="margin-top:10px;">
+            <button data-social-action="accept-friend" data-request-id="${escapeHtml(item.id)}">Принять</button>
+            <button class="secondary" data-social-action="decline-friend" data-request-id="${escapeHtml(item.id)}">Отклонить</button>
+          </div>
+        </div>
+      `).join('') || '<div class="user-item muted">Новых заявок нет.</div>';
+      const suggested = (social.suggested_players || []).slice(0, 6).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <div class="tiny">${item.current_domain ? `${escapeHtml(item.current_domain)}.ton` : 'без домена'} • рейтинг ${item.rating || 1000}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" data-social-action="request-friend" data-reference="${escapeHtml(item.wallet)}">В друзья</button>
+            <button class="secondary" data-social-action="duel" data-reference="${item.current_domain ? `${escapeHtml(item.current_domain)}.ton` : escapeHtml(item.wallet)}">Дуэль</button>
+          </div>
+        </div>
+      `).join('') || '<div class="user-item muted">Рекомендации появятся, когда в игре будет больше активных игроков.</div>';
+      const lobby = (social.lobby_messages || []).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <div class="tiny">${escapeHtml(item.message)}</div>
+        </div>
+      `).join('') || '<div class="user-item muted">Лобби пустое.</div>';
+      socialPanel.innerHTML = `
+        <div class="user-item">
+          <strong>Быстрые цифры</strong>
+          <div class="tiny">Друзей: ${social.friend_count || 0} • Входящих: ${(social.incoming_requests || []).length} • Исходящих: ${(social.outgoing_requests || []).length}</div>
+        </div>
+        <h4 style="margin:14px 0 8px;">Друзья</h4>
+        <div class="catalog-grid">${friends}</div>
+        <h4 style="margin:18px 0 8px;">Входящие заявки</h4>
+        <div class="catalog-grid">${incoming}</div>
+        <h4 style="margin:18px 0 8px;">Кого добавить</h4>
+        <div class="catalog-grid">${suggested}</div>
+        <h4 style="margin:18px 0 8px;">Лобби чат</h4>
+        <div class="row" style="margin-bottom:10px;">
+          <input id="lobby-message-input" maxlength="240" placeholder="Сообщение в общее лобби">
+          <button id="send-lobby-message-btn">Отправить</button>
+        </div>
+        <div class="deck-list">${lobby}</div>
+      `;
+      const lobbyBtn = document.getElementById('send-lobby-message-btn');
+      if (lobbyBtn) bindFunctionalControl(lobbyBtn, sendLobbyMessage);
+    }
+
+    function renderGuildPanel() {
+      if (!guildPanel) return;
+      const data = state.guildData;
+      if (!state.wallet || !data) {
+        guildPanel.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы создать клан или вступить в существующий.</div>';
+        return;
+      }
+      const current = data.current_guild;
+      const invites = (data.pending_invites || []).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.guild_name)}</strong>
+          <div class="tiny">Инвайт от ${escapeHtml(item.inviter_name)}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button data-guild-action="accept-invite" data-invite-id="${escapeHtml(item.id)}">Вступить</button>
+            <button class="secondary" data-guild-action="decline-invite" data-invite-id="${escapeHtml(item.id)}">Отклонить</button>
+          </div>
+        </div>
+      `).join('');
+      const recommended = (data.recommended_guilds || []).slice(0, 6).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.name)}</strong>
+          <div class="tiny">${item.domain_identity ? `${escapeHtml(item.domain_identity)}.ton` : 'без доменного тега'} • участников ${item.member_count}</div>
+          <div class="tiny">${escapeHtml(item.description || 'Открытый клан')}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" data-guild-action="apply" data-guild-id="${escapeHtml(item.id)}">Подать заявку</button>
+          </div>
+        </div>
+      `).join('') || '<div class="user-item muted">Открытых кланов пока нет.</div>';
+      if (!current) {
+        guildPanel.innerHTML = `
+          <div class="user-item">
+            <strong>Создать клан</strong>
+            <div class="row" style="margin-top:10px;">
+              <input id="guild-name-input" maxlength="40" placeholder="Название клана">
+              <input id="guild-language-input" maxlength="12" value="ru" placeholder="Язык">
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <input id="guild-description-input" maxlength="220" placeholder="Описание, цели, стиль игры">
+            </div>
+            <div class="actions" style="margin-top:10px;">
+              <button id="create-guild-btn">Создать клан</button>
+            </div>
+          </div>
+          ${(invites || '') ? `<h4 style="margin:18px 0 8px;">Инвайты</h4><div class="catalog-grid">${invites}</div>` : ''}
+          <h4 style="margin:18px 0 8px;">Рекомендованные кланы</h4>
+          <div class="catalog-grid">${recommended}</div>
+        `;
+        const createGuildBtn = document.getElementById('create-guild-btn');
+        if (createGuildBtn) bindFunctionalControl(createGuildBtn, createGuildFromUI);
+        return;
+      }
+      const members = (current.members || []).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • ${escapeHtml(item.role)} • рейтинг ${item.rating || 1000}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" data-social-action="duel" data-reference="${item.domain ? `${escapeHtml(item.domain)}.ton` : escapeHtml(item.wallet)}">Дуэль</button>
+            ${current.viewer_role === 'owner' && item.role !== 'owner' ? `<button class="secondary" data-guild-action="toggle-role" data-guild-id="${escapeHtml(current.id)}" data-target-wallet="${escapeHtml(item.wallet)}" data-next-role="${item.role === 'officer' ? 'member' : 'officer'}">${item.role === 'officer' ? 'Снять офицера' : 'Сделать офицером'}</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+      const chat = (current.chat || []).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <div class="tiny">${escapeHtml(item.message)}</div>
+        </div>
+      `).join('') || '<div class="user-item muted">Чат пуст.</div>';
+      const announcements = (current.announcements || []).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.display_name)}</strong>
+          <div class="tiny">${escapeHtml(item.message)}</div>
+        </div>
+      `).join('') || '<div class="user-item muted">Объявлений пока нет.</div>';
+      const requests = (current.pending_requests || []).map((item) => `
+        <div class="user-item">
+          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <div class="tiny">${escapeHtml(item.message || 'Хочет вступить в клан')}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button data-guild-action="accept-request" data-request-id="${escapeHtml(item.id)}">Принять</button>
+            <button class="secondary" data-guild-action="decline-request" data-request-id="${escapeHtml(item.id)}">Отклонить</button>
+          </div>
+        </div>
+      `).join('');
+      guildPanel.innerHTML = `
+        <div class="user-item">
+          <strong>${escapeHtml(current.name)}</strong>
+          <div class="tiny">${current.domain_identity ? `${escapeHtml(current.domain_identity)}.ton` : 'без доменного тега'} • роль ${escapeHtml(current.viewer_role || 'member')} • участников ${current.member_count}</div>
+          <div class="tiny">${escapeHtml(current.description || 'Описание не заполнено')}</div>
+          <div class="tiny">Недельные победы: ${current.goals.weekly_wins}/${current.goals.weekly_win_target} • Паки: ${current.goals.weekly_packs}/${current.goals.weekly_pack_target} • Сезон: ${current.goals.season_points}</div>
+          <div class="tiny">Сегодня полезно клану: ${(current.goals.today_help || []).join(' • ')}</div>
+        </div>
+        <h4 style="margin:18px 0 8px;">Объявления</h4>
+        <div class="deck-list">${announcements}</div>
+        <div class="row" style="margin:10px 0;">
+          <input id="guild-announcement-input" maxlength="220" placeholder="Новое объявление для клана">
+          <button id="send-guild-announcement-btn"${current.viewer_role === 'member' ? ' disabled' : ''}>Объявить</button>
+        </div>
+        <h4 style="margin:18px 0 8px;">Состав</h4>
+        <div class="catalog-grid">${members}</div>
+        ${requests ? `<h4 style="margin:18px 0 8px;">Заявки</h4><div class="catalog-grid">${requests}</div>` : ''}
+        <h4 style="margin:18px 0 8px;">Клановый чат</h4>
+        <div class="row" style="margin-bottom:10px;">
+          <input id="guild-chat-input" maxlength="240" placeholder="Сообщение в клановый чат">
+          <button id="send-guild-chat-btn">Отправить</button>
+        </div>
+        <div class="deck-list">${chat}</div>
+        <div class="row" style="margin-top:10px;">
+          <input id="guild-invite-reference-input" maxlength="96" placeholder="Кошелёк или 1234.ton для инвайта">
+          <button id="send-guild-invite-btn"${current.viewer_role === 'member' ? ' disabled' : ''}>Инвайт</button>
+        </div>
+      `;
+      const chatBtn = document.getElementById('send-guild-chat-btn');
+      const announcementBtn = document.getElementById('send-guild-announcement-btn');
+      const inviteBtn = document.getElementById('send-guild-invite-btn');
+      if (chatBtn) bindFunctionalControl(chatBtn, sendGuildChatMessage);
+      if (announcementBtn && !announcementBtn.disabled) bindFunctionalControl(announcementBtn, sendGuildAnnouncement);
+      if (inviteBtn && !inviteBtn.disabled) bindFunctionalControl(inviteBtn, sendGuildInvite);
+    }
+
     function api(path, options = {}) {
       const config = {
         method: options.method || 'GET',
@@ -5610,12 +5874,12 @@ PAGE_TEMPLATE = """
       }
       activeUsersList.innerHTML = items.map((item) => `
         <div class="user-item">
-          <strong>${item.display_name}</strong>
+          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${item.domain}.ton • рейтинг ${item.rating}</div>
           <div class="tiny">Прокачка (сред.): атака ${item.average_attack} • защита ${item.average_defense}</div>
           <div class="actions" style="margin-top:10px;">
-            <button class="secondary" onclick="fillOpponent('${item.domain}')">По домену</button>
-            <button class="secondary" onclick="fillOpponent('${item.wallet}')">По кошельку</button>
+            <button class="secondary" data-social-action="request-friend" data-reference="${escapeHtml(item.wallet)}">В друзья</button>
+            <button class="secondary" data-social-action="duel" data-reference="${escapeHtml(item.domain)}.ton">Дуэль</button>
           </div>
         </div>
       `).join('');
@@ -5780,6 +6044,9 @@ PAGE_TEMPLATE = """
       document.getElementById('mobile-show-deck-btn').disabled = showDeckBtn.disabled;
       renderRewardsPanels();
       renderPackEconomy();
+      renderIdentityPanel();
+      renderSocialPanel();
+      renderGuildPanel();
     }
 
     function renderOwnedDecks(decks, currentDomain) {
@@ -5830,9 +6097,13 @@ PAGE_TEMPLATE = """
       }
       const markup = state.allPlayers.map((player, index) => `
         <div class="user-item">
-          <strong>#${index + 1} ${shortAddress(player.wallet)}</strong>
+          <strong>#${index + 1} ${escapeHtml(player.avatar || '🜂')} ${escapeHtml(player.display_name || shortAddress(player.wallet))}</strong>
           <div class="tiny">Домен: ${player.current_domain ? `${player.current_domain}.ton` : 'не выбран'}</div>
           <div class="tiny">Рейтинг: ${player.rating} • Матчей: ${player.games_played}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" data-social-action="request-friend" data-reference="${escapeHtml(player.wallet)}">В друзья</button>
+            <button class="secondary" data-social-action="duel" data-reference="${player.current_domain ? `${escapeHtml(player.current_domain)}.ton` : escapeHtml(player.wallet)}">Дуэль</button>
+          </div>
         </div>
       `).join('');
       globalPlayersList.innerHTML = markup;
@@ -6643,6 +6914,7 @@ PAGE_TEMPLATE = """
           <div class="final-sub">${resultLabel || ''}</div>
           <div class="final-buttons">
             <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
+            ${state.lastResult && state.lastResult.opponent_wallet && state.lastResult.opponent_wallet !== 'bot' ? '<button class="secondary" onclick="rematchLastOpponent()">Рематч</button>' : ''}
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
@@ -7020,6 +7292,7 @@ PAGE_TEMPLATE = """
             ${ratingLine ? `<div class="tiny" style="width:100%; text-align:center;">${result.rating_before} → ${result.rating_after}</div>` : ''}
             ${rewardLine}
             <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
+            ${result.opponent_wallet && result.opponent_wallet !== 'bot' ? '<button class="secondary" onclick="rematchLastOpponent()">Рематч</button>' : ''}
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
@@ -7308,6 +7581,16 @@ PAGE_TEMPLATE = """
       switchView('modes');
     }
 
+    async function rematchLastOpponent() {
+      await prepareFunctionalInteraction();
+      const result = state.lastResult || {};
+      const reference = result.opponent_domain ? `${result.opponent_domain}.ton` : result.opponent_wallet;
+      if (!reference) return;
+      document.getElementById('opponent-wallet').value = reference;
+      switchView('modes');
+      await playMatch('duel');
+    }
+
     function rebindDomain() {
       state.selectedDomain = null;
       state.cards = [];
@@ -7376,7 +7659,12 @@ PAGE_TEMPLATE = """
     async function loadProfile() {
       if (!state.wallet) {
         state.playerProfile = null;
+        state.socialData = null;
+        state.guildData = null;
         renderProfile();
+        renderIdentityPanel();
+        renderSocialPanel();
+        renderGuildPanel();
         renderOwnedDecks([], null);
         return;
       }
@@ -7386,6 +7674,225 @@ PAGE_TEMPLATE = """
         state.selectedDomain = state.playerProfile.current_domain;
       }
       renderProfile();
+      await Promise.all([loadSocialData(), loadGuildData()]);
+    }
+
+    async function loadSocialData() {
+      if (!state.wallet) {
+        state.socialData = null;
+        renderIdentityPanel();
+        renderSocialPanel();
+        return;
+      }
+      const data = await api(`/api/social/${encodeURIComponent(state.wallet)}`);
+      state.socialData = data.social || null;
+      state.friends = (state.socialData && state.socialData.friends) || [];
+      renderIdentityPanel();
+      renderSocialPanel();
+    }
+
+    async function loadGuildData(query = '') {
+      if (!state.wallet) {
+        state.guildData = null;
+        renderGuildPanel();
+        return;
+      }
+      const suffix = query ? `?q=${encodeURIComponent(query)}` : '';
+      const data = await api(`/api/guilds/overview/${encodeURIComponent(state.wallet)}${suffix}`);
+      state.guildData = data.guilds || null;
+      renderGuildPanel();
+    }
+
+    async function saveProfileIdentity() {
+      if (!state.wallet) return;
+      const avatar = document.getElementById('profile-avatar-input')?.value || '🜂';
+      const nickname = document.getElementById('profile-nickname-input')?.value || '';
+      const bio = document.getElementById('profile-bio-input')?.value || '';
+      const data = await api('/api/profile', {
+        method: 'POST',
+        body: { wallet: state.wallet, avatar, nickname, bio, language: 'ru' }
+      });
+      state.playerProfile = data.player;
+      state.socialData = data.social || state.socialData;
+      renderProfile();
+      renderIdentityPanel();
+      renderSocialPanel();
+    }
+
+    async function sendLobbyMessage() {
+      if (!state.wallet) return;
+      const input = document.getElementById('lobby-message-input');
+      if (!input || !input.value.trim()) return;
+      const data = await api('/api/lobby-chat', {
+        method: 'POST',
+        body: { wallet: state.wallet, message: input.value }
+      });
+      input.value = '';
+      if (state.socialData) {
+        state.socialData.lobby_messages = data.messages || [];
+      }
+      renderSocialPanel();
+    }
+
+    async function handleSocialAction(action, dataset) {
+      if (!state.wallet) return;
+      if (action === 'request-friend') {
+        const data = await api('/api/friends/request', {
+          method: 'POST',
+          body: { wallet: state.wallet, reference: dataset.reference }
+        });
+        state.socialData = data.social || state.socialData;
+        renderIdentityPanel();
+        renderSocialPanel();
+        return;
+      }
+      if (action === 'accept-friend' || action === 'decline-friend') {
+        const data = await api('/api/friends/respond', {
+          method: 'POST',
+          body: { wallet: state.wallet, request_id: dataset.requestId, action: action === 'accept-friend' ? 'accept' : 'decline' }
+        });
+        state.socialData = data.social || state.socialData;
+        renderIdentityPanel();
+        renderSocialPanel();
+        return;
+      }
+      if (action === 'remove-friend') {
+        const data = await api('/api/friends/remove', {
+          method: 'POST',
+          body: { wallet: state.wallet, reference: dataset.reference }
+        });
+        state.socialData = data.social || state.socialData;
+        renderSocialPanel();
+        return;
+      }
+      if (action === 'block') {
+        const data = await api('/api/blocks', {
+          method: 'POST',
+          body: { wallet: state.wallet, reference: dataset.reference }
+        });
+        state.socialData = data.social || state.socialData;
+        renderSocialPanel();
+        return;
+      }
+      if (action === 'duel') {
+        await fillOpponent(dataset.reference);
+      }
+    }
+
+    async function createGuildFromUI() {
+      if (!state.wallet) return;
+      const name = document.getElementById('guild-name-input')?.value || '';
+      const language = document.getElementById('guild-language-input')?.value || 'ru';
+      const description = document.getElementById('guild-description-input')?.value || '';
+      const data = await api('/api/guilds/create', {
+        method: 'POST',
+        body: { wallet: state.wallet, name, language, description, is_public: true }
+      });
+      state.guildData = data.guilds || state.guildData;
+      state.playerProfile = data.player || state.playerProfile;
+      renderProfile();
+      renderGuildPanel();
+    }
+
+    async function sendGuildChatMessage() {
+      if (!state.wallet || !state.guildData || !state.guildData.current_guild) return;
+      const input = document.getElementById('guild-chat-input');
+      if (!input || !input.value.trim()) return;
+      const data = await api('/api/guilds/chat', {
+        method: 'POST',
+        body: { wallet: state.wallet, guild_id: state.guildData.current_guild.id, message: input.value }
+      });
+      state.guildData = data.guilds || state.guildData;
+      input.value = '';
+      renderGuildPanel();
+    }
+
+    async function sendGuildAnnouncement() {
+      if (!state.wallet || !state.guildData || !state.guildData.current_guild) return;
+      const input = document.getElementById('guild-announcement-input');
+      if (!input || !input.value.trim()) return;
+      const data = await api('/api/guilds/announcement', {
+        method: 'POST',
+        body: { wallet: state.wallet, guild_id: state.guildData.current_guild.id, message: input.value }
+      });
+      state.guildData = data.guilds || state.guildData;
+      input.value = '';
+      renderGuildPanel();
+    }
+
+    async function sendGuildInvite() {
+      if (!state.wallet || !state.guildData || !state.guildData.current_guild) return;
+      const input = document.getElementById('guild-invite-reference-input');
+      if (!input || !input.value.trim()) return;
+      const data = await api('/api/guilds/invite', {
+        method: 'POST',
+        body: { wallet: state.wallet, guild_id: state.guildData.current_guild.id, reference: input.value }
+      });
+      state.guildData = data.guilds || state.guildData;
+      input.value = '';
+      renderGuildPanel();
+    }
+
+    async function handleGuildAction(action, dataset) {
+      if (!state.wallet) return;
+      if (action === 'apply') {
+        const data = await api('/api/guilds/apply', {
+          method: 'POST',
+          body: { wallet: state.wallet, guild_id: dataset.guildId, message: '' }
+        });
+        state.guildData = data.guilds || state.guildData;
+        renderGuildPanel();
+        return;
+      }
+      if (action === 'accept-request' || action === 'decline-request') {
+        const data = await api('/api/guilds/request/respond', {
+          method: 'POST',
+          body: { wallet: state.wallet, request_id: dataset.requestId, action: action === 'accept-request' ? 'accept' : 'decline' }
+        });
+        state.guildData = data.guilds || state.guildData;
+        renderGuildPanel();
+        return;
+      }
+      if (action === 'accept-invite' || action === 'decline-invite') {
+        const data = await api('/api/guilds/invite/respond', {
+          method: 'POST',
+          body: { wallet: state.wallet, invite_id: dataset.inviteId, action: action === 'accept-invite' ? 'accept' : 'decline' }
+        });
+        state.guildData = data.guilds || state.guildData;
+        state.playerProfile = data.player || state.playerProfile;
+        renderProfile();
+        renderGuildPanel();
+        return;
+      }
+      if (action === 'toggle-role') {
+        const data = await api('/api/guilds/member/role', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            guild_id: dataset.guildId,
+            target_wallet: dataset.targetWallet,
+            role: dataset.nextRole
+          }
+        });
+        state.guildData = data.guilds || state.guildData;
+        renderGuildPanel();
+      }
+    }
+
+    async function shareLastResultToTelegram() {
+      if (!state.lastResult) return;
+      const result = state.lastResult;
+      const label = result.result_label || 'Матч завершён';
+      const domain = result.player_domain ? `${result.player_domain}.ton` : 'мой домен';
+      const opp = result.opponent_domain ? `${result.opponent_domain}.ton` : 'соперник';
+      const text = encodeURIComponent(`Ton Domain Game\n${domain} vs ${opp}\nИтог: ${label}\nСчёт: ${result.player_score}:${result.opponent_score}`);
+      const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin)}&text=${text}`;
+      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      if (tg && typeof tg.openTelegramLink === 'function') {
+        tg.openTelegramLink(url);
+        return;
+      }
+      window.open(url, '_blank', 'noopener');
     }
 
     async function checkDomains() {
@@ -8229,6 +8736,7 @@ PAGE_TEMPLATE = """
 
     window.fillOpponent = fillOpponent;
     window.repeatLastMode = repeatLastMode;
+    window.rematchLastOpponent = rematchLastOpponent;
     window.openModes = openModes;
     window.viewBattleFlow = viewBattleFlow;
     window.selectDeckDomain = selectDeckDomain;
@@ -8253,6 +8761,18 @@ PAGE_TEMPLATE = """
     }, true);
     document.addEventListener('click', (event) => {
       interceptInteractiveBattleAction(event).catch(() => {});
+    }, true);
+    document.addEventListener('pointerdown', (event) => {
+      interceptSocialAction(event).catch(() => {});
+    }, true);
+    document.addEventListener('click', (event) => {
+      interceptSocialAction(event).catch(() => {});
+    }, true);
+    document.addEventListener('pointerdown', (event) => {
+      interceptGuildAction(event).catch(() => {});
+    }, true);
+    document.addEventListener('click', (event) => {
+      interceptGuildAction(event).catch(() => {});
     }, true);
     ['pointerdown', 'touchstart', 'click', 'change', 'focusin'].forEach((eventName) => {
       document.addEventListener(eventName, syncTmaModeForFunctionalAction, true);
@@ -8441,6 +8961,96 @@ def init_db():
                 PRIMARY KEY (owner_wallet, friend_wallet)
             );
 
+            CREATE TABLE IF NOT EXISTS player_profiles (
+                wallet TEXT PRIMARY KEY,
+                nickname TEXT,
+                avatar TEXT,
+                bio TEXT,
+                language TEXT,
+                visibility TEXT NOT NULL DEFAULT 'public',
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS friend_requests (
+                id TEXT PRIMARY KEY,
+                sender_wallet TEXT NOT NULL,
+                receiver_wallet TEXT NOT NULL,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                responded_at TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS blocks (
+                owner_wallet TEXT NOT NULL,
+                blocked_wallet TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (owner_wallet, blocked_wallet)
+            );
+
+            CREATE TABLE IF NOT EXISTS guilds (
+                id TEXT PRIMARY KEY,
+                slug TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL,
+                owner_wallet TEXT NOT NULL,
+                domain_identity TEXT,
+                description TEXT,
+                language TEXT,
+                is_public INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS guild_members (
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                role TEXT NOT NULL,
+                joined_at TEXT NOT NULL,
+                PRIMARY KEY (guild_id, wallet)
+            );
+
+            CREATE TABLE IF NOT EXISTS guild_join_requests (
+                id TEXT PRIMARY KEY,
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                message TEXT,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                responded_at TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS guild_invites (
+                id TEXT PRIMARY KEY,
+                guild_id TEXT NOT NULL,
+                inviter_wallet TEXT NOT NULL,
+                invitee_wallet TEXT NOT NULL,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                responded_at TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS guild_messages (
+                id TEXT PRIMARY KEY,
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS guild_announcements (
+                id TEXT PRIMARY KEY,
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS lobby_messages (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS pack_opens (
                 id TEXT PRIMARY KEY,
                 wallet TEXT NOT NULL,
@@ -8511,6 +9121,86 @@ def init_db():
                 wins_claimed INTEGER NOT NULL DEFAULT 0,
                 daily_claimed_on TEXT,
                 updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS player_profiles (
+                wallet TEXT PRIMARY KEY,
+                nickname TEXT,
+                avatar TEXT,
+                bio TEXT,
+                language TEXT,
+                visibility TEXT NOT NULL DEFAULT 'public',
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS friend_requests (
+                id TEXT PRIMARY KEY,
+                sender_wallet TEXT NOT NULL,
+                receiver_wallet TEXT NOT NULL,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                responded_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS blocks (
+                owner_wallet TEXT NOT NULL,
+                blocked_wallet TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (owner_wallet, blocked_wallet)
+            );
+            CREATE TABLE IF NOT EXISTS guilds (
+                id TEXT PRIMARY KEY,
+                slug TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL,
+                owner_wallet TEXT NOT NULL,
+                domain_identity TEXT,
+                description TEXT,
+                language TEXT,
+                is_public INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS guild_members (
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                role TEXT NOT NULL,
+                joined_at TEXT NOT NULL,
+                PRIMARY KEY (guild_id, wallet)
+            );
+            CREATE TABLE IF NOT EXISTS guild_join_requests (
+                id TEXT PRIMARY KEY,
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                message TEXT,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                responded_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS guild_invites (
+                id TEXT PRIMARY KEY,
+                guild_id TEXT NOT NULL,
+                inviter_wallet TEXT NOT NULL,
+                invitee_wallet TEXT NOT NULL,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                responded_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS guild_messages (
+                id TEXT PRIMARY KEY,
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS guild_announcements (
+                id TEXT PRIMARY KEY,
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS lobby_messages (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL
             );
             '''
         )
@@ -11173,7 +11863,44 @@ def telegram_user_link(telegram_user_id):
     return dict(row) if row else None
 
 
+def clean_public_text(value, limit=160):
+    text = re.sub(r'\s+', ' ', str(value or '')).strip()
+    return text[:limit]
+
+
+def safe_slug(value):
+    base = re.sub(r'[^a-z0-9]+', '-', clean_public_text(value.lower(), 48)).strip('-')
+    return base or f'guild-{uuid.uuid4().hex[:6]}'
+
+
+def ensure_player_profile(wallet):
+    ensure_player(wallet)
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM player_profiles WHERE wallet = ?', (wallet,)).fetchone()
+        if row is None:
+            ts = now_iso()
+            conn.execute(
+                '''
+                INSERT INTO player_profiles (wallet, nickname, avatar, bio, language, visibility, updated_at)
+                VALUES (?, ?, ?, ?, ?, 'public', ?)
+                ''',
+                (wallet, None, '🜂', None, 'ru', ts),
+            )
+            conn.commit()
+            row = conn.execute('SELECT * FROM player_profiles WHERE wallet = ?', (wallet,)).fetchone()
+    return dict(row)
+
+
+def player_profile_row(wallet):
+    if not wallet:
+        return None
+    return ensure_player_profile(wallet)
+
+
 def display_name_for_wallet(wallet):
+    profile = player_profile_row(wallet)
+    if profile and profile.get('nickname'):
+        return profile['nickname']
     link = telegram_wallet_link(wallet)
     if link:
         return link.get('username') or link.get('first_name') or short_wallet(wallet)
@@ -11182,6 +11909,55 @@ def display_name_for_wallet(wallet):
 
 def short_wallet(wallet):
     return f'{wallet[:6]}...{wallet[-6:]}' if wallet and len(wallet) > 12 else wallet
+
+
+def avatar_for_wallet(wallet):
+    profile = player_profile_row(wallet)
+    return (profile or {}).get('avatar') or '🜂'
+
+
+def public_player_summary(wallet):
+    player = ensure_player(wallet)
+    profile = player_profile_row(wallet)
+    rewards = reward_summary(wallet)
+    return {
+        'wallet': wallet,
+        'display_name': display_name_for_wallet(wallet),
+        'avatar': (profile or {}).get('avatar') or '🜂',
+        'bio': (profile or {}).get('bio') or '',
+        'language': (profile or {}).get('language') or 'ru',
+        'current_domain': player.get('current_domain'),
+        'rating': player.get('rating') or 1000,
+        'games_played': player.get('games_played') or 0,
+        'season_level': rewards.get('season_level') or 1,
+    }
+
+
+def blocked_wallets(owner_wallet):
+    with closing(get_db()) as conn:
+        rows = conn.execute('SELECT blocked_wallet FROM blocks WHERE owner_wallet = ?', (owner_wallet,)).fetchall()
+    return {row['blocked_wallet'] for row in rows}
+
+
+def ensure_not_blocked(wallet_a, wallet_b):
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            '''
+            SELECT 1 FROM blocks
+            WHERE (owner_wallet = ? AND blocked_wallet = ?)
+               OR (owner_wallet = ? AND blocked_wallet = ?)
+            LIMIT 1
+            ''',
+            (wallet_a, wallet_b, wallet_b, wallet_a),
+        ).fetchone()
+    if row is not None:
+        raise ValueError('Действие недоступно: между игроками стоит блок.')
+
+
+def player_last_seen(wallet):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT updated_at FROM players WHERE wallet = ?', (wallet,)).fetchone()
+    return row['updated_at'] if row else None
 
 
 def link_wallet_to_telegram(wallet, telegram_user_id):
@@ -11264,7 +12040,8 @@ def active_users():
         result.append(
             {
                 'wallet': row['wallet'],
-                'display_name': row['username'] or row['first_name'] or short_wallet(row['wallet']),
+                'display_name': display_name_for_wallet(row['wallet']),
+                'avatar': avatar_for_wallet(row['wallet']),
                 'domain': row['current_domain'],
                 'rating': row['rating'],
                 'average_attack': summary['average_attack'],
@@ -11297,6 +12074,7 @@ def friend_rows(owner_wallet):
             {
                 'wallet': row['wallet'],
                 'display_name': row['username'] or row['first_name'] or short_wallet(row['wallet']),
+                'avatar': avatar_for_wallet(row['wallet']),
                 'domain': row['current_domain'],
                 'rating': row['rating'],
                 'average_attack': summary['average_attack'] if summary else None,
@@ -11310,6 +12088,7 @@ def add_friend(owner_wallet, friend_reference):
     friend_wallet = resolve_player_reference(friend_reference)
     if friend_wallet == owner_wallet:
         raise ValueError('Себя в друзья добавлять не нужно.')
+    ensure_not_blocked(owner_wallet, friend_wallet)
     ensure_player(friend_wallet)
     with closing(get_db()) as conn:
         conn.execute(
@@ -11318,6 +12097,794 @@ def add_friend(owner_wallet, friend_reference):
         )
         conn.commit()
     return friend_wallet
+
+
+def remove_friend(owner_wallet, friend_reference):
+    friend_wallet = resolve_player_reference(friend_reference)
+    with closing(get_db()) as conn:
+        conn.execute('DELETE FROM friends WHERE owner_wallet = ? AND friend_wallet = ?', (owner_wallet, friend_wallet))
+        conn.execute('DELETE FROM friends WHERE owner_wallet = ? AND friend_wallet = ?', (friend_wallet, owner_wallet))
+        conn.commit()
+    return friend_wallet
+
+
+def send_friend_request(sender_wallet, receiver_reference):
+    receiver_wallet = resolve_player_reference(receiver_reference)
+    if receiver_wallet == sender_wallet:
+        raise ValueError('Себя добавлять не нужно.')
+    ensure_not_blocked(sender_wallet, receiver_wallet)
+    if receiver_wallet in {item['wallet'] for item in friend_rows(sender_wallet)}:
+        raise ValueError('Этот игрок уже в друзьях.')
+    with closing(get_db()) as conn:
+        reverse = conn.execute(
+            '''
+            SELECT * FROM friend_requests
+            WHERE sender_wallet = ? AND receiver_wallet = ? AND status = 'pending'
+            ORDER BY created_at DESC
+            LIMIT 1
+            ''',
+            (receiver_wallet, sender_wallet),
+        ).fetchone()
+        if reverse is not None:
+            request_id = reverse['id']
+            conn.execute('UPDATE friend_requests SET status = ?, responded_at = ? WHERE id = ?', ('accepted', now_iso(), request_id))
+            conn.execute('INSERT OR IGNORE INTO friends (owner_wallet, friend_wallet, created_at) VALUES (?, ?, ?)', (sender_wallet, receiver_wallet, now_iso()))
+            conn.execute('INSERT OR IGNORE INTO friends (owner_wallet, friend_wallet, created_at) VALUES (?, ?, ?)', (receiver_wallet, sender_wallet, now_iso()))
+            conn.commit()
+            return receiver_wallet
+        existing = conn.execute(
+            '''
+            SELECT 1 FROM friend_requests
+            WHERE sender_wallet = ? AND receiver_wallet = ? AND status = 'pending'
+            LIMIT 1
+            ''',
+            (sender_wallet, receiver_wallet),
+        ).fetchone()
+        if existing is not None:
+            raise ValueError('Заявка уже отправлена.')
+        conn.execute(
+            '''
+            INSERT INTO friend_requests (id, sender_wallet, receiver_wallet, status, created_at)
+            VALUES (?, ?, ?, 'pending', ?)
+            ''',
+            (uuid.uuid4().hex[:12], sender_wallet, receiver_wallet, now_iso()),
+        )
+        conn.commit()
+    return receiver_wallet
+
+
+def friend_request_rows(wallet, direction='incoming'):
+    if direction == 'incoming':
+        where = 'receiver_wallet = ?'
+        wallet_key = 'sender_wallet'
+    else:
+        where = 'sender_wallet = ?'
+        wallet_key = 'receiver_wallet'
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            f'''
+            SELECT id, sender_wallet, receiver_wallet, status, created_at, responded_at
+            FROM friend_requests
+            WHERE {where}
+            ORDER BY created_at DESC
+            LIMIT 30
+            ''',
+            (wallet,),
+        ).fetchall()
+    result = []
+    for row in rows:
+        other_wallet = row[wallet_key]
+        result.append(
+            {
+                'id': row['id'],
+                'wallet': other_wallet,
+                'display_name': display_name_for_wallet(other_wallet),
+                'avatar': avatar_for_wallet(other_wallet),
+                'status': row['status'],
+                'created_at': row['created_at'],
+                'domain': ensure_player(other_wallet).get('current_domain'),
+            }
+        )
+    return result
+
+
+def respond_friend_request(receiver_wallet, request_id, action):
+    decision = 'accepted' if action == 'accept' else 'declined'
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            'SELECT * FROM friend_requests WHERE id = ? AND receiver_wallet = ? AND status = ?',
+            (request_id, receiver_wallet, 'pending'),
+        ).fetchone()
+        if row is None:
+            raise ValueError('Заявка не найдена или уже обработана.')
+        sender_wallet = row['sender_wallet']
+        ensure_not_blocked(receiver_wallet, sender_wallet)
+        conn.execute(
+            'UPDATE friend_requests SET status = ?, responded_at = ? WHERE id = ?',
+            (decision, now_iso(), request_id),
+        )
+        if decision == 'accepted':
+            conn.execute('INSERT OR IGNORE INTO friends (owner_wallet, friend_wallet, created_at) VALUES (?, ?, ?)', (receiver_wallet, sender_wallet, now_iso()))
+            conn.execute('INSERT OR IGNORE INTO friends (owner_wallet, friend_wallet, created_at) VALUES (?, ?, ?)', (sender_wallet, receiver_wallet, now_iso()))
+        conn.commit()
+    return sender_wallet
+
+
+def block_player(owner_wallet, target_reference):
+    target_wallet = resolve_player_reference(target_reference)
+    if target_wallet == owner_wallet:
+        raise ValueError('Себя блокировать не нужно.')
+    with closing(get_db()) as conn:
+        conn.execute(
+            'INSERT OR IGNORE INTO blocks (owner_wallet, blocked_wallet, created_at) VALUES (?, ?, ?)',
+            (owner_wallet, target_wallet, now_iso()),
+        )
+        conn.execute('DELETE FROM friends WHERE owner_wallet = ? AND friend_wallet = ?', (owner_wallet, target_wallet))
+        conn.execute('DELETE FROM friends WHERE owner_wallet = ? AND friend_wallet = ?', (target_wallet, owner_wallet))
+        conn.execute(
+            '''
+            UPDATE friend_requests
+            SET status = 'blocked', responded_at = ?
+            WHERE status = 'pending' AND (
+                (sender_wallet = ? AND receiver_wallet = ?)
+                OR (sender_wallet = ? AND receiver_wallet = ?)
+            )
+            ''',
+            (now_iso(), owner_wallet, target_wallet, target_wallet, owner_wallet),
+        )
+        conn.commit()
+    return target_wallet
+
+
+def unblock_player(owner_wallet, target_reference):
+    target_wallet = resolve_player_reference(target_reference)
+    with closing(get_db()) as conn:
+        conn.execute('DELETE FROM blocks WHERE owner_wallet = ? AND blocked_wallet = ?', (owner_wallet, target_wallet))
+        conn.commit()
+    return target_wallet
+
+
+def social_suggestions(wallet, limit=8):
+    friend_wallets = {item['wallet'] for item in friend_rows(wallet)}
+    blocked = blocked_wallets(wallet)
+    candidates = []
+    seen = set()
+    for row in active_users():
+        other_wallet = row['wallet']
+        if other_wallet == wallet or other_wallet in friend_wallets or other_wallet in blocked or other_wallet in seen:
+            continue
+        seen.add(other_wallet)
+        candidates.append(public_player_summary(other_wallet))
+        if len(candidates) >= limit:
+            return candidates
+    for row in global_player_rows(limit=40):
+        other_wallet = row['wallet']
+        if other_wallet == wallet or other_wallet in friend_wallets or other_wallet in blocked or other_wallet in seen:
+            continue
+        seen.add(other_wallet)
+        candidates.append(public_player_summary(other_wallet))
+        if len(candidates) >= limit:
+            break
+    return candidates
+
+
+def lobby_messages(limit=30):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            'SELECT * FROM lobby_messages ORDER BY created_at DESC LIMIT ?',
+            (limit,),
+        ).fetchall()
+    messages = []
+    for row in reversed(rows):
+        messages.append(
+            {
+                'id': row['id'],
+                'wallet': row['wallet'],
+                'display_name': display_name_for_wallet(row['wallet']),
+                'avatar': avatar_for_wallet(row['wallet']),
+                'message': row['message'],
+                'created_at': row['created_at'],
+            }
+        )
+    return messages
+
+
+def post_lobby_message(wallet, message):
+    text = clean_public_text(message, 240)
+    if len(text) < 2:
+        raise ValueError('Сообщение слишком короткое.')
+    ensure_player(wallet)
+    with closing(get_db()) as conn:
+        conn.execute(
+            'INSERT INTO lobby_messages (id, wallet, message, created_at) VALUES (?, ?, ?, ?)',
+            (uuid.uuid4().hex[:12], wallet, text, now_iso()),
+        )
+        conn.commit()
+    return lobby_messages()
+
+
+def guild_role_rank(role):
+    return {'member': 1, 'officer': 2, 'owner': 3}.get(role, 0)
+
+
+def current_guild_membership(wallet):
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            '''
+            SELECT gm.guild_id, gm.role, gm.joined_at, g.name, g.slug, g.owner_wallet, g.domain_identity, g.description, g.language, g.is_public, g.created_at, g.updated_at
+            FROM guild_members gm
+            JOIN guilds g ON g.id = gm.guild_id
+            WHERE gm.wallet = ?
+            LIMIT 1
+            ''',
+            (wallet,),
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def guild_member_count(guild_id):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT COUNT(*) AS value FROM guild_members WHERE guild_id = ?', (guild_id,)).fetchone()
+    return row['value'] if row else 0
+
+
+def guild_members_rows(guild_id):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT gm.wallet, gm.role, gm.joined_at, p.current_domain, p.rating
+            FROM guild_members gm
+            LEFT JOIN players p ON p.wallet = gm.wallet
+            WHERE gm.guild_id = ?
+            ORDER BY CASE gm.role WHEN 'owner' THEN 1 WHEN 'officer' THEN 2 ELSE 3 END, gm.joined_at ASC
+            ''',
+            (guild_id,),
+        ).fetchall()
+    return [
+        {
+            'wallet': row['wallet'],
+            'display_name': display_name_for_wallet(row['wallet']),
+            'avatar': avatar_for_wallet(row['wallet']),
+            'role': row['role'],
+            'joined_at': row['joined_at'],
+            'domain': row['current_domain'],
+            'rating': row['rating'],
+        }
+        for row in rows
+    ]
+
+
+def guild_goal_summary(guild_id):
+    members = guild_members_rows(guild_id)
+    wallets = [item['wallet'] for item in members]
+    if not wallets:
+        return {
+            'weekly_wins': 0,
+            'weekly_win_target': 25,
+            'weekly_packs': 0,
+            'weekly_pack_target': 12,
+            'season_points': 0,
+            'season_rank_score': 0,
+            'today_help': [],
+        }
+    seven_days_ago = datetime.fromtimestamp(now_utc().timestamp() - 7 * 86400, tz=timezone.utc).isoformat()
+    placeholders = ','.join('?' for _ in wallets)
+    with closing(get_db()) as conn:
+        ranked = conn.execute(
+            f'''
+            SELECT COUNT(*) AS value
+            FROM ranked_matches
+            WHERE wallet IN ({placeholders}) AND result = 'win' AND created_at >= ?
+            ''',
+            (*wallets, seven_days_ago),
+        ).fetchone()['value']
+        telemetry = conn.execute(
+            f'''
+            SELECT COUNT(*) AS value
+            FROM domain_telemetry
+            WHERE wallet IN ({placeholders})
+              AND created_at >= ?
+              AND event_type LIKE '%battle_complete'
+              AND payload_json LIKE '%"result": "win"%'
+            ''',
+            (*wallets, seven_days_ago),
+        ).fetchone()['value']
+        pack_count = conn.execute(
+            f'''
+            SELECT COUNT(*) AS value
+            FROM pack_opens
+            WHERE wallet IN ({placeholders}) AND created_at >= ?
+            ''',
+            (*wallets, seven_days_ago),
+        ).fetchone()['value']
+        season_points = conn.execute(
+            f'''
+            SELECT COALESCE(SUM(season_points), 0) AS value
+            FROM player_rewards
+            WHERE wallet IN ({placeholders})
+            ''',
+            wallets,
+        ).fetchone()['value']
+    weekly_wins = int(ranked or 0) + int(telemetry or 0)
+    weekly_pack_target = max(12, len(wallets) * 3)
+    weekly_win_target = max(25, len(wallets) * 6)
+    today_help = [
+        f'Добейте {max(0, weekly_win_target - weekly_wins)} побед до недельной цели',
+        f'Откройте ещё {max(0, weekly_pack_target - pack_count)} паков до сундука гильдии',
+        f'Поднимите сезонный счёт до {max(len(wallets) * 120, 300)} очков',
+    ]
+    return {
+        'weekly_wins': weekly_wins,
+        'weekly_win_target': weekly_win_target,
+        'weekly_packs': int(pack_count or 0),
+        'weekly_pack_target': weekly_pack_target,
+        'season_points': int(season_points or 0),
+        'season_rank_score': int(season_points or 0) + weekly_wins * 5 + int(pack_count or 0) * 2,
+        'today_help': today_help,
+    }
+
+
+def guild_messages_rows(guild_id, limit=30):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            'SELECT * FROM guild_messages WHERE guild_id = ? ORDER BY created_at DESC LIMIT ?',
+            (guild_id, limit),
+        ).fetchall()
+    return [
+        {
+            'id': row['id'],
+            'wallet': row['wallet'],
+            'display_name': display_name_for_wallet(row['wallet']),
+            'avatar': avatar_for_wallet(row['wallet']),
+            'message': row['message'],
+            'created_at': row['created_at'],
+        }
+        for row in reversed(rows)
+    ]
+
+
+def guild_announcements_rows(guild_id, limit=8):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            'SELECT * FROM guild_announcements WHERE guild_id = ? ORDER BY created_at DESC LIMIT ?',
+            (guild_id, limit),
+        ).fetchall()
+    return [
+        {
+            'id': row['id'],
+            'wallet': row['wallet'],
+            'display_name': display_name_for_wallet(row['wallet']),
+            'message': row['message'],
+            'created_at': row['created_at'],
+        }
+        for row in rows
+    ]
+
+
+def guild_requests_rows(guild_id, status='pending'):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            'SELECT * FROM guild_join_requests WHERE guild_id = ? AND status = ? ORDER BY created_at DESC',
+            (guild_id, status),
+        ).fetchall()
+    return [
+        {
+            'id': row['id'],
+            'wallet': row['wallet'],
+            'display_name': display_name_for_wallet(row['wallet']),
+            'avatar': avatar_for_wallet(row['wallet']),
+            'message': row['message'] or '',
+            'created_at': row['created_at'],
+            'domain': ensure_player(row['wallet']).get('current_domain'),
+        }
+        for row in rows
+    ]
+
+
+def guild_invites_for_wallet(wallet, status='pending'):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT gi.*, g.name, g.slug
+            FROM guild_invites gi
+            JOIN guilds g ON g.id = gi.guild_id
+            WHERE gi.invitee_wallet = ? AND gi.status = ?
+            ORDER BY gi.created_at DESC
+            ''',
+            (wallet, status),
+        ).fetchall()
+    return [
+        {
+            'id': row['id'],
+            'guild_id': row['guild_id'],
+            'guild_name': row['name'],
+            'guild_slug': row['slug'],
+            'inviter_wallet': row['inviter_wallet'],
+            'inviter_name': display_name_for_wallet(row['inviter_wallet']),
+            'created_at': row['created_at'],
+        }
+        for row in rows
+    ]
+
+
+def guild_applications_for_wallet(wallet, status='pending'):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT gjr.*, g.name, g.slug
+            FROM guild_join_requests gjr
+            JOIN guilds g ON g.id = gjr.guild_id
+            WHERE gjr.wallet = ? AND gjr.status = ?
+            ORDER BY gjr.created_at DESC
+            ''',
+            (wallet, status),
+        ).fetchall()
+    return [
+        {
+            'id': row['id'],
+            'guild_id': row['guild_id'],
+            'guild_name': row['name'],
+            'guild_slug': row['slug'],
+            'message': row['message'] or '',
+            'created_at': row['created_at'],
+        }
+        for row in rows
+    ]
+
+
+def guild_summary_by_id(guild_id, viewer_wallet=None):
+    with closing(get_db()) as conn:
+        guild = conn.execute('SELECT * FROM guilds WHERE id = ?', (guild_id,)).fetchone()
+    if guild is None:
+        raise ValueError('Клан не найден.')
+    guild = dict(guild)
+    members = guild_members_rows(guild_id)
+    goals = guild_goal_summary(guild_id)
+    viewer_role = None
+    if viewer_wallet:
+        for item in members:
+            if item['wallet'] == viewer_wallet:
+                viewer_role = item['role']
+                break
+    data = {
+        'id': guild['id'],
+        'slug': guild['slug'],
+        'name': guild['name'],
+        'owner_wallet': guild['owner_wallet'],
+        'owner_name': display_name_for_wallet(guild['owner_wallet']),
+        'domain_identity': guild['domain_identity'],
+        'description': guild.get('description') or '',
+        'language': guild.get('language') or 'ru',
+        'is_public': bool(guild.get('is_public')),
+        'created_at': guild['created_at'],
+        'updated_at': guild['updated_at'],
+        'member_count': len(members),
+        'members': members,
+        'goals': goals,
+        'chat': guild_messages_rows(guild_id),
+        'announcements': guild_announcements_rows(guild_id),
+        'viewer_role': viewer_role,
+    }
+    if viewer_role and guild_role_rank(viewer_role) >= guild_role_rank('officer'):
+        data['pending_requests'] = guild_requests_rows(guild_id)
+    return data
+
+
+def recommended_guilds(limit=6):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT g.*,
+                   COUNT(gm.wallet) AS member_count
+            FROM guilds g
+            LEFT JOIN guild_members gm ON gm.guild_id = g.id
+            WHERE g.is_public = 1
+            GROUP BY g.id
+            ORDER BY member_count DESC, g.updated_at DESC
+            LIMIT ?
+            ''',
+            (limit,),
+        ).fetchall()
+    result = []
+    for row in rows:
+        summary = guild_goal_summary(row['id'])
+        result.append(
+            {
+                'id': row['id'],
+                'name': row['name'],
+                'slug': row['slug'],
+                'domain_identity': row['domain_identity'],
+                'description': row['description'] or '',
+                'language': row['language'] or 'ru',
+                'member_count': row['member_count'],
+                'weekly_wins': summary['weekly_wins'],
+                'season_points': summary['season_points'],
+            }
+        )
+    return result
+
+
+def browse_guilds(query=''):
+    text = clean_public_text(query, 48)
+    with closing(get_db()) as conn:
+        if text:
+            pattern = f'%{text.lower()}%'
+            rows = conn.execute(
+                '''
+                SELECT g.*, COUNT(gm.wallet) AS member_count
+                FROM guilds g
+                LEFT JOIN guild_members gm ON gm.guild_id = g.id
+                WHERE g.is_public = 1 AND (LOWER(g.name) LIKE ? OR LOWER(COALESCE(g.description, '')) LIKE ? OR LOWER(COALESCE(g.language, '')) LIKE ?)
+                GROUP BY g.id
+                ORDER BY member_count DESC, g.updated_at DESC
+                LIMIT 20
+                ''',
+                (pattern, pattern, pattern),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                '''
+                SELECT g.*, COUNT(gm.wallet) AS member_count
+                FROM guilds g
+                LEFT JOIN guild_members gm ON gm.guild_id = g.id
+                WHERE g.is_public = 1
+                GROUP BY g.id
+                ORDER BY member_count DESC, g.updated_at DESC
+                LIMIT 20
+                '''
+            ).fetchall()
+    return [
+        {
+            'id': row['id'],
+            'name': row['name'],
+            'slug': row['slug'],
+            'domain_identity': row['domain_identity'],
+            'description': row['description'] or '',
+            'language': row['language'] or 'ru',
+            'member_count': row['member_count'],
+        }
+        for row in rows
+    ]
+
+
+def create_guild(owner_wallet, name, description='', language='ru', is_public=True):
+    if current_guild_membership(owner_wallet):
+        raise ValueError('Ты уже состоишь в клане.')
+    player = ensure_player(owner_wallet)
+    guild_name = clean_public_text(name, 40)
+    if len(guild_name) < 3:
+        raise ValueError('Название клана слишком короткое.')
+    guild_id = uuid.uuid4().hex[:12]
+    ts = now_iso()
+    slug = safe_slug(guild_name)
+    with closing(get_db()) as conn:
+        slug_taken = conn.execute('SELECT 1 FROM guilds WHERE slug = ? LIMIT 1', (slug,)).fetchone()
+        if slug_taken is not None:
+            slug = f'{slug}-{guild_id[:4]}'
+        conn.execute(
+            '''
+            INSERT INTO guilds (id, slug, name, owner_wallet, domain_identity, description, language, is_public, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                guild_id,
+                slug,
+                guild_name,
+                owner_wallet,
+                player.get('current_domain'),
+                clean_public_text(description, 220),
+                clean_public_text(language, 12) or 'ru',
+                1 if is_public else 0,
+                ts,
+                ts,
+            ),
+        )
+        conn.execute(
+            'INSERT INTO guild_members (guild_id, wallet, role, joined_at) VALUES (?, ?, ?, ?)',
+            (guild_id, owner_wallet, 'owner', ts),
+        )
+        conn.execute(
+            'INSERT INTO guild_announcements (id, guild_id, wallet, message, created_at) VALUES (?, ?, ?, ?, ?)',
+            (uuid.uuid4().hex[:12], guild_id, owner_wallet, 'Клан создан. Откройте цели недели и начинайте сезон.', ts),
+        )
+        conn.commit()
+    return guild_summary_by_id(guild_id, owner_wallet)
+
+
+def apply_to_guild(wallet, guild_id, message=''):
+    if current_guild_membership(wallet):
+        raise ValueError('Сначала выйди из текущего клана.')
+    with closing(get_db()) as conn:
+        guild = conn.execute('SELECT * FROM guilds WHERE id = ? AND is_public = 1', (guild_id,)).fetchone()
+        if guild is None:
+            raise ValueError('Клан не найден или закрыт.')
+        existing = conn.execute(
+            'SELECT 1 FROM guild_join_requests WHERE guild_id = ? AND wallet = ? AND status = ? LIMIT 1',
+            (guild_id, wallet, 'pending'),
+        ).fetchone()
+        if existing is not None:
+            raise ValueError('Заявка уже отправлена.')
+        conn.execute(
+            '''
+            INSERT INTO guild_join_requests (id, guild_id, wallet, message, status, created_at)
+            VALUES (?, ?, ?, ?, 'pending', ?)
+            ''',
+            (uuid.uuid4().hex[:12], guild_id, wallet, clean_public_text(message, 180), now_iso()),
+        )
+        conn.commit()
+    return guild_summary_by_id(guild_id, wallet)
+
+
+def respond_to_guild_request(actor_wallet, request_id, action):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM guild_join_requests WHERE id = ? AND status = ?', (request_id, 'pending')).fetchone()
+        if row is None:
+            raise ValueError('Заявка не найдена.')
+        membership = current_guild_membership(actor_wallet)
+        if membership is None or membership['guild_id'] != row['guild_id']:
+            raise ValueError('Нет доступа к этому клану.')
+        if guild_role_rank(membership['role']) < guild_role_rank('officer'):
+            raise ValueError('Нужна роль офицера или владельца.')
+        decision = 'accepted' if action == 'accept' else 'declined'
+        conn.execute(
+            'UPDATE guild_join_requests SET status = ?, responded_at = ? WHERE id = ?',
+            (decision, now_iso(), request_id),
+        )
+        if decision == 'accepted':
+            if current_guild_membership(row['wallet']):
+                raise ValueError('Игрок уже вступил в другой клан.')
+            conn.execute(
+                'INSERT OR IGNORE INTO guild_members (guild_id, wallet, role, joined_at) VALUES (?, ?, ?, ?)',
+                (row['guild_id'], row['wallet'], 'member', now_iso()),
+            )
+        conn.commit()
+    return guild_summary_by_id(row['guild_id'], actor_wallet)
+
+
+def invite_to_guild(inviter_wallet, guild_id, invitee_reference):
+    invitee_wallet = resolve_player_reference(invitee_reference)
+    if invitee_wallet == inviter_wallet:
+        raise ValueError('Себя приглашать не нужно.')
+    membership = current_guild_membership(inviter_wallet)
+    if membership is None or membership['guild_id'] != guild_id:
+        raise ValueError('Ты не состоишь в этом клане.')
+    if guild_role_rank(membership['role']) < guild_role_rank('officer'):
+        raise ValueError('Инвайтить могут только офицеры и владелец.')
+    ensure_not_blocked(inviter_wallet, invitee_wallet)
+    if current_guild_membership(invitee_wallet):
+        raise ValueError('Игрок уже состоит в клане.')
+    with closing(get_db()) as conn:
+        existing = conn.execute(
+            '''
+            SELECT 1 FROM guild_invites
+            WHERE guild_id = ? AND invitee_wallet = ? AND status = 'pending'
+            LIMIT 1
+            ''',
+            (guild_id, invitee_wallet),
+        ).fetchone()
+        if existing is not None:
+            raise ValueError('Приглашение уже отправлено.')
+        conn.execute(
+            '''
+            INSERT INTO guild_invites (id, guild_id, inviter_wallet, invitee_wallet, status, created_at)
+            VALUES (?, ?, ?, ?, 'pending', ?)
+            ''',
+            (uuid.uuid4().hex[:12], guild_id, inviter_wallet, invitee_wallet, now_iso()),
+        )
+        conn.commit()
+    return guild_summary_by_id(guild_id, inviter_wallet)
+
+
+def respond_to_guild_invite(wallet, invite_id, action):
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            'SELECT * FROM guild_invites WHERE id = ? AND invitee_wallet = ? AND status = ?',
+            (invite_id, wallet, 'pending'),
+        ).fetchone()
+        if row is None:
+            raise ValueError('Инвайт не найден.')
+        if current_guild_membership(wallet):
+            raise ValueError('Сначала выйди из текущего клана.')
+        decision = 'accepted' if action == 'accept' else 'declined'
+        conn.execute(
+            'UPDATE guild_invites SET status = ?, responded_at = ? WHERE id = ?',
+            (decision, now_iso(), invite_id),
+        )
+        if decision == 'accepted':
+            conn.execute(
+                'INSERT OR IGNORE INTO guild_members (guild_id, wallet, role, joined_at) VALUES (?, ?, ?, ?)',
+                (row['guild_id'], wallet, 'member', now_iso()),
+            )
+        conn.commit()
+    return guild_summary_by_id(row['guild_id'], wallet)
+
+
+def post_guild_message(wallet, guild_id, message):
+    membership = current_guild_membership(wallet)
+    if membership is None or membership['guild_id'] != guild_id:
+        raise ValueError('Ты не состоишь в этом клане.')
+    text = clean_public_text(message, 240)
+    if len(text) < 2:
+        raise ValueError('Сообщение слишком короткое.')
+    with closing(get_db()) as conn:
+        conn.execute(
+            'INSERT INTO guild_messages (id, guild_id, wallet, message, created_at) VALUES (?, ?, ?, ?, ?)',
+            (uuid.uuid4().hex[:12], guild_id, wallet, text, now_iso()),
+        )
+        conn.execute('UPDATE guilds SET updated_at = ? WHERE id = ?', (now_iso(), guild_id))
+        conn.commit()
+    return guild_messages_rows(guild_id)
+
+
+def post_guild_announcement(wallet, guild_id, message):
+    membership = current_guild_membership(wallet)
+    if membership is None or membership['guild_id'] != guild_id:
+        raise ValueError('Ты не состоишь в этом клане.')
+    if guild_role_rank(membership['role']) < guild_role_rank('officer'):
+        raise ValueError('Нужна роль офицера или владельца.')
+    text = clean_public_text(message, 220)
+    if len(text) < 4:
+        raise ValueError('Объявление слишком короткое.')
+    with closing(get_db()) as conn:
+        conn.execute(
+            'INSERT INTO guild_announcements (id, guild_id, wallet, message, created_at) VALUES (?, ?, ?, ?, ?)',
+            (uuid.uuid4().hex[:12], guild_id, wallet, text, now_iso()),
+        )
+        conn.execute('UPDATE guilds SET updated_at = ? WHERE id = ?', (now_iso(), guild_id))
+        conn.commit()
+    return guild_announcements_rows(guild_id)
+
+
+def update_guild_member_role(actor_wallet, guild_id, target_wallet, role):
+    role = clean_public_text(role, 16).lower()
+    if role not in {'member', 'officer'}:
+        raise ValueError('Можно назначить только member или officer.')
+    membership = current_guild_membership(actor_wallet)
+    if membership is None or membership['guild_id'] != guild_id or membership['role'] != 'owner':
+        raise ValueError('Только владелец может менять роли.')
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT wallet FROM guild_members WHERE guild_id = ? AND wallet = ?', (guild_id, target_wallet)).fetchone()
+        if row is None:
+            raise ValueError('Участник не найден.')
+        conn.execute('UPDATE guild_members SET role = ? WHERE guild_id = ? AND wallet = ?', (role, guild_id, target_wallet))
+        conn.commit()
+    return guild_summary_by_id(guild_id, actor_wallet)
+
+
+def guild_overview_for_wallet(wallet, query=''):
+    membership = current_guild_membership(wallet)
+    return {
+        'current_guild': guild_summary_by_id(membership['guild_id'], wallet) if membership else None,
+        'recommended_guilds': recommended_guilds(),
+        'browse_guilds': browse_guilds(query),
+        'pending_invites': guild_invites_for_wallet(wallet),
+        'pending_applications': guild_applications_for_wallet(wallet),
+    }
+
+
+def social_overview(wallet):
+    ensure_player(wallet)
+    profile = player_profile_row(wallet)
+    friend_list = friend_rows(wallet)
+    return {
+        'profile': {
+            'wallet': wallet,
+            'display_name': display_name_for_wallet(wallet),
+            'nickname': (profile or {}).get('nickname') or '',
+            'avatar': (profile or {}).get('avatar') or '🜂',
+            'bio': (profile or {}).get('bio') or '',
+            'language': (profile or {}).get('language') or 'ru',
+            'visibility': (profile or {}).get('visibility') or 'public',
+            'domain': ensure_player(wallet).get('current_domain'),
+        },
+        'friends': friend_list,
+        'incoming_requests': friend_request_rows(wallet, 'incoming'),
+        'outgoing_requests': friend_request_rows(wallet, 'outgoing'),
+        'blocked': [public_player_summary(item) for item in blocked_wallets(wallet)],
+        'suggested_players': social_suggestions(wallet),
+        'lobby_messages': lobby_messages(),
+        'friend_count': len(friend_list),
+    }
 
 
 def ensure_player(wallet, best_domain=None, current_domain=None):
@@ -11356,6 +12923,8 @@ def ensure_player(wallet, best_domain=None, current_domain=None):
 def get_player(wallet):
     player = ensure_player(wallet)
     current_deck = deck_summary_for_domain(player['current_domain'], wallet) if player['current_domain'] else None
+    profile = player_profile_row(wallet)
+    guild_membership = current_guild_membership(wallet)
     return {
         'wallet': player['wallet'],
         'rating': player['rating'],
@@ -11366,9 +12935,17 @@ def get_player(wallet):
         'current_domain': player['current_domain'],
         'telegram_linked': telegram_wallet_link(wallet) is not None,
         'display_name': display_name_for_wallet(wallet),
+        'avatar': (profile or {}).get('avatar') or '🜂',
+        'bio': (profile or {}).get('bio') or '',
         'deck_summary': current_deck,
         'rewards': reward_summary(wallet),
         'synergies': compute_domain_synergies(wallet),
+        'guild': {
+            'id': guild_membership['guild_id'],
+            'name': guild_membership['name'],
+            'slug': guild_membership['slug'],
+            'role': guild_membership['role'],
+        } if guild_membership else None,
     }
 
 
@@ -11426,7 +13003,13 @@ def global_player_rows(limit=200):
             ''',
             (limit,),
         ).fetchall()
-    return [dict(row) for row in rows]
+    result = []
+    for row in rows:
+        item = dict(row)
+        item['display_name'] = display_name_for_wallet(row['wallet'])
+        item['avatar'] = avatar_for_wallet(row['wallet'])
+        result.append(item)
+    return result
 
 
 def achievements_for_wallet(wallet):
@@ -13066,6 +14649,32 @@ def api_player_register():
     return jsonify({'ok': True, 'player': get_player(wallet)})
 
 
+@app.route('/api/profile', methods=['POST'])
+def api_profile_update():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    ensure_player(wallet)
+    profile = ensure_player_profile(wallet)
+    nickname = clean_public_text(payload.get('nickname'), 24)
+    avatar = clean_public_text(payload.get('avatar') or profile.get('avatar') or '🜂', 4)
+    bio = clean_public_text(payload.get('bio'), 160)
+    language = clean_public_text(payload.get('language') or 'ru', 12) or 'ru'
+    visibility = clean_public_text(payload.get('visibility') or 'public', 12) or 'public'
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            UPDATE player_profiles
+            SET nickname = ?, avatar = ?, bio = ?, language = ?, visibility = ?, updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (nickname or None, avatar or '🜂', bio or None, language, visibility, now_iso(), wallet),
+        )
+        conn.commit()
+    return jsonify({'ok': True, 'player': get_player(wallet), 'social': social_overview(wallet)})
+
+
 @app.route('/api/deck/<wallet>')
 def api_deck(wallet):
     if not valid_wallet_address(wallet):
@@ -13264,6 +14873,223 @@ def api_add_friend():
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'friend_wallet': friend_wallet, 'friends': friend_rows(wallet)})
+
+
+@app.route('/api/social/<wallet>')
+def api_social(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    return jsonify({'wallet': wallet, 'social': social_overview(wallet)})
+
+
+@app.route('/api/friends/request', methods=['POST'])
+def api_friend_request():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    reference = (payload.get('reference') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        friend_wallet = send_friend_request(wallet, reference)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'friend_wallet': friend_wallet, 'social': social_overview(wallet)})
+
+
+@app.route('/api/friends/respond', methods=['POST'])
+def api_friend_request_respond():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    request_id = (payload.get('request_id') or '').strip()
+    action = (payload.get('action') or '').strip().lower()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    if action not in {'accept', 'decline'}:
+        return json_error('Некорректное действие.')
+    try:
+        sender_wallet = respond_friend_request(wallet, request_id, action)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'sender_wallet': sender_wallet, 'social': social_overview(wallet)})
+
+
+@app.route('/api/friends/remove', methods=['POST'])
+def api_friend_remove():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    reference = (payload.get('reference') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        friend_wallet = remove_friend(wallet, reference)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'friend_wallet': friend_wallet, 'social': social_overview(wallet)})
+
+
+@app.route('/api/blocks', methods=['POST'])
+def api_block_player():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    reference = (payload.get('reference') or '').strip()
+    unblock = bool(payload.get('unblock'))
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        target_wallet = unblock_player(wallet, reference) if unblock else block_player(wallet, reference)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'target_wallet': target_wallet, 'social': social_overview(wallet)})
+
+
+@app.route('/api/lobby-chat', methods=['GET', 'POST'])
+def api_lobby_chat():
+    if request.method == 'GET':
+        return jsonify({'messages': lobby_messages()})
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        messages = post_lobby_message(wallet, payload.get('message'))
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'messages': messages})
+
+
+@app.route('/api/guilds/overview/<wallet>')
+def api_guilds_overview(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    return jsonify({'wallet': wallet, 'guilds': guild_overview_for_wallet(wallet, request.args.get('q', ''))})
+
+
+@app.route('/api/guilds/create', methods=['POST'])
+def api_guilds_create():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        guild = create_guild(
+            wallet,
+            payload.get('name'),
+            payload.get('description') or '',
+            payload.get('language') or 'ru',
+            payload.get('is_public', True),
+        )
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'guild': guild, 'player': get_player(wallet), 'guilds': guild_overview_for_wallet(wallet)})
+
+
+@app.route('/api/guilds/apply', methods=['POST'])
+def api_guilds_apply():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    guild_id = (payload.get('guild_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        guild = apply_to_guild(wallet, guild_id, payload.get('message') or '')
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'guild': guild, 'guilds': guild_overview_for_wallet(wallet)})
+
+
+@app.route('/api/guilds/request/respond', methods=['POST'])
+def api_guilds_request_respond():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    request_id = (payload.get('request_id') or '').strip()
+    action = (payload.get('action') or '').strip().lower()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    if action not in {'accept', 'decline'}:
+        return json_error('Некорректное действие.')
+    try:
+        guild = respond_to_guild_request(wallet, request_id, action)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'guild': guild, 'guilds': guild_overview_for_wallet(wallet)})
+
+
+@app.route('/api/guilds/invite', methods=['POST'])
+def api_guilds_invite():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    guild_id = (payload.get('guild_id') or '').strip()
+    reference = (payload.get('reference') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        guild = invite_to_guild(wallet, guild_id, reference)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'guild': guild, 'guilds': guild_overview_for_wallet(wallet)})
+
+
+@app.route('/api/guilds/invite/respond', methods=['POST'])
+def api_guilds_invite_respond():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    invite_id = (payload.get('invite_id') or '').strip()
+    action = (payload.get('action') or '').strip().lower()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    if action not in {'accept', 'decline'}:
+        return json_error('Некорректное действие.')
+    try:
+        guild = respond_to_guild_invite(wallet, invite_id, action)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'guild': guild, 'player': get_player(wallet), 'guilds': guild_overview_for_wallet(wallet)})
+
+
+@app.route('/api/guilds/chat', methods=['POST'])
+def api_guilds_chat():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    guild_id = (payload.get('guild_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        chat = post_guild_message(wallet, guild_id, payload.get('message'))
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'chat': chat, 'guilds': guild_overview_for_wallet(wallet)})
+
+
+@app.route('/api/guilds/announcement', methods=['POST'])
+def api_guilds_announcement():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    guild_id = (payload.get('guild_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        announcements = post_guild_announcement(wallet, guild_id, payload.get('message'))
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'announcements': announcements, 'guilds': guild_overview_for_wallet(wallet)})
+
+
+@app.route('/api/guilds/member/role', methods=['POST'])
+def api_guilds_member_role():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    guild_id = (payload.get('guild_id') or '').strip()
+    target_wallet = (payload.get('target_wallet') or '').strip()
+    role = (payload.get('role') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    if not valid_wallet_address(target_wallet):
+        return json_error('Некорректный адрес участника.')
+    try:
+        guild = update_guild_member_role(wallet, guild_id, target_wallet, role)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'guild': guild, 'guilds': guild_overview_for_wallet(wallet)})
 
 
 @app.route('/api/wallet/domains', methods=['POST'])
