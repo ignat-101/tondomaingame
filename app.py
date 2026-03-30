@@ -973,7 +973,7 @@ PAGE_TEMPLATE = """
       min-height: 220px;
       display: grid;
       place-items: center;
-      padding: 4px 10px 6px;
+      padding: 18px 10px 10px;
     }
 
     .arena-choice-panel {
@@ -1015,7 +1015,7 @@ PAGE_TEMPLATE = """
 
     .arena-round-choice-slot {
       position: absolute;
-      top: 56px;
+      top: 70px;
       transform: translateX(-50%);
       display: grid;
       justify-items: center;
@@ -4378,12 +4378,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-core {
-        min-height: 198px;
+        min-height: 212px;
       }
 
       .arena-choice-hub {
-        min-height: 198px;
-        padding: 4px 0 4px;
+        min-height: 212px;
+        padding: 14px 0 8px;
       }
 
       .arena-choice-panel {
@@ -4402,7 +4402,7 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot {
-        top: 42px;
+        top: 58px;
       }
 
       .arena-round-marker {
@@ -6498,6 +6498,28 @@ PAGE_TEMPLATE = """
               `домен ${round.player_domain_bonus || 0}/${round.opponent_domain_bonus || 0}`,
               `удача ${round.player_roll_bonus || 0}/${round.opponent_roll_bonus || 0}`,
             ];
+            const playerFormula = [
+              round.player_value || 0,
+              round.player_boost || 0,
+              round.player_action_bonus || 0,
+              round.player_strategy_bonus || 0,
+              round.player_skill_bonus || 0,
+              round.player_featured_bonus || 0,
+              round.player_domain_bonus || 0,
+              round.player_roll_bonus || 0,
+              round.player_swing || 0,
+            ];
+            const opponentFormula = [
+              round.opponent_value || 0,
+              round.opponent_boost || 0,
+              round.opponent_action_bonus || 0,
+              round.opponent_strategy_bonus || 0,
+              round.opponent_skill_bonus || 0,
+              round.opponent_featured_bonus || 0,
+              round.opponent_domain_bonus || 0,
+              round.opponent_roll_bonus || 0,
+              round.opponent_swing || 0,
+            ];
             const delay = index * 120;
             return `
               <div class="discipline-row round-clash ${roundClass} visible" style="animation-delay:${delay}ms;">
@@ -6529,6 +6551,8 @@ PAGE_TEMPLATE = """
                   <span class="arena-decision-chip outcome" style="animation-delay:${delay + 240}ms;">Итог раунда: ${marker}</span>
                   ${reasonChip(whyLabel, reasons.join(' • ') || 'Разница получилась из базовой силы, выбора действия и броска удачи.', 'outcome')}
                   ${reasonChip('Откуда перевес', impactParts.join(' • '), 'strategy')}
+                  ${reasonChip('Формула игрока', `${playerFormula.join(' + ')} = ${round.player_total || 0}`, 'featured')}
+                  ${reasonChip('Формула соперника', `${opponentFormula.join(' + ')} = ${round.opponent_total || 0}`, 'featured')}
                   ${(round.player_crit || round.opponent_crit) ? `<span class="arena-decision-chip outcome">${round.player_crit ? 'Твой crit' : ''}${round.player_crit && round.opponent_crit ? ' / ' : ''}${round.opponent_crit ? 'Crit соперника' : ''}</span>` : ''}
                 </div>
               </div>
