@@ -4852,6 +4852,7 @@ PAGE_TEMPLATE = """
         <section class="panel view" id="view-modes">
           <h2>Шаг 3. Режимы игры</h2>
           <p class="muted">Бой проходит как серия 5 карт на 5. Важны порядок колоды, размены карт, тактическая карта на матч и скиллы. Прокачка дисциплин остается как фоновая поддержка стратегии.</p>
+          <div id="tutorial-panel" class="deck-list" style="margin-bottom:18px;"></div>
 
           <div class="team-card" style="margin-bottom:18px;">
             <h3>Автопоиск соперника</h3>
@@ -5001,6 +5002,7 @@ PAGE_TEMPLATE = """
       friends: [],
       socialData: null,
       guildData: null,
+      tutorialData: null,
       ownedDecks: [],
       allPlayers: [],
       achievements: [],
@@ -5040,6 +5042,7 @@ PAGE_TEMPLATE = """
     const packCards = document.getElementById('pack-cards');
     const battleResult = document.getElementById('battle-result');
     const inviteResult = document.getElementById('invite-result');
+    const tutorialPanel = document.getElementById('tutorial-panel');
     const battleFlowView = document.getElementById('battle-flow-view');
     const leaderboard = document.getElementById('leaderboard');
     const marketplacesBox = document.getElementById('marketplaces-box');
@@ -5493,6 +5496,40 @@ PAGE_TEMPLATE = """
       ` : '<div class="user-item muted">Подключи кошелёк, чтобы видеть награды и сезонный прогресс.</div>';
       if (profileRewardsPanel) profileRewardsPanel.innerHTML = content;
       if (mobileRewardsPanel) mobileRewardsPanel.innerHTML = content;
+    }
+
+    function renderTutorialPanel() {
+      if (!tutorialPanel) return;
+      const tutorial = state.tutorialData || (state.playerProfile && state.playerProfile.tutorial) || null;
+      if (!state.wallet || !tutorial) {
+        tutorialPanel.innerHTML = '';
+        return;
+      }
+      if (tutorial.completed) {
+        tutorialPanel.innerHTML = `
+          <div class="user-item">
+            <strong>Боевой туториал завершён</strong>
+            <div class="tiny">Побед: ${tutorial.wins || 1} • попыток: ${tutorial.attempts || 1}</div>
+            <div class="tiny">Первый успех уже засчитан. Можно идти в обычный или рейтинговый режим.</div>
+          </div>
+        `;
+        return;
+      }
+      tutorialPanel.innerHTML = `
+        <div class="user-item">
+          <strong>Интерактивный туториал боя</strong>
+          <div class="tiny">Покажет порядок колоды, тактическую карту и разницу действий прямо в бою. Первый матч настроен так, чтобы при следовании подсказкам ты почти наверняка выиграл.</div>
+          <div class="tiny">Статус: ${tutorial.skipped ? 'пропущен' : (tutorial.started ? 'начат' : 'не начат')} • попыток: ${tutorial.attempts || 0}</div>
+          <div class="actions" style="margin-top:10px;">
+            <button id="start-tutorial-btn"${!(state.wallet && state.selectedDomain && state.cards.length) ? ' disabled' : ''}>${tutorial.started ? 'Пройти заново' : 'Начать туториал'}</button>
+            <button class="secondary" id="skip-tutorial-btn">Пропустить</button>
+          </div>
+        </div>
+      `;
+      const startBtn = document.getElementById('start-tutorial-btn');
+      const skipBtn = document.getElementById('skip-tutorial-btn');
+      if (startBtn) bindFunctionalControl(startBtn, startTutorialBattle);
+      if (skipBtn) bindFunctionalControl(skipBtn, skipTutorialBattle);
     }
 
     function renderIdentityPanel() {
@@ -6047,6 +6084,7 @@ PAGE_TEMPLATE = """
       renderIdentityPanel();
       renderSocialPanel();
       renderGuildPanel();
+      renderTutorialPanel();
     }
 
     function renderOwnedDecks(decks, currentDomain) {
@@ -7130,6 +7168,8 @@ PAGE_TEMPLATE = """
         const activeAbilityCooldownNow = Number((result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0);
         const activeAbilityChargesNow = Number((result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0);
         const energyNow = Number(result.interactive_energy || 0);
+        const tutorialMeta = result.tutorial || null;
+        const tutorialCurrentTip = tutorialMeta && (tutorialMeta.current_tip || ((tutorialMeta.tips || [])[Math.min(result.interactive_round_index || 0, Math.max((tutorialMeta.tips || []).length - 1, 0))])) || null;
         const energyFill = `${Math.max(0, Math.min(100, (energyNow / 3) * 100))}%`;
         const cooldownFill = `${Math.max(0, Math.min(100, (activeAbilityCooldownNow / activeAbilityCooldownMax) * 100))}%`;
         const chargesFill = `${Math.max(0, Math.min(100, (activeAbilityChargesNow / activeAbilityChargesMax) * 100))}%`;
@@ -7174,6 +7214,12 @@ PAGE_TEMPLATE = """
                     <div class="interactive-battle-title">Раунд ${activeRoundNumber}</div>
                     <div class="interactive-timer" id="interactive-timer">5 c</div>
                   </div>
+                  ${tutorialMeta && tutorialCurrentTip ? `
+                    <div class="user-item" style="margin-bottom:10px;">
+                      <strong>${tutorialCurrentTip.title || 'Подсказка'}</strong>
+                      <div class="tiny">${tutorialCurrentTip.body || ''}</div>
+                    </div>
+                  ` : ''}
                   <div class="interactive-battle-prompt" id="interactive-battle-status">${result.interactive_hint || 'Выбери действие'}</div>
                   <div class="interactive-battle-actions" style="grid-template-columns: repeat(${Math.max(interactiveActionKeys.length, 1)}, minmax(0, 1fr));">
                     ${interactiveActionKeys.map((key) => {
@@ -7181,6 +7227,7 @@ PAGE_TEMPLATE = """
                       return `<button type="button" class="interactive-action-btn ${key}" data-action-key="${key}" onclick="handleInteractiveBattleChoice('${key}', event)">${meta.ruLabel}</button>`;
                     }).join('')}
                   </div>
+                  ${tutorialMeta && tutorialMeta.skip_allowed ? `<div class="actions" style="margin-top:10px;"><button class="secondary" id="skip-live-tutorial-btn">Пропустить туториал</button></div>` : ''}
                 </div>
               </div>
             `
@@ -7299,6 +7346,7 @@ PAGE_TEMPLATE = """
           <div class="result-actions delayed-outcome post-actions">
             ${ratingLine ? `<div class="tiny" style="width:100%; text-align:center;">${result.rating_before} → ${result.rating_after}</div>` : ''}
             ${rewardLine}
+            ${result.tutorial && result.tutorial.completion_prompt ? `<div class="battle-reward-line">${result.tutorial.completion_prompt}</div>` : ''}
             <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
             ${result.opponent_wallet && result.opponent_wallet !== 'bot' ? '<button class="secondary" onclick="rematchLastOpponent()">Рематч</button>' : ''}
             <button onclick="repeatLastMode()">Играть ещё раз</button>
@@ -7318,6 +7366,7 @@ PAGE_TEMPLATE = """
         const interactiveBattlePanel = battleResult.querySelector('#interactive-battle-panel');
         const interactiveBattleStatus = battleResult.querySelector('#interactive-battle-status');
         const interactiveTimer = battleResult.querySelector('#interactive-timer');
+        const skipLiveTutorialBtn = battleResult.querySelector('#skip-live-tutorial-btn');
         const wireInteractiveBattle = () => {
           const rows = Array.from(battleResult.querySelectorAll('.discipline-row'));
           rows.forEach((row) => row.classList.add('visible'));
@@ -7477,6 +7526,9 @@ PAGE_TEMPLATE = """
               }
             });
           });
+        }
+        if (skipLiveTutorialBtn) {
+          bindFunctionalControl(skipLiveTutorialBtn, skipTutorialBattle);
         }
         if (result.autostart_battle && startBtn) {
           battleAutostartTimer = window.setTimeout(() => {
@@ -7669,10 +7721,12 @@ PAGE_TEMPLATE = """
         state.playerProfile = null;
         state.socialData = null;
         state.guildData = null;
+        state.tutorialData = null;
         renderProfile();
         renderIdentityPanel();
         renderSocialPanel();
         renderGuildPanel();
+        renderTutorialPanel();
         renderOwnedDecks([], null);
         return;
       }
@@ -7682,7 +7736,18 @@ PAGE_TEMPLATE = """
         state.selectedDomain = state.playerProfile.current_domain;
       }
       renderProfile();
-      await Promise.all([loadSocialData(), loadGuildData()]);
+      await Promise.all([loadSocialData(), loadGuildData(), loadTutorialData()]);
+    }
+
+    async function loadTutorialData() {
+      if (!state.wallet) {
+        state.tutorialData = null;
+        renderTutorialPanel();
+        return;
+      }
+      const data = await api(`/api/tutorial/${encodeURIComponent(state.wallet)}`);
+      state.tutorialData = data.tutorial || null;
+      renderTutorialPanel();
     }
 
     async function loadSocialData() {
@@ -8343,6 +8408,49 @@ PAGE_TEMPLATE = """
         battleResult.style.display = 'block';
         document.body.classList.remove('showdown-open');
         battleResult.innerHTML = `<strong class="error">${error.message}</strong>`;
+      }
+    }
+
+    async function startTutorialBattle() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet || !state.selectedDomain) return;
+      showMatchIntro('Запуск боевого туториала');
+      try {
+        const data = await api('/api/tutorial/start', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            domain: state.selectedDomain,
+            selected_slot: Number(battleCardSlot.value || state.selectedBattleSlot || 0)
+          }
+        });
+        state.lastResult = data.result;
+        state.playerProfile = data.player || state.playerProfile;
+        state.tutorialData = data.tutorial || state.tutorialData;
+        renderProfile();
+        renderBattleResult(data.result);
+      } catch (error) {
+        setBattleLaunchInFlight(false);
+        battleResult.className = 'result-box duel-anim';
+        battleResult.style.display = 'block';
+        document.body.classList.remove('showdown-open');
+        battleResult.innerHTML = `<strong class="error">${error.message}</strong>`;
+      }
+    }
+
+    async function skipTutorialBattle() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet) return;
+      try {
+        const data = await api('/api/tutorial/skip', {
+          method: 'POST',
+          body: { wallet: state.wallet }
+        });
+        state.tutorialData = data.tutorial || state.tutorialData;
+        state.playerProfile = data.player || state.playerProfile;
+        renderProfile();
+      } catch (error) {
+        setStatus(walletStatus, error.message, 'error');
       }
     }
 
@@ -9130,6 +9238,16 @@ def init_db():
                 daily_claimed_on TEXT,
                 updated_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS tutorial_progress (
+                wallet TEXT PRIMARY KEY,
+                started_at TEXT,
+                completed_at TEXT,
+                skipped_at TEXT,
+                rewarded_at TEXT,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                wins INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS player_profiles (
                 wallet TEXT PRIMARY KEY,
                 nickname TEXT,
@@ -9314,6 +9432,16 @@ def ensure_runtime_tables():
                 wins_for_quest INTEGER NOT NULL DEFAULT 0,
                 wins_claimed INTEGER NOT NULL DEFAULT 0,
                 daily_claimed_on TEXT,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS tutorial_progress (
+                wallet TEXT PRIMARY KEY,
+                started_at TEXT,
+                completed_at TEXT,
+                skipped_at TEXT,
+                rewarded_at TEXT,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                wins INTEGER NOT NULL DEFAULT 0,
                 updated_at TEXT NOT NULL
             );
             '''
@@ -9630,6 +9758,106 @@ def reward_summary(wallet):
     rewards['season_target'] = max(12, int(rewards.get('season_level', 1)) * 12)
     rewards['season_progress'] = round(int(rewards.get('season_points', 0)) / max(1, rewards['season_target']), 3)
     return rewards
+
+
+def ensure_tutorial_progress(wallet):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM tutorial_progress WHERE wallet = ?', (wallet,)).fetchone()
+        if row is None:
+            conn.execute(
+                '''
+                INSERT INTO tutorial_progress (wallet, started_at, completed_at, skipped_at, rewarded_at, attempts, wins, updated_at)
+                VALUES (?, NULL, NULL, NULL, NULL, 0, 0, ?)
+                ''',
+                (wallet, now_iso()),
+            )
+            conn.commit()
+            row = conn.execute('SELECT * FROM tutorial_progress WHERE wallet = ?', (wallet,)).fetchone()
+    return dict(row)
+
+
+def tutorial_summary(wallet):
+    progress = ensure_tutorial_progress(wallet)
+    completed = bool(progress.get('completed_at'))
+    skipped = bool(progress.get('skipped_at')) and not completed
+    return {
+        'started': bool(progress.get('started_at')),
+        'completed': completed,
+        'skipped': skipped,
+        'rewarded': bool(progress.get('rewarded_at')),
+        'attempts': int(progress.get('attempts', 0) or 0),
+        'wins': int(progress.get('wins', 0) or 0),
+        'available': not completed,
+        'cta': 'Пройти боевой туториал' if not completed else 'Туториал завершён',
+    }
+
+
+def update_tutorial_progress(wallet, **fields):
+    ensure_tutorial_progress(wallet)
+    updates = []
+    params = []
+    for key, value in fields.items():
+        updates.append(f'{key} = ?')
+        params.append(value)
+    updates.append('updated_at = ?')
+    params.append(now_iso())
+    params.append(wallet)
+    with closing(get_db()) as conn:
+        conn.execute(f'UPDATE tutorial_progress SET {", ".join(updates)} WHERE wallet = ?', params)
+        conn.commit()
+    return tutorial_summary(wallet)
+
+
+def mark_tutorial_started(wallet):
+    progress = ensure_tutorial_progress(wallet)
+    return update_tutorial_progress(
+        wallet,
+        started_at=progress.get('started_at') or now_iso(),
+        attempts=int(progress.get('attempts', 0) or 0) + 1,
+    )
+
+
+def mark_tutorial_skipped(wallet):
+    summary = update_tutorial_progress(wallet, skipped_at=now_iso())
+    log_domain_telemetry('tutorial_skipped', wallet=wallet, payload={'attempts': summary['attempts']})
+    return summary
+
+
+def grant_tutorial_reward(wallet):
+    progress = ensure_tutorial_progress(wallet)
+    if progress.get('rewarded_at'):
+        return reward_summary(wallet), {'pack_shards': 0, 'rare_tokens': 0, 'lucky_tokens': 0, 'season_points': 0}
+    rewards = ensure_player_rewards(wallet)
+    normalized = normalize_reward_progress_fields(
+        pack_shards=int(rewards.get('pack_shards', 0)) + 5,
+        rare_tokens=int(rewards.get('rare_tokens', 0)) + 1,
+        lucky_tokens=int(rewards.get('lucky_tokens', 0)),
+        season_points=int(rewards.get('season_points', 0)) + 4,
+        season_level=rewards.get('season_level', 1),
+        wins_for_quest=rewards.get('wins_for_quest', 0),
+        wins_claimed=rewards.get('wins_claimed', 0),
+    )
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            UPDATE player_rewards
+            SET pack_shards = ?, rare_tokens = ?, lucky_tokens = ?, season_points = ?, season_level = ?, updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (
+                normalized['pack_shards'],
+                normalized['rare_tokens'],
+                normalized['lucky_tokens'],
+                normalized['season_points'],
+                normalized['season_level'],
+                now_iso(),
+                wallet,
+            ),
+        )
+        conn.commit()
+    update_tutorial_progress(wallet, rewarded_at=now_iso())
+    return reward_summary(wallet), {'pack_shards': 5, 'rare_tokens': 1, 'lucky_tokens': 0, 'season_points': 4}
 
 
 def grant_match_rewards(wallet, *, won=False, ranked=False):
@@ -12947,6 +13175,7 @@ def get_player(wallet):
         'bio': (profile or {}).get('bio') or '',
         'deck_summary': current_deck,
         'rewards': reward_summary(wallet),
+        'tutorial': tutorial_summary(wallet),
         'synergies': compute_domain_synergies(wallet),
         'guild': {
             'id': guild_membership['guild_id'],
@@ -13210,6 +13439,8 @@ def build_solo_live_payload(state):
         else:
             result_code = 'draw'
             result_label = 'Ничья'
+    tutorial = state.get('tutorial') or {}
+    current_tip = tutorial.get('current_tip') or (((tutorial.get('tips') or []) + [None])[min(int(state.get('current_round', 0)), max(len(tutorial.get('tips') or []) - 1, 0))] if tutorial.get('active') else None)
     return {
         'kind': 'solo',
         'mode': state['mode'],
@@ -13250,13 +13481,14 @@ def build_solo_live_payload(state):
         'interactive_round_index': int(state.get('current_round', 0)),
         'interactive_total_rounds': int(state.get('rounds_total', len(WIKIGACHI_ROUND_PLAN))),
         'interactive_available_actions': available_actions_for_state(state.get('energy_a', 0), state.get('ability_state_a') or {}),
-        'interactive_hint': f"Энергия: {int(state.get('energy_a', 0))}. Натиск стоит 2, блок 1, способность домена 3.",
+        'interactive_hint': current_tip.get('body') if isinstance(current_tip, dict) and current_tip.get('body') else f"Энергия: {int(state.get('energy_a', 0))}. Натиск стоит 2, блок 1, способность домена 3.",
+        'tutorial': state.get('tutorial'),
         'reward_summary': state.get('reward_summary'),
         'reward_gain': state.get('reward_gain'),
     }
 
 
-def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, opponent_domain, player_cards, opponent_cards, build_a, build_b, selected_slot_a, selected_slot_b, strategy_key_a='balanced', strategy_key_b='balanced'):
+def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, opponent_domain, player_cards, opponent_cards, build_a, build_b, selected_slot_a, selected_slot_b, strategy_key_a='balanced', strategy_key_b='balanced', tutorial=None):
     ensure_runtime_tables()
     player_cards = [normalize_card_profile(card) for card in (player_cards or [])]
     opponent_cards = [normalize_card_profile(card) for card in (opponent_cards or [])]
@@ -13311,7 +13543,11 @@ def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, oppone
         'deck_power_b': deck_score(opponent_cards),
         'complete': False,
         'tie_breaker': False,
+        'tutorial': tutorial or None,
     }
+    if tutorial and state.get('ability_state_a') and state['ability_state_a'].get('active'):
+        state['ability_state_a']['cooldown_remaining'] = 0
+        state['ability_state_a']['charges_remaining'] = max(1, int(state['ability_state_a'].get('charges_remaining', 1) or 1))
     ts = now_iso()
     with closing(get_db()) as conn:
         conn.execute(
@@ -13375,6 +13611,37 @@ def finalize_solo_battle_state(state):
         state['result_label'] = 'Ничья'
 
 
+def tutorial_config_for_domain(domain_meta, selected_slot):
+    active_name = (((domain_meta or {}).get('activeAbility') or {}).get('name')) or 'Способность домена'
+    return {
+        'active': True,
+        'step_title': 'Боевой туториал',
+        'step_index': 0,
+        'recommended_actions': ['guard', 'burst', 'ability'],
+        'bot_actions': ['burst', 'guard', 'guard'],
+        'tips': [
+            {
+                'title': 'Шаг 1. Удержи первый удар',
+                'body': 'Снизу твоя колода. Сверху колода бота. Сейчас бот откроет Натиском, поэтому жми Блок.',
+                'focus': 'action',
+            },
+            {
+                'title': 'Шаг 2. Дожми перевес',
+                'body': 'Порядок колоды уже работает на тебя. Во втором раунде жми Натиск и забирай темп.',
+                'focus': 'order',
+            },
+            {
+                'title': 'Шаг 3. Используй тактическую карту',
+                'body': f'Твоя тактическая карта в слоте {selected_slot or 1}. Заверши бой через {active_name}.',
+                'focus': 'featured',
+            },
+        ],
+        'skip_allowed': True,
+        'first_success': True,
+        'reward_label': 'Награда за обучение: +5 осколков и +1 редкий токен',
+    }
+
+
 def apply_solo_battle_action(session_id, wallet, action_key):
     state = load_solo_battle(session_id)
     if wallet != state.get('wallet'):
@@ -13405,6 +13672,7 @@ def apply_solo_battle_action(session_id, wallet, action_key):
     domain_meta_b = dict(state.get('domain_meta_b') or {})
     domain_meta_a['_synergy'] = dict(state.get('synergy_a') or {})
     domain_meta_b['_synergy'] = dict(state.get('synergy_b') or {})
+    tutorial = dict(state.get('tutorial') or {})
     state['energy_a'] = 3
     state['energy_b'] = 3
     prev_a = state.get('prev_a')
@@ -13412,6 +13680,8 @@ def apply_solo_battle_action(session_id, wallet, action_key):
     if action_key not in available_actions_for_state(state.get('energy_a', 0), ability_state_a):
         raise ValueError('Недостаточно энергии или способность недоступна.')
     planned_action_b = (state.get('opponent_action_plan') or default_action_plan())[idx]
+    if tutorial.get('active'):
+        planned_action_b = ((tutorial.get('bot_actions') or ['burst', 'guard', 'guard']) + ['guard'])[idx]
     action_b = choose_bot_round_action(
         planned_action_b,
         state.get('energy_b', 0),
@@ -13450,6 +13720,22 @@ def apply_solo_battle_action(session_id, wallet, action_key):
     roll_bonus_b, crit_b = energy_roll_bonus(action_b, roll_rng)
     passive_roll_a, passive_roll_note_a = passive_ability_bonus(domain_meta_a, ability_state_a, 'roll', previous_outcome=prev_a, action_key=action_key, proc_seed=f'{session_id}:{idx}:a:roll')
     passive_roll_b, passive_roll_note_b = passive_ability_bonus(domain_meta_b, ability_state_b, 'roll', previous_outcome=prev_b, action_key=action_b, proc_seed=f'{session_id}:{idx}:b:roll')
+    tutorial_hint = None
+    tutorial_bonus_a = 0
+    tutorial_bonus_b = 0
+    tutorial_followed = False
+    if tutorial.get('active'):
+        recommended = ((tutorial.get('recommended_actions') or ['guard', 'burst', 'ability']) + ['guard'])[idx]
+        tutorial_followed = action_key == recommended
+        tutorial_bonus_a = 18 if tutorial_followed else 4
+        tutorial_bonus_b = -4 if tutorial_followed else 0
+        tip = ((tutorial.get('tips') or []) + [{'title': '', 'body': ''}])[idx]
+        tutorial_hint = {
+            'recommended_action': recommended,
+            'followed': tutorial_followed,
+            'title': tip.get('title') or '',
+            'body': tip.get('body') or '',
+        }
     if crit_a:
         roll_bonus_a += 6
     if crit_b:
@@ -13457,8 +13743,8 @@ def apply_solo_battle_action(session_id, wallet, action_key):
     swing_a, swing_b = (state.get('swing_pairs') or [[0, 0]])[idx]
     domain_bonus_a = passive_bonus_a + active_bonus_a + counter_bonus_a + passive_roll_a
     domain_bonus_b = passive_bonus_b + active_bonus_b + counter_bonus_b + passive_roll_b
-    total_a = value_a + card_boost_a + action_bonus_a + strategy_bonus_a + skill_bonus_a + featured_bonus_a + roll_bonus_a + domain_bonus_a + swing_a
-    total_b = value_b + card_boost_b + action_bonus_b + strategy_bonus_b + skill_bonus_b + featured_bonus_b + roll_bonus_b + domain_bonus_b + swing_b
+    total_a = value_a + card_boost_a + action_bonus_a + strategy_bonus_a + skill_bonus_a + featured_bonus_a + roll_bonus_a + domain_bonus_a + swing_a + tutorial_bonus_a
+    total_b = value_b + card_boost_b + action_bonus_b + strategy_bonus_b + skill_bonus_b + featured_bonus_b + roll_bonus_b + domain_bonus_b + swing_b + tutorial_bonus_b
 
     if total_a > total_b:
         winner = 'a'
@@ -13524,6 +13810,9 @@ def apply_solo_battle_action(session_id, wallet, action_key):
             'domain_bonus_b': domain_bonus_b,
             'domain_note_a': ' • '.join(part for part in [passive_note_a, active_note_a, counter_note_a, passive_roll_note_a] if part),
             'domain_note_b': ' • '.join(part for part in [passive_note_b, active_note_b, counter_note_b, passive_roll_note_b] if part),
+            'tutorial_bonus_a': tutorial_bonus_a,
+            'tutorial_bonus_b': tutorial_bonus_b,
+            'tutorial_hint': tutorial_hint,
             'swing_a': swing_a,
             'swing_b': swing_b,
             'total_a': total_a,
@@ -13532,6 +13821,11 @@ def apply_solo_battle_action(session_id, wallet, action_key):
         }
     )
     state['current_round'] = idx + 1
+    if tutorial.get('active'):
+        tutorial['step_index'] = state['current_round']
+        if state['current_round'] < len(tutorial.get('tips') or []):
+          tutorial['current_tip'] = tutorial['tips'][state['current_round']]
+        state['tutorial'] = tutorial
     if state['current_round'] >= rounds_total:
         state['complete'] = True
         finalize_solo_battle_state(state)
@@ -13545,9 +13839,25 @@ def apply_solo_battle_action(session_id, wallet, action_key):
             'lucky_tokens': 0,
             'season_points': 4 if won else 2,
         }
+        if tutorial.get('active'):
+            if won:
+                tutorial_rewards, tutorial_gain = grant_tutorial_reward(state['wallet'])
+                state['reward_summary'] = tutorial_rewards
+                state['reward_gain'] = {
+                    'pack_shards': int(state['reward_gain'].get('pack_shards', 0)) + int(tutorial_gain.get('pack_shards', 0)),
+                    'rare_tokens': int(state['reward_gain'].get('rare_tokens', 0)) + int(tutorial_gain.get('rare_tokens', 0)),
+                    'lucky_tokens': int(state['reward_gain'].get('lucky_tokens', 0)) + int(tutorial_gain.get('lucky_tokens', 0)),
+                    'season_points': int(state['reward_gain'].get('season_points', 0)) + int(tutorial_gain.get('season_points', 0)),
+                }
+                update_tutorial_progress(state['wallet'], completed_at=now_iso(), wins=int(ensure_tutorial_progress(state['wallet']).get('wins', 0) or 0) + 1)
+                tutorial['completed'] = True
+                tutorial['completion_prompt'] = 'Первый успех зафиксирован. Забери награду и переходи в обычный или рейтинговый бой.'
+            else:
+                tutorial['completion_prompt'] = 'Туториал можно пройти ещё раз. Следуй подсказкам, и первый бой будет значительно проще.'
+            state['tutorial'] = tutorial
         grant_domain_experience(state['wallet'], state['domain'], 18, won=won)
         log_domain_telemetry(
-            'solo_battle_complete',
+            'tutorial_complete' if tutorial.get('active') else 'solo_battle_complete',
             wallet=state['wallet'],
             domain=state['domain'],
             rarity_label=(domain_meta_a or {}).get('rarityLabel'),
@@ -14867,6 +15177,74 @@ def api_friends(wallet):
     if not valid_wallet_address(wallet):
         return json_error('Некорректный адрес кошелька.')
     return jsonify({'friends': friend_rows(wallet)})
+
+
+@app.route('/api/tutorial/<wallet>')
+def api_tutorial(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    return jsonify({'wallet': wallet, 'tutorial': tutorial_summary(wallet)})
+
+
+@app.route('/api/tutorial/skip', methods=['POST'])
+def api_tutorial_skip():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    return jsonify({'ok': True, 'tutorial': mark_tutorial_skipped(wallet), 'player': get_player(wallet)})
+
+
+@app.route('/api/tutorial/start', methods=['POST'])
+def api_tutorial_start():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    selected_slot = int(payload.get('selected_slot') or 0) or None
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not domain:
+        return json_error('Нужно выбрать домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502)
+    tutorial = tutorial_summary(wallet)
+    if tutorial.get('completed'):
+        return json_error('Туториал уже завершён.', 400)
+    player_cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
+    player_cards = [normalize_card_profile(card) for card in player_cards]
+    player_build = load_deck_build(wallet, domain, player_cards)
+    base_seed = f'tutorial:{wallet}:{domain}:{today_utc_str()}'
+    tutorial_cards = player_cards[:3]
+    bot_cards = bot_cards_slightly_weaker_than_player(player_cards, base_seed)
+    bot_cards = [dict(card, pool_value=max(42, int(card.get('pool_value', 0) * 0.8))) for card in bot_cards[:3]]
+    tutorial_slot = selected_slot or auto_tactical_slot(tutorial_cards, player_build['points'])
+    if not any(int(card.get('slot', 0)) == int(tutorial_slot) for card in tutorial_cards):
+        tutorial_slot = int((tutorial_cards[0] or {}).get('slot', 1))
+    tutorial_meta = tutorial_config_for_domain(battle_domain_metadata(domain, wallet=wallet), tutorial_slot)
+    tutorial_meta['current_tip'] = tutorial_meta['tips'][0]
+    mark_tutorial_started(wallet)
+    log_domain_telemetry('tutorial_start', wallet=wallet, domain=domain, payload={'slot': tutorial_slot})
+    result = create_solo_battle(
+        wallet=wallet,
+        domain=domain,
+        mode='tutorial',
+        mode_title='Боевой туториал',
+        opponent_wallet='bot',
+        opponent_domain=None,
+        player_cards=tutorial_cards,
+        opponent_cards=bot_cards,
+        build_a=player_build['points'],
+        build_b=default_discipline_build(max(1100, int(player_build['pool'] * 0.62))),
+        selected_slot_a=tutorial_slot,
+        selected_slot_b=weakest_tactical_slot(bot_cards),
+        strategy_key_a='balanced',
+        strategy_key_b='balanced',
+        tutorial=tutorial_meta,
+    )
+    return jsonify({'result': result, 'player': get_player(wallet), 'tutorial': tutorial_summary(wallet)})
 
 
 @app.route('/api/friends', methods=['POST'])
