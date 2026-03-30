@@ -906,6 +906,23 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
+    .arena-slot-card.tutorial-focus {
+      border-color: rgba(255, 211, 110, 0.56);
+      box-shadow:
+        0 0 0 1px rgba(255, 211, 110, 0.22),
+        0 0 24px rgba(255, 211, 110, 0.18),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      animation: tutorialPulse 1.6s ease-in-out infinite;
+      z-index: 2;
+    }
+
+    .arena-route-path.tutorial-focus {
+      stroke: rgba(255, 211, 110, 0.88);
+      stroke-width: 4;
+      filter: drop-shadow(0 0 10px rgba(255, 211, 110, 0.34));
+      animation: tutorialRoutePulse 1.35s ease-in-out infinite;
+    }
+
     .arena-slot-card strong {
       display: block;
       margin-bottom: 4px;
@@ -2242,6 +2259,33 @@ PAGE_TEMPLATE = """
       animation: choiceConfirm 520ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
+    .interactive-action-btn.tutorial-focus {
+      opacity: 1;
+      transform: translateY(0) scale(1.03);
+      border-color: rgba(255, 211, 110, 0.72);
+      box-shadow:
+        0 0 0 1px rgba(255, 211, 110, 0.22),
+        0 16px 32px rgba(255, 211, 110, 0.18);
+      animation: tutorialPulse 1.45s ease-in-out infinite;
+    }
+
+    .tutorial-tip-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 211, 110, 0.26);
+      background: rgba(255, 211, 110, 0.1);
+      color: rgba(255, 236, 189, 0.98);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      width: fit-content;
+      margin-bottom: 10px;
+    }
+
     @keyframes battleMenuRise {
       0% {
         opacity: 0;
@@ -2258,6 +2302,18 @@ PAGE_TEMPLATE = """
         transform: translateY(0) scale(1) rotateX(0deg);
         filter: blur(0);
       }
+    }
+
+    @keyframes tutorialPulse {
+      0% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-2px) scale(1.02); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    @keyframes tutorialRoutePulse {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
     }
 
     @keyframes battleMenuFade {
@@ -5511,8 +5567,16 @@ PAGE_TEMPLATE = """
             <strong>Боевой туториал завершён</strong>
             <div class="tiny">Побед: ${tutorial.wins || 1} • попыток: ${tutorial.attempts || 1}</div>
             <div class="tiny">Первый успех уже засчитан. Можно идти в обычный или рейтинговый режим.</div>
+            <div class="actions" style="margin-top:10px;">
+              <button id="tutorial-go-casual-btn">Обычный бой</button>
+              <button class="secondary" id="tutorial-go-ranked-btn">Рейтинг</button>
+            </div>
           </div>
         `;
+        const casualBtn = document.getElementById('tutorial-go-casual-btn');
+        const rankedBtn = document.getElementById('tutorial-go-ranked-btn');
+        if (casualBtn) bindFunctionalControl(casualBtn, () => launchRecommendedMode('casual'));
+        if (rankedBtn) bindFunctionalControl(rankedBtn, () => launchRecommendedMode('ranked'));
         return;
       }
       tutorialPanel.innerHTML = `
@@ -5530,6 +5594,32 @@ PAGE_TEMPLATE = """
       const skipBtn = document.getElementById('skip-tutorial-btn');
       if (startBtn) bindFunctionalControl(startBtn, startTutorialBattle);
       if (skipBtn) bindFunctionalControl(skipBtn, skipTutorialBattle);
+    }
+
+    function applyTutorialVisualFocus(result) {
+      const tutorial = result && result.tutorial;
+      if (!tutorial || !tutorial.active) return;
+      const roundIndex = Number(result.interactive_round_index || 0);
+      const currentTip = tutorial.current_tip || ((tutorial.tips || [])[Math.min(roundIndex, Math.max((tutorial.tips || []).length - 1, 0))]);
+      if (!currentTip) return;
+      const focus = currentTip.focus || '';
+      const recommended = ((tutorial.recommended_actions || [])[roundIndex]) || '';
+      const activePlayerSlot = Number((result.player_cards || [])[Math.min(roundIndex, Math.max((result.player_cards || []).length - 1, 0))]?.slot || 0);
+      const featuredSlot = Number(result.player_featured_card?.slot || result.selected_slot || 0);
+      if (focus === 'order' && activePlayerSlot) {
+        const slotCard = battleResult.querySelector(`.arena-rail.player .arena-slot-card[data-slot="${activePlayerSlot}"]`);
+        if (slotCard) slotCard.classList.add('tutorial-focus');
+        const lanePath = battleResult.querySelectorAll('.arena-route-path')[Math.max(0, roundIndex)];
+        if (lanePath) lanePath.classList.add('tutorial-focus');
+      }
+      if (focus === 'featured' && featuredSlot) {
+        const featuredCard = battleResult.querySelector(`.arena-rail.player .arena-slot-card[data-slot="${featuredSlot}"]`);
+        if (featuredCard) featuredCard.classList.add('tutorial-focus');
+      }
+      if ((focus === 'action' || focus === 'featured') && recommended) {
+        const actionBtn = battleResult.querySelector(`.interactive-action-btn[data-action-key="${recommended}"]`);
+        if (actionBtn) actionBtn.classList.add('tutorial-focus');
+      }
     }
 
     function renderIdentityPanel() {
@@ -6504,7 +6594,7 @@ PAGE_TEMPLATE = """
         const isActive = Number(activeSlot || 0) === slot;
         const isFeatured = Number(featuredSlot || 0) === slot;
         return `
-          <div class="arena-slot-card ${side === 'enemy' ? 'enemy-card' : 'player-card'} ${isActive ? 'active-slot' : ''} ${isFeatured ? 'featured-slot' : ''}">
+          <div class="arena-slot-card ${side === 'enemy' ? 'enemy-card' : 'player-card'} ${isActive ? 'active-slot' : ''} ${isFeatured ? 'featured-slot' : ''}" data-slot="${slot}" data-side="${side}">
             <strong>${slot}. ${card.title || 'Карта'}</strong>
             <div class="arena-slot-meta">${card.rarity || '-'}</div>
             <div class="arena-slot-meta">Базовая сила: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
@@ -7215,6 +7305,7 @@ PAGE_TEMPLATE = """
                     <div class="interactive-timer" id="interactive-timer">5 c</div>
                   </div>
                   ${tutorialMeta && tutorialCurrentTip ? `
+                    <div class="tutorial-tip-badge">${tutorialCurrentTip.title || 'Подсказка'}</div>
                     <div class="user-item" style="margin-bottom:10px;">
                       <strong>${tutorialCurrentTip.title || 'Подсказка'}</strong>
                       <div class="tiny">${tutorialCurrentTip.body || ''}</div>
@@ -7349,6 +7440,7 @@ PAGE_TEMPLATE = """
             ${result.tutorial && result.tutorial.completion_prompt ? `<div class="battle-reward-line">${result.tutorial.completion_prompt}</div>` : ''}
             <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
             ${result.opponent_wallet && result.opponent_wallet !== 'bot' ? '<button class="secondary" onclick="rematchLastOpponent()">Рематч</button>' : ''}
+            ${result.mode === 'tutorial' && result.result === 'win' ? '<button onclick="launchRecommendedMode(\'casual\')">В обычный бой</button><button class="secondary" onclick="launchRecommendedMode(\'ranked\')">В рейтинг</button>' : ''}
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
@@ -7538,6 +7630,9 @@ PAGE_TEMPLATE = """
             }
           }, 120);
         }
+        if (result.tutorial && result.tutorial.active) {
+          applyTutorialVisualFocus(result);
+        }
       }
     }
 
@@ -7649,6 +7744,14 @@ PAGE_TEMPLATE = """
       document.getElementById('opponent-wallet').value = reference;
       switchView('modes');
       await playMatch('duel');
+    }
+
+    async function launchRecommendedMode(mode) {
+      await prepareFunctionalInteraction();
+      switchView('modes');
+      if (mode === 'ranked' || mode === 'casual') {
+        await startMatchmaking(mode);
+      }
     }
 
     function rebindDomain() {
@@ -8853,6 +8956,7 @@ PAGE_TEMPLATE = """
     window.fillOpponent = fillOpponent;
     window.repeatLastMode = repeatLastMode;
     window.rematchLastOpponent = rematchLastOpponent;
+    window.launchRecommendedMode = launchRecommendedMode;
     window.openModes = openModes;
     window.viewBattleFlow = viewBattleFlow;
     window.selectDeckDomain = selectDeckDomain;
