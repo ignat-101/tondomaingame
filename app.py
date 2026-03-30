@@ -5946,12 +5946,13 @@ PAGE_TEMPLATE = """
       const searching = Boolean(state.matchmakingMode);
       const selectedPack = state.selectedPackType || 'common';
       const selectedPackMeta = packTypeMeta(selectedPack);
+      const paidPackMeta = packTypeMeta('lucky');
       document.getElementById('check-domains-btn').disabled = !connected;
       document.getElementById('shuffle-deck-btn').disabled = !(connected && hasDomain && hasCards);
       document.getElementById('open-pack-btn').disabled = !(connected && hasDomain) || selectedPack !== 'common';
       document.getElementById('open-pack-btn').textContent = selectedPack === 'common' ? 'Открыть ежедневный пак' : 'Ежедневный пак: только Common';
-      buyPackBtn.disabled = !(connected && hasDomain && tonConnectUI && selectedPackMeta);
-      buyPackBtn.textContent = `Оплатить ${selectedPackMeta ? selectedPackMeta.label : 'пак'} за 1 TON`;
+      buyPackBtn.disabled = !(connected && hasDomain && tonConnectUI && paidPackMeta);
+      buyPackBtn.textContent = `Оплатить ${paidPackMeta ? paidPackMeta.label : 'Lucky Pack'} за 1 TON`;
       document.getElementById('continue-to-modes-btn').disabled = !hasCards;
       document.getElementById('play-ranked-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards) || searching;
@@ -6253,13 +6254,13 @@ PAGE_TEMPLATE = """
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
-      const clashCardWidth = compactClash ? 54 : 78;
-      const clashCardHeight = compactClash ? 76 : 112;
-      const clashGap = compactClash ? 8 : 12;
-      const impactGap = compactClash ? 4 : 6;
-      const centerY = coreRect.height * (compactClash ? 0.54 : 0.5);
+      const clashCardWidth = compactClash ? 48 : 78;
+      const clashCardHeight = compactClash ? 68 : 112;
+      const clashGap = compactClash ? 18 : 12;
+      const impactGap = compactClash ? 10 : 6;
+      const centerY = coreRect.height * (compactClash ? 0.5 : 0.5);
       const clashLanePadding = compactClash ? 6 : 10;
-      const verticalPadding = compactClash ? 42 : 14;
+      const verticalPadding = compactClash ? 50 : 14;
       const laneTargetLeft = Math.max(
         clashLanePadding,
         Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
@@ -6272,14 +6273,14 @@ PAGE_TEMPLATE = """
       const playerTargetTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawPlayerTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 8 : 14) : playerTargetTop;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 8 : 14) : enemyTargetTop;
-      const rawPlayerImpactTop = playerAttack ? centerY + impactGap + (compactClash ? 10 : 12) : playerTargetTop;
-      const rawEnemyImpactTop = enemyAttack ? centerY - clashCardHeight - impactGap - (compactClash ? 10 : 12) : enemyTargetTop;
+      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 10 : 14) : playerTargetTop;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 14) : enemyTargetTop;
+      const rawPlayerImpactTop = playerAttack ? centerY + impactGap + (compactClash ? 16 : 12) : playerTargetTop;
+      const rawEnemyImpactTop = enemyAttack ? centerY - clashCardHeight - impactGap - (compactClash ? 16 : 12) : enemyTargetTop;
       const playerImpactTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawPlayerImpactTop);
       const enemyImpactTop = Math.max(verticalPadding, rawEnemyImpactTop);
-      const playerImpactScale = playerAttack ? (compactClash ? 1.06 : 1.1) : 1.01;
-      const enemyImpactScale = enemyAttack ? (compactClash ? 1.06 : 1.1) : 1.01;
+      const playerImpactScale = playerAttack ? (compactClash ? 1.03 : 1.1) : 1.01;
+      const enemyImpactScale = enemyAttack ? (compactClash ? 1.03 : 1.1) : 1.01;
       const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
       const enemyImpactRotate = enemyAttack ? '8deg' : '-2deg';
       const playerRecoilY = playerAttack ? playerImpactTop + (compactClash ? 8 : 12) : playerTargetTop;
@@ -7385,7 +7386,7 @@ PAGE_TEMPLATE = """
     async function openPack(source = 'daily', paymentId = null, packType = null) {
       await prepareFunctionalInteraction();
       if (state.packOpening) return;
-      const resolvedPackType = packType || (source === 'paid' ? (state.selectedPackType || 'lucky') : 'common');
+      const resolvedPackType = packType || (source === 'paid' ? 'lucky' : 'common');
       const hadPreviousDeck = Array.isArray(state.cards) && state.cards.length === 5;
       state.packOpening = true;
       setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
@@ -7500,7 +7501,7 @@ PAGE_TEMPLATE = """
     async function buyPackWithTon() {
       await prepareFunctionalInteraction();
       if (!state.wallet || !state.selectedDomain) return;
-      const selectedPackType = state.selectedPackType || 'lucky';
+      const selectedPackType = 'lucky';
       if (!tonConnectUI) {
         setStatus(document.getElementById('pack-status'), 'TonConnect не инициализирован.', 'error');
         return;
@@ -7530,7 +7531,6 @@ PAGE_TEMPLATE = """
         });
         state.pendingPackSource = 'paid';
         state.pendingPackPaymentId = intent.payment_id;
-        state.selectedPackType = selectedPackType;
         packShowcase.classList.remove('opened');
         foilPack.classList.remove('opening');
         foilPack.classList.remove('vanishing');
