@@ -6024,6 +6024,10 @@ PAGE_TEMPLATE = """
       if (!rounds.length) {
         return '<div class="tiny">Подробный ход боя пока недоступен.</div>';
       }
+      const reasonChip = (label, value, kind = '') => {
+        if (!value) return '';
+        return `<span class="arena-decision-chip ${kind}">${label}: ${value}</span>`;
+      };
       return `
         <div class="discipline-list">
           ${rounds.map((round, index) => {
@@ -6068,6 +6072,11 @@ PAGE_TEMPLATE = """
                   <span class="arena-decision-chip strategy" style="animation-delay:${delay + 140}ms;">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label}</span>
                   <span class="arena-decision-chip featured" style="animation-delay:${delay + 190}ms;">Тактическая карта: +${round.player_featured_bonus || 0} / +${round.opponent_featured_bonus || 0}</span>
                   <span class="arena-decision-chip outcome" style="animation-delay:${delay + 240}ms;">Итог раунда: ${marker}</span>
+                  ${reasonChip('Action', round.player_action_note, 'player')}
+                  ${reasonChip('Counter', round.player_domain_note, 'featured')}
+                  ${reasonChip('Strategy', round.player_strategy_note, 'strategy')}
+                  ${reasonChip('Skill', round.player_skill_note, 'featured')}
+                  ${(round.player_crit || round.opponent_crit) ? `<span class="arena-decision-chip outcome">${round.player_crit ? 'Твой crit' : ''}${round.player_crit && round.opponent_crit ? ' / ' : ''}${round.opponent_crit ? 'Crit соперника' : ''}</span>` : ''}
                 </div>
               </div>
             `;
@@ -9809,6 +9818,35 @@ def class_counter_bonus(own_meta, opp_meta, action_key):
     return total_bonus, f'{own_class} давит {opp_class}'
 
 
+def role_focus_bonus(metadata, focus, phase, action_key):
+    role = str((metadata or {}).get('role') or '')
+    profile = {
+        'Tank': ({'defense', 'speed'}, {'counter'}, {'guard'}),
+        'Guardian': ({'defense', 'luck'}, {'counter', 'tempo'}, {'guard', 'ability'}),
+        'Damage': ({'attack', 'magic'}, {'opening', 'finisher'}, {'burst', 'ability'}),
+        'Sniper': ({'attack', 'magic'}, {'finisher', 'risk'}, {'burst', 'ability'}),
+        'Control': ({'luck', 'magic'}, {'counter', 'risk'}, {'guard', 'ability'}),
+        'Disruptor': ({'speed', 'magic'}, {'counter', 'tempo'}, {'ability'}),
+        'Support': ({'defense', 'luck'}, {'tempo', 'finisher'}, {'guard', 'ability'}),
+        'Fortune': ({'luck', 'magic'}, {'risk', 'finisher'}, {'ability'}),
+        'Combo': ({'attack', 'speed'}, {'opening', 'tempo'}, {'burst', 'ability'}),
+        'Trickster': ({'luck', 'speed'}, {'risk', 'counter'}, {'guard', 'ability'}),
+    }.get(role)
+    if not profile:
+        return 0, ''
+    focus_set, phase_set, action_set = profile
+    bonus = 0
+    if focus in focus_set:
+        bonus += 2
+    if phase in phase_set:
+        bonus += 1
+    if action_key in action_set:
+        bonus += 1
+    if bonus <= 0:
+        return 0, ''
+    return bonus, f'{role} играет от {focus}'
+
+
 def passive_ability_bonus(metadata, ability_state, trigger, *, previous_outcome=None, action_key=None, proc_seed=''):
     passive = dict((metadata or {}).get('passiveAbility') or {})
     if not passive:
@@ -9915,6 +9953,8 @@ def resolve_battle_round(*, seed_value, idx, focus, label, phase, card_a, card_b
     active_bonus_b, active_note_b = active_ability_bonus(domain_meta_b, ability_state_b, phase, focus, action_b, proc_seed=f'{seed_value}:{idx}:b')
     counter_bonus_a, counter_note_a = class_counter_bonus(domain_meta_a, domain_meta_b, action_a)
     counter_bonus_b, counter_note_b = class_counter_bonus(domain_meta_b, domain_meta_a, action_b)
+    role_bonus_a, role_note_a = role_focus_bonus(domain_meta_a, focus, phase, action_a)
+    role_bonus_b, role_note_b = role_focus_bonus(domain_meta_b, focus, phase, action_b)
     roll_rng = random.Random(hashlib.sha256(f"{seed_value}:{idx}:{action_a}:{action_b}".encode()).hexdigest())
     roll_bonus_a, crit_a = energy_roll_bonus(action_a, roll_rng)
     roll_bonus_b, crit_b = energy_roll_bonus(action_b, roll_rng)
@@ -9927,8 +9967,8 @@ def resolve_battle_round(*, seed_value, idx, focus, label, phase, card_a, card_b
     swing_rng = random.Random(hashlib.sha256(f"{seed_value}:swing:{idx}".encode()).hexdigest())
     swing_a = swing_rng.randint(0, 2)
     swing_b = swing_rng.randint(0, 2)
-    domain_bonus_a = passive_bonus_a + active_bonus_a + counter_bonus_a + passive_roll_a
-    domain_bonus_b = passive_bonus_b + active_bonus_b + counter_bonus_b + passive_roll_b
+    domain_bonus_a = passive_bonus_a + active_bonus_a + counter_bonus_a + role_bonus_a + passive_roll_a
+    domain_bonus_b = passive_bonus_b + active_bonus_b + counter_bonus_b + role_bonus_b + passive_roll_b
     total_a = value_a + card_boost_a + action_bonus_a + strategy_bonus_a + skill_bonus_a + featured_bonus_a + roll_bonus_a + domain_bonus_a + swing_a
     total_b = value_b + card_boost_b + action_bonus_b + strategy_bonus_b + skill_bonus_b + featured_bonus_b + roll_bonus_b + domain_bonus_b + swing_b
     if total_a > total_b:
@@ -9981,8 +10021,8 @@ def resolve_battle_round(*, seed_value, idx, focus, label, phase, card_a, card_b
         'crit_b': crit_b,
         'domain_bonus_a': domain_bonus_a,
         'domain_bonus_b': domain_bonus_b,
-        'domain_note_a': ' • '.join(part for part in [passive_note_a, active_note_a, counter_note_a, passive_roll_note_a] if part),
-        'domain_note_b': ' • '.join(part for part in [passive_note_b, active_note_b, counter_note_b, passive_roll_note_b] if part),
+        'domain_note_a': ' • '.join(part for part in [passive_note_a, active_note_a, counter_note_a, role_note_a, passive_roll_note_a] if part),
+        'domain_note_b': ' • '.join(part for part in [passive_note_b, active_note_b, counter_note_b, role_note_b, passive_roll_note_b] if part),
         'swing_a': swing_a,
         'swing_b': swing_b,
         'total_a': total_a,
