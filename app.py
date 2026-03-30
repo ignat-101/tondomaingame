@@ -826,12 +826,12 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 50% 70%, rgba(83, 246, 184, 0.08), transparent 42%),
         linear-gradient(180deg, rgba(7, 18, 33, 0.98), rgba(3, 10, 20, 0.98));
       box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.06);
-      padding: 16px;
+      padding: 12px;
     }
 
     .arena-shell {
       display: grid;
-      gap: 14px;
+      gap: 10px;
       --arena-columns: 5;
       --arena-gap: 8px;
       --arena-card-width: calc((100% - (var(--arena-gap) * (var(--arena-columns) - 1))) / var(--arena-columns));
@@ -839,8 +839,8 @@ PAGE_TEMPLATE = """
 
     .arena-rail {
       display: grid;
-      gap: 8px;
-      padding: 8px 10px;
+      gap: 6px;
+      padding: 6px 8px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background: rgba(8, 20, 36, 0.88);
@@ -909,7 +909,7 @@ PAGE_TEMPLATE = """
 
     .arena-core {
       position: relative;
-      min-height: 332px;
+      min-height: 284px;
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background:
@@ -970,10 +970,10 @@ PAGE_TEMPLATE = """
     .arena-choice-hub {
       position: relative;
       z-index: 1;
-      min-height: 332px;
+      min-height: 284px;
       display: grid;
       place-items: center;
-      padding: 8px 10px 10px;
+      padding: 6px 10px 8px;
     }
 
     .arena-choice-panel {
@@ -1015,7 +1015,7 @@ PAGE_TEMPLATE = """
 
     .arena-round-choice-slot {
       position: absolute;
-      top: 68px;
+      top: 56px;
       transform: translateX(-50%);
       display: grid;
       justify-items: center;
@@ -1026,7 +1026,7 @@ PAGE_TEMPLATE = """
 
     .arena-round-choice-slot.active {
       z-index: 3;
-      gap: 24px;
+      gap: 12px;
     }
 
     .arena-round-marker {
@@ -1090,7 +1090,7 @@ PAGE_TEMPLATE = """
     }
 
     .arena-round-choice-slot.active .arena-lane-choice-panel {
-      margin-top: 24px;
+      margin-top: 8px;
       transform: none;
       pointer-events: auto;
     }
@@ -1119,6 +1119,41 @@ PAGE_TEMPLATE = """
       z-index: 8;
       display: grid;
       gap: 10px;
+    }
+
+    .arena-round-floating-metrics {
+      width: clamp(188px, calc(var(--arena-card-width) + 36px), 224px);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      pointer-events: none;
+      position: relative;
+      z-index: 8;
+    }
+
+    .arena-floating-chip {
+      min-height: 38px;
+      padding: 7px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: rgba(16, 34, 49, 0.9);
+      display: grid;
+      gap: 2px;
+      align-content: center;
+      text-align: center;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .arena-floating-chip strong {
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .arena-floating-chip span {
+      font-size: 10px;
+      line-height: 1.1;
+      color: var(--muted);
+      word-break: break-word;
     }
 
     .arena-lane-choice-panel .interactive-battle-head {
@@ -4082,12 +4117,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-core {
-        min-height: 232px;
+        min-height: 220px;
       }
 
       .arena-choice-hub {
-        min-height: 232px;
-        padding: 8px 0 8px;
+        min-height: 220px;
+        padding: 6px 0 6px;
       }
 
       .arena-choice-panel {
@@ -4106,11 +4141,11 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot {
-        top: 48px;
+        top: 42px;
       }
 
       .arena-round-choice-slot.active {
-        gap: 10px;
+        gap: 8px;
       }
 
       .arena-round-marker {
@@ -4134,8 +4169,19 @@ PAGE_TEMPLATE = """
         max-width: 100%;
       }
 
+      .arena-round-floating-metrics {
+        width: min(146px, 34vw);
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .arena-floating-chip {
+        min-height: 30px;
+        padding: 5px 6px;
+      }
+
       .arena-round-choice-slot.active .arena-lane-choice-panel {
-        margin-top: 12px;
+        margin-top: 6px;
         transform: none;
       }
 
@@ -5836,13 +5882,13 @@ PAGE_TEMPLATE = """
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
-      const clashCardWidth = compactClash ? 58 : 88;
-      const clashCardHeight = compactClash ? 84 : 128;
-      const clashGap = compactClash ? 8 : 18;
-      const impactGap = compactClash ? 4 : 8;
-      const centerY = coreRect.height * (compactClash ? 0.64 : 0.5);
+      const clashCardWidth = compactClash ? 56 : 82;
+      const clashCardHeight = compactClash ? 80 : 118;
+      const clashGap = compactClash ? 4 : 8;
+      const impactGap = compactClash ? 2 : 4;
+      const centerY = coreRect.height * (compactClash ? 0.58 : 0.52);
       const clashLanePadding = compactClash ? 6 : 10;
-      const verticalPadding = compactClash ? 56 : 20;
+      const verticalPadding = compactClash ? 42 : 14;
       const laneTargetLeft = Math.max(
         clashLanePadding,
         Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
@@ -5855,18 +5901,18 @@ PAGE_TEMPLATE = """
       const enemyTargetTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawEnemyTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop + (compactClash ? 8 : 18) : playerTargetTop;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop - (compactClash ? 8 : 18) : enemyTargetTop;
-      const rawPlayerImpactTop = playerAttack ? centerY - clashCardHeight - impactGap + (compactClash ? 2 : 12) : playerTargetTop + 1;
-      const rawEnemyImpactTop = enemyAttack ? centerY + impactGap - (compactClash ? 2 : 12) : enemyTargetTop - 1;
+      const playerPrepTop = playerAttack ? playerTargetTop + (compactClash ? 6 : 12) : playerTargetTop;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop - (compactClash ? 6 : 12) : enemyTargetTop;
+      const rawPlayerImpactTop = playerAttack ? centerY - clashCardHeight - impactGap + (compactClash ? 4 : 8) : playerTargetTop + 1;
+      const rawEnemyImpactTop = enemyAttack ? centerY + impactGap - (compactClash ? 4 : 8) : enemyTargetTop - 1;
       const playerImpactTop = Math.max(verticalPadding, rawPlayerImpactTop);
       const enemyImpactTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawEnemyImpactTop);
-      const playerImpactScale = playerAttack ? (compactClash ? 1.1 : 1.14) : 1.01;
-      const enemyImpactScale = enemyAttack ? (compactClash ? 1.1 : 1.14) : 1.01;
+      const playerImpactScale = playerAttack ? (compactClash ? 1.08 : 1.12) : 1.01;
+      const enemyImpactScale = enemyAttack ? (compactClash ? 1.08 : 1.12) : 1.01;
       const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
       const enemyImpactRotate = enemyAttack ? '8deg' : '-2deg';
-      const playerRecoilY = playerAttack ? playerImpactTop - (compactClash ? 10 : 16) : playerTargetTop;
-      const enemyRecoilY = enemyAttack ? enemyImpactTop + (compactClash ? 10 : 16) : enemyTargetTop;
+      const playerRecoilY = playerAttack ? playerImpactTop - (compactClash ? 8 : 12) : playerTargetTop;
+      const enemyRecoilY = enemyAttack ? enemyImpactTop + (compactClash ? 8 : 12) : enemyTargetTop;
       const playerRecoilScale = playerAttack ? 1.02 : 1;
       const enemyRecoilScale = enemyAttack ? 1.02 : 1;
       const impactCenterY = ((playerImpactTop + clashCardHeight) + enemyImpactTop) / 2;
@@ -6036,7 +6082,7 @@ PAGE_TEMPLATE = """
         <div class="discipline-list">
           ${rounds.map((round, index) => {
             const roundClass = round.winner === 'player' ? 'win' : (round.winner === 'opponent' ? 'lose' : 'draw');
-            const marker = round.winner === 'player' ? 'ПОБЕДА' : (round.winner === 'opponent' ? 'ПОРАЖЕНИЕ' : 'НИЧЬЯ');
+            const marker = round.winner === 'player' ? 'WIN' : (round.winner === 'opponent' ? 'LOSE' : 'DRAW');
             const playerCardTitle = round.player_card?.title || 'Твоя карта';
             const opponentCardTitle = round.opponent_card?.title || 'Карта соперника';
             const playerSlot = round.player_card?.slot || '-';
@@ -6152,7 +6198,7 @@ PAGE_TEMPLATE = """
         core.className = `final-core ${resultKey}`;
         core.innerHTML = `
           <div class="final-boom"></div>
-          <div class="final-label">${resultKey === 'draw' ? 'НИЧЬЯ' : (resultKey === 'win' ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ')}</div>
+          <div class="final-label">${resultKey === 'draw' ? 'DRAW' : (resultKey === 'win' ? 'WIN' : 'LOSE')}</div>
           <div class="final-sub">${resultLabel || ''}</div>
           <div class="final-buttons">
             <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
@@ -6365,26 +6411,26 @@ PAGE_TEMPLATE = """
                   const isResolved = !result.interactive_live || roundNumber < activeRoundNumber;
                   const roundResult = Array.isArray(result.rounds) ? result.rounds[index] : null;
                   const roundOutcomeClass = roundResult?.winner === 'player' ? 'win' : (roundResult?.winner === 'opponent' ? 'lose' : 'draw');
-                  const roundOutcomeLabel = roundResult?.winner === 'player' ? 'Победа' : (roundResult?.winner === 'opponent' ? 'Поражение' : (roundResult ? 'Ничья' : 'Ждёт'));
+                  const roundOutcomeLabel = roundResult?.winner === 'player' ? 'WIN' : (roundResult?.winner === 'opponent' ? 'LOSE' : (roundResult ? 'DRAW' : 'Ждёт'));
                   const left = (arenaLanes[index] && arenaLanes[index].percent) || 50;
                   return `
                     <div class="arena-round-choice-slot ${isActive ? 'active' : ''} ${isResolved ? 'resolved' : ''}" style="left:${left}%;">
                       <div class="arena-round-marker"></div>
                       ${isActive ? `
+                        <div class="arena-round-floating-metrics">
+                          <div class="arena-floating-chip energy">
+                            <strong>Мана ${result.interactive_energy || 0}</strong>
+                            <span>${result.interactive_active_ability && result.interactive_active_ability.name ? result.interactive_active_ability.name : 'Базовый режим'}</span>
+                          </div>
+                          <div class="arena-floating-chip cooldown">
+                            <strong>КД ${(result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0}</strong>
+                            <span>Заряды ${(result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0}</span>
+                          </div>
+                        </div>
                         <div class="interactive-battle-panel arena-lane-choice-panel" id="interactive-battle-panel">
                           <div class="interactive-battle-head">
                             <div class="interactive-battle-title">Раунд ${roundNumber}</div>
                             <div class="interactive-timer" id="interactive-timer">5 c</div>
-                          </div>
-                          <div class="interactive-battle-metrics">
-                            <div class="interactive-battle-metric">
-                              <strong>Энергия ${result.interactive_energy || 0}</strong>
-                              <span>${result.interactive_active_ability && result.interactive_active_ability.name ? result.interactive_active_ability.name : 'Базовый режим'}</span>
-                            </div>
-                            <div class="interactive-battle-metric">
-                              <strong>КД ${(result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0}</strong>
-                              <span>Заряды ${(result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0}</span>
-                            </div>
                           </div>
                           <div class="interactive-battle-prompt" id="interactive-battle-status">${result.interactive_hint || 'Выбери действие'}</div>
                           <div class="interactive-battle-actions">
