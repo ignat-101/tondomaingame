@@ -909,7 +909,7 @@ PAGE_TEMPLATE = """
 
     .arena-core {
       position: relative;
-      min-height: 248px;
+      min-height: 220px;
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background:
@@ -970,10 +970,10 @@ PAGE_TEMPLATE = """
     .arena-choice-hub {
       position: relative;
       z-index: 1;
-      min-height: 248px;
+      min-height: 220px;
       display: grid;
       place-items: center;
-      padding: 6px 10px 8px;
+      padding: 4px 10px 6px;
     }
 
     .arena-choice-panel {
@@ -1092,9 +1092,9 @@ PAGE_TEMPLATE = """
     .arena-battle-dock {
       position: absolute;
       left: 50%;
-      bottom: 10px;
+      bottom: 8px;
       transform: translateX(-50%);
-      width: min(100%, 420px);
+      width: min(100%, 388px);
       z-index: 9;
       pointer-events: none;
     }
@@ -1102,9 +1102,9 @@ PAGE_TEMPLATE = """
     .arena-battle-dock .interactive-battle-panel {
       margin: 0;
       pointer-events: auto;
-      gap: 10px;
-      padding: 12px;
-      border-radius: 18px;
+      gap: 8px;
+      padding: 8px 10px 10px;
+      border-radius: 16px;
       background:
         linear-gradient(135deg, rgba(8, 23, 43, 0.94), rgba(10, 29, 34, 0.96)),
         radial-gradient(circle at top, rgba(69, 215, 255, 0.12), transparent 62%);
@@ -1114,51 +1114,52 @@ PAGE_TEMPLATE = """
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
     }
 
     .arena-battle-dock .interactive-battle-title {
-      font-size: 18px;
+      font-size: 16px;
       line-height: 1;
       text-align: left;
       flex: 1 1 auto;
     }
 
     .arena-battle-dock .interactive-timer {
-      min-width: 68px;
-      min-height: 30px;
+      min-width: 58px;
+      min-height: 28px;
       margin: 0;
-      padding: 0 10px;
-      font-size: 12px;
+      padding: 0 8px;
+      font-size: 11px;
     }
 
     .arena-battle-dock .interactive-battle-actions {
-      gap: 8px;
+      gap: 6px;
       perspective: none;
     }
 
     .arena-battle-dock .interactive-action-btn {
-      min-height: 46px;
-      border-radius: 14px;
-      padding: 0 10px;
-      font-size: 12px;
+      min-height: 40px;
+      border-radius: 12px;
+      padding: 0 8px;
+      font-size: 11px;
       line-height: 1.15;
     }
 
     .arena-player-resource-bar {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 8px;
+      gap: 6px;
+      margin-top: 6px;
+      transition: opacity 160ms ease, transform 160ms ease;
     }
 
     .arena-resource-pill {
       border: 1px solid rgba(121, 217, 255, 0.16);
-      border-radius: 14px;
-      padding: 8px 10px;
+      border-radius: 12px;
+      padding: 5px 7px;
       background: rgba(8, 20, 36, 0.92);
       display: grid;
-      gap: 5px;
+      gap: 3px;
     }
 
     .arena-resource-topline {
@@ -1166,20 +1167,20 @@ PAGE_TEMPLATE = """
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      font-size: 10px;
+      font-size: 9px;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
 
     .arena-resource-topline strong {
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1;
       color: var(--text);
     }
 
     .arena-resource-barline {
-      height: 7px;
+      height: 5px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.08);
       overflow: hidden;
@@ -1206,10 +1207,37 @@ PAGE_TEMPLATE = """
     }
 
     .arena-resource-caption {
-      font-size: 10px;
+      font-size: 8px;
       line-height: 1.15;
       color: var(--muted);
       word-break: break-word;
+    }
+
+    .arena-core.clash-live .arena-battle-dock {
+      opacity: 0;
+      visibility: hidden;
+      transform: translate(-50%, 10px);
+      pointer-events: none;
+    }
+
+    .arena-shell.clash-live .arena-player-resource-bar {
+      opacity: 0.28;
+      transform: translateY(4px);
+    }
+
+    .currency-badge {
+      min-width: 210px;
+    }
+
+    .battle-reward-line {
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(213, 235, 255, 0.82);
+    }
+
+    .battle-reward-line strong {
+      color: #7ff3c0;
     }
 
     .arena-round-choice-slot.active .arena-lane-choice-panel {
@@ -4335,6 +4363,10 @@ PAGE_TEMPLATE = """
         font-size: 10px;
       }
 
+      .currency-badge {
+        min-width: 0;
+      }
+
       .arena-lane-card {
         padding: 7px 6px 8px;
         border-radius: 14px;
@@ -4519,6 +4551,7 @@ PAGE_TEMPLATE = """
         </div>
         <div class="badge-row">
           <div class="badge" id="wallet-badge">Кошелёк не подключен</div>
+          <div class="badge currency-badge" id="currency-badge">Осколки: 0 • Редкие: 0 • Lucky: 0</div>
         </div>
       </div>
 
@@ -4824,6 +4857,7 @@ PAGE_TEMPLATE = """
     const marketplaceLinks = {{ marketplace_links|tojson }};
 
     const walletBadge = document.getElementById('wallet-badge');
+    const currencyBadge = document.getElementById('currency-badge');
     const walletStatus = document.getElementById('wallet-status');
     const walletQuickWallet = document.getElementById('wallet-quick-wallet');
     const walletQuickDomain = document.getElementById('wallet-quick-domain');
@@ -5499,6 +5533,9 @@ PAGE_TEMPLATE = """
 
     function renderProfile() {
       walletBadge.textContent = state.wallet ? `Подключён: ${shortAddress(state.wallet)}` : 'Кошелёк не подключен';
+      currencyBadge.textContent = state.playerProfile && state.playerProfile.rewards
+        ? `Осколки: ${state.playerProfile.rewards.pack_shards || 0} • Редкие: ${state.playerProfile.rewards.rare_tokens || 0} • Lucky: ${state.playerProfile.rewards.lucky_tokens || 0}`
+        : 'Осколки: 0 • Редкие: 0 • Lucky: 0';
       walletQuickWallet.textContent = state.wallet ? shortAddress(state.wallet) : 'Не подключен';
       walletQuickDomain.textContent = state.selectedDomain ? `${state.selectedDomain}.ton` : 'Не выбран';
       profileWallet.textContent = state.wallet ? shortAddress(state.wallet) : '-';
@@ -5998,9 +6035,9 @@ PAGE_TEMPLATE = """
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
       const clashCardWidth = compactClash ? 56 : 82;
       const clashCardHeight = compactClash ? 80 : 118;
-      const clashGap = compactClash ? 4 : 8;
-      const impactGap = compactClash ? 2 : 4;
-      const centerY = coreRect.height * (compactClash ? 0.58 : 0.52);
+      const clashGap = compactClash ? 2 : 4;
+      const impactGap = compactClash ? 1 : 2;
+      const centerY = coreRect.height * (compactClash ? 0.54 : 0.5);
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 42 : 14;
       const laneTargetLeft = Math.max(
@@ -6035,7 +6072,9 @@ PAGE_TEMPLATE = """
       laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
       laneReveal.style.setProperty('--clash-card-height', `${clashCardHeight}px`);
       activeLane.classList.add('clash-resolving');
+      arenaCore.classList.add('clash-live');
       if (arenaShell) {
+        arenaShell.classList.add('clash-live');
         arenaShell.classList.add('lane-clash-live');
       }
       const playerSourceVisibility = playerSource.style.visibility;
@@ -6097,7 +6136,9 @@ PAGE_TEMPLATE = """
       enemySource.style.visibility = enemySourceVisibility;
       enemySource.style.opacity = enemySourceOpacity;
       activeLane.classList.remove('clash-resolving');
+      arenaCore.classList.remove('clash-live');
       if (arenaShell) {
+        arenaShell.classList.remove('clash-live');
         arenaShell.classList.remove('lane-clash-live');
       }
     }
@@ -6150,6 +6191,10 @@ PAGE_TEMPLATE = """
             action: actionKey
           }
         });
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        }
         const nextResult = data.result || {};
         await playRoundClashReveal(liveResult, nextResult, actionKey);
         nextResult.autostart_battle = true;
@@ -6523,9 +6568,21 @@ PAGE_TEMPLATE = """
         const activeAbilityCooldownNow = Number((result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0);
         const activeAbilityChargesNow = Number((result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0);
         const energyNow = Number(result.interactive_energy || 0);
-        const energyFill = `${Math.max(8, Math.min(100, (energyNow / 3) * 100))}%`;
-        const cooldownFill = `${Math.max(8, Math.min(100, ((activeAbilityCooldownMax - activeAbilityCooldownNow) / activeAbilityCooldownMax) * 100))}%`;
-        const chargesFill = `${Math.max(8, Math.min(100, (activeAbilityChargesNow / activeAbilityChargesMax) * 100))}%`;
+        const energyFill = `${Math.max(0, Math.min(100, (energyNow / 3) * 100))}%`;
+        const cooldownFill = `${Math.max(0, Math.min(100, (activeAbilityCooldownNow / activeAbilityCooldownMax) * 100))}%`;
+        const chargesFill = `${Math.max(0, Math.min(100, (activeAbilityChargesNow / activeAbilityChargesMax) * 100))}%`;
+        const rewardSummary = result.reward_summary || (state.playerProfile && state.playerProfile.rewards) || null;
+        const rewardGain = result.reward_gain || {};
+        const rewardParts = [];
+        if (Number(rewardGain.pack_shards || 0) > 0) rewardParts.push(`осколки +${Number(rewardGain.pack_shards || 0)}`);
+        if (Number(rewardGain.rare_tokens || 0) > 0) rewardParts.push(`редкие +${Number(rewardGain.rare_tokens || 0)}`);
+        if (Number(rewardGain.lucky_tokens || 0) > 0) rewardParts.push(`lucky +${Number(rewardGain.lucky_tokens || 0)}`);
+        const rewardLine = resultKey === 'win' && rewardParts.length ? `<div class="battle-reward-line">Награда: <strong>${rewardParts.join(' • ')}</strong></div>` : '';
+        const battleHeader = rewardSummary ? `
+          <div class="showdown-header">
+            <div class="tiny"><strong>Валюта</strong> • осколки ${Number(rewardSummary.pack_shards || 0)} • редкие ${Number(rewardSummary.rare_tokens || 0)} • lucky ${Number(rewardSummary.lucky_tokens || 0)}</div>
+          </div>
+        ` : '';
         const interactivePanel = result.interactive_session_id
           ? `
               <div class="arena-round-choice-strip">
@@ -6579,12 +6636,12 @@ PAGE_TEMPLATE = """
             <div class="arena-resource-pill mana" style="--fill:${energyFill};">
               <div class="arena-resource-topline"><span>Мана</span><strong>${energyNow}/3</strong></div>
               <div class="arena-resource-barline"></div>
-              <div class="arena-resource-caption">${activeAbilityName}</div>
+              <div class="arena-resource-caption">Доступно действий: ${interactiveActionKeys.length}</div>
             </div>
             <div class="arena-resource-pill cooldown" style="--fill:${cooldownFill};">
               <div class="arena-resource-topline"><span>КД</span><strong>${activeAbilityCooldownNow}</strong></div>
               <div class="arena-resource-barline"></div>
-              <div class="arena-resource-caption">Готовность ${Math.max(0, activeAbilityCooldownMax - activeAbilityCooldownNow)}/${activeAbilityCooldownMax}</div>
+              <div class="arena-resource-caption">${activeAbilityCooldownNow > 0 ? `Осталось ходов: ${activeAbilityCooldownNow}` : 'Способность готова'}</div>
             </div>
             <div class="arena-resource-pill ability" style="--fill:${chargesFill};">
               <div class="arena-resource-topline"><span>Заряды</span><strong>${activeAbilityChargesNow}</strong></div>
@@ -6617,6 +6674,7 @@ PAGE_TEMPLATE = """
         const hideLiveScoreCard = Boolean(result.interactive_live && (!Array.isArray(result.rounds) || !result.rounds.length));
         const outcomeClass = immediateInteractiveOutcome ? '' : 'delayed-outcome';
         battleResult.innerHTML = `
+          ${battleHeader}
           <section class="showdown-main arena-board">
             <div class="arena-shell">
               <div class="arena-rail enemy">
@@ -6678,6 +6736,7 @@ PAGE_TEMPLATE = """
           </section>
           <div class="result-actions delayed-outcome post-actions">
             ${ratingLine ? `<div class="tiny" style="width:100%; text-align:center;">${result.rating_before} → ${result.rating_after}</div>` : ''}
+            ${rewardLine}
             <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
@@ -11280,6 +11339,8 @@ def build_solo_live_payload(state):
         'interactive_total_rounds': int(state.get('rounds_total', len(WIKIGACHI_ROUND_PLAN))),
         'interactive_available_actions': available_actions_for_state(state.get('energy_a', 0), state.get('ability_state_a') or {}),
         'interactive_hint': f"Энергия: {int(state.get('energy_a', 0))}. Натиск стоит 2, блок 1, способность домена 3.",
+        'reward_summary': state.get('reward_summary'),
+        'reward_gain': state.get('reward_gain'),
     }
 
 
@@ -11555,6 +11616,14 @@ def apply_solo_battle_action(session_id, wallet, action_key):
         finalize_solo_battle_state(state)
         record_non_ranked_game(state['wallet'], state['domain'])
         won = state.get('winner') == 'a'
+        rewards_after = grant_match_rewards(state['wallet'], won=won, ranked=False)
+        state['reward_summary'] = rewards_after
+        state['reward_gain'] = {
+            'pack_shards': 2 if won else 1,
+            'rare_tokens': 0,
+            'lucky_tokens': 0,
+            'season_points': 4 if won else 2,
+        }
         grant_domain_experience(state['wallet'], state['domain'], 18, won=won)
         log_domain_telemetry(
             'solo_battle_complete',
@@ -11833,6 +11902,13 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
         'opponent_domain_metadata': get_domain_metadata_payload(opp_domain, wallet=opp_wallet),
         'result': own_result if own_result != 'loss' else 'lose',
         'result_label': result_labels[own_result],
+        'reward_summary': reward_summary(own_wallet),
+        'reward_gain': {
+            'pack_shards': 2 if own_result == 'win' else 1,
+            'rare_tokens': 0,
+            'lucky_tokens': 0,
+            'season_points': (5 if invite['mode'] == 'ranked' else 4) if own_result == 'win' else (3 if invite['mode'] == 'ranked' else 2),
+        },
     }
     if rating_meta:
         if viewer_is_a:
@@ -13472,7 +13548,7 @@ def api_solo_battle_action():
         result = apply_solo_battle_action(session_id, wallet, action_key)
     except ValueError as exc:
         return json_error(str(exc), 400)
-    return jsonify({'result': result})
+    return jsonify({'result': result, 'player': get_player(wallet)})
 
 
 @app.route('/api/solo-battle/status')
