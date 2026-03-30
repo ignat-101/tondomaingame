@@ -848,6 +848,18 @@ PAGE_TEMPLATE = """
     }
 
     .arena-rail.enemy {
+      order: 1;
+    }
+
+    .arena-core {
+      order: 2;
+    }
+
+    .arena-rail.player {
+      order: 3;
+    }
+
+    .arena-rail.enemy {
       border-color: rgba(255, 211, 110, 0.14);
     }
 
