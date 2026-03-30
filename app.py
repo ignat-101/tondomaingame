@@ -909,7 +909,7 @@ PAGE_TEMPLATE = """
 
     .arena-core {
       position: relative;
-      min-height: 284px;
+      min-height: 248px;
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background:
@@ -970,7 +970,7 @@ PAGE_TEMPLATE = """
     .arena-choice-hub {
       position: relative;
       z-index: 1;
-      min-height: 284px;
+      min-height: 248px;
       display: grid;
       place-items: center;
       padding: 6px 10px 8px;
@@ -1026,7 +1026,7 @@ PAGE_TEMPLATE = """
 
     .arena-round-choice-slot.active {
       z-index: 3;
-      gap: 12px;
+      gap: 8px;
     }
 
     .arena-round-marker {
@@ -1087,6 +1087,129 @@ PAGE_TEMPLATE = """
       border-color: rgba(255, 211, 110, 0.34);
       background: rgba(255, 211, 110, 0.12);
       color: #ffe9ad;
+    }
+
+    .arena-battle-dock {
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      width: min(100%, 420px);
+      z-index: 9;
+      pointer-events: none;
+    }
+
+    .arena-battle-dock .interactive-battle-panel {
+      margin: 0;
+      pointer-events: auto;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(8, 23, 43, 0.94), rgba(10, 29, 34, 0.96)),
+        radial-gradient(circle at top, rgba(69, 215, 255, 0.12), transparent 62%);
+    }
+
+    .arena-battle-dock .interactive-battle-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .arena-battle-dock .interactive-battle-title {
+      font-size: 18px;
+      line-height: 1;
+      text-align: left;
+      flex: 1 1 auto;
+    }
+
+    .arena-battle-dock .interactive-timer {
+      min-width: 68px;
+      min-height: 30px;
+      margin: 0;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .arena-battle-dock .interactive-battle-actions {
+      gap: 8px;
+      perspective: none;
+    }
+
+    .arena-battle-dock .interactive-action-btn {
+      min-height: 46px;
+      border-radius: 14px;
+      padding: 0 10px;
+      font-size: 12px;
+      line-height: 1.15;
+    }
+
+    .arena-player-resource-bar {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .arena-resource-pill {
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      border-radius: 14px;
+      padding: 8px 10px;
+      background: rgba(8, 20, 36, 0.92);
+      display: grid;
+      gap: 5px;
+    }
+
+    .arena-resource-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .arena-resource-topline strong {
+      font-size: 12px;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .arena-resource-barline {
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .arena-resource-barline::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--fill, 0%);
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(69, 215, 255, 0.84), rgba(83, 246, 184, 0.92));
+      box-shadow: 0 0 12px rgba(69, 215, 255, 0.18);
+    }
+
+    .arena-resource-pill.cooldown .arena-resource-barline::before {
+      background: linear-gradient(90deg, rgba(255, 211, 110, 0.84), rgba(255, 146, 85, 0.92));
+      box-shadow: 0 0 12px rgba(255, 211, 110, 0.16);
+    }
+
+    .arena-resource-pill.ability .arena-resource-barline::before {
+      background: linear-gradient(90deg, rgba(124, 191, 255, 0.88), rgba(69, 215, 255, 0.92));
+    }
+
+    .arena-resource-caption {
+      font-size: 10px;
+      line-height: 1.15;
+      color: var(--muted);
+      word-break: break-word;
     }
 
     .arena-round-choice-slot.active .arena-lane-choice-panel {
@@ -4117,12 +4240,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-core {
-        min-height: 220px;
+        min-height: 198px;
       }
 
       .arena-choice-hub {
-        min-height: 220px;
-        padding: 6px 0 6px;
+        min-height: 198px;
+        padding: 4px 0 4px;
       }
 
       .arena-choice-panel {
@@ -4144,10 +4267,6 @@ PAGE_TEMPLATE = """
         top: 42px;
       }
 
-      .arena-round-choice-slot.active {
-        gap: 8px;
-      }
-
       .arena-round-marker {
         width: 12px;
         height: 12px;
@@ -4161,78 +4280,59 @@ PAGE_TEMPLATE = """
         transform: none;
       }
 
-      .arena-lane-choice-panel {
-        width: min(134px, 23vw);
-        min-width: 116px;
-        padding: 8px 7px 8px;
-        border-radius: 14px;
-        max-width: 100%;
+      .arena-battle-dock {
+        left: 8px;
+        right: 8px;
+        width: auto;
+        bottom: 8px;
+        transform: none;
       }
 
-      .arena-round-floating-metrics {
-        width: min(146px, 34vw);
+      .arena-battle-dock .interactive-battle-panel {
+        padding: 10px 10px 12px;
+        border-radius: 16px;
+      }
+
+      .arena-battle-dock .interactive-battle-head {
+        gap: 8px;
+      }
+
+      .arena-battle-dock .interactive-battle-title {
+        font-size: 16px;
+      }
+
+      .arena-battle-dock .interactive-timer {
+        min-width: 60px;
+        min-height: 28px;
+        font-size: 11px;
+      }
+
+      .arena-battle-dock .interactive-battle-actions {
+        gap: 6px;
+      }
+
+      .arena-battle-dock .interactive-action-btn {
+        min-height: 40px;
+        font-size: 11px;
+        border-radius: 12px;
+      }
+
+      .arena-player-resource-bar {
         grid-template-columns: 1fr;
         gap: 6px;
       }
 
-      .arena-floating-chip {
-        min-height: 30px;
-        padding: 5px 6px;
+      .arena-resource-pill {
+        padding: 6px 8px;
       }
 
-      .arena-round-choice-slot.active .arena-lane-choice-panel {
-        margin-top: 6px;
-        transform: none;
-      }
-
-      .arena-round-choice-slot.clash-resolving .arena-lane-choice-panel {
-        transform: translateY(8px) scale(0.94);
-      }
-
-      .arena-round-choice-slot:first-child .arena-lane-choice-panel {
-        transform: translateX(10%);
-      }
-
-      .arena-round-choice-slot:last-child .arena-lane-choice-panel {
-        transform: translateX(-10%);
-      }
-
-      .arena-round-choice-slot.active:first-child .arena-lane-choice-panel,
-      .arena-round-choice-slot.active:last-child .arena-lane-choice-panel {
-        transform: none;
-      }
-
-      .arena-lane-choice-panel .interactive-battle-title {
-        font-size: 11px;
-      }
-
-      .interactive-battle-metrics {
-        grid-template-columns: 1fr;
-        gap: 5px;
-      }
-
-      .interactive-battle-metric {
-        min-height: 34px;
-        padding: 5px 6px;
-      }
-
-      .interactive-battle-metric strong {
-        font-size: 10px;
-      }
-
-      .interactive-battle-metric span,
-      .interactive-battle-prompt {
+      .arena-resource-caption {
         font-size: 9px;
       }
 
-      .arena-lane-choice-panel .interactive-battle-actions {
-        grid-template-columns: repeat(2, minmax(0, 42px));
-        gap: 8px;
-      }
-
-      .arena-lane-choice-panel .interactive-action-btn {
-        min-height: 42px;
-        font-size: 8px;
+      .interactive-battle-prompt {
+        min-height: 20px;
+        font-size: 10px;
       }
 
       .arena-lane-card {
@@ -4538,10 +4638,13 @@ PAGE_TEMPLATE = """
                 <div class="pack-face"></div>
               </div>
             </div>
-            <div class="pack-tap">Нажми, чтобы открыть</div>
+          <div class="pack-tap">Нажми, чтобы открыть</div>
           </div>
 
           <div class="status" id="pack-status"></div>
+          <div class="actions" id="pack-restore-actions" style="display:none; margin-top:10px;">
+            <button class="secondary" id="restore-previous-deck-btn">Оставить прошлую колоду</button>
+          </div>
           <div class="card-grid" id="pack-cards"></div>
           <h3 style="margin-top:18px;">Прокачка дисциплин</h3>
           <div class="tiny">Распредели базовую силу колоды. Эти очки применяются в раундах и дают итоговый перевес.</div>
@@ -4707,6 +4810,7 @@ PAGE_TEMPLATE = """
       cardCatalog: [],
       packTypes: [],
       packPityThreshold: 20,
+      canRestorePreviousDeck: false,
       matchmakingMode: null,
       matchmakingPolling: false,
       disciplineBuild: null,
@@ -4757,6 +4861,8 @@ PAGE_TEMPLATE = """
     const buyPackBtn = document.getElementById('buy-pack-btn');
     const packRewardsSummary = document.getElementById('pack-rewards-summary');
     const packSeasonSummary = document.getElementById('pack-season-summary');
+    const packRestoreActions = document.getElementById('pack-restore-actions');
+    const restorePreviousDeckBtn = document.getElementById('restore-previous-deck-btn');
     const claimDailyRewardBtn = document.getElementById('claim-daily-reward-btn');
     const claimQuestRewardBtn = document.getElementById('claim-quest-reward-btn');
     const cardCatalogList = document.getElementById('card-catalog-list');
@@ -5079,6 +5185,13 @@ PAGE_TEMPLATE = """
         button.textContent = `${meta ? meta.label : button.dataset.rewardPack} за ${packCostText(costs)}`;
         button.disabled = !(state.wallet && state.selectedDomain && canAffordPack(costs, rewards));
       });
+    }
+
+    function updatePreviousDeckRestoreButton() {
+      if (!packRestoreActions || !restorePreviousDeckBtn) return;
+      const visible = Boolean(state.canRestorePreviousDeck && state.wallet && state.selectedDomain);
+      packRestoreActions.style.display = visible ? 'flex' : 'none';
+      restorePreviousDeckBtn.disabled = !visible;
     }
 
     function renderRewardsPanels() {
@@ -5616,6 +5729,7 @@ PAGE_TEMPLATE = """
       saveBuildBtn.disabled = !(connected && hasDomain);
       walletOpenPackBtn.disabled = !(connected && hasDomain);
       renderPackEconomy();
+      updatePreviousDeckRestoreButton();
     }
 
     function renderDomains(domains) {
@@ -6402,6 +6516,16 @@ PAGE_TEMPLATE = """
               { percent: 70, x: 700 },
               { percent: 90, x: 900 },
             ];
+        const interactiveActionKeys = result.interactive_available_actions || ['burst', 'guard'];
+        const activeAbilityName = result.interactive_active_ability && result.interactive_active_ability.name ? result.interactive_active_ability.name : 'Базовый режим';
+        const activeAbilityCooldownMax = Math.max(1, Number((result.interactive_active_ability && result.interactive_active_ability.cooldown) || 0) || 1);
+        const activeAbilityChargesMax = Math.max(1, Number((result.interactive_active_ability && result.interactive_active_ability.charges) || 0) || 1);
+        const activeAbilityCooldownNow = Number((result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0);
+        const activeAbilityChargesNow = Number((result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0);
+        const energyNow = Number(result.interactive_energy || 0);
+        const energyFill = `${Math.max(8, Math.min(100, (energyNow / 3) * 100))}%`;
+        const cooldownFill = `${Math.max(8, Math.min(100, ((activeAbilityCooldownMax - activeAbilityCooldownNow) / activeAbilityCooldownMax) * 100))}%`;
+        const chargesFill = `${Math.max(8, Math.min(100, (activeAbilityChargesNow / activeAbilityChargesMax) * 100))}%`;
         const interactivePanel = result.interactive_session_id
           ? `
               <div class="arena-round-choice-strip">
@@ -6416,34 +6540,29 @@ PAGE_TEMPLATE = """
                   return `
                     <div class="arena-round-choice-slot ${isActive ? 'active' : ''} ${isResolved ? 'resolved' : ''}" style="left:${left}%;">
                       <div class="arena-round-marker"></div>
-                      ${isActive ? `
-                        <div class="arena-round-floating-metrics">
-                          <div class="arena-floating-chip energy">
-                            <strong>Мана ${result.interactive_energy || 0}</strong>
-                            <span>${result.interactive_active_ability && result.interactive_active_ability.name ? result.interactive_active_ability.name : 'Базовый режим'}</span>
-                          </div>
-                          <div class="arena-floating-chip cooldown">
-                            <strong>КД ${(result.interactive_ability_state && result.interactive_ability_state.cooldown_remaining) || 0}</strong>
-                            <span>Заряды ${(result.interactive_ability_state && result.interactive_ability_state.charges_remaining) || 0}</span>
-                          </div>
-                        </div>
-                        <div class="interactive-battle-panel arena-lane-choice-panel" id="interactive-battle-panel">
-                          <div class="interactive-battle-head">
-                            <div class="interactive-battle-title">Раунд ${roundNumber}</div>
-                            <div class="interactive-timer" id="interactive-timer">5 c</div>
-                          </div>
-                          <div class="interactive-battle-prompt" id="interactive-battle-status">${result.interactive_hint || 'Выбери действие'}</div>
-                          <div class="interactive-battle-actions">
-                            ${(result.interactive_available_actions || ['burst', 'guard']).map((key) => {
-                              const meta = actionRuleMeta(key);
-                              return `<button type="button" class="interactive-action-btn ${key}" data-action-key="${key}" onclick="handleInteractiveBattleChoice('${key}', event)">${meta.ruLabel}</button>`;
-                            }).join('')}
-                          </div>
-                        </div>
-                      ` : `<div class="arena-round-state ${isResolved ? roundOutcomeClass : ''}">${roundOutcomeLabel}</div>`}
+                      ${isActive ? '' : `<div class="arena-round-state ${isResolved ? roundOutcomeClass : ''}">${roundOutcomeLabel}</div>`}
                     </div>
                   `;
                 }).join('')}
+              </div>
+            `
+          : '';
+        const interactiveDock = result.interactive_live
+          ? `
+              <div class="arena-battle-dock">
+                <div class="interactive-battle-panel" id="interactive-battle-panel">
+                  <div class="interactive-battle-head">
+                    <div class="interactive-battle-title">Раунд ${activeRoundNumber}</div>
+                    <div class="interactive-timer" id="interactive-timer">5 c</div>
+                  </div>
+                  <div class="interactive-battle-prompt" id="interactive-battle-status">${result.interactive_hint || 'Выбери действие'}</div>
+                  <div class="interactive-battle-actions" style="grid-template-columns: repeat(${Math.max(interactiveActionKeys.length, 1)}, minmax(0, 1fr));">
+                    ${interactiveActionKeys.map((key) => {
+                      const meta = actionRuleMeta(key);
+                      return `<button type="button" class="interactive-action-btn ${key}" data-action-key="${key}" onclick="handleInteractiveBattleChoice('${key}', event)">${meta.ruLabel}</button>`;
+                    }).join('')}
+                  </div>
+                </div>
               </div>
             `
           : '';
@@ -6455,6 +6574,25 @@ PAGE_TEMPLATE = """
           : Number(result.opponent_featured_card?.slot || result.opponent_card?.slot || result.rounds?.[Math.max((result.rounds?.length || 1) - 1, 0)]?.opponent_card?.slot || 0);
         const playerArenaDeck = arenaDeckMarkup(result.player_cards, result.player_card, 'player', playerActiveSlot, result.player_featured_card?.slot || result.selected_slot);
         const opponentArenaDeck = arenaDeckMarkup(result.opponent_cards, result.opponent_card, 'enemy', opponentActiveSlot, result.opponent_featured_card?.slot);
+        const resourceBarMarkup = result.interactive_session_id ? `
+          <div class="arena-player-resource-bar">
+            <div class="arena-resource-pill mana" style="--fill:${energyFill};">
+              <div class="arena-resource-topline"><span>Мана</span><strong>${energyNow}/3</strong></div>
+              <div class="arena-resource-barline"></div>
+              <div class="arena-resource-caption">${activeAbilityName}</div>
+            </div>
+            <div class="arena-resource-pill cooldown" style="--fill:${cooldownFill};">
+              <div class="arena-resource-topline"><span>КД</span><strong>${activeAbilityCooldownNow}</strong></div>
+              <div class="arena-resource-barline"></div>
+              <div class="arena-resource-caption">Готовность ${Math.max(0, activeAbilityCooldownMax - activeAbilityCooldownNow)}/${activeAbilityCooldownMax}</div>
+            </div>
+            <div class="arena-resource-pill ability" style="--fill:${chargesFill};">
+              <div class="arena-resource-topline"><span>Заряды</span><strong>${activeAbilityChargesNow}</strong></div>
+              <div class="arena-resource-barline"></div>
+              <div class="arena-resource-caption">${activeAbilityName}</div>
+            </div>
+          </div>
+        ` : '';
         const arenaRoutes = `
           <div class="arena-route-overlay" aria-hidden="true">
             <svg viewBox="0 0 1000 440" preserveAspectRatio="none">
@@ -6481,10 +6619,10 @@ PAGE_TEMPLATE = """
         battleResult.innerHTML = `
           <section class="showdown-main arena-board">
             <div class="arena-shell">
-              <div class="arena-rail player">
-                <div class="tiny"><strong>Колода пользователя</strong> • ${result.player_domain}.ton</div>
+              <div class="arena-rail enemy">
+                <div class="tiny"><strong>Колода соперника</strong> • ${opponentLabel}</div>
                 <div class="arena-deck-grid">
-                  ${playerArenaDeck}
+                  ${opponentArenaDeck}
                 </div>
               </div>
               <div class="arena-core">
@@ -6518,6 +6656,7 @@ PAGE_TEMPLATE = """
                   </div>
                   <div class="battle-stage" id="battle-stage">
                     ${interactivePanel}
+                    ${interactiveDock}
                     <div class="arena-score-card ${outcomeClass} ${hideLiveScoreCard ? 'prestart-hidden' : ''}">
                       <div class="showdown-score">
                         <span class="count-up" data-count-to="${result.player_score}">0</span>
@@ -6528,11 +6667,12 @@ PAGE_TEMPLATE = """
                   </div>
                 </div>
               </div>
-              <div class="arena-rail enemy">
-                <div class="tiny"><strong>Колода противника</strong> • ${opponentLabel}</div>
+              <div class="arena-rail player">
+                <div class="tiny"><strong>Колода пользователя</strong> • ${result.player_domain}.ton</div>
                 <div class="arena-deck-grid">
-                  ${opponentArenaDeck}
+                  ${playerArenaDeck}
                 </div>
+                ${resourceBarMarkup}
               </div>
             </div>
           </section>
@@ -6830,6 +6970,7 @@ PAGE_TEMPLATE = """
     function rebindDomain() {
       state.selectedDomain = null;
       state.cards = [];
+      state.canRestorePreviousDeck = false;
       state.pendingPackSource = null;
       state.pendingPackPaymentId = null;
       state.packOpening = false;
@@ -6919,6 +7060,7 @@ PAGE_TEMPLATE = """
         if (!state.domains.some((item) => item.domain === state.selectedDomain)) {
           state.selectedDomain = null;
           state.cards = [];
+          state.canRestorePreviousDeck = false;
           state.selectedBattleSlot = null;
           packCards.innerHTML = '';
           packScoreLabel.textContent = 'Вклад карт: -';
@@ -6952,6 +7094,7 @@ PAGE_TEMPLATE = """
       await prepareFunctionalInteraction();
       if (state.packOpening) return;
       const resolvedPackType = packType || (source === 'paid' ? 'lucky' : 'common');
+      const hadPreviousDeck = Array.isArray(state.cards) && state.cards.length === 5;
       state.packOpening = true;
       setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
       foilPack.classList.remove('opening');
@@ -6966,6 +7109,7 @@ PAGE_TEMPLATE = """
           body: {wallet: state.wallet, domain: state.selectedDomain, source, payment_id: paymentId, pack_type: resolvedPackType}
         });
         state.cards = data.cards;
+        state.canRestorePreviousDeck = hadPreviousDeck;
         state.pendingPackSource = null;
         state.pendingPackPaymentId = null;
         if (state.playerProfile && data.rewards) {
@@ -6993,6 +7137,32 @@ PAGE_TEMPLATE = """
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       } finally {
         state.packOpening = false;
+      }
+    }
+
+    async function restorePreviousDeck() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet || !state.selectedDomain) return;
+      restorePreviousDeckBtn.disabled = true;
+      setStatus(document.getElementById('pack-status'), 'Возвращаем предыдущую колоду...', 'warning');
+      try {
+        const data = await api('/api/deck/restore-previous', {
+          method: 'POST',
+          body: {wallet: state.wallet, domain: state.selectedDomain}
+        });
+        state.cards = data.cards || [];
+        state.canRestorePreviousDeck = false;
+        await renderPack(state.cards, data.total_score || 0, false);
+        packScoreLabel.textContent = `Вклад карт: ${data.total_score || 0}`;
+        refreshOneCardSelector();
+        updateButtons();
+        await loadDisciplineBuild();
+        loadOwnedDecks();
+        setStatus(document.getElementById('pack-status'), 'Предыдущая колода восстановлена и снова активна.', 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      } finally {
+        updatePreviousDeckRestoreButton();
       }
     }
 
@@ -7452,6 +7622,7 @@ PAGE_TEMPLATE = """
         state.selectedDomain = data.domain;
         state.playerProfile = data.player;
         state.cards = data.deck.cards || [];
+        state.canRestorePreviousDeck = false;
         state.pendingPackSource = null;
         state.pendingPackPaymentId = null;
         state.packOpening = false;
@@ -7602,6 +7773,7 @@ PAGE_TEMPLATE = """
           state.domains = [];
           state.selectedDomain = null;
           state.cards = [];
+          state.canRestorePreviousDeck = false;
           state.pendingPackSource = null;
           state.pendingPackPaymentId = null;
           state.packOpening = false;
@@ -7632,6 +7804,9 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(buyPackBtn, buyPackWithTon);
     bindFunctionalControl(claimDailyRewardBtn, claimDailyReward);
     bindFunctionalControl(claimQuestRewardBtn, claimQuestReward);
+    if (restorePreviousDeckBtn) {
+      bindFunctionalControl(restorePreviousDeckBtn, restorePreviousDeck);
+    }
     document.querySelectorAll('.reward-pack-btn').forEach((button) => {
       bindFunctionalControl(button, () => openRewardPack(button.dataset.rewardPack));
     });
@@ -10326,6 +10501,34 @@ def load_active_deck_cards(wallet, domain):
     return None
 
 
+def restore_previous_deck_cards(wallet, domain):
+    if not wallet or not domain:
+        raise ValueError('Нужен кошелёк и домен.')
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT cards_json
+            FROM pack_opens
+            WHERE wallet = ? AND domain = ?
+            ORDER BY created_at DESC
+            LIMIT 2
+            ''',
+            (wallet, domain),
+        ).fetchall()
+    if len(rows) < 2:
+        raise ValueError('Для этого домена пока нет предыдущей колоды.')
+    try:
+        cards = json.loads(rows[1]['cards_json'] or '[]')
+    except json.JSONDecodeError as exc:
+        raise ValueError('Не удалось восстановить предыдущую колоду.') from exc
+    if not isinstance(cards, list) or not cards:
+        raise ValueError('Предыдущая колода повреждена.')
+    cards = ensure_battle_ready_cards(cards, domain, seed_value=f'restore:{wallet}:{domain}:{now_iso()}')
+    total_score = deck_score(cards)
+    pack_id = store_pack_open(wallet, domain, 'restore', cards, total_score)
+    return {'cards': cards, 'total_score': total_score, 'pack_id': pack_id}
+
+
 def latest_opened_domain_for_wallet(wallet):
     if not wallet:
         return None
@@ -12770,6 +12973,34 @@ def api_pack():
             'domain_metadata': metadata,
             'progress': progress,
             'rewards': rewards,
+        }
+    )
+
+
+@app.route('/api/deck/restore-previous', methods=['POST'])
+def api_restore_previous_deck():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    if not valid_wallet_address(wallet):
+        return json_error('Кошелёк не подключен.')
+    if not domain:
+        return json_error('Нужно выбрать домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Выбранный домен не найден в подключённом кошельке.', 403)
+        restored = restore_previous_deck_cards(wallet, domain)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    except (RuntimeError, OSError) as exc:
+        return json_error(str(exc), 502)
+    return jsonify(
+        {
+            'wallet': wallet,
+            'domain': domain,
+            'cards': restored['cards'],
+            'total_score': restored['total_score'],
+            'pack_id': restored['pack_id'],
         }
     )
 
