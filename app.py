@@ -1104,8 +1104,9 @@ PAGE_TEMPLATE = """
     .arena-battle-dock {
       position: absolute;
       left: 50%;
-      bottom: 8px;
-      transform: translateX(-50%);
+      top: 50%;
+      bottom: auto;
+      transform: translate(-50%, -50%);
       width: min(100%, 388px);
       z-index: 9;
       pointer-events: none;
@@ -4431,11 +4432,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-battle-dock {
-        left: 8px;
-        right: 8px;
-        width: auto;
-        bottom: 8px;
-        transform: none;
+        left: 50%;
+        right: auto;
+        width: min(calc(100% - 16px), 360px);
+        top: 50%;
+        bottom: auto;
+        transform: translate(-50%, -50%);
       }
 
       .arena-battle-dock .interactive-battle-panel {
