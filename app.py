@@ -1528,6 +1528,14 @@ PAGE_TEMPLATE = """
       display: block;
     }
 
+    .arena-action-sticker span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      line-height: 1;
+    }
+
     .arena-action-sticker.burst {
       border-color: rgba(255, 122, 134, 0.34);
       background: rgba(74, 24, 37, 0.34);
@@ -3622,7 +3630,7 @@ PAGE_TEMPLATE = """
 
     .wallet-quick-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
     }
 
@@ -3636,6 +3644,27 @@ PAGE_TEMPLATE = """
     .wallet-quick-item strong {
       display: block;
       margin-bottom: 4px;
+    }
+
+    .wallet-quick-currency {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: rgba(213, 235, 255, 0.88);
+    }
+
+    .wallet-currency-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 11px;
+      white-space: nowrap;
     }
 
     .wallet-quick-actions {
@@ -4608,6 +4637,14 @@ PAGE_TEMPLATE = """
                 <strong>Активный домен</strong>
                 <div class="tiny" id="wallet-quick-domain">Не выбран</div>
               </div>
+              <div class="wallet-quick-item">
+                <strong>Валюта</strong>
+                <div class="wallet-quick-currency" id="wallet-quick-currency">
+                  <span class="wallet-currency-chip">💠 0</span>
+                  <span class="wallet-currency-chip">🎟️ 0</span>
+                  <span class="wallet-currency-chip">✨ 0</span>
+                </div>
+              </div>
             </div>
             <div class="wallet-flow-note">Подключи кошелёк, проверь свои `.ton` домены и сразу переходи к готовой колоде. Если карты для домена уже были открыты, они подтянутся автоматически.</div>
             <div class="wallet-quick-actions">
@@ -4889,6 +4926,7 @@ PAGE_TEMPLATE = """
     const walletStatus = document.getElementById('wallet-status');
     const walletQuickWallet = document.getElementById('wallet-quick-wallet');
     const walletQuickDomain = document.getElementById('wallet-quick-domain');
+    const walletQuickCurrency = document.getElementById('wallet-quick-currency');
     const walletOpenPackBtn = document.getElementById('wallet-open-pack-btn');
     const profileWallet = document.getElementById('profile-wallet');
     const profileDomain = document.getElementById('profile-domain');
@@ -5564,6 +5602,14 @@ PAGE_TEMPLATE = """
       currencyBadge.textContent = state.playerProfile && state.playerProfile.rewards
         ? `Осколки: ${state.playerProfile.rewards.pack_shards || 0} • Редкие: ${state.playerProfile.rewards.rare_tokens || 0} • Lucky: ${state.playerProfile.rewards.lucky_tokens || 0}`
         : 'Осколки: 0 • Редкие: 0 • Lucky: 0';
+      if (walletQuickCurrency) {
+        const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
+        walletQuickCurrency.innerHTML = `
+          <span class="wallet-currency-chip">💠 ${Number(rewards.pack_shards || 0)}</span>
+          <span class="wallet-currency-chip">🎟️ ${Number(rewards.rare_tokens || 0)}</span>
+          <span class="wallet-currency-chip">✨ ${Number(rewards.lucky_tokens || 0)}</span>
+        `;
+      }
       walletQuickWallet.textContent = state.wallet ? shortAddress(state.wallet) : 'Не подключен';
       walletQuickDomain.textContent = state.selectedDomain ? `${state.selectedDomain}.ton` : 'Не выбран';
       profileWallet.textContent = state.wallet ? shortAddress(state.wallet) : '-';
@@ -5946,8 +5992,15 @@ PAGE_TEMPLATE = """
     }
 
     async function renderPack(cards, total, cinematic = true) {
+      const rarityOrderIndex = { basic: 0, rare: 1, epic: 2, mythic: 3, legendary: 4 };
+      const orderedCards = [...cards].sort((a, b) => {
+        const aRank = rarityOrderIndex[String(a.rarity_key || '').toLowerCase()] ?? 0;
+        const bRank = rarityOrderIndex[String(b.rarity_key || '').toLowerCase()] ?? 0;
+        if (aRank !== bRank) return aRank - bRank;
+        return Number(a.slot || 0) - Number(b.slot || 0);
+      });
       packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
-      packCards.innerHTML = cards.map((card) => `
+      packCards.innerHTML = orderedCards.map((card) => `
         <article class="game-card">
           <div class="tiny">${card.rarity}</div>
           <h3>${card.title}</h3>
@@ -6016,14 +6069,7 @@ PAGE_TEMPLATE = """
 
     function actionStickerSvg(actionKey) {
       if (actionKey === 'burst') {
-        return `
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M12 2 15.3 5.3 13.8 6.8 12.9 5.9v8.5h-1.8V5.9l-.9.9-1.5-1.5z"/>
-            <path fill="currentColor" d="M8.1 13.4h7.8v1.9H8.1z"/>
-            <path fill="currentColor" d="M10.2 15.3h3.6v4.2h-3.6z"/>
-            <circle cx="12" cy="21" r="1.6" fill="currentColor"/>
-          </svg>
-        `;
+        return `<span aria-hidden="true">⚔️</span>`;
       }
       if (actionKey === 'ability') {
         return `
@@ -6060,8 +6106,16 @@ PAGE_TEMPLATE = """
       const coreRect = arenaCore.getBoundingClientRect();
       const arenaShell = battleResult.querySelector('.arena-shell');
       const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
-      const playerSource = battleResult.querySelector('.arena-rail.player .arena-slot-card.active-slot') || battleResult.querySelector('.arena-rail.player .arena-slot-card');
-      const enemySource = battleResult.querySelector('.arena-rail.enemy .arena-slot-card.active-slot') || battleResult.querySelector('.arena-rail.enemy .arena-slot-card');
+      const playerActiveSlot = Number(playerCard.slot || currentRoundIndex + 1);
+      const opponentActiveSlot = Number(opponentCard.slot || currentRoundIndex + 1);
+      const playerSource = battleResult.querySelector(`.arena-rail.player .arena-slot-card:nth-child(${playerActiveSlot}).active-slot`) ||
+        battleResult.querySelector(`.arena-rail.player .arena-slot-card:nth-child(${playerActiveSlot})`) ||
+        battleResult.querySelector('.arena-rail.player .arena-slot-card.active-slot') ||
+        battleResult.querySelector('.arena-rail.player .arena-slot-card');
+      const enemySource = battleResult.querySelector(`.arena-rail.enemy .arena-slot-card:nth-child(${opponentActiveSlot}).active-slot`) ||
+        battleResult.querySelector(`.arena-rail.enemy .arena-slot-card:nth-child(${opponentActiveSlot})`) ||
+        battleResult.querySelector('.arena-rail.enemy .arena-slot-card.active-slot') ||
+        battleResult.querySelector('.arena-rail.enemy .arena-slot-card');
       if (!playerSource || !enemySource) {
         return;
       }
@@ -6081,27 +6135,27 @@ PAGE_TEMPLATE = """
       );
       const playerTargetLeft = laneTargetLeft;
       const enemyTargetLeft = laneTargetLeft;
-      const rawPlayerTargetTop = centerY - clashCardHeight - clashGap;
-      const rawEnemyTargetTop = centerY + clashGap;
-      const playerTargetTop = Math.max(verticalPadding, rawPlayerTargetTop);
-      const enemyTargetTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawEnemyTargetTop);
+      const rawEnemyTargetTop = centerY - clashCardHeight - clashGap;
+      const rawPlayerTargetTop = centerY + clashGap;
+      const enemyTargetTop = Math.max(verticalPadding, rawEnemyTargetTop);
+      const playerTargetTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawPlayerTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop + (compactClash ? 6 : 12) : playerTargetTop;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop - (compactClash ? 6 : 12) : enemyTargetTop;
-      const rawPlayerImpactTop = playerAttack ? centerY - clashCardHeight - impactGap + (compactClash ? 4 : 8) : playerTargetTop + 1;
-      const rawEnemyImpactTop = enemyAttack ? centerY + impactGap - (compactClash ? 4 : 8) : enemyTargetTop - 1;
-      const playerImpactTop = Math.max(verticalPadding, rawPlayerImpactTop);
-      const enemyImpactTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawEnemyImpactTop);
+      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 6 : 12) : playerTargetTop;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 6 : 12) : enemyTargetTop;
+      const rawPlayerImpactTop = playerAttack ? centerY + impactGap - (compactClash ? 4 : 8) : playerTargetTop - 1;
+      const rawEnemyImpactTop = enemyAttack ? centerY - clashCardHeight - impactGap + (compactClash ? 4 : 8) : enemyTargetTop + 1;
+      const playerImpactTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawPlayerImpactTop);
+      const enemyImpactTop = Math.max(verticalPadding, rawEnemyImpactTop);
       const playerImpactScale = playerAttack ? (compactClash ? 1.08 : 1.12) : 1.01;
       const enemyImpactScale = enemyAttack ? (compactClash ? 1.08 : 1.12) : 1.01;
       const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
       const enemyImpactRotate = enemyAttack ? '8deg' : '-2deg';
-      const playerRecoilY = playerAttack ? playerImpactTop - (compactClash ? 8 : 12) : playerTargetTop;
-      const enemyRecoilY = enemyAttack ? enemyImpactTop + (compactClash ? 8 : 12) : enemyTargetTop;
+      const playerRecoilY = playerAttack ? playerImpactTop + (compactClash ? 8 : 12) : playerTargetTop;
+      const enemyRecoilY = enemyAttack ? enemyImpactTop - (compactClash ? 8 : 12) : enemyTargetTop;
       const playerRecoilScale = playerAttack ? 1.02 : 1;
       const enemyRecoilScale = enemyAttack ? 1.02 : 1;
-      const impactCenterY = ((playerImpactTop + clashCardHeight) + enemyImpactTop) / 2;
+      const impactCenterY = ((enemyImpactTop + clashCardHeight) + playerImpactTop) / 2;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
       laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
@@ -10714,9 +10768,9 @@ def bot_cards_slightly_weaker_than_player(player_cards, seed_value):
         return random_bot_cards(seed_value, count=5)
 
     for slot, source in enumerate(normalized_cards[:5], start=1):
-        # Keep bot close to player power but a bit weaker on average.
-        scale = rng.uniform(0.86, 0.94)
-        score = max(1, int(round(source.get('pool_value', source.get('score', 100)) * scale + rng.uniform(-4.0, 4.0))))
+        # Keep bot playable, but leave room for player decisions to matter more.
+        scale = rng.uniform(0.78, 0.89)
+        score = max(1, int(round(source.get('pool_value', source.get('score', 100)) * scale + rng.uniform(-6.0, 2.0))))
         rarity_key = str(source.get('rarity_key') or 'basic').lower()
         if rarity_key not in RARITY_LABELS:
             rarity_key = 'basic'
@@ -13152,7 +13206,8 @@ def api_cards_catalog():
         }
         for skill in CARD_SKILLS
     ]
-    pack_types = [
+    pack_sort_order = {'common': 0, 'rare': 1, 'epic': 2, 'lucky': 3}
+    pack_types = sorted([
         {
             'key': key,
             'label': value['label'],
@@ -13162,7 +13217,7 @@ def api_cards_catalog():
             'costs': value.get('costs') or {},
         }
         for key, value in PACK_TYPES.items()
-    ]
+    ], key=lambda item: pack_sort_order.get(item['key'], 99))
     return jsonify({'cards': CARD_CATALOG, 'skills': skills, 'pack_types': pack_types, 'pity_threshold': PACK_PITY_THRESHOLD, 'total': len(CARD_CATALOG)})
 
 
@@ -13503,7 +13558,7 @@ def api_match_bot():
     player_build = load_deck_build(wallet, domain, player_cards)
     base_seed = f'bot-duel:{wallet}:{domain}:{now_iso()}'
     bot_cards = bot_cards_slightly_weaker_than_player(player_cards, base_seed)
-    bot_pool = max(1800, int(round(player_build['pool'] * 0.92)))
+    bot_pool = max(1600, int(round(player_build['pool'] * 0.84)))
     bot_build = {'pool': bot_pool, 'points': default_discipline_build(bot_pool)}
     selected_slot = selected_slot or auto_tactical_slot(player_cards, player_build['points'])
     result = create_solo_battle(
@@ -13520,7 +13575,7 @@ def api_match_bot():
         selected_slot_a=selected_slot,
         selected_slot_b=auto_tactical_slot(bot_cards, bot_build['points']),
         strategy_key_a='balanced',
-        strategy_key_b='tricky',
+        strategy_key_b='balanced',
     )
     return jsonify(
         {
