@@ -1339,6 +1339,44 @@ PAGE_TEMPLATE = """
       white-space: nowrap;
     }
 
+    .nav-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 6px;
+      margin-left: 6px;
+      border-radius: 999px;
+      background: rgba(255, 95, 95, 0.92);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow: 0 8px 18px rgba(255, 95, 95, 0.18);
+    }
+
+    .summary-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background: rgba(8, 20, 36, 0.84);
+      color: var(--text);
+      font-size: 11px;
+      line-height: 1;
+    }
+
     .battle-reward-line {
       width: 100%;
       text-align: center;
@@ -5613,6 +5651,18 @@ PAGE_TEMPLATE = """
       if (mobileRewardsPanel) mobileRewardsPanel.innerHTML = content;
     }
 
+    function renderSocialGuildBadges() {
+      const navProfile = document.getElementById('nav-profile');
+      if (!navProfile) return;
+      const social = state.socialData || {};
+      const guilds = state.guildData || {};
+      const count =
+        Number((social.incoming_requests || []).length || 0) +
+        Number((guilds.pending_invites || []).length || 0) +
+        Number((((guilds.current_guild || {}).pending_requests) || []).length || 0);
+      navProfile.innerHTML = count > 0 ? `Профиль <span class="nav-badge">${count}</span>` : 'Профиль';
+    }
+
     function renderTutorialPanel() {
       if (!tutorialPanel) return;
       const tutorial = state.tutorialData || (state.playerProfile && state.playerProfile.tutorial) || null;
@@ -5747,6 +5797,7 @@ PAGE_TEMPLATE = """
       const social = state.socialData;
       if (!state.wallet || !social) {
         socialPanel.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы увидеть друзей, заявки и лобби.</div>';
+        renderSocialGuildBadges();
         return;
       }
       const friends = (social.friends || []).map((item) => `
@@ -5790,6 +5841,11 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>Быстрые цифры</strong>
           <div class="tiny">Друзей: ${social.friend_count || 0} • Входящих: ${(social.incoming_requests || []).length} • Исходящих: ${(social.outgoing_requests || []).length}</div>
+          <div class="summary-chip-row">
+            <span class="summary-chip">Друзья: ${social.friend_count || 0}</span>
+            <span class="summary-chip">Входящие: ${(social.incoming_requests || []).length}</span>
+            <span class="summary-chip">Лобби: ${(social.lobby_messages || []).length}</span>
+          </div>
         </div>
         <h4 style="margin:14px 0 8px;">Друзья</h4>
         <div class="catalog-grid">${friends}</div>
@@ -5806,6 +5862,7 @@ PAGE_TEMPLATE = """
       `;
       const lobbyBtn = document.getElementById('send-lobby-message-btn');
       if (lobbyBtn) bindFunctionalControl(lobbyBtn, sendLobbyMessage);
+      renderSocialGuildBadges();
     }
 
     function renderGuildPanel() {
@@ -5813,6 +5870,7 @@ PAGE_TEMPLATE = """
       const data = state.guildData;
       if (!state.wallet || !data) {
         guildPanel.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы создать клан или вступить в существующий.</div>';
+        renderSocialGuildBadges();
         return;
       }
       const current = data.current_guild;
@@ -5857,6 +5915,7 @@ PAGE_TEMPLATE = """
         `;
         const createGuildBtn = document.getElementById('create-guild-btn');
         if (createGuildBtn) bindFunctionalControl(createGuildBtn, createGuildFromUI);
+        renderSocialGuildBadges();
         return;
       }
       const members = (current.members || []).map((item) => `
@@ -5898,6 +5957,11 @@ PAGE_TEMPLATE = """
           <div class="tiny">${escapeHtml(current.description || 'Описание не заполнено')}</div>
           <div class="tiny">Недельные победы: ${current.goals.weekly_wins}/${current.goals.weekly_win_target} • Паки: ${current.goals.weekly_packs}/${current.goals.weekly_pack_target} • Сезон: ${current.goals.season_points}</div>
           <div class="tiny">Сегодня полезно клану: ${(current.goals.today_help || []).join(' • ')}</div>
+          <div class="summary-chip-row">
+            <span class="summary-chip">Инвайты: ${(data.pending_invites || []).length}</span>
+            <span class="summary-chip">Заявки: ${(current.pending_requests || []).length}</span>
+            <span class="summary-chip">Чат: ${(current.chat || []).length}</span>
+          </div>
         </div>
         <h4 style="margin:18px 0 8px;">Объявления</h4>
         <div class="deck-list">${announcements}</div>
@@ -5925,6 +5989,7 @@ PAGE_TEMPLATE = """
       if (chatBtn) bindFunctionalControl(chatBtn, sendGuildChatMessage);
       if (announcementBtn && !announcementBtn.disabled) bindFunctionalControl(announcementBtn, sendGuildAnnouncement);
       if (inviteBtn && !inviteBtn.disabled) bindFunctionalControl(inviteBtn, sendGuildInvite);
+      renderSocialGuildBadges();
     }
 
     function api(path, options = {}) {
