@@ -10430,12 +10430,14 @@ def spend_ability_state(ability_state, action_key):
 
 def choose_bot_round_action(planned_action, energy, ability_state, metadata, phase):
     actions = available_actions_for_state(energy, ability_state)
-    if 'ability' in actions:
-        role = str((metadata or {}).get('role') or '')
-        if phase in {'finisher', 'risk'} or role in {'Control', 'Disruptor', 'Damage', 'Sniper'}:
-            return 'ability'
     if planned_action in actions:
         return planned_action
+    if 'ability' in actions:
+        role = str((metadata or {}).get('role') or '')
+        if planned_action == 'ability' and phase in {'finisher', 'risk'} and role in {'Control', 'Disruptor', 'Damage', 'Sniper'}:
+            return 'ability'
+        if phase == 'finisher' and role in {'Damage', 'Sniper'}:
+            return 'ability'
     if 'burst' in actions:
         return 'burst'
     return 'guard'
@@ -10906,8 +10908,8 @@ def bot_cards_slightly_weaker_than_player(player_cards, seed_value):
 
     for slot, source in enumerate(normalized_cards[:5], start=1):
         # Keep bot playable, but leave room for player decisions to matter more.
-        scale = rng.uniform(0.78, 0.89)
-        score = max(1, int(round(source.get('pool_value', source.get('score', 100)) * scale + rng.uniform(-6.0, 2.0))))
+        scale = rng.uniform(0.72, 0.85)
+        score = max(1, int(round(source.get('pool_value', source.get('score', 100)) * scale + rng.uniform(-8.0, 0.0))))
         rarity_key = str(source.get('rarity_key') or 'basic').lower()
         if rarity_key not in RARITY_LABELS:
             rarity_key = 'basic'
@@ -10930,6 +10932,14 @@ def bot_cards_slightly_weaker_than_player(player_cards, seed_value):
             }
         )
     return cards
+
+
+def weakest_tactical_slot(cards):
+    normalized = [normalize_card_profile(card) for card in (cards or [])]
+    if not normalized:
+        return 1
+    weakest = min(normalized, key=lambda card: (int(card.get('pool_value', 0)), int(card.get('slot', 0) or 0)))
+    return int(weakest.get('slot', 1) or 1)
 
 
 def random_bot_single_card(seed_value):
@@ -13695,7 +13705,7 @@ def api_match_bot():
     player_build = load_deck_build(wallet, domain, player_cards)
     base_seed = f'bot-duel:{wallet}:{domain}:{now_iso()}'
     bot_cards = bot_cards_slightly_weaker_than_player(player_cards, base_seed)
-    bot_pool = max(1600, int(round(player_build['pool'] * 0.84)))
+    bot_pool = max(1450, int(round(player_build['pool'] * 0.76)))
     bot_build = {'pool': bot_pool, 'points': default_discipline_build(bot_pool)}
     selected_slot = selected_slot or auto_tactical_slot(player_cards, player_build['points'])
     result = create_solo_battle(
@@ -13710,7 +13720,7 @@ def api_match_bot():
         build_a=player_build['points'],
         build_b=bot_build['points'],
         selected_slot_a=selected_slot,
-        selected_slot_b=auto_tactical_slot(bot_cards, bot_build['points']),
+        selected_slot_b=weakest_tactical_slot(bot_cards),
         strategy_key_a='balanced',
         strategy_key_b='balanced',
     )
