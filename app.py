@@ -4078,12 +4078,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-core {
-        min-height: 214px;
+        min-height: 232px;
       }
 
       .arena-choice-hub {
-        min-height: 214px;
-        padding: 4px 0 6px;
+        min-height: 232px;
+        padding: 8px 0 8px;
       }
 
       .arena-choice-panel {
@@ -4102,11 +4102,11 @@ PAGE_TEMPLATE = """
       }
 
       .arena-round-choice-slot {
-        top: 36px;
+        top: 48px;
       }
 
       .arena-round-choice-slot.active {
-        gap: 14px;
+        gap: 10px;
       }
 
       .arena-round-marker {
@@ -4119,19 +4119,19 @@ PAGE_TEMPLATE = """
         min-height: 22px;
         padding: 0 8px;
         font-size: 10px;
-        transform: translateY(-2px);
+        transform: none;
       }
 
       .arena-lane-choice-panel {
-        width: min(138px, 24vw);
-        min-width: 120px;
+        width: min(134px, 23vw);
+        min-width: 116px;
         padding: 8px 7px 8px;
         border-radius: 14px;
         max-width: 100%;
       }
 
       .arena-round-choice-slot.active .arena-lane-choice-panel {
-        margin-top: 16px;
+        margin-top: 12px;
         transform: none;
       }
 
@@ -5832,13 +5832,13 @@ PAGE_TEMPLATE = """
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
-      const clashCardWidth = compactClash ? 64 : 88;
-      const clashCardHeight = compactClash ? 92 : 128;
-      const clashGap = compactClash ? 10 : 18;
+      const clashCardWidth = compactClash ? 58 : 88;
+      const clashCardHeight = compactClash ? 84 : 128;
+      const clashGap = compactClash ? 8 : 18;
       const impactGap = compactClash ? 4 : 8;
-      const centerY = coreRect.height * (compactClash ? 0.58 : 0.5);
+      const centerY = coreRect.height * (compactClash ? 0.64 : 0.5);
       const clashLanePadding = compactClash ? 6 : 10;
-      const verticalPadding = compactClash ? 42 : 20;
+      const verticalPadding = compactClash ? 56 : 20;
       const laneTargetLeft = Math.max(
         clashLanePadding,
         Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
@@ -5851,10 +5851,10 @@ PAGE_TEMPLATE = """
       const enemyTargetTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawEnemyTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop + (compactClash ? 10 : 18) : playerTargetTop - 2;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop - (compactClash ? 10 : 18) : enemyTargetTop + 2;
-      const rawPlayerImpactTop = playerAttack ? centerY - clashCardHeight - impactGap + (compactClash ? 6 : 12) : playerTargetTop + 2;
-      const rawEnemyImpactTop = enemyAttack ? centerY + impactGap - (compactClash ? 6 : 12) : enemyTargetTop - 2;
+      const playerPrepTop = playerAttack ? playerTargetTop + (compactClash ? 8 : 18) : playerTargetTop;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop - (compactClash ? 8 : 18) : enemyTargetTop;
+      const rawPlayerImpactTop = playerAttack ? centerY - clashCardHeight - impactGap + (compactClash ? 2 : 12) : playerTargetTop + 1;
+      const rawEnemyImpactTop = enemyAttack ? centerY + impactGap - (compactClash ? 2 : 12) : enemyTargetTop - 1;
       const playerImpactTop = Math.max(verticalPadding, rawPlayerImpactTop);
       const enemyImpactTop = Math.min(coreRect.height - clashCardHeight - verticalPadding, rawEnemyImpactTop);
       const playerImpactScale = playerAttack ? (compactClash ? 1.1 : 1.14) : 1.01;
@@ -5883,7 +5883,7 @@ PAGE_TEMPLATE = """
       playerClone.style.visibility = 'visible';
       playerClone.style.opacity = '1';
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
-      playerClone.style.top = `${playerRect.top - coreRect.top}px`;
+      playerClone.style.top = `${Math.max(verticalPadding - 6, playerRect.top - coreRect.top)}px`;
       playerClone.style.width = `${clashCardWidth}px`;
       playerClone.style.height = `${clashCardHeight}px`;
       playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
@@ -5892,7 +5892,7 @@ PAGE_TEMPLATE = """
       enemyClone.style.visibility = 'visible';
       enemyClone.style.opacity = '1';
       enemyClone.style.left = `${enemyRect.left - coreRect.left}px`;
-      enemyClone.style.top = `${enemyRect.top - coreRect.top}px`;
+      enemyClone.style.top = `${Math.min(coreRect.height - clashCardHeight - verticalPadding + 6, enemyRect.top - coreRect.top)}px`;
       enemyClone.style.width = `${clashCardWidth}px`;
       enemyClone.style.height = `${clashCardHeight}px`;
       enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
