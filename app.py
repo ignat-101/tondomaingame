@@ -4919,7 +4919,8 @@ PAGE_TEMPLATE = """
         <div class="step-chip" data-step-chip="pack">2. Распаковка</div>
         <div class="step-chip" data-step-chip="modes">3. Режимы игры</div>
         <div class="step-chip" data-step-chip="profile">4. Профиль</div>
-        <div class="step-chip" data-step-chip="achievements">5. Пропуск</div>
+        <div class="step-chip" data-step-chip="guilds">5. Кланы</div>
+        <div class="step-chip" data-step-chip="achievements">6. Пропуск</div>
       </div>
     </section>
 
@@ -5126,10 +5127,10 @@ PAGE_TEMPLATE = """
           <div id="mobile-rewards-panel" class="deck-list" style="margin-top:14px;"></div>
           <h3 style="margin-top:20px;">Публичный профиль</h3>
           <div id="profile-identity-panel" class="deck-list"></div>
+          <h3 style="margin-top:20px;">Косметика и превью</h3>
+          <div id="profile-cosmetics-panel" class="deck-list"></div>
           <h3 style="margin-top:20px;">Друзья и лобби</h3>
           <div id="social-panel" class="deck-list"></div>
-          <h3 style="margin-top:20px;">Кланы / гильдии</h3>
-          <div id="guild-panel" class="deck-list"></div>
           <div class="actions" style="margin-top:14px;">
             <button class="secondary" id="mobile-show-deck-btn">Моя колода</button>
           </div>
@@ -5138,6 +5139,12 @@ PAGE_TEMPLATE = """
           <div id="mobile-leaderboard" class="leaderboard"></div>
           <h3 style="margin-top:20px;">Общая база игроков</h3>
           <div id="mobile-global-players-list" class="global-players-list"></div>
+        </section>
+
+        <section class="panel view" id="view-guilds">
+          <h2>Кланы и клановые войны</h2>
+          <p class="muted">Отдельный экран кланов: состав, заявки, чат, недельные цели, война недели и награда клана.</p>
+          <div id="guild-panel" class="deck-list"></div>
         </section>
 
         <section class="panel view" id="view-achievements">
@@ -5194,6 +5201,7 @@ PAGE_TEMPLATE = """
     <button id="nav-pack">Карты</button>
     <button id="nav-modes">Игра</button>
     <button id="nav-profile">Профиль</button>
+    <button id="nav-guilds">Кланы</button>
     <button id="nav-achievements">Пропуск</button>
   </nav>
 
@@ -5275,6 +5283,7 @@ PAGE_TEMPLATE = """
     const mobileProfileSummary = document.getElementById('mobile-profile-summary');
     const mobileRewardsPanel = document.getElementById('mobile-rewards-panel');
     const profileIdentityPanel = document.getElementById('profile-identity-panel');
+    const profileCosmeticsPanel = document.getElementById('profile-cosmetics-panel');
     const socialPanel = document.getElementById('social-panel');
     const guildPanel = document.getElementById('guild-panel');
     const mobileLeaderboard = document.getElementById('mobile-leaderboard');
@@ -6430,6 +6439,7 @@ PAGE_TEMPLATE = """
       renderRewardsPanels();
       renderPackEconomy();
       renderIdentityPanel();
+      renderCosmeticsPanel();
       renderSocialPanel();
       renderGuildPanel();
       renderTutorialPanel();
@@ -6500,7 +6510,7 @@ PAGE_TEMPLATE = """
     function renderClanSeasonHub() {
       if (!achievementsList) return;
       if (!state.wallet) {
-        achievementsList.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы открыть клановый хаб и сезонный пропуск.</div>';
+        achievementsList.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы открыть сезонный пропуск.</div>';
         return;
       }
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
@@ -6508,21 +6518,35 @@ PAGE_TEMPLATE = """
       const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
       const cosmeticsMarkup = cosmetics.length
         ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}</div>`).join('')
-        : '<div class="user-item muted">Косметика пока не открыта. Премиум-пропуск и недельные награды клана открывают визуальные предметы.</div>';
+        : '<div class="user-item muted">Косметика пока не открыта.</div>';
+      const premiumRow = track.map((item) => `
+        <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:linear-gradient(180deg, rgba(58,44,16,0.76), rgba(10,20,32,0.94)); border-color:rgba(255, 211, 110, 0.28);">
+          <div class="catalog-kicker">Премиум • ур. ${item.level}</div>
+          <strong>${item.premium ? escapeHtml(item.premium) : 'Нет награды'}</strong>
+          <div class="tiny">${item.premium_ready ? 'Доступно' : 'Закрыто'}</div>
+        </article>
+      `).join('');
+      const freeRow = track.map((item) => `
+        <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start;">
+          <div class="catalog-kicker">Бесплатно • ур. ${item.level}</div>
+          <strong>${item.free ? escapeHtml(item.free) : 'Нет награды'}</strong>
+          <div class="tiny">${item.free_ready ? 'Доступно' : 'Закрыто'}</div>
+        </article>
+      `).join('');
       const passMarkup = `
         <div class="user-item">
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
-          <div class="tiny">Премиум даёт косметику и ускоряет прогресс валюты. Боевой силы не даёт.</div>
-          <div class="catalog-grid" style="margin-top:10px;">
-            ${track.map((item) => `
-              <article class="catalog-card skill-card">
-                <div class="catalog-kicker">Уровень ${item.level}</div>
-                <strong>Free: ${escapeHtml(item.free)}</strong>
-                <div class="tiny">Premium: ${escapeHtml(item.premium)}</div>
-                <div class="tiny">${item.free_ready ? 'Free готов' : 'Free закрыт'} • ${item.premium_ready ? 'Premium готов' : 'Premium закрыт'}</div>
-              </article>
-            `).join('')}
+          <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
+          <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
+            <div>
+              <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
+              <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(140px, 1fr));">${premiumRow}</div>
+            </div>
+            <div>
+              <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
+              <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(140px, 1fr));">${freeRow}</div>
+            </div>
           </div>
           <div class="actions" style="margin-top:10px;">
             <button id="buy-season-pass-btn"${rewards.premium_pass_active ? ' disabled' : ''}>Купить премиум-пропуск за 1.49 TON</button>
@@ -6533,12 +6557,59 @@ PAGE_TEMPLATE = """
         ${passMarkup}
         <div class="user-item">
           <strong>Косметика</strong>
-          <div class="tiny">Монетизация идёт через внешний вид: арены, рамки карт, следы эффектов, рубашки и баннеры клановой войны.</div>
           <div class="summary-chip-row">${cosmeticsMarkup}</div>
         </div>
       `;
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
+    }
+
+    function renderCosmeticsPanel() {
+      if (!profileCosmeticsPanel) return;
+      const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
+      const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
+      if (!state.wallet) {
+        profileCosmeticsPanel.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы видеть косметику и её превью.</div>';
+        return;
+      }
+      if (!cosmetics.length) {
+        profileCosmeticsPanel.innerHTML = '<div class="user-item muted">Косметика пока не открыта. Премиум-пропуск и недельные награды клана открывают арены, рамки, следы и рубашки.</div>';
+        return;
+      }
+      const featuredArena = cosmetics.find((item) => item.type === 'arena') || cosmetics[0];
+      const featuredFrame = cosmetics.find((item) => item.type === 'frame');
+      const featuredTrail = cosmetics.find((item) => item.type === 'trail');
+      const featuredBack = cosmetics.find((item) => item.type === 'cardback');
+      profileCosmeticsPanel.innerHTML = `
+        <div class="user-item" style="margin-bottom:14px;">
+          <strong>Предпросмотр</strong>
+          <div style="margin-top:10px; min-height:200px; border-radius:18px; padding:18px; position:relative; overflow:hidden; background:${featuredArena && featuredArena.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.22), rgba(8,20,36,0.94))' : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))'};">
+            ${featuredTrail ? '<div style="position:absolute; width:160px; height:14px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(188,126,255,0.95), rgba(255,255,255,0.0)); top:34px; left:28px; transform:rotate(-15deg);"></div>' : ''}
+            <div style="position:absolute; inset:34px auto auto 34px; width:120px; height:168px; border-radius:18px; background:linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98)); border:${featuredFrame ? '2px solid rgba(83,246,184,0.78)' : '1px solid rgba(121,217,255,0.18)'}; box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
+            ${featuredBack ? '<div style="position:absolute; left:48px; top:56px; width:92px; height:128px; border-radius:12px; background:repeating-linear-gradient(135deg, rgba(255,211,110,0.18), rgba(255,211,110,0.18) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px);"></div>' : ''}
+            <div style="position:absolute; left:186px; top:70px; display:grid; gap:8px;">
+              <div class="summary-chip">${featuredArena ? `Арена: ${escapeHtml(featuredArena.name)}` : 'Арена: стандарт'}</div>
+              <div class="summary-chip">${featuredFrame ? `Рамка: ${escapeHtml(featuredFrame.name)}` : 'Рамка: стандарт'}</div>
+              <div class="summary-chip">${featuredTrail ? `След: ${escapeHtml(featuredTrail.name)}` : 'След: стандарт'}</div>
+              <div class="summary-chip">${featuredBack ? `Рубашка: ${escapeHtml(featuredBack.name)}` : 'Рубашка: стандарт'}</div>
+            </div>
+          </div>
+        </div>
+        <div class="catalog-grid">
+          ${cosmetics.map((item) => `
+            <article class="catalog-card skill-card" style="padding:14px;">
+              <div class="catalog-kicker">${escapeHtml(item.type)}</div>
+              <strong>${escapeHtml(item.name)}</strong>
+              <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${item.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.18), rgba(8,20,36,0.92))' : item.type === 'frame' ? 'linear-gradient(180deg, rgba(83,246,184,0.14), rgba(8,20,36,0.92))' : item.type === 'trail' ? 'linear-gradient(180deg, rgba(188,126,255,0.18), rgba(8,20,36,0.92))' : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
+                <div style="position:absolute; inset:12px; border-radius:12px; border:${item.type === 'frame' ? '2px solid rgba(83,246,184,0.72)' : '1px solid rgba(121,217,255,0.18)'};"></div>
+                ${item.type === 'trail' ? '<div style="position:absolute; width:72px; height:10px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(188,126,255,0.95), rgba(255,255,255,0.0)); top:42px; left:20px; transform:rotate(-18deg);"></div>' : ''}
+                ${item.type === 'cardback' ? '<div style="position:absolute; inset:26px 30px; border-radius:10px; background:repeating-linear-gradient(135deg, rgba(255,211,110,0.18), rgba(255,211,110,0.18) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px);"></div>' : ''}
+                <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+      `;
     }
 
     function renderCardCatalog(cards, skills = []) {
@@ -6942,12 +7013,12 @@ PAGE_TEMPLATE = """
       const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
       const playerActiveSlot = Number(playerCard.slot || currentRoundIndex + 1);
       const opponentActiveSlot = Number(opponentCard.slot || currentRoundIndex + 1);
-      const playerSource = battleResult.querySelector(`.arena-rail.player .arena-slot-card:nth-child(${playerActiveSlot}).active-slot`) ||
-        battleResult.querySelector(`.arena-rail.player .arena-slot-card:nth-child(${playerActiveSlot})`) ||
+      const playerSource = battleResult.querySelector(`.arena-rail.player .arena-slot-card[data-slot="${playerActiveSlot}"].active-slot`) ||
+        battleResult.querySelector(`.arena-rail.player .arena-slot-card[data-slot="${playerActiveSlot}"]`) ||
         battleResult.querySelector('.arena-rail.player .arena-slot-card.active-slot') ||
         battleResult.querySelector('.arena-rail.player .arena-slot-card');
-      const enemySource = battleResult.querySelector(`.arena-rail.enemy .arena-slot-card:nth-child(${opponentActiveSlot}).active-slot`) ||
-        battleResult.querySelector(`.arena-rail.enemy .arena-slot-card:nth-child(${opponentActiveSlot})`) ||
+      const enemySource = battleResult.querySelector(`.arena-rail.enemy .arena-slot-card[data-slot="${opponentActiveSlot}"].active-slot`) ||
+        battleResult.querySelector(`.arena-rail.enemy .arena-slot-card[data-slot="${opponentActiveSlot}"]`) ||
         battleResult.querySelector('.arena-rail.enemy .arena-slot-card.active-slot') ||
         battleResult.querySelector('.arena-rail.enemy .arena-slot-card');
       if (!playerSource || !enemySource) {
@@ -6956,11 +7027,11 @@ PAGE_TEMPLATE = """
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
-      const clashCardWidth = compactClash ? 46 : 126;
-      const clashCardHeight = compactClash ? 64 : 184;
-      const clashGap = compactClash ? 22 : 18;
-      const impactGap = compactClash ? 12 : 14;
-      const centerY = compactClash ? coreRect.height * 0.5 : coreRect.height * 0.55;
+      const clashCardWidth = compactClash ? 58 : 154;
+      const clashCardHeight = compactClash ? 84 : 220;
+      const clashGap = compactClash ? 24 : 34;
+      const impactGap = compactClash ? 14 : 26;
+      const centerY = compactClash ? coreRect.height * 0.54 : coreRect.height * 0.62;
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 50 : 14;
       const laneTop = laneRect.top - coreRect.top;
@@ -6981,14 +7052,14 @@ PAGE_TEMPLATE = """
       const playerTargetTop = Math.min(laneBottomBound - clashCardHeight, rawPlayerTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 10 : 22) : playerTargetTop;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 22) : enemyTargetTop;
+      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 10 : 24) : playerTargetTop;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 24) : enemyTargetTop;
       const rawPlayerImpactTop = compactClash
         ? Math.max(laneMidY + compactMidGap, playerTargetTop - (playerAttack ? 8 : 0))
-        : (centerY + impactGap);
+        : (centerY + impactGap + 18);
       const rawEnemyImpactTop = compactClash
         ? Math.min(laneMidY - clashCardHeight - compactMidGap, enemyTargetTop + (enemyAttack ? 8 : 0))
-        : (centerY - clashCardHeight - impactGap);
+        : (centerY - clashCardHeight - impactGap - 6);
       const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, rawPlayerImpactTop);
       const enemyImpactTop = Math.max(laneTopBound, rawEnemyImpactTop);
       const playerImpactScale = playerAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
@@ -7019,8 +7090,12 @@ PAGE_TEMPLATE = """
       playerClone.style.visibility = 'visible';
       playerClone.style.opacity = '1';
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
-      const playerStartTop = laneBottomBound - clashCardHeight;
-      const enemyStartTop = laneTopBound;
+      const playerStartTop = compactClash
+        ? Math.max(laneBottomBound - clashCardHeight, playerRect.top - coreRect.top)
+        : Math.max(coreRect.height + 8, playerRect.top - coreRect.top);
+      const enemyStartTop = compactClash
+        ? Math.min(laneTopBound, enemyRect.top - coreRect.top)
+        : Math.min(-clashCardHeight - 8, enemyRect.top - coreRect.top);
       playerClone.style.top = `${playerStartTop}px`;
       playerClone.style.width = `${clashCardWidth}px`;
       playerClone.style.height = `${clashCardHeight}px`;
@@ -9186,7 +9261,7 @@ PAGE_TEMPLATE = """
           renderProfile();
           renderDeck(null);
           renderOwnedDecks([], null);
-          renderAchievements([]);
+          renderClanSeasonHub();
           renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
           setStatus(walletStatus, 'Подключи кошелёк через TonConnect.', 'warning');
         }
@@ -9271,6 +9346,7 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(document.getElementById('nav-pack'), () => switchView('pack'));
     bindFunctionalControl(document.getElementById('nav-modes'), () => switchView('modes'));
     bindFunctionalControl(document.getElementById('nav-profile'), () => switchView('profile'));
+    bindFunctionalControl(document.getElementById('nav-guilds'), () => switchView('guilds'));
     bindFunctionalControl(document.getElementById('nav-achievements'), () => switchView('achievements'));
     [buildAttack, buildDefense, buildLuck, buildSpeed, buildMagic].forEach((node) => {
       node.addEventListener('input', () => {
@@ -9346,7 +9422,7 @@ PAGE_TEMPLATE = """
     renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
     renderDeck(null);
     renderOwnedDecks([], null);
-    renderAchievements([]);
+    renderClanSeasonHub();
     refreshOneCardSelector();
     switchView('wallet');
     updateButtons();
