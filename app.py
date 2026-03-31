@@ -17,7 +17,7 @@ from urllib.parse import parse_qsl
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template_string, request
+from flask import Flask, Response, jsonify, render_template_string, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -84,6 +84,7 @@ PACK_PITY_THRESHOLD = int(os.getenv('PACK_PITY_THRESHOLD', '20'))
 
 DOMAIN_CACHE = {}
 TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
+TONCONNECT_SCRIPT_CACHE = {'body': None, 'content_type': 'application/javascript; charset=utf-8'}
 
 TONCONNECT_MANIFEST = {
     'url': APP_ROOT or None,
@@ -160,7 +161,7 @@ PAGE_TEMPLATE = """
   <meta name="theme-color" content="#09111f">
   <meta name="description" content="TON 10K Club mini game with wallet connection, real domain checks and Telegram integration.">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+  <script src="/vendor/tonconnect-ui.min.js"></script>
   <script>
     function loadExternalScript(src) {
       return new Promise((resolve, reject) => {
@@ -192,6 +193,7 @@ PAGE_TEMPLATE = """
         return true;
       }
       const candidates = [
+        `${window.location.origin}/vendor/tonconnect-ui.min.js`,
         'https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js',
         'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js'
       ];
@@ -15359,6 +15361,32 @@ def tonconnect_manifest():
     manifest = dict(TONCONNECT_MANIFEST)
     manifest['url'] = request.host_url.rstrip('/')
     return jsonify(manifest)
+
+
+@app.route('/vendor/tonconnect-ui.min.js')
+def tonconnect_vendor_script():
+    cached_body = TONCONNECT_SCRIPT_CACHE.get('body')
+    if cached_body:
+        return Response(cached_body, mimetype=TONCONNECT_SCRIPT_CACHE.get('content_type') or 'application/javascript')
+
+    sources = [
+        'https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js',
+        'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js',
+    ]
+    last_error = None
+    for src in sources:
+        try:
+            response = HTTP.get(src, timeout=12)
+            response.raise_for_status()
+            body = response.text
+            if body and 'TonConnectUI' in body:
+                TONCONNECT_SCRIPT_CACHE['body'] = body
+                TONCONNECT_SCRIPT_CACHE['content_type'] = response.headers.get('content-type', 'application/javascript; charset=utf-8')
+                return Response(body, mimetype=TONCONNECT_SCRIPT_CACHE['content_type'])
+        except Exception as exc:
+            last_error = exc
+            continue
+    return Response(f'/* TonConnect load failed: {last_error} */', status=502, mimetype='application/javascript')
 
 
 @app.route('/api/health')
