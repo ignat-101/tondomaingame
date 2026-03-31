@@ -167,16 +167,16 @@ COSMETIC_THEME_DEFS = [
 ]
 
 SEASON_PASS_TRACK = [
-    {'level': 1, 'free': '💠 4 осколка', 'premium': 'Рамка Black'},
-    {'level': 2, 'free': None, 'premium': 'Рубашка Onyx Black'},
-    {'level': 3, 'free': '🎟️ 1 редкий токен', 'premium': 'Арена Ivory White'},
-    {'level': 4, 'free': None, 'premium': 'Знамя Midnight Blue'},
-    {'level': 5, 'free': '✨ 1 lucky-токен', 'premium': 'Рамка Fire Engine'},
-    {'level': 6, 'free': None, 'premium': 'Рубашка Deep Cyan'},
-    {'level': 7, 'free': '💠 6 осколков', 'premium': 'Арена Khaki Green'},
-    {'level': 8, 'free': None, 'premium': 'Знамя Satin Gold'},
-    {'level': 9, 'free': '🎟️ 1 редкий токен', 'premium': 'Рамка Old Gold'},
-    {'level': 10, 'free': None, 'premium': 'Арена Neon Blue'},
+    {'level': 1, 'free': '💠 4 осколка', 'premium_type': 'frame'},
+    {'level': 2, 'free': None, 'premium_type': 'cardback'},
+    {'level': 3, 'free': '🎟️ 1 редкий токен', 'premium_type': 'arena'},
+    {'level': 4, 'free': None, 'premium_type': 'guild'},
+    {'level': 5, 'free': '✨ 1 lucky-токен', 'premium_type': 'frame'},
+    {'level': 6, 'free': None, 'premium_type': 'cardback'},
+    {'level': 7, 'free': '💠 6 осколков', 'premium_type': 'arena'},
+    {'level': 8, 'free': None, 'premium_type': 'guild'},
+    {'level': 9, 'free': '🎟️ 1 редкий токен', 'premium_type': 'frame'},
+    {'level': 10, 'free': None, 'premium_type': 'arena'},
 ]
 
 
@@ -200,7 +200,7 @@ def _build_cosmetic_catalog():
         theme_sources = premium_map.get(slug, {})
         catalog.extend([
             {'key': f'frame_{slug}', 'type': 'frame', 'name': f'{name} Frame', 'source': theme_sources.get('frame', 'cosmetics')},
-            {'key': f'cardback_{slug}', 'type': 'cardback', 'name': f'{name} Monogram', 'source': theme_sources.get('cardback', 'cosmetics')},
+            {'key': f'cardback_{slug}', 'type': 'cardback', 'name': f'{name} Monogram', 'source': theme_sources.get('cardback', 'season_pass')},
             {'key': f'arena_{slug}', 'type': 'arena', 'name': f'{name} Arena', 'source': theme_sources.get('arena', 'cosmetics')},
             {'key': f'guild_banner_{slug}', 'type': 'guild', 'name': f'{name} Banner', 'source': theme_sources.get('guild', 'cosmetics')},
         ])
@@ -5274,6 +5274,8 @@ PAGE_TEMPLATE = """
           <div id="profile-identity-panel" class="deck-list"></div>
           <h3 style="margin-top:20px;">Косметика и превью</h3>
           <div id="profile-cosmetics-panel" class="deck-list"></div>
+          <h3 style="margin-top:20px;">FAQ</h3>
+          <div id="faq-panel" class="deck-list"></div>
           <h3 style="margin-top:20px;">Друзья и лобби</h3>
           <div id="social-panel" class="deck-list"></div>
           <div class="actions" style="margin-top:14px;">
@@ -5430,6 +5432,7 @@ PAGE_TEMPLATE = """
     const mobileRewardsPanel = document.getElementById('mobile-rewards-panel');
     const profileIdentityPanel = document.getElementById('profile-identity-panel');
     const profileCosmeticsPanel = document.getElementById('profile-cosmetics-panel');
+    const faqPanel = document.getElementById('faq-panel');
     const socialPanel = document.getElementById('social-panel');
     const guildPanel = document.getElementById('guild-panel');
     const mobileLeaderboard = document.getElementById('mobile-leaderboard');
@@ -6612,6 +6615,7 @@ PAGE_TEMPLATE = """
       renderPackEconomy();
       renderIdentityPanel();
       renderCosmeticsPanel();
+      renderFaqPanel();
       renderSocialPanel();
       renderGuildPanel();
       renderTutorialPanel();
@@ -6722,6 +6726,7 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
+          <div class="tiny">Листай дорожки влево и вправо, чтобы посмотреть все 10 уровней.</div>
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
@@ -6753,16 +6758,16 @@ PAGE_TEMPLATE = """
     }
 
     const GIFT_THEMES = {
-      black: { name: 'Black', emoji: '🖤', base: '#0B0C11', secondary: '#1A1C24', accent: '#6F7583', glow: 'rgba(111,117,131,0.22)', text: '#EDF2FF' },
-      onyx_black: { name: 'Onyx Black', emoji: '⬛', base: '#08090D', secondary: '#181A1F', accent: '#8D949F', glow: 'rgba(141,148,159,0.24)', text: '#F4F7FF' },
-      ivory_white: { name: 'Ivory White', emoji: '🤍', base: '#F4EFE4', secondary: '#E0D5C1', accent: '#BDAA87', glow: 'rgba(189,170,135,0.26)', text: '#1A1A1A' },
-      midnight_blue: { name: 'Midnight Blue', emoji: '🌙', base: '#132342', secondary: '#1D3361', accent: '#7FA8FF', glow: 'rgba(127,168,255,0.26)', text: '#F1F6FF' },
-      fire_engine: { name: 'Fire Engine', emoji: '🔥', base: '#7F111B', secondary: '#B31A29', accent: '#FF8B83', glow: 'rgba(255,139,131,0.28)', text: '#FFF5F5' },
-      deep_cyan: { name: 'Deep Cyan', emoji: '🌊', base: '#0E5560', secondary: '#0F7B88', accent: '#7DEBFF', glow: 'rgba(125,235,255,0.28)', text: '#EDFFFF' },
-      khaki_green: { name: 'Khaki Green', emoji: '🌿', base: '#465236', secondary: '#67784A', accent: '#C8D89A', glow: 'rgba(200,216,154,0.26)', text: '#F2F8E6' },
-      satin_gold: { name: 'Satin Gold', emoji: '✨', base: '#8B6D1B', secondary: '#BF9830', accent: '#FFE08A', glow: 'rgba(255,224,138,0.3)', text: '#FFF7DE' },
-      old_gold: { name: 'Old Gold', emoji: '👑', base: '#6C5520', secondary: '#8E7330', accent: '#D5BA63', glow: 'rgba(213,186,99,0.28)', text: '#FFF6DD' },
-      neon_blue: { name: 'Neon Blue', emoji: '💠', base: '#0E2F7B', secondary: '#1747B7', accent: '#6CD8FF', glow: 'rgba(108,216,255,0.3)', text: '#F1F9FF' },
+      black: { name: 'Black', emoji: '♠️', base: '#0B0C11', secondary: '#1A1C24', accent: '#6F7583', glow: 'rgba(111,117,131,0.22)', text: '#EDF2FF', motif: 'stripes' },
+      onyx_black: { name: 'Onyx Black', emoji: '🕷️', base: '#08090D', secondary: '#181A1F', accent: '#8D949F', glow: 'rgba(141,148,159,0.24)', text: '#F4F7FF', motif: 'web' },
+      ivory_white: { name: 'Ivory White', emoji: '🕊️', base: '#F4EFE4', secondary: '#E0D5C1', accent: '#BDAA87', glow: 'rgba(189,170,135,0.26)', text: '#1A1A1A', motif: 'petals' },
+      midnight_blue: { name: 'Midnight Blue', emoji: '🌙', base: '#132342', secondary: '#1D3361', accent: '#7FA8FF', glow: 'rgba(127,168,255,0.26)', text: '#F1F6FF', motif: 'stars' },
+      fire_engine: { name: 'Fire Engine', emoji: '🔥', base: '#7F111B', secondary: '#B31A29', accent: '#FF8B83', glow: 'rgba(255,139,131,0.28)', text: '#FFF5F5', motif: 'sparks' },
+      deep_cyan: { name: 'Deep Cyan', emoji: '🌊', base: '#0E5560', secondary: '#0F7B88', accent: '#7DEBFF', glow: 'rgba(125,235,255,0.28)', text: '#EDFFFF', motif: 'waves' },
+      khaki_green: { name: 'Khaki Green', emoji: '🌿', base: '#465236', secondary: '#67784A', accent: '#C8D89A', glow: 'rgba(200,216,154,0.26)', text: '#F2F8E6', motif: 'leaf' },
+      satin_gold: { name: 'Satin Gold', emoji: '✨', base: '#8B6D1B', secondary: '#BF9830', accent: '#FFE08A', glow: 'rgba(255,224,138,0.3)', text: '#FFF7DE', motif: 'gems' },
+      old_gold: { name: 'Old Gold', emoji: '👑', base: '#6C5520', secondary: '#8E7330', accent: '#D5BA63', glow: 'rgba(213,186,99,0.28)', text: '#FFF6DD', motif: 'crown' },
+      neon_blue: { name: 'Neon Blue', emoji: '💠', base: '#0E2F7B', secondary: '#1747B7', accent: '#6CD8FF', glow: 'rgba(108,216,255,0.3)', text: '#F1F9FF', motif: 'grid' },
     };
 
     function escapeSvg(text) {
@@ -6787,6 +6792,91 @@ PAGE_TEMPLATE = """
       return GIFT_THEMES[themeSlugFromKey(key)] || GIFT_THEMES.black;
     }
 
+    function giftThemePattern(theme) {
+      const accent = theme.accent;
+      switch (theme.motif) {
+        case 'web':
+          return `
+            <g opacity="0.18" stroke="${accent}" stroke-width="2.5" fill="none">
+              <circle cx="256" cy="384" r="148"/><circle cx="256" cy="384" r="108"/><circle cx="256" cy="384" r="68"/>
+              <path d="M256 236V532M108 384H404M152 280L360 488M360 280L152 488"/>
+            </g>
+          `;
+        case 'petals':
+          return `
+            <g opacity="0.2" fill="${accent}">
+              <ellipse cx="256" cy="250" rx="42" ry="86"/><ellipse cx="256" cy="518" rx="42" ry="86"/>
+              <ellipse cx="122" cy="384" rx="42" ry="86" transform="rotate(90 122 384)"/>
+              <ellipse cx="390" cy="384" rx="42" ry="86" transform="rotate(90 390 384)"/>
+            </g>
+          `;
+        case 'stars':
+          return `
+            <g opacity="0.18" fill="${accent}">
+              <circle cx="110" cy="166" r="8"/><circle cx="390" cy="210" r="6"/><circle cx="158" cy="560" r="7"/><circle cx="360" cy="596" r="9"/>
+              <path d="M256 118 268 144 296 148 274 166 280 194 256 180 232 194 238 166 216 148 244 144Z"/>
+            </g>
+          `;
+        case 'sparks':
+          return `
+            <g opacity="0.18" fill="${accent}">
+              <rect x="98" y="182" width="18" height="106" rx="9" transform="rotate(28 98 182)"/>
+              <rect x="322" y="126" width="18" height="138" rx="9" transform="rotate(18 322 126)"/>
+              <rect x="366" y="466" width="18" height="118" rx="9" transform="rotate(-24 366 466)"/>
+              <rect x="144" y="512" width="18" height="92" rx="9" transform="rotate(-18 144 512)"/>
+            </g>
+          `;
+        case 'waves':
+          return `
+            <g opacity="0.18" stroke="${accent}" stroke-width="8" fill="none" stroke-linecap="round">
+              <path d="M60 230c52-28 92-28 144 0s92 28 144 0 92-28 144 0"/>
+              <path d="M40 384c60 34 104 34 164 0s104-34 164 0 104 34 164 0"/>
+              <path d="M60 540c52-28 92-28 144 0s92 28 144 0 92-28 144 0"/>
+            </g>
+          `;
+        case 'leaf':
+          return `
+            <g opacity="0.18" fill="${accent}">
+              <path d="M138 182c62 4 106 46 110 114-60-4-106-44-110-114Z"/>
+              <path d="M374 478c-62-4-106-46-110-114 60 4 106 44 110 114Z"/>
+              <path d="M136 560c52-30 116-26 164 12-54 30-116 26-164-12Z"/>
+            </g>
+          `;
+        case 'gems':
+          return `
+            <g opacity="0.18" fill="${accent}">
+              <path d="M256 156 304 208 256 260 208 208Z"/>
+              <path d="M132 386 168 424 132 462 96 424Z"/>
+              <path d="M380 386 416 424 380 462 344 424Z"/>
+              <path d="M256 568 304 620 256 672 208 620Z"/>
+            </g>
+          `;
+        case 'crown':
+          return `
+            <g opacity="0.18" fill="${accent}">
+              <path d="M130 224 194 274 256 188 318 274 382 224 356 344H156Z"/>
+              <circle cx="194" cy="260" r="10"/><circle cx="256" cy="176" r="10"/><circle cx="318" cy="260" r="10"/>
+            </g>
+          `;
+        case 'grid':
+          return `
+            <g opacity="0.16" stroke="${accent}" stroke-width="3">
+              <path d="M104 124V644M184 124V644M264 124V644M344 124V644M424 124V644"/>
+              <path d="M88 180H440M88 276H440M88 372H440M88 468H440M88 564H440"/>
+            </g>
+          `;
+        case 'stripes':
+        default:
+          return `
+            <g opacity="0.18" fill="${accent}">
+              <rect x="84" y="152" width="48" height="464" rx="12" transform="rotate(24 84 152)"/>
+              <rect x="208" y="120" width="48" height="528" rx="12" transform="rotate(24 208 120)"/>
+              <rect x="332" y="88" width="48" height="528" rx="12" transform="rotate(24 332 88)"/>
+            </g>
+          `;
+      }
+    }
+
     function cosmeticAssetUrl(type, key) {
       const theme = cosmeticTheme(type, key);
       if (!theme) return '';
@@ -6795,15 +6885,7 @@ PAGE_TEMPLATE = """
           <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
             <rect width="512" height="768" rx="36" fill="${theme.base}"/>
             <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}"/>
-            <g opacity="0.18">
-              <path d="M54 132H458" stroke="${theme.accent}" stroke-width="18" stroke-linecap="round"/>
-              <path d="M54 636H458" stroke="${theme.accent}" stroke-width="18" stroke-linecap="round"/>
-            </g>
-            <g opacity="0.22" fill="${theme.accent}">
-              <rect x="74" y="164" width="58" height="420" rx="14" transform="rotate(22 74 164)"/>
-              <rect x="208" y="142" width="58" height="454" rx="14" transform="rotate(22 208 142)"/>
-              <rect x="342" y="120" width="58" height="454" rx="14" transform="rotate(22 342 120)"/>
-            </g>
+            ${giftThemePattern(theme)}
             <circle cx="256" cy="384" r="92" fill="${theme.base}" fill-opacity="0.42" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="6"/>
             <text x="256" y="410" text-anchor="middle" font-size="78">${escapeSvg(theme.emoji)}</text>
           </svg>
@@ -6824,6 +6906,9 @@ PAGE_TEMPLATE = """
           <svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
             <rect width="1600" height="900" fill="${theme.base}"/>
             <rect width="1600" height="900" fill="url(#g)"/>
+            <g transform="translate(544 140) scale(2.1)">
+              ${giftThemePattern(theme)}
+            </g>
             <g opacity="0.28" stroke="${theme.accent}" stroke-width="3">
               <path d="M120 180H1480"/><path d="M120 720H1480"/>
               <path d="M220 120V780"/><path d="M800 80V820"/><path d="M1380 120V780"/>
@@ -6970,6 +7055,42 @@ PAGE_TEMPLATE = """
       });
       state.playerProfile = data.player || state.playerProfile;
       renderProfile();
+    }
+
+    function renderFaqPanel() {
+      if (!faqPanel) return;
+      const faqItems = [
+        {
+          title: 'Как работают домены 10K Club',
+          body: 'Сила домена берётся из индекса 10K Club: тир, паттерны, score и бонусы. Редкий домен помогает, но бой всё равно решают выбор действия, энергия, стратегия и RNG.'
+        },
+        {
+          title: 'Что дают Натиск, Блок и Способность',
+          body: 'Натиск стоит 2 энергии и лучше раскрывает агрессию. Блок стоит 1 энергию и помогает пережить сильный раунд соперника. Способность стоит 3 энергии, имеет КД и заряды, поэтому её выгодно прожимать в ключевой момент.'
+        },
+        {
+          title: 'Как работают паки',
+          body: 'Бесплатные и reward-паки дают карты и валюту. Редкость идёт по порядку: Basic, Rare, Epic, Mythic, Legendary. Платный сезонный пропуск даёт косметику, а не силу.'
+        },
+        {
+          title: 'Что даёт сезонный пропуск',
+          body: 'Верхняя линия — премиум, нижняя — бесплатная. Бесплатные награды идут через уровень, премиум — на каждом уровне. Премиум открывает случайные рамки, рубашки, арены и клановые баннеры.'
+        },
+        {
+          title: 'Как работают кланы и войны',
+          body: 'Клан даёт недельные задания, войну недели, общий сезонный счёт и сундук награды. Чем больше активность клана в боях и заданиях, тем выше общая награда недели.'
+        },
+        {
+          title: 'Как работает косметика',
+          body: 'Косметика видна всем игрокам: рубашка, рамка, арена и клановый баннер применяются в превью и в бою. Сначала показываются открытые предметы, остальное открывается по кнопке просмотра полного каталога.'
+        }
+      ];
+      faqPanel.innerHTML = faqItems.map((item) => `
+        <div class="user-item">
+          <strong>${item.title}</strong>
+          <div class="tiny" style="margin-top:8px;">${item.body}</div>
+        </div>
+      `).join('');
     }
 
     function renderCardCatalog(cards, skills = []) {
@@ -7460,36 +7581,44 @@ PAGE_TEMPLATE = """
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
       const playerCosmetics = (currentResult && currentResult.player_cosmetics) || {};
       const opponentCosmetics = (currentResult && currentResult.opponent_cosmetics) || {};
-      const clashCardWidth = compactClash ? 54 : 128;
-      const clashCardHeight = compactClash ? 78 : 188;
-      const clashGap = compactClash ? 18 : 28;
-      const impactGap = compactClash ? 10 : 16;
+      const clashCardWidth = compactClash ? 56 : 138;
+      const clashCardHeight = compactClash ? 82 : 196;
+      const clashGap = compactClash ? 12 : 22;
       const clashLanePadding = compactClash ? 6 : 10;
-      const verticalPadding = compactClash ? 26 : 20;
-      const laneTopBound = verticalPadding;
-      const laneBottomBound = coreRect.height - verticalPadding;
-      const laneMidY = compactClash ? (coreRect.height * 0.55) : (coreRect.height * 0.52);
+      const laneTop = laneRect.top - coreRect.top;
+      const laneHeight = laneRect.height;
+      const laneTopBound = laneTop + (compactClash ? 6 : 10);
+      const laneBottomBound = laneTop + laneHeight - (compactClash ? 6 : 10);
+      const laneCenterY = laneTop + laneHeight / 2;
       const laneTargetLeft = Math.max(
         clashLanePadding,
         Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
       );
       const playerTargetLeft = laneTargetLeft;
       const enemyTargetLeft = laneTargetLeft;
-      let enemyTargetTop = laneMidY - clashCardHeight - clashGap / 2;
-      let playerTargetTop = laneMidY + clashGap / 2;
+      let enemyTargetTop = laneCenterY - clashCardHeight - clashGap / 2;
+      let playerTargetTop = laneCenterY + clashGap / 2;
       enemyTargetTop = Math.max(laneTopBound, enemyTargetTop);
       playerTargetTop = Math.min(laneBottomBound - clashCardHeight, playerTargetTop);
-      if (playerTargetTop <= enemyTargetTop + clashCardHeight + 8) {
-        const safeCenterY = compactClash ? (coreRect.height * 0.6) : (coreRect.height * 0.55);
-        enemyTargetTop = Math.max(laneTopBound, safeCenterY - clashCardHeight - clashGap / 2);
-        playerTargetTop = Math.min(laneBottomBound - clashCardHeight, safeCenterY + clashGap / 2);
+      if (playerTargetTop <= enemyTargetTop + clashCardHeight + clashGap) {
+        enemyTargetTop = Math.max(laneTopBound, laneCenterY - clashCardHeight - clashGap);
+        playerTargetTop = Math.min(laneBottomBound - clashCardHeight, laneCenterY);
+      }
+      if (playerTargetTop < enemyTargetTop) {
+        const correctedEnemyTop = Math.max(laneTopBound, Math.min(enemyTargetTop, playerTargetTop));
+        const correctedPlayerTop = Math.min(
+          laneBottomBound - clashCardHeight,
+          Math.max(playerTargetTop, correctedEnemyTop + clashCardHeight + Math.max(8, clashGap))
+        );
+        enemyTargetTop = correctedEnemyTop;
+        playerTargetTop = correctedPlayerTop;
       }
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 10 : 16) : playerTargetTop;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 16) : enemyTargetTop;
-      const enemyImpactTop = Math.max(laneTopBound, enemyTargetTop + (enemyAttack ? 10 : 6));
-      const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, playerTargetTop - (playerAttack ? 10 : 6));
+      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 8 : 12) : playerTargetTop;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 8 : 12) : enemyTargetTop;
+      const enemyImpactTop = Math.max(laneTopBound, enemyTargetTop + (enemyAttack ? 8 : 4));
+      const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, playerTargetTop - (playerAttack ? 8 : 4));
       const playerImpactScale = playerAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
       const enemyImpactScale = enemyAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
       const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
@@ -7521,10 +7650,10 @@ PAGE_TEMPLATE = """
       playerClone.style.opacity = '1';
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
       const playerStartTop = compactClash
-        ? Math.max(laneBottomBound - clashCardHeight, playerRect.top - coreRect.top)
+        ? Math.max(laneBottomBound - clashCardHeight, laneTop + laneHeight + 4)
         : Math.max(coreRect.height + 8, playerRect.top - coreRect.top);
       const enemyStartTop = compactClash
-        ? Math.min(laneTopBound, enemyRect.top - coreRect.top)
+        ? Math.min(laneTopBound - clashCardHeight - 4, laneTop - clashCardHeight - 4)
         : Math.min(-clashCardHeight - 8, enemyRect.top - coreRect.top);
       playerClone.style.top = `${playerStartTop}px`;
       playerClone.style.width = `${clashCardWidth}px`;
@@ -10863,15 +10992,59 @@ def cosmetic_inventory(wallet):
     ]
 
 
+def season_pass_cosmetic_pool(cosmetic_type):
+    return [item for item in COSMETIC_CATALOG if item['type'] == cosmetic_type]
+
+
+def season_pass_random_cosmetic(wallet, level, cosmetic_type):
+    pool = season_pass_cosmetic_pool(cosmetic_type)
+    if not pool:
+        return None
+    seed = f'{wallet}:{int(level)}:{cosmetic_type}:season-pass-v2'
+    digest = hashlib.sha256(seed.encode('utf-8')).hexdigest()
+    index = int(digest[:8], 16) % len(pool)
+    return pool[index]
+
+
+def apply_season_pass_unlocks(wallet, rewards=None):
+    rewards = rewards or ensure_player_rewards(wallet)
+    premium_active = bool(int(rewards.get('premium_pass', 0) or 0))
+    if not premium_active:
+        return
+    season_level = int(rewards.get('season_level', 1) or 1)
+    for item in SEASON_PASS_TRACK:
+        if season_level < int(item['level']):
+            continue
+        premium_type = item.get('premium_type')
+        if not premium_type:
+            continue
+        cosmetic = season_pass_random_cosmetic(wallet, item['level'], premium_type)
+        if cosmetic:
+            grant_cosmetic(wallet, cosmetic['key'], 'season_pass')
+
+
 def season_pass_track_payload(wallet=None, rewards=None):
     rewards = rewards or ({'season_level': 1, 'premium_pass': 0} if wallet is None else ensure_player_rewards(wallet))
     season_level = int(rewards.get('season_level', 1) or 1)
     premium_active = bool(rewards.get('premium_pass', 0))
     payload = []
     for item in SEASON_PASS_TRACK:
+        premium_type = item.get('premium_type')
+        premium_meta = season_pass_random_cosmetic(wallet, item['level'], premium_type) if wallet and premium_type else None
+        premium_label = None
+        if premium_meta and premium_type == 'cardback':
+            premium_label = f'Случайная рубашка • {premium_meta["name"]}'
+        elif premium_meta and premium_type == 'arena':
+            premium_label = f'Случайная арена • {premium_meta["name"]}'
+        elif premium_meta and premium_type == 'frame':
+            premium_label = f'Случайная рамка • {premium_meta["name"]}'
+        elif premium_meta and premium_type == 'guild':
+            premium_label = f'Случайный баннер • {premium_meta["name"]}'
         payload.append(
             {
                 **item,
+                'premium': premium_label,
+                'premium_key': premium_meta['key'] if premium_meta else None,
                 'free_ready': season_level >= int(item['level']),
                 'premium_ready': premium_active and season_level >= int(item['level']),
             }
@@ -10907,6 +11080,8 @@ def reward_summary(wallet):
     rewards['season_progress'] = round(int(rewards.get('season_points', 0)) / max(1, rewards['season_target']), 3)
     rewards['premium_pass'] = int(rewards.get('premium_pass', 0) or 0)
     rewards['premium_pass_active'] = bool(rewards['premium_pass'])
+    if rewards['premium_pass_active']:
+        apply_season_pass_unlocks(wallet, rewards)
     rewards['season_pass_track'] = season_pass_track_payload(wallet=wallet, rewards=rewards)
     rewards['cosmetics'] = cosmetic_inventory(wallet)
     rewards['cosmetic_catalog'] = COSMETIC_CATALOG
