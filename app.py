@@ -1914,6 +1914,23 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
+    .season-pass-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x;
+      scroll-snap-type: x proximity;
+    }
+
+    .season-pass-track {
+      width: max-content;
+    }
+
+    .season-pass-track > * {
+      scroll-snap-align: start;
+    }
+
     .arena-clash-debug strong {
       color: #fff1c5;
       font-size: 10px;
@@ -6714,14 +6731,14 @@ PAGE_TEMPLATE = """
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
-              <div style="overflow-x:auto; overflow-y:hidden; padding-bottom:8px; -webkit-overflow-scrolling:touch;">
-                <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(220px, 220px)); width:max-content;">${premiumRow}</div>
+              <div class="season-pass-scroll">
+                <div class="catalog-grid season-pass-track" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(220px, 220px));">${premiumRow}</div>
               </div>
             </div>
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
-              <div style="overflow-x:auto; overflow-y:hidden; padding-bottom:8px; -webkit-overflow-scrolling:touch;">
-                <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(220px, 220px)); width:max-content;">${freeRow}</div>
+              <div class="season-pass-scroll">
+                <div class="catalog-grid season-pass-track" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(220px, 220px));">${freeRow}</div>
               </div>
             </div>
           </div>
@@ -7264,14 +7281,44 @@ PAGE_TEMPLATE = """
       const frameAsset = cosmeticAssetUrl('frame', frameKey);
       const backAsset = cosmeticAssetUrl('cardback', backKey);
       let border = side === 'player' ? 'rgba(83,246,184,0.34)' : 'rgba(255,122,134,0.3)';
+      let glow = side === 'player' ? 'rgba(83,246,184,0.18)' : 'rgba(255,122,134,0.16)';
+      let overlay = 'rgba(8, 15, 28, 0.22)';
       if (frameKey.includes('gold') || frameKey.includes('solar')) border = 'rgba(255,211,110,0.42)';
       if (frameKey.includes('void') || frameKey.includes('obsidian')) border = 'rgba(174,126,255,0.38)';
       if (frameKey.includes('crimson')) border = 'rgba(255,122,134,0.42)';
+      if (backKey.includes('gold') || backKey.includes('script')) {
+        glow = 'rgba(255,211,110,0.24)';
+        overlay = 'rgba(56, 38, 10, 0.14)';
+      } else if (backKey.includes('aurora')) {
+        glow = 'rgba(101, 221, 255, 0.22)';
+        overlay = 'rgba(17, 34, 52, 0.14)';
+      } else if (backKey.includes('chrome')) {
+        glow = 'rgba(125, 225, 255, 0.22)';
+        overlay = 'rgba(12, 30, 38, 0.16)';
+      } else if (backKey.includes('frost')) {
+        glow = 'rgba(191, 231, 255, 0.2)';
+        overlay = 'rgba(18, 34, 54, 0.18)';
+      } else if (backKey.includes('ember')) {
+        glow = 'rgba(255, 138, 92, 0.22)';
+        overlay = 'rgba(52, 20, 10, 0.16)';
+      } else if (backKey.includes('emerald')) {
+        glow = 'rgba(83,246,184,0.24)';
+        overlay = 'rgba(10, 42, 28, 0.14)';
+      } else if (backKey.includes('void')) {
+        glow = 'rgba(174,126,255,0.24)';
+        overlay = 'rgba(27, 12, 42, 0.16)';
+      } else if (backKey.includes('glitch') || backKey.includes('signal')) {
+        glow = 'rgba(188,126,255,0.24)';
+        overlay = 'rgba(34, 14, 44, 0.16)';
+      } else if (backKey.includes('tactical') || backKey.includes('black')) {
+        glow = 'rgba(255,186,108,0.18)';
+        overlay = 'rgba(22, 18, 10, 0.14)';
+      }
       const base = backAsset
-        ? `linear-gradient(180deg, rgba(10,18,30,0.66), rgba(8,16,29,0.8)), url(${backAsset}) center/cover no-repeat`
+        ? `linear-gradient(180deg, ${overlay}, rgba(8,16,29,0.08)), url(${backAsset}) center/cover no-repeat`
         : 'linear-gradient(180deg, rgba(10,18,30,0.98), rgba(8,16,29,0.98))';
       const frameLayer = frameAsset ? `, url(${frameAsset}) center/100% 100% no-repeat` : '';
-      return `border-color:${border}; background:${base}${frameLayer};`;
+      return `border-color:${border}; background:${base}${frameLayer}; box-shadow:0 0 0 1px ${border}, 0 16px 32px ${glow}, inset 0 0 0 1px rgba(255,255,255,0.03); filter:saturate(1.12) contrast(1.04);`;
     }
 
     function battleTrailStyle(cosmetics) {
@@ -7325,10 +7372,8 @@ PAGE_TEMPLATE = """
       }
       const opponentActionKey = latestRound.opponent_action || 'guard';
       const resultKey = latestRound.winner === 'player' ? 'win' : (latestRound.winner === 'opponent' ? 'lose' : 'draw');
-      const laneRect = activeLane.getBoundingClientRect();
       const coreRect = arenaCore.getBoundingClientRect();
       const arenaShell = battleResult.querySelector('.arena-shell');
-      const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
       const playerActiveSlot = Number(playerCard.slot || currentRoundIndex + 1);
       const opponentActiveSlot = Number(opponentCard.slot || currentRoundIndex + 1);
       const playerSource = battleResult.querySelector(`.arena-rail.player .arena-slot-card[data-slot="${playerActiveSlot}"].active-slot`) ||
@@ -7349,29 +7394,34 @@ PAGE_TEMPLATE = """
       const opponentCosmetics = (currentResult && currentResult.opponent_cosmetics) || {};
       const clashCardWidth = compactClash ? 54 : 128;
       const clashCardHeight = compactClash ? 78 : 188;
-      const clashGap = compactClash ? 22 : 34;
-      const impactGap = compactClash ? 14 : 20;
+      const clashGap = compactClash ? 18 : 28;
+      const impactGap = compactClash ? 10 : 16;
       const clashLanePadding = compactClash ? 6 : 10;
-      const verticalPadding = compactClash ? 50 : 14;
-      const laneTop = laneRect.top - coreRect.top;
-      const laneBottom = laneRect.bottom - coreRect.top;
-      const laneTopBound = compactClash ? Math.max(verticalPadding, laneTop + 10) : verticalPadding;
-      const laneBottomBound = compactClash ? Math.min(coreRect.height - verticalPadding, laneBottom - 10) : (coreRect.height - verticalPadding);
-      const laneMidY = (laneTopBound + laneBottomBound) / 2;
+      const verticalPadding = compactClash ? 26 : 20;
+      const laneTopBound = verticalPadding;
+      const laneBottomBound = coreRect.height - verticalPadding;
+      const laneMidY = compactClash ? (coreRect.height * 0.55) : (coreRect.height * 0.52);
       const laneTargetLeft = Math.max(
         clashLanePadding,
-        Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
+        Math.min((coreRect.width - clashCardWidth) / 2, coreRect.width - clashCardWidth - clashLanePadding)
       );
       const playerTargetLeft = laneTargetLeft;
       const enemyTargetLeft = laneTargetLeft;
-      const enemyTargetTop = Math.max(laneTopBound, laneMidY - clashCardHeight - clashGap / 2);
-      const playerTargetTop = Math.min(laneBottomBound - clashCardHeight, laneMidY + clashGap / 2);
+      let enemyTargetTop = laneMidY - clashCardHeight - clashGap / 2;
+      let playerTargetTop = laneMidY + clashGap / 2;
+      enemyTargetTop = Math.max(laneTopBound, enemyTargetTop);
+      playerTargetTop = Math.min(laneBottomBound - clashCardHeight, playerTargetTop);
+      if (playerTargetTop <= enemyTargetTop + clashCardHeight + 8) {
+        const safeCenterY = compactClash ? (coreRect.height * 0.6) : (coreRect.height * 0.55);
+        enemyTargetTop = Math.max(laneTopBound, safeCenterY - clashCardHeight - clashGap / 2);
+        playerTargetTop = Math.min(laneBottomBound - clashCardHeight, safeCenterY + clashGap / 2);
+      }
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
       const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 10 : 16) : playerTargetTop;
       const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 16) : enemyTargetTop;
-      const enemyImpactTop = Math.max(laneTopBound, laneMidY - clashCardHeight - impactGap / 2);
-      const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, laneMidY + impactGap / 2);
+      const enemyImpactTop = Math.max(laneTopBound, enemyTargetTop + (enemyAttack ? 10 : 6));
+      const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, playerTargetTop - (playerAttack ? 10 : 6));
       const playerImpactScale = playerAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
       const enemyImpactScale = enemyAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
       const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
@@ -7395,8 +7445,6 @@ PAGE_TEMPLATE = """
       const playerSourceOpacity = playerSource.style.opacity;
       const enemySourceVisibility = enemySource.style.visibility;
       const enemySourceOpacity = enemySource.style.opacity;
-      const playerSourceSide = playerSource.closest('.arena-rail')?.classList.contains('player') ? 'player-rail' : 'unknown';
-      const enemySourceSide = enemySource.closest('.arena-rail')?.classList.contains('enemy') ? 'enemy-rail' : 'unknown';
       const playerClone = playerSource.cloneNode(true);
       playerClone.className = `${playerClone.className} arena-lane-card player ${playerActionKey}`.trim();
       playerClone.classList.add('simplified');
@@ -7415,7 +7463,6 @@ PAGE_TEMPLATE = """
       playerClone.style.height = `${clashCardHeight}px`;
       playerClone.style.cssText += `;${battleCardStyle(playerCosmetics, 'player')}`;
       playerClone.style.zIndex = '3';
-      playerClone.insertAdjacentHTML('beforeend', `<div class="arena-lane-card-debug">PLAYER • slot ${playerActiveSlot} • ${playerActionKey} • ${playerSourceSide}</div>`);
       playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
       const enemyClone = enemySource.cloneNode(true);
       enemyClone.className = `${enemyClone.className} arena-lane-card enemy ${opponentActionKey}`.trim();
@@ -7429,7 +7476,6 @@ PAGE_TEMPLATE = """
       enemyClone.style.height = `${clashCardHeight}px`;
       enemyClone.style.cssText += `;${battleCardStyle(opponentCosmetics, 'enemy')}`;
       enemyClone.style.zIndex = '2';
-      enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-lane-card-debug">ENEMY • slot ${opponentActiveSlot} • ${opponentActionKey} • ${enemySourceSide}</div>`);
       enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
       playerSource.style.visibility = 'hidden';
       playerSource.style.opacity = '0';
@@ -7446,17 +7492,9 @@ PAGE_TEMPLATE = """
         impactNode.style.backgroundSize = 'cover, cover';
         impactNode.style.backgroundPosition = 'center, center';
       }
-      const debugNode = document.createElement('div');
-      debugNode.className = 'arena-clash-debug';
-      debugNode.innerHTML = `
-        <div><strong>PLAYER</strong> slot ${playerActiveSlot} • action ${playerActionKey} • source ${playerSourceSide}</div>
-        <div><strong>ENEMY</strong> slot ${opponentActiveSlot} • action ${opponentActionKey} • source ${enemySourceSide}</div>
-        <div><strong>TOP</strong> player ${Math.round(playerStartTop)} → ${Math.round(playerTargetTop)} • enemy ${Math.round(enemyStartTop)} → ${Math.round(enemyTargetTop)}</div>
-      `;
       laneReveal.appendChild(playerClone);
       laneReveal.appendChild(enemyClone);
       laneReveal.appendChild(impactNode);
-      laneReveal.appendChild(debugNode);
       arenaCore.appendChild(laneReveal);
       requestAnimationFrame(() => laneReveal.classList.add('visible'));
       const playerStartLeft = playerRect.left - coreRect.left;
