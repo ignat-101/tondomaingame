@@ -155,7 +155,7 @@ PACK_TYPES = {
 
 SEASON_PASS_TRACK = [
     {'level': 1, 'free': '💠 4 осколка', 'premium': 'Рамка Neon Pulse'},
-    {'level': 2, 'free': '🎟️ 1 редкий токен', 'premium': 'Аватар Guild Spark'},
+    {'level': 2, 'free': '🎟️ 1 редкий токен', 'premium': 'След Neon Sparks'},
     {'level': 3, 'free': '✨ 1 lucky-токен', 'premium': 'Арена Gold Grid'},
     {'level': 4, 'free': '💠 6 осколков', 'premium': 'Рубашка Tactical Black'},
     {'level': 5, 'free': '🎟️ 1 редкий токен', 'premium': 'Титул 10K Vanguard'},
@@ -163,7 +163,7 @@ SEASON_PASS_TRACK = [
 
 COSMETIC_CATALOG = [
     {'key': 'frame_neon_pulse', 'type': 'frame', 'name': 'Neon Pulse', 'source': 'season_pass'},
-    {'key': 'avatar_guild_spark', 'type': 'avatar', 'name': 'Guild Spark', 'source': 'season_pass'},
+    {'key': 'trail_neon_sparks', 'type': 'trail', 'name': 'Neon Sparks', 'source': 'season_pass'},
     {'key': 'arena_gold_grid', 'type': 'arena', 'name': 'Gold Grid', 'source': 'season_pass'},
     {'key': 'cardback_tactical_black', 'type': 'cardback', 'name': 'Tactical Black', 'source': 'season_pass'},
     {'key': 'guild_banner_weekly', 'type': 'guild', 'name': 'Weekly War Banner', 'source': 'guild_reward'},
@@ -4944,7 +4944,7 @@ PAGE_TEMPLATE = """
         <div class="step-chip" data-step-chip="pack">2. Распаковка</div>
         <div class="step-chip" data-step-chip="modes">3. Режимы игры</div>
         <div class="step-chip" data-step-chip="profile">4. Профиль</div>
-        <div class="step-chip" data-step-chip="achievements">5. Кланы</div>
+        <div class="step-chip" data-step-chip="achievements">5. Пропуск</div>
       </div>
     </section>
 
@@ -5149,7 +5149,7 @@ PAGE_TEMPLATE = """
           <h2>Профиль</h2>
           <div id="mobile-profile-summary" class="deck-list"></div>
           <div id="mobile-rewards-panel" class="deck-list" style="margin-top:14px;"></div>
-          <h3 style="margin-top:20px;">Социальный профиль</h3>
+          <h3 style="margin-top:20px;">Публичный профиль</h3>
           <div id="profile-identity-panel" class="deck-list"></div>
           <h3 style="margin-top:20px;">Друзья и лобби</h3>
           <div id="social-panel" class="deck-list"></div>
@@ -5166,10 +5166,10 @@ PAGE_TEMPLATE = """
         </section>
 
         <section class="panel view" id="view-achievements">
-          <h2>Кланы и сезон</h2>
-          <p class="muted">Клановые цели, война недели, сезонный пропуск и косметические награды без p2w.</p>
+          <h2>Сезонный пропуск</h2>
+          <p class="muted">Отдельный экран бесплатного и премиум-трека. Премиум даёт только косметику и ускоряет сбор сезонной валюты.</p>
           <div class="actions">
-            <button id="refresh-achievements-btn" disabled>Обновить клан и сезон</button>
+            <button id="refresh-achievements-btn" disabled>Обновить пропуск</button>
           </div>
           <div class="deck-list" id="achievements-list"></div>
         </section>
@@ -5219,7 +5219,7 @@ PAGE_TEMPLATE = """
     <button id="nav-pack">Карты</button>
     <button id="nav-modes">Игра</button>
     <button id="nav-profile">Профиль</button>
-    <button id="nav-achievements">Кланы</button>
+    <button id="nav-achievements">Пропуск</button>
   </nav>
 
   <div class="currency-float" id="global-currency-float">
@@ -5866,7 +5866,6 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>Публичный профиль</strong>
           <div class="row" style="margin-top:10px;">
-            <input id="profile-avatar-input" value="${escapeHtml(profile.avatar || '🜂')}" maxlength="4" placeholder="Аватар" style="max-width:90px;">
             <input id="profile-nickname-input" value="${escapeHtml(profile.nickname || '')}" maxlength="24" placeholder="Ник / имя для матчей">
           </div>
           <div class="row" style="margin-top:10px;">
@@ -5895,7 +5894,7 @@ PAGE_TEMPLATE = """
       }
       const friends = (social.friends || []).map((item) => `
         <div class="user-item">
-          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • рейтинг ${item.rating || 1000}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary" data-social-action="duel" data-reference="${escapeHtml(item.wallet)}">Вызвать</button>
@@ -5906,7 +5905,7 @@ PAGE_TEMPLATE = """
       `).join('') || '<div class="user-item muted">Друзей пока нет.</div>';
       const incoming = (social.incoming_requests || []).map((item) => `
         <div class="user-item">
-          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • заявка в друзья</div>
           <div class="actions" style="margin-top:10px;">
             <button data-social-action="accept-friend" data-request-id="${escapeHtml(item.id)}">Принять</button>
@@ -5916,7 +5915,7 @@ PAGE_TEMPLATE = """
       `).join('') || '<div class="user-item muted">Новых заявок нет.</div>';
       const suggested = (social.suggested_players || []).slice(0, 6).map((item) => `
         <div class="user-item">
-          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${item.current_domain ? `${escapeHtml(item.current_domain)}.ton` : 'без домена'} • рейтинг ${item.rating || 1000}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary" data-social-action="request-friend" data-reference="${escapeHtml(item.wallet)}">В друзья</button>
@@ -5926,7 +5925,7 @@ PAGE_TEMPLATE = """
       `).join('') || '<div class="user-item muted">Рекомендации появятся, когда в игре будет больше активных игроков.</div>';
       const lobby = (social.lobby_messages || []).map((item) => `
         <div class="user-item">
-          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${escapeHtml(item.message)}</div>
           <div class="actions" style="margin-top:8px;">
             <button class="secondary" data-social-action="report" data-reference="${escapeHtml(item.wallet)}" data-scope="lobby">Пожаловаться</button>
@@ -6027,7 +6026,7 @@ PAGE_TEMPLATE = """
       }
       const members = (current.members || []).map((item) => `
         <div class="user-item">
-          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • ${escapeHtml(item.role)} • рейтинг ${item.rating || 1000}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary" data-social-action="duel" data-reference="${item.domain ? `${escapeHtml(item.domain)}.ton` : escapeHtml(item.wallet)}">Дуэль</button>
@@ -6037,7 +6036,7 @@ PAGE_TEMPLATE = """
       `).join('');
       const chat = (current.chat || []).map((item) => `
         <div class="user-item">
-          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${escapeHtml(item.message)}</div>
           <div class="actions" style="margin-top:8px;">
             <button class="secondary" data-social-action="report" data-reference="${escapeHtml(item.wallet)}" data-scope="guild">Пожаловаться</button>
@@ -6052,7 +6051,7 @@ PAGE_TEMPLATE = """
       `).join('') || '<div class="user-item muted">Объявлений пока нет.</div>';
       const requests = (current.pending_requests || []).map((item) => `
         <div class="user-item">
-          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${escapeHtml(item.message || 'Хочет вступить в клан')}</div>
           <div class="actions" style="margin-top:10px;">
             <button data-guild-action="accept-request" data-request-id="${escapeHtml(item.id)}">Принять</button>
@@ -6285,7 +6284,7 @@ PAGE_TEMPLATE = """
       }
       activeUsersList.innerHTML = items.map((item) => `
         <div class="user-item">
-          <strong>${escapeHtml(item.avatar || '🜂')} ${escapeHtml(item.display_name)}</strong>
+          <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${item.domain}.ton • рейтинг ${item.rating}</div>
           <div class="tiny">Прокачка (сред.): атака ${item.average_attack} • защита ${item.average_defense}</div>
           <div class="actions" style="margin-top:10px;">
@@ -6510,7 +6509,7 @@ PAGE_TEMPLATE = """
       }
       const markup = state.allPlayers.map((player, index) => `
         <div class="user-item">
-          <strong>#${index + 1} ${escapeHtml(player.avatar || '🜂')} ${escapeHtml(player.display_name || shortAddress(player.wallet))}</strong>
+          <strong>#${index + 1} ${escapeHtml(player.display_name || shortAddress(player.wallet))}</strong>
           <div class="tiny">Домен: ${player.current_domain ? `${player.current_domain}.ton` : 'не выбран'}</div>
           <div class="tiny">Рейтинг: ${player.rating} • Матчей: ${player.games_played}</div>
           <div class="actions" style="margin-top:10px;">
@@ -6530,39 +6529,11 @@ PAGE_TEMPLATE = """
         return;
       }
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
-      const guilds = state.guildData || {};
-      const currentGuild = guilds.current_guild || null;
       const track = Array.isArray(rewards.season_pass_track) ? rewards.season_pass_track : [];
       const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
       const cosmeticsMarkup = cosmetics.length
         ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}</div>`).join('')
         : '<div class="user-item muted">Косметика пока не открыта. Премиум-пропуск и недельные награды клана открывают визуальные предметы.</div>';
-      const guildMarkup = currentGuild
-        ? `
-          <div class="user-item">
-            <strong>${escapeHtml(currentGuild.name)}</strong>
-            <div class="tiny">${escapeHtml(currentGuild.description || 'Описание не заполнено')}</div>
-            <div class="tiny">Роль: ${escapeHtml(currentGuild.viewer_role || 'member')} • участников: ${Number(currentGuild.member_count || 0)}</div>
-            <div class="summary-chip-row">
-              ${(currentGuild.goals.weekly_quests || []).map((quest) => `<span class="summary-chip">${escapeHtml(quest.label)}: ${Number(quest.progress || 0)}/${Number(quest.target || 0)}</span>`).join('')}
-            </div>
-            <div class="tiny">Война недели: ${Number(currentGuild.goals.war_score || 0)}/${Number(currentGuild.goals.war_target || 0)} • награда ${currentGuild.goals.weekly_reward_ready ? 'готова' : 'ещё не открыта'}</div>
-            <div class="tiny">Сегодня полезно клану: ${(currentGuild.goals.today_help || []).join(' • ')}</div>
-            <div class="actions" style="margin-top:10px;">
-              <button id="open-profile-guild-btn">Открыть управление кланом</button>
-              <button class="secondary" id="claim-guild-weekly-btn"${currentGuild.goals.weekly_reward_ready ? '' : ' disabled'}>Забрать недельную награду</button>
-            </div>
-          </div>
-        `
-        : `
-          <div class="user-item">
-            <strong>Ты ещё не в клане</strong>
-            <div class="tiny">Вступай в рекомендованный клан и забирай недельные награды за общие победы, сундуки и войну недели.</div>
-            <div class="actions" style="margin-top:10px;">
-              <button id="open-profile-guild-btn">Открыть кланы</button>
-            </div>
-          </div>
-        `;
       const passMarkup = `
         <div class="user-item">
           <strong>Сезонный пропуск</strong>
@@ -6584,19 +6555,14 @@ PAGE_TEMPLATE = """
         </div>
       `;
       achievementsList.innerHTML = `
-        ${guildMarkup}
         ${passMarkup}
         <div class="user-item">
           <strong>Косметика</strong>
-          <div class="tiny">Монетизация идёт через внешний вид: арены, рамки карт, аватарки, рубашки и баннеры клановой войны.</div>
+          <div class="tiny">Монетизация идёт через внешний вид: арены, рамки карт, следы эффектов, рубашки и баннеры клановой войны.</div>
           <div class="summary-chip-row">${cosmeticsMarkup}</div>
         </div>
       `;
-      const openGuildBtn = document.getElementById('open-profile-guild-btn');
-      const claimGuildBtn = document.getElementById('claim-guild-weekly-btn');
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
-      if (openGuildBtn) bindFunctionalControl(openGuildBtn, () => switchView('profile'));
-      if (claimGuildBtn && !claimGuildBtn.disabled) bindFunctionalControl(claimGuildBtn, claimGuildWeeklyReward);
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
     }
 
@@ -8238,12 +8204,11 @@ PAGE_TEMPLATE = """
 
     async function saveProfileIdentity() {
       if (!state.wallet) return;
-      const avatar = document.getElementById('profile-avatar-input')?.value || '🜂';
       const nickname = document.getElementById('profile-nickname-input')?.value || '';
       const bio = document.getElementById('profile-bio-input')?.value || '';
       const data = await api('/api/profile', {
         method: 'POST',
-        body: { wallet: state.wallet, avatar, nickname, bio, language: 'ru' }
+        body: { wallet: state.wallet, nickname, bio, language: 'ru' }
       });
       state.playerProfile = data.player;
       state.socialData = data.social || state.socialData;
@@ -10945,7 +10910,7 @@ def confirm_season_pass_payment(payment_id, wallet, tx_hash=None):
             conn.commit()
         updated = conn.execute('SELECT * FROM season_pass_payments WHERE id = ?', (payment_id,)).fetchone()
     grant_cosmetic(wallet, 'frame_neon_pulse', 'season_pass')
-    grant_cosmetic(wallet, 'avatar_guild_spark', 'season_pass')
+    grant_cosmetic(wallet, 'trail_neon_sparks', 'season_pass')
     return dict(updated), reward_summary(wallet)
 
 
@@ -12847,7 +12812,7 @@ def ensure_player_profile(wallet):
                 INSERT INTO player_profiles (wallet, nickname, avatar, bio, language, visibility, updated_at)
                 VALUES (?, ?, ?, ?, ?, 'public', ?)
                 ''',
-                (wallet, None, '🜂', None, 'ru', ts),
+                (wallet, None, '', None, 'ru', ts),
             )
             conn.commit()
             row = conn.execute('SELECT * FROM player_profiles WHERE wallet = ?', (wallet,)).fetchone()
@@ -12875,8 +12840,7 @@ def short_wallet(wallet):
 
 
 def avatar_for_wallet(wallet):
-    profile = player_profile_row(wallet)
-    return (profile or {}).get('avatar') or '🜂'
+    return ''
 
 
 def public_player_summary(wallet):
@@ -12886,7 +12850,7 @@ def public_player_summary(wallet):
     return {
         'wallet': wallet,
         'display_name': display_name_for_wallet(wallet),
-        'avatar': (profile or {}).get('avatar') or '🜂',
+        'avatar': '',
         'bio': (profile or {}).get('bio') or '',
         'language': (profile or {}).get('language') or 'ru',
         'current_domain': player.get('current_domain'),
@@ -13865,7 +13829,7 @@ def social_overview(wallet):
             'wallet': wallet,
             'display_name': display_name_for_wallet(wallet),
             'nickname': (profile or {}).get('nickname') or '',
-            'avatar': (profile or {}).get('avatar') or '🜂',
+            'avatar': '',
             'bio': (profile or {}).get('bio') or '',
             'language': (profile or {}).get('language') or 'ru',
             'visibility': (profile or {}).get('visibility') or 'public',
@@ -13929,7 +13893,7 @@ def get_player(wallet):
         'current_domain': player['current_domain'],
         'telegram_linked': telegram_wallet_link(wallet) is not None,
         'display_name': display_name_for_wallet(wallet),
-        'avatar': (profile or {}).get('avatar') or '🜂',
+        'avatar': '',
         'bio': (profile or {}).get('bio') or '',
         'deck_summary': current_deck,
         'rewards': reward_summary(wallet),
@@ -15758,9 +15722,7 @@ def api_profile_update():
     if not valid_wallet_address(wallet):
         return json_error('Сначала подключи кошелёк.')
     ensure_player(wallet)
-    profile = ensure_player_profile(wallet)
     nickname = clean_public_text(payload.get('nickname'), 24)
-    avatar = clean_public_text(payload.get('avatar') or profile.get('avatar') or '🜂', 4)
     bio = clean_public_text(payload.get('bio'), 160)
     language = clean_public_text(payload.get('language') or 'ru', 12) or 'ru'
     visibility = clean_public_text(payload.get('visibility') or 'public', 12) or 'public'
@@ -15771,7 +15733,7 @@ def api_profile_update():
             SET nickname = ?, avatar = ?, bio = ?, language = ?, visibility = ?, updated_at = ?
             WHERE wallet = ?
             ''',
-            (nickname or None, avatar or '🜂', bio or None, language, visibility, now_iso(), wallet),
+            (nickname or None, '', bio or None, language, visibility, now_iso(), wallet),
         )
         conn.commit()
     return jsonify({'ok': True, 'player': get_player(wallet), 'social': social_overview(wallet)})
