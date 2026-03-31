@@ -167,16 +167,14 @@ COSMETIC_THEME_DEFS = [
 ]
 
 SEASON_PASS_TRACK = [
-    {'level': 1, 'free': '💠 4 осколка', 'premium_type': 'frame'},
-    {'level': 2, 'free': None, 'premium_type': 'cardback'},
-    {'level': 3, 'free': '🎟️ 1 редкий токен', 'premium_type': 'arena'},
-    {'level': 4, 'free': None, 'premium_type': 'guild'},
-    {'level': 5, 'free': '✨ 1 lucky-токен', 'premium_type': 'frame'},
-    {'level': 6, 'free': None, 'premium_type': 'cardback'},
-    {'level': 7, 'free': '💠 6 осколков', 'premium_type': 'arena'},
-    {'level': 8, 'free': None, 'premium_type': 'guild'},
-    {'level': 9, 'free': '🎟️ 1 редкий токен', 'premium_type': 'frame'},
-    {'level': 10, 'free': None, 'premium_type': 'arena'},
+    {'level': 1, 'free': '💠 4 осколка', 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 2, 'free': None, 'premium_reward': {'kind': 'currency', 'label': '💠 8 осколков', 'pack_shards': 8}},
+    {'level': 3, 'free': '🎟️ 1 редкий токен', 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 4, 'free': None, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
+    {'level': 5, 'free': '✨ 1 lucky-токен', 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 6, 'free': None, 'premium_reward': {'kind': 'currency', 'label': '✨ 2 lucky-токена', 'lucky_tokens': 2}},
+    {'level': 7, 'free': '💠 6 осколков', 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 8, 'free': None, 'premium_reward': {'kind': 'currency', 'label': '💠 12 осколков • 🎟️ 1 токен', 'pack_shards': 12, 'rare_tokens': 1}},
 ]
 
 
@@ -194,8 +192,6 @@ def _build_cosmetic_catalog():
         'old_gold': {'frame': 'season_pass'},
         'neon_blue': {'arena': 'season_pass'},
     }
-    type_index = {'frame': 0, 'cardback': 0, 'arena': 0, 'guild': 0}
-    serial_prefix = {'frame': 'FRM', 'cardback': 'CBK', 'arena': 'ARN', 'guild': 'GBN'}
     for theme in COSMETIC_THEME_DEFS:
         slug = theme['slug']
         name = theme['name']
@@ -207,9 +203,6 @@ def _build_cosmetic_catalog():
             {'key': f'guild_banner_{slug}', 'type': 'guild', 'name': f'{name} Banner', 'source': theme_sources.get('guild', 'cosmetics')},
         ]
         for item in themed_items:
-            type_index[item['type']] += 1
-            serial = f"{serial_prefix[item['type']]}-{type_index[item['type']]:03d}"
-            item['serial'] = serial
             item['nft_family'] = item['type']
             catalog.append(item)
     return catalog
@@ -1919,6 +1912,7 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x;
       scroll-snap-type: x proximity;
+      scrollbar-width: thin;
     }
 
     .season-pass-track {
@@ -1931,6 +1925,10 @@ PAGE_TEMPLATE = """
 
     .season-pass-track > * {
       scroll-snap-align: start;
+    }
+
+    .season-pass-scroll[data-pass-track] {
+      max-width: 100%;
     }
 
     .arena-clash-debug strong {
@@ -4341,6 +4339,10 @@ PAGE_TEMPLATE = """
         overflow-wrap: anywhere;
       }
 
+      .season-pass-track {
+        grid-auto-columns: 186px;
+      }
+
       .hero,
       .panel {
         border-radius: 20px;
@@ -6708,8 +6710,8 @@ PAGE_TEMPLATE = """
         if (lower.includes('арена')) return 'radial-gradient(circle at top, rgba(69,215,255,0.2), rgba(13,22,37,0.94) 62%)';
         if (lower.includes('рубаш')) return 'radial-gradient(circle at top, rgba(255,211,110,0.18), rgba(13,22,37,0.94) 62%)';
         if (lower.includes('рамк')) return 'radial-gradient(circle at top, rgba(83,246,184,0.18), rgba(13,22,37,0.94) 62%)';
-        if (lower.includes('след')) return 'radial-gradient(circle at top, rgba(188,126,255,0.22), rgba(13,22,37,0.94) 62%)';
         if (lower.includes('титул') || lower.includes('баннер')) return 'radial-gradient(circle at top, rgba(255,122,134,0.2), rgba(13,22,37,0.94) 62%)';
+        if (lower.includes('косметический пак')) return 'radial-gradient(circle at top, rgba(145,112,255,0.22), rgba(13,22,37,0.94) 62%)';
         if (lower.includes('оскол')) return 'radial-gradient(circle at top, rgba(69,215,255,0.16), rgba(13,22,37,0.94) 62%)';
         if (lower.includes('редк')) return 'radial-gradient(circle at top, rgba(255,122,134,0.16), rgba(13,22,37,0.94) 62%)';
         if (lower.includes('lucky')) return 'radial-gradient(circle at top, rgba(255,211,110,0.18), rgba(13,22,37,0.94) 62%)';
@@ -6734,7 +6736,7 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
-          <div class="tiny">Листай дорожки влево и вправо, чтобы посмотреть все 10 уровней.</div>
+          <div class="tiny">Листай дорожки влево и вправо, чтобы посмотреть все 8 уровней.</div>
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
@@ -6909,10 +6911,13 @@ PAGE_TEMPLATE = """
         return svgDataUrl(`
           <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
             <rect width="512" height="768" rx="36" fill="${theme.base}"/>
-            <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}"/>
+            <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}" stroke="${theme.accent}" stroke-opacity="0.35" stroke-width="4"/>
             ${giftThemePattern(theme)}
-            <circle cx="256" cy="384" r="92" fill="${theme.base}" fill-opacity="0.42" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="6"/>
-            <text x="256" y="410" text-anchor="middle" font-size="78">${escapeSvg(theme.emoji)}</text>
+            <path d="M92 124H420V318L256 420 92 318Z" fill="${theme.accent}" fill-opacity="0.18"/>
+            <path d="M108 144H404V302L256 390 108 302Z" fill="${theme.base}" fill-opacity="0.24" stroke="${theme.accent}" stroke-opacity="0.38" stroke-width="5"/>
+            <text x="256" y="302" text-anchor="middle" font-size="108">${escapeSvg(theme.emoji)}</text>
+            <rect x="86" y="530" width="340" height="96" rx="22" fill="${theme.base}" fill-opacity="0.36" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="4"/>
+            <text x="256" y="590" text-anchor="middle" font-size="36" fill="${theme.text}" font-weight="700">${escapeSvg(theme.name)}</text>
           </svg>
         `);
       }
@@ -6931,16 +6936,18 @@ PAGE_TEMPLATE = """
           <svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
             <rect width="1600" height="900" fill="${theme.base}"/>
             <rect width="1600" height="900" fill="url(#g)"/>
-            <g transform="translate(544 140) scale(2.1)">
-              ${giftThemePattern(theme)}
-            </g>
             <g opacity="0.28" stroke="${theme.accent}" stroke-width="3">
               <path d="M120 180H1480"/><path d="M120 720H1480"/>
               <path d="M220 120V780"/><path d="M800 80V820"/><path d="M1380 120V780"/>
             </g>
-            <circle cx="800" cy="450" r="246" fill="${theme.accent}" fill-opacity="0.14"/>
-            <circle cx="800" cy="450" r="146" fill="${theme.secondary}" fill-opacity="0.12"/>
-            <text x="800" y="490" text-anchor="middle" font-size="112">${escapeSvg(theme.emoji)}</text>
+            <g transform="translate(528 110) scale(2.25)">
+              ${giftThemePattern(theme)}
+            </g>
+            <path d="M520 150H1080V414L800 590 520 414Z" fill="${theme.accent}" fill-opacity="0.16"/>
+            <path d="M566 184H1034V396L800 544 566 396Z" fill="${theme.base}" fill-opacity="0.28" stroke="${theme.accent}" stroke-opacity="0.4" stroke-width="6"/>
+            <text x="800" y="404" text-anchor="middle" font-size="164">${escapeSvg(theme.emoji)}</text>
+            <rect x="560" y="654" width="480" height="92" rx="26" fill="${theme.base}" fill-opacity="0.32" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="5"/>
+            <text x="800" y="713" text-anchor="middle" font-size="46" fill="${theme.text}" font-weight="700">${escapeSvg(theme.name)}</text>
             <defs>
               <linearGradient id="g" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
                 <stop stop-color="${theme.secondary}"/>
@@ -6968,6 +6975,7 @@ PAGE_TEMPLATE = """
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
       const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
       const cosmeticCatalog = Array.isArray(rewards.cosmetic_catalog) ? rewards.cosmetic_catalog : [];
+      const inventoryByKey = Object.fromEntries(cosmetics.map((item) => [item.key, item]));
       if (!state.wallet) {
         profileCosmeticsPanel.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы видеть косметику и её превью.</div>';
         return;
@@ -7021,7 +7029,7 @@ PAGE_TEMPLATE = """
             <div style="display:grid; gap:12px; align-content:center; min-width:0;">
               <div class="summary-chip-row">${previewMetaMarkup}</div>
               <div class="tiny">Открыто: ${cosmetics.length} • Всего вариантов: ${cosmeticCatalog.length}</div>
-              <div class="tiny">NFT-ready серийники: ${[featuredFrame, featuredBack, featuredArena, featuredGuild].filter(Boolean).map((item) => `${item.serial || '---'}`).join(' • ')}</div>
+              <div class="tiny">NFT-ready серийники: ${[featuredFrame, featuredBack, featuredArena, featuredGuild].filter(Boolean).map((item) => `${(inventoryByKey[item.key] && inventoryByKey[item.key].serial) || '---'}`).join(' • ')}</div>
               <div class="tiny">Ниже показан полный каталог косметики по категориям. Закрытые варианты отображаются отдельно от уже открытых.</div>
               <div class="actions" style="margin-top:8px;">
                 <button type="button" class="secondary" id="toggle-cosmetics-catalog-btn">${state.showAllCosmetics ? 'Показать только открытое' : 'Посмотреть все виды кастомизации'}</button>
@@ -7036,6 +7044,7 @@ PAGE_TEMPLATE = """
               ${items.map((item) => {
                 const unlocked = unlockedKeys.has(item.key);
                 const equippedNow = equipped[type] && equipped[type].key === item.key;
+                const ownedMeta = inventoryByKey[item.key] || null;
                 const itemArenaAsset = cosmeticAssetUrl('arena', item.key);
                 const itemFrameAsset = cosmeticAssetUrl('frame', item.key);
                 const itemBackAsset = cosmeticAssetUrl('cardback', item.key);
@@ -7044,7 +7053,7 @@ PAGE_TEMPLATE = """
                   <article class="catalog-card skill-card" style="padding:14px; opacity:${unlocked ? '1' : '0.62'};">
                     <div class="catalog-kicker">${escapeHtml(typeLabel[type] || type)}</div>
                     <strong>${escapeHtml(item.name)}</strong>
-                    <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')} • ${escapeHtml(item.serial || '---')}</div>
+                    <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')}${ownedMeta && ownedMeta.serial ? ` • ${escapeHtml(ownedMeta.serial)}` : ''}</div>
                     <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' && itemArenaAsset ? `linear-gradient(180deg, rgba(8,20,36,0.28), rgba(8,20,36,0.5)), url(${itemArenaAsset}) center/cover no-repeat` : type === 'cardback' && itemBackAsset ? `linear-gradient(180deg, rgba(8,20,36,0.16), rgba(8,20,36,0.24)), url(${itemBackAsset}) center/cover no-repeat` : type === 'guild' && itemGuildAsset ? `linear-gradient(180deg, rgba(8,20,36,0.18), rgba(8,20,36,0.26)), url(${itemGuildAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
                       <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '1px solid rgba(83,246,184,0.32)' : '1px solid rgba(121,217,255,0.18)'};"></div>
                       ${type === 'frame' && itemFrameAsset ? `<img src="${itemFrameAsset}" alt="" style="position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px); object-fit:contain;">` : ''}
@@ -7102,7 +7111,7 @@ PAGE_TEMPLATE = """
         },
         {
           title: 'Что даёт сезонный пропуск',
-          body: 'Верхняя линия — премиум, нижняя — бесплатная. Бесплатные награды идут через уровень, премиум — на каждом уровне. Премиум открывает случайные рамки, рубашки, арены и клановые баннеры.'
+          body: 'Верхняя линия — премиум, нижняя — бесплатная. В пропуске 8 уровней. Бесплатные награды идут через уровень, а премиум чередует косметический пак и валюту для открытия карт.'
         },
         {
           title: 'Как работают кланы и войны',
@@ -10363,6 +10372,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS player_cosmetics (
                 wallet TEXT NOT NULL,
                 cosmetic_key TEXT NOT NULL,
+                cosmetic_type TEXT,
+                serial_number INTEGER,
                 source TEXT NOT NULL,
                 equipped INTEGER NOT NULL DEFAULT 0,
                 unlocked_at TEXT NOT NULL,
@@ -10596,6 +10607,8 @@ def ensure_runtime_tables():
             CREATE TABLE IF NOT EXISTS player_cosmetics (
                 wallet TEXT NOT NULL,
                 cosmetic_key TEXT NOT NULL,
+                cosmetic_type TEXT,
+                serial_number INTEGER,
                 source TEXT NOT NULL,
                 equipped INTEGER NOT NULL DEFAULT 0,
                 unlocked_at TEXT NOT NULL,
@@ -10637,6 +10650,13 @@ def ensure_runtime_tables():
         reward_columns = {row['name'] for row in conn.execute("PRAGMA table_info(player_rewards)").fetchall()}
         if 'premium_pass' not in reward_columns:
             conn.execute('ALTER TABLE player_rewards ADD COLUMN premium_pass INTEGER NOT NULL DEFAULT 0')
+        cosmetic_columns = {row['name'] for row in conn.execute("PRAGMA table_info(player_cosmetics)").fetchall()}
+        if 'cosmetic_type' not in cosmetic_columns:
+            conn.execute('ALTER TABLE player_cosmetics ADD COLUMN cosmetic_type TEXT')
+        if 'serial_number' not in cosmetic_columns:
+            conn.execute('ALTER TABLE player_cosmetics ADD COLUMN serial_number INTEGER')
+        conn.commit()
+        ensure_cosmetic_serials(conn)
         conn.commit()
 
 
@@ -10924,16 +10944,68 @@ def week_utc_key():
     return f'{now_dt.isocalendar().year}-W{now_dt.isocalendar().week:02d}'
 
 
+def cosmetic_serial_prefix(cosmetic_type):
+    return {
+        'frame': 'FRM',
+        'cardback': 'CBK',
+        'arena': 'ARN',
+        'guild': 'GBN',
+    }.get(str(cosmetic_type or ''), 'CSM')
+
+
+def ensure_cosmetic_serials(conn):
+    meta_by_key = {item['key']: item for item in COSMETIC_CATALOG}
+    rows = conn.execute(
+        '''
+        SELECT wallet, cosmetic_key, cosmetic_type, serial_number, unlocked_at
+        FROM player_cosmetics
+        ORDER BY unlocked_at ASC, wallet ASC, cosmetic_key ASC
+        '''
+    ).fetchall()
+    counters = {}
+    for row in rows:
+        meta = meta_by_key.get(row['cosmetic_key']) or {}
+        cosmetic_type = row['cosmetic_type'] or meta.get('type') or 'cosmetic'
+        current_max = counters.get(cosmetic_type, 0)
+        serial_number = row['serial_number']
+        if serial_number is None:
+            serial_number = current_max + 1
+            conn.execute(
+                'UPDATE player_cosmetics SET cosmetic_type = ?, serial_number = ? WHERE wallet = ? AND cosmetic_key = ?',
+                (cosmetic_type, serial_number, row['wallet'], row['cosmetic_key']),
+            )
+        else:
+            conn.execute(
+                'UPDATE player_cosmetics SET cosmetic_type = ? WHERE wallet = ? AND cosmetic_key = ?',
+                (cosmetic_type, row['wallet'], row['cosmetic_key']),
+            )
+        counters[cosmetic_type] = max(current_max, int(serial_number or 0))
+
+
+def cosmetic_serial_label(cosmetic_type, serial_number):
+    if serial_number is None:
+        return None
+    return f"{cosmetic_serial_prefix(cosmetic_type)}-{int(serial_number):03d}"
+
+
 def grant_cosmetic(wallet, cosmetic_key, source):
     ensure_runtime_tables()
     meta = next((item for item in COSMETIC_CATALOG if item['key'] == cosmetic_key), None)
     with closing(get_db()) as conn:
+        if meta:
+            serial_row = conn.execute(
+                'SELECT COALESCE(MAX(serial_number), 0) AS max_serial FROM player_cosmetics WHERE cosmetic_type = ?',
+                (meta['type'],),
+            ).fetchone()
+            next_serial = int((serial_row['max_serial'] if serial_row else 0) or 0) + 1
+        else:
+            next_serial = None
         conn.execute(
             '''
-            INSERT OR IGNORE INTO player_cosmetics (wallet, cosmetic_key, source, equipped, unlocked_at)
-            VALUES (?, ?, ?, 0, ?)
+            INSERT OR IGNORE INTO player_cosmetics (wallet, cosmetic_key, cosmetic_type, serial_number, source, equipped, unlocked_at)
+            VALUES (?, ?, ?, ?, ?, 0, ?)
             ''',
-            (wallet, cosmetic_key, source, now_iso()),
+            (wallet, cosmetic_key, (meta or {}).get('type'), next_serial, source, now_iso()),
         )
         if meta:
             same_type = conn.execute(
@@ -10957,7 +11029,7 @@ def equipped_cosmetics(wallet):
     ensure_runtime_tables()
     with closing(get_db()) as conn:
         rows = conn.execute(
-            'SELECT cosmetic_key FROM player_cosmetics WHERE wallet = ? AND equipped = 1 ORDER BY unlocked_at DESC',
+            'SELECT cosmetic_key, serial_number, cosmetic_type FROM player_cosmetics WHERE wallet = ? AND equipped = 1 ORDER BY unlocked_at DESC',
             (wallet,),
         ).fetchall()
     meta_by_key = {item['key']: item for item in COSMETIC_CATALOG}
@@ -10970,6 +11042,8 @@ def equipped_cosmetics(wallet):
             'key': meta['key'],
             'name': meta['name'],
             'type': meta['type'],
+            'serial_number': row['serial_number'],
+            'serial': cosmetic_serial_label(row['cosmetic_type'] or meta['type'], row['serial_number']),
         })
     return equipped
 
@@ -11003,7 +11077,7 @@ def cosmetic_inventory(wallet):
     ensure_runtime_tables()
     with closing(get_db()) as conn:
         rows = conn.execute(
-            'SELECT cosmetic_key, source, equipped, unlocked_at FROM player_cosmetics WHERE wallet = ? ORDER BY unlocked_at DESC',
+            'SELECT cosmetic_key, cosmetic_type, serial_number, source, equipped, unlocked_at FROM player_cosmetics WHERE wallet = ? ORDER BY unlocked_at DESC',
             (wallet,),
         ).fetchall()
     meta_by_key = {item['key']: item for item in COSMETIC_CATALOG}
@@ -11012,7 +11086,8 @@ def cosmetic_inventory(wallet):
             'key': row['cosmetic_key'],
             'name': meta_by_key.get(row['cosmetic_key'], {}).get('name', row['cosmetic_key']),
             'type': meta_by_key.get(row['cosmetic_key'], {}).get('type', 'cosmetic'),
-            'serial': meta_by_key.get(row['cosmetic_key'], {}).get('serial'),
+            'serial_number': row['serial_number'],
+            'serial': cosmetic_serial_label(row['cosmetic_type'] or meta_by_key.get(row['cosmetic_key'], {}).get('type', 'cosmetic'), row['serial_number']),
             'nft_family': meta_by_key.get(row['cosmetic_key'], {}).get('nft_family'),
             'source': row['source'],
             'equipped': bool(row['equipped']),
@@ -11036,6 +11111,16 @@ def season_pass_random_cosmetic(wallet, level, cosmetic_type):
     return pool[index]
 
 
+def season_pass_random_cosmetic_pack_item(wallet, level):
+    pool = list(COSMETIC_CATALOG)
+    if not pool:
+        return None
+    seed = f'{wallet}:{int(level)}:cosmetic-pack:season-pass-v3'
+    digest = hashlib.sha256(seed.encode('utf-8')).hexdigest()
+    index = int(digest[:8], 16) % len(pool)
+    return pool[index]
+
+
 def apply_season_pass_unlocks(wallet, rewards=None):
     rewards = rewards or ensure_player_rewards(wallet)
     premium_active = bool(int(rewards.get('premium_pass', 0) or 0))
@@ -11045,10 +11130,10 @@ def apply_season_pass_unlocks(wallet, rewards=None):
     for item in SEASON_PASS_TRACK:
         if season_level < int(item['level']):
             continue
-        premium_type = item.get('premium_type')
-        if not premium_type:
+        premium_reward = dict(item.get('premium_reward') or {})
+        if premium_reward.get('kind') != 'cosmetic_pack':
             continue
-        cosmetic = season_pass_random_cosmetic(wallet, item['level'], premium_type)
+        cosmetic = season_pass_random_cosmetic_pack_item(wallet, item['level'])
         if cosmetic:
             grant_cosmetic(wallet, cosmetic['key'], 'season_pass')
 
@@ -11059,22 +11144,22 @@ def season_pass_track_payload(wallet=None, rewards=None):
     premium_active = bool(rewards.get('premium_pass', 0))
     payload = []
     for item in SEASON_PASS_TRACK:
-        premium_type = item.get('premium_type')
-        premium_meta = season_pass_random_cosmetic(wallet, item['level'], premium_type) if wallet and premium_type else None
+        premium_reward = dict(item.get('premium_reward') or {})
+        premium_meta = None
         premium_label = None
-        if premium_meta and premium_type == 'cardback':
-            premium_label = f'Случайная рубашка • {premium_meta["name"]}'
-        elif premium_meta and premium_type == 'arena':
-            premium_label = f'Случайная арена • {premium_meta["name"]}'
-        elif premium_meta and premium_type == 'frame':
-            premium_label = f'Случайная рамка • {premium_meta["name"]}'
-        elif premium_meta and premium_type == 'guild':
-            premium_label = f'Случайный баннер • {premium_meta["name"]}'
+        premium_key = None
+        if wallet and premium_reward.get('kind') == 'cosmetic_pack':
+            premium_meta = season_pass_random_cosmetic_pack_item(wallet, item['level'])
+            if premium_meta:
+                premium_label = f'Косметический пак • {premium_meta["name"]}'
+                premium_key = premium_meta['key']
+        elif premium_reward.get('kind') == 'currency':
+            premium_label = premium_reward.get('label')
         payload.append(
             {
                 **item,
                 'premium': premium_label,
-                'premium_key': premium_meta['key'] if premium_meta else None,
+                'premium_key': premium_key,
                 'free_ready': season_level >= int(item['level']),
                 'premium_ready': premium_active and season_level >= int(item['level']),
             }
@@ -11667,19 +11752,6 @@ def confirm_season_pass_payment(payment_id, wallet, tx_hash=None):
             )
             conn.commit()
         updated = conn.execute('SELECT * FROM season_pass_payments WHERE id = ?', (payment_id,)).fetchone()
-    for cosmetic_key in [
-        'frame_black',
-        'cardback_onyx_black',
-        'arena_ivory_white',
-        'guild_banner_midnight_blue',
-        'frame_fire_engine',
-        'cardback_deep_cyan',
-        'arena_khaki_green',
-        'guild_banner_satin_gold',
-        'frame_old_gold',
-        'arena_neon_blue',
-    ]:
-        grant_cosmetic(wallet, cosmetic_key, 'season_pass')
     return dict(updated), reward_summary(wallet)
 
 
