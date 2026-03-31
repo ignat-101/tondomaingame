@@ -1911,6 +1911,7 @@ PAGE_TEMPLATE = """
       width: 100%;
       max-width: 100%;
       padding-bottom: 8px;
+      padding-inline: 2px;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x;
       scroll-snap-type: x proximity;
@@ -4343,7 +4344,7 @@ PAGE_TEMPLATE = """
       }
 
       .season-pass-track {
-        grid-auto-columns: 186px;
+        grid-auto-columns: min(82vw, 186px);
       }
 
       .hero,
@@ -5074,8 +5075,8 @@ PAGE_TEMPLATE = """
 
       <div class="stepper">
         <div class="step-chip" data-step-chip="pack">1. Карты</div>
-        <div class="step-chip" data-step-chip="modes">2. Игра</div>
-        <div class="step-chip active" data-step-chip="profile">3. Профиль</div>
+        <div class="step-chip active" data-step-chip="profile">2. Профиль</div>
+        <div class="step-chip" data-step-chip="modes">3. Игра</div>
         <div class="step-chip" data-step-chip="guilds">4. Кланы</div>
         <div class="step-chip" data-step-chip="achievements">5. Пропуск</div>
       </div>
@@ -5359,8 +5360,8 @@ PAGE_TEMPLATE = """
 
   <nav class="mobile-nav">
     <button id="nav-pack">Карты</button>
-    <button id="nav-modes">Игра</button>
     <button id="nav-profile">Профиль</button>
+    <button id="nav-modes">Игра</button>
     <button id="nav-guilds">Кланы</button>
     <button id="nav-achievements">Пропуск</button>
   </nav>
@@ -6725,7 +6726,7 @@ PAGE_TEMPLATE = """
       const track = Array.isArray(rewards.season_pass_track) ? rewards.season_pass_track : [];
       const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
       const cosmeticsMarkup = cosmetics.length
-        ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}${item.serial ? ` • ${item.serial}` : ''}</div>`).join('')
+        ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}</div>`).join('')
         : '<div class="user-item muted">Косметика пока не открыта.</div>';
       const rewardTone = (text) => {
         const lower = String(text || '').toLowerCase();
@@ -6769,8 +6770,8 @@ PAGE_TEMPLATE = """
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
               <div class="actions" style="margin-bottom:8px;">
-                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="-1">←</button>
-                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="1">→</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="-1" onclick="scrollSeasonPassTrack('premium', -1)">←</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="1" onclick="scrollSeasonPassTrack('premium', 1)">→</button>
               </div>
               <div class="season-pass-scroll" data-pass-track="premium">
                 <div class="season-pass-track">${premiumRow}</div>
@@ -6779,8 +6780,8 @@ PAGE_TEMPLATE = """
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
               <div class="actions" style="margin-bottom:8px;">
-                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="-1">←</button>
-                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="1">→</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="-1" onclick="scrollSeasonPassTrack('free', -1)">←</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="1" onclick="scrollSeasonPassTrack('free', 1)">→</button>
               </div>
               <div class="season-pass-scroll" data-pass-track="free">
                 <div class="season-pass-track">${freeRow}</div>
@@ -6799,22 +6800,6 @@ PAGE_TEMPLATE = """
           <div class="summary-chip-row">${cosmeticsMarkup}</div>
         </div>
       `;
-      achievementsList.querySelectorAll('.season-pass-nav').forEach((button) => {
-        button.addEventListener('click', () => {
-          const target = button.dataset.passTarget;
-          const dir = Number(button.dataset.dir || 0);
-          const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
-          if (!scroller || !dir) return;
-          const step = Math.max(220, Math.floor(scroller.clientWidth * 0.72));
-          const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
-          const nextLeft = Math.max(0, Math.min(maxLeft, scroller.scrollLeft + dir * step));
-          if (typeof scroller.scrollTo === 'function') {
-            scroller.scrollTo({left: nextLeft, behavior: 'smooth'});
-          } else {
-            scroller.scrollLeft = nextLeft;
-          }
-        });
-      });
       achievementsList.querySelectorAll('.season-pass-claim-btn').forEach((button) => {
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
@@ -6950,13 +6935,13 @@ PAGE_TEMPLATE = """
         return svgDataUrl(`
           <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
             <rect width="512" height="768" rx="36" fill="${theme.base}"/>
-            <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="4"/>
+            <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}" stroke="${theme.accent}" stroke-opacity="0.68" stroke-width="6"/>
+            <rect x="42" y="42" width="428" height="684" rx="24" fill="${theme.base}" fill-opacity="0.22"/>
             ${giftThemePattern(theme)}
-            <rect x="78" y="94" width="356" height="580" rx="30" fill="${theme.base}" fill-opacity="0.14" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="6"/>
-            <circle cx="256" cy="372" r="120" fill="${theme.base}" fill-opacity="0.22" stroke="${theme.accent}" stroke-opacity="0.44" stroke-width="8"/>
-            <text x="256" y="408" text-anchor="middle" font-size="164">${escapeSvg(theme.emoji)}</text>
-            <rect x="108" y="620" width="296" height="58" rx="20" fill="${theme.base}" fill-opacity="0.38" stroke="${theme.accent}" stroke-opacity="0.18" stroke-width="3"/>
-            <text x="256" y="658" text-anchor="middle" font-size="28" fill="${theme.text}" font-weight="700" opacity="0.92">${escapeSvg(theme.name)}</text>
+            <circle cx="256" cy="356" r="152" fill="${theme.base}" fill-opacity="0.12" stroke="${theme.accent}" stroke-opacity="0.6" stroke-width="10"/>
+            <text x="256" y="418" text-anchor="middle" font-size="196">${escapeSvg(theme.emoji)}</text>
+            <rect x="86" y="600" width="340" height="74" rx="24" fill="${theme.secondary}" fill-opacity="0.74" stroke="${theme.accent}" stroke-opacity="0.26" stroke-width="3"/>
+            <text x="256" y="646" text-anchor="middle" font-size="34" fill="${theme.text}" font-weight="800" opacity="0.96">${escapeSvg(theme.name)}</text>
           </svg>
         `);
       }
@@ -6982,11 +6967,11 @@ PAGE_TEMPLATE = """
             <g transform="translate(528 110) scale(2.25)">
               ${giftThemePattern(theme)}
             </g>
-            <rect x="366" y="130" width="868" height="640" rx="56" fill="${theme.base}" fill-opacity="0.16" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="8"/>
-            <circle cx="800" cy="392" r="168" fill="${theme.base}" fill-opacity="0.18" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="10"/>
-            <text x="800" y="446" text-anchor="middle" font-size="208">${escapeSvg(theme.emoji)}</text>
-            <rect x="560" y="666" width="480" height="88" rx="24" fill="${theme.base}" fill-opacity="0.36" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="4"/>
-            <text x="800" y="723" text-anchor="middle" font-size="44" fill="${theme.text}" font-weight="700">${escapeSvg(theme.name)}</text>
+            <rect x="366" y="130" width="868" height="640" rx="56" fill="${theme.base}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.36" stroke-width="8"/>
+            <circle cx="800" cy="382" r="188" fill="${theme.base}" fill-opacity="0.1" stroke="${theme.accent}" stroke-opacity="0.52" stroke-width="12"/>
+            <text x="800" y="456" text-anchor="middle" font-size="236">${escapeSvg(theme.emoji)}</text>
+            <rect x="516" y="656" width="568" height="96" rx="28" fill="${theme.secondary}" fill-opacity="0.58" stroke="${theme.accent}" stroke-opacity="0.32" stroke-width="4"/>
+            <text x="800" y="718" text-anchor="middle" font-size="48" fill="${theme.text}" font-weight="800">${escapeSvg(theme.name)}</text>
             <defs>
               <linearGradient id="g" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
                 <stop stop-color="${theme.secondary}"/>
@@ -7059,16 +7044,15 @@ PAGE_TEMPLATE = """
       profileCosmeticsPanel.innerHTML = `
         <div class="user-item" style="margin-bottom:14px;">
           <strong>Предпросмотр</strong>
-          <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:${compactPreview ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)'}; gap:22px; align-items:center; overflow:hidden; background:${arenaAsset ? `linear-gradient(180deg, rgba(5,16,30,0.64), rgba(5,16,30,0.88)), url(${arenaAsset}) center/cover no-repeat` : (featuredArena && featuredArena.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.22), rgba(8,20,36,0.94))' : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))')};">
+          <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:${compactPreview ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)'}; gap:22px; align-items:center; overflow:hidden; background:${arenaAsset ? `url(${arenaAsset}) center/cover no-repeat` : (featuredArena && featuredArena.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.22), rgba(8,20,36,0.94))' : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))')};">
             <div style="position:relative; width:190px; height:220px; margin:0 auto;">
               ${featuredGuild ? `<img src="${guildAsset}" alt="" style="position:absolute; right:-4px; top:0; width:92px; height:58px; object-fit:contain; opacity:0.96;">` : ''}
-              <div style="position:absolute; left:22px; top:34px; width:120px; height:168px; border-radius:18px; background:${backAsset ? `linear-gradient(180deg, rgba(10,18,30,0.18), rgba(10,18,30,0.28)), url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))'}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
+              <div style="position:absolute; left:22px; top:34px; width:120px; height:168px; border-radius:18px; background:${backAsset ? `url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))'}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
               ${featuredFrame ? `<img src="${frameAsset}" alt="" style="position:absolute; left:14px; top:26px; width:136px; height:184px; object-fit:contain;">` : ''}
             </div>
             <div style="display:grid; gap:12px; align-content:center; min-width:0;">
               <div class="summary-chip-row">${previewMetaMarkup}</div>
               <div class="tiny">Открыто: ${cosmetics.length} • Всего вариантов: ${cosmeticCatalog.length}</div>
-              <div class="tiny">NFT-ready серийники: ${[featuredFrame, featuredBack, featuredArena, featuredGuild].filter(Boolean).map((item) => `${(inventoryByKey[item.key] && inventoryByKey[item.key].serial) || '---'}`).join(' • ')}</div>
               <div class="tiny">Ниже показан полный каталог косметики по категориям. Закрытые варианты отображаются отдельно от уже открытых.</div>
               <div class="actions" style="margin-top:8px;">
                 <button type="button" class="secondary" id="toggle-cosmetics-catalog-btn">${state.showAllCosmetics ? 'Показать только открытое' : 'Посмотреть все виды кастомизации'}</button>
@@ -7092,13 +7076,13 @@ PAGE_TEMPLATE = """
                   <article class="catalog-card skill-card" style="padding:14px; opacity:${unlocked ? '1' : '0.62'};">
                     <div class="catalog-kicker">${escapeHtml(typeLabel[type] || type)}</div>
                     <strong>${escapeHtml(item.name)}</strong>
-                    <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')}${ownedMeta && ownedMeta.serial ? ` • ${escapeHtml(ownedMeta.serial)}` : ''}</div>
-                    <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' && itemArenaAsset ? `linear-gradient(180deg, rgba(8,20,36,0.28), rgba(8,20,36,0.5)), url(${itemArenaAsset}) center/cover no-repeat` : type === 'cardback' && itemBackAsset ? `linear-gradient(180deg, rgba(8,20,36,0.16), rgba(8,20,36,0.24)), url(${itemBackAsset}) center/cover no-repeat` : type === 'guild' && itemGuildAsset ? `linear-gradient(180deg, rgba(8,20,36,0.18), rgba(8,20,36,0.26)), url(${itemGuildAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
+                    <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')}</div>
+                    <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' && itemArenaAsset ? `url(${itemArenaAsset}) center/cover no-repeat` : type === 'cardback' && itemBackAsset ? `url(${itemBackAsset}) center/cover no-repeat` : type === 'guild' && itemGuildAsset ? `url(${itemGuildAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
                       <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '1px solid rgba(83,246,184,0.32)' : '1px solid rgba(121,217,255,0.18)'};"></div>
                       ${type === 'frame' && itemFrameAsset ? `<img src="${itemFrameAsset}" alt="" style="position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px); object-fit:contain;">` : ''}
                       ${type === 'guild' && itemGuildAsset ? `<img src="${itemGuildAsset}" alt="" style="position:absolute; inset:16px; width:calc(100% - 32px); height:calc(100% - 32px); object-fit:contain;">` : ''}
-                      ${type === 'cardback' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:32px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('cardback', item.key).emoji)}</div>` : ''}
-                      ${type === 'arena' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:34px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('arena', item.key).emoji)}</div>` : ''}
+                      ${type === 'cardback' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:40px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('cardback', item.key).emoji)}</div>` : ''}
+                      ${type === 'arena' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:42px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('arena', item.key).emoji)}</div>` : ''}
                       <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
                     </div>
                     <div class="actions" style="margin-top:10px;">
@@ -7544,18 +7528,9 @@ PAGE_TEMPLATE = """
     function battleArenaBackground(cosmetics) {
       const arenaKey = (((cosmetics || {}).arena || {}).key || '');
       const asset = cosmeticAssetUrl('arena', arenaKey);
-      const tint = arenaKey.includes('gold') || arenaKey.includes('solar')
-        ? 'rgba(255,211,110,0.16)'
-        : arenaKey.includes('midnight') || arenaKey.includes('void') || arenaKey.includes('obsidian')
-          ? 'rgba(124,126,255,0.14)'
-          : arenaKey.includes('emerald')
-            ? 'rgba(83,246,184,0.16)'
-            : arenaKey.includes('crimson')
-              ? 'rgba(255,122,134,0.16)'
-              : 'rgba(69,215,255,0.14)';
       return asset
-        ? `linear-gradient(180deg, rgba(5,14,26,0.18), rgba(5,14,26,0.42)), radial-gradient(circle at center, ${tint}, rgba(8,20,36,0.78) 72%), url(${asset}) center/cover no-repeat`
-        : `radial-gradient(circle at center, ${tint}, rgba(8,20,36,0.96) 72%)`;
+        ? `url(${asset}) center/cover no-repeat`
+        : `radial-gradient(circle at center, rgba(69,215,255,0.14), rgba(8,20,36,0.96) 72%)`;
     }
 
     function battleCardStyle(cosmetics, side = 'player') {
@@ -7565,44 +7540,46 @@ PAGE_TEMPLATE = """
       const backAsset = cosmeticAssetUrl('cardback', backKey);
       let border = side === 'player' ? 'rgba(83,246,184,0.34)' : 'rgba(255,122,134,0.3)';
       let glow = side === 'player' ? 'rgba(83,246,184,0.18)' : 'rgba(255,122,134,0.16)';
-      let overlay = 'rgba(8, 15, 28, 0.08)';
       if (frameKey.includes('gold') || frameKey.includes('solar')) border = 'rgba(255,211,110,0.42)';
       if (frameKey.includes('void') || frameKey.includes('obsidian')) border = 'rgba(174,126,255,0.38)';
       if (frameKey.includes('crimson')) border = 'rgba(255,122,134,0.42)';
       if (backKey.includes('gold') || backKey.includes('script')) {
         glow = 'rgba(255,211,110,0.24)';
-        overlay = 'rgba(56, 38, 10, 0.06)';
       } else if (backKey.includes('aurora')) {
         glow = 'rgba(101, 221, 255, 0.22)';
-        overlay = 'rgba(17, 34, 52, 0.06)';
       } else if (backKey.includes('chrome')) {
         glow = 'rgba(125, 225, 255, 0.22)';
-        overlay = 'rgba(12, 30, 38, 0.08)';
       } else if (backKey.includes('frost')) {
         glow = 'rgba(191, 231, 255, 0.2)';
-        overlay = 'rgba(18, 34, 54, 0.08)';
       } else if (backKey.includes('ember')) {
         glow = 'rgba(255, 138, 92, 0.22)';
-        overlay = 'rgba(52, 20, 10, 0.08)';
       } else if (backKey.includes('emerald')) {
         glow = 'rgba(83,246,184,0.24)';
-        overlay = 'rgba(10, 42, 28, 0.06)';
       } else if (backKey.includes('void')) {
         glow = 'rgba(174,126,255,0.24)';
-        overlay = 'rgba(27, 12, 42, 0.08)';
       } else if (backKey.includes('glitch') || backKey.includes('signal')) {
         glow = 'rgba(188,126,255,0.24)';
-        overlay = 'rgba(34, 14, 44, 0.08)';
       } else if (backKey.includes('tactical') || backKey.includes('black')) {
         glow = 'rgba(255,186,108,0.18)';
-        overlay = 'rgba(22, 18, 10, 0.06)';
       }
       const base = backAsset
-        ? `linear-gradient(180deg, ${overlay}, rgba(8,16,29,0.02)), url(${backAsset}) center/cover no-repeat`
+        ? `url(${backAsset}) center/cover no-repeat`
         : 'linear-gradient(180deg, rgba(10,18,30,0.98), rgba(8,16,29,0.98))';
       const frameLayer = frameAsset ? `, url(${frameAsset}) center/100% 100% no-repeat` : '';
       return `border-color:${border}; background:${base}${frameLayer}; box-shadow:0 0 0 1px ${border}, 0 16px 32px ${glow}, inset 0 0 0 1px rgba(255,255,255,0.03); filter:saturate(1.12) contrast(1.04);`;
     }
+
+    window.scrollSeasonPassTrack = function scrollSeasonPassTrack(target, dir) {
+      const scroller = achievementsList ? achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`) : null;
+      if (!scroller || !dir) return;
+      const step = Math.max(160, Math.floor(scroller.clientWidth * 0.82));
+      const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+      const nextLeft = Math.max(0, Math.min(maxLeft, scroller.scrollLeft + Number(dir) * step));
+      scroller.scrollLeft = nextLeft;
+      if (typeof scroller.scrollTo === 'function') {
+        scroller.scrollTo({ left: nextLeft, behavior: 'smooth' });
+      }
+    };
 
     function battleTrailStyle(cosmetics) {
       const frameKey = (((cosmetics || {}).frame || {}).key || '');
@@ -10730,6 +10707,7 @@ def ensure_runtime_tables():
         if 'serial_number' not in cosmetic_columns:
             conn.execute('ALTER TABLE player_cosmetics ADD COLUMN serial_number INTEGER')
         conn.commit()
+        reset_legacy_cosmetic_serials(conn)
         ensure_cosmetic_serials(conn)
         conn.commit()
 
@@ -11013,6 +10991,22 @@ def ensure_player_rewards(wallet):
     return dict(row)
 
 
+def app_setting_value(conn, key, default=None):
+    row = conn.execute('SELECT value FROM app_settings WHERE key = ?', (key,)).fetchone()
+    return row['value'] if row else default
+
+
+def set_app_setting(conn, key, value):
+    conn.execute(
+        '''
+        INSERT INTO app_settings (key, value, updated_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+        ''',
+        (key, str(value), now_iso()),
+    )
+
+
 def week_utc_key():
     now_dt = now_utc()
     return f'{now_dt.isocalendar().year}-W{now_dt.isocalendar().week:02d}'
@@ -11042,18 +11036,18 @@ def ensure_cosmetic_serials(conn):
         cosmetic_type = row['cosmetic_type'] or meta.get('type') or 'cosmetic'
         current_max = counters.get(cosmetic_type, 0)
         serial_number = row['serial_number']
-        if serial_number is None:
-            serial_number = current_max + 1
-            conn.execute(
-                'UPDATE player_cosmetics SET cosmetic_type = ?, serial_number = ? WHERE wallet = ? AND cosmetic_key = ?',
-                (cosmetic_type, serial_number, row['wallet'], row['cosmetic_key']),
-            )
-        else:
-            conn.execute(
-                'UPDATE player_cosmetics SET cosmetic_type = ? WHERE wallet = ? AND cosmetic_key = ?',
-                (cosmetic_type, row['wallet'], row['cosmetic_key']),
-            )
+        conn.execute(
+            'UPDATE player_cosmetics SET cosmetic_type = ? WHERE wallet = ? AND cosmetic_key = ?',
+            (cosmetic_type, row['wallet'], row['cosmetic_key']),
+        )
         counters[cosmetic_type] = max(current_max, int(serial_number or 0))
+
+
+def reset_legacy_cosmetic_serials(conn):
+    if app_setting_value(conn, 'cosmetic_serials_reset_v1', '0') == '1':
+        return
+    conn.execute('UPDATE player_cosmetics SET serial_number = NULL')
+    set_app_setting(conn, 'cosmetic_serials_reset_v1', '1')
 
 
 def cosmetic_serial_label(cosmetic_type, serial_number):
@@ -12455,9 +12449,7 @@ def domain_bonus_pool(domain):
     if not metadata:
         return 0
     score = int(metadata.get('score') or 2500)
-    level = max(1, int(metadata.get('level') or 1))
-    level_bonus = min(120, (level - 1) * 12)
-    return max(0, score - 2500) + level_bonus
+    return max(0, score - 2500)
 
 
 def deck_power_pool(cards, domain=None):
