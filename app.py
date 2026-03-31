@@ -168,15 +168,55 @@ SEASON_PASS_TRACK = [
 
 COSMETIC_CATALOG = [
     {'key': 'frame_neon_pulse', 'type': 'frame', 'name': 'Neon Pulse', 'source': 'season_pass'},
-    {'key': 'trail_neon_sparks', 'type': 'trail', 'name': 'Neon Sparks', 'source': 'season_pass'},
-    {'key': 'arena_gold_grid', 'type': 'arena', 'name': 'Gold Grid', 'source': 'season_pass'},
-    {'key': 'cardback_tactical_black', 'type': 'cardback', 'name': 'Tactical Black', 'source': 'season_pass'},
     {'key': 'frame_obsidian_crest', 'type': 'frame', 'name': 'Obsidian Crest', 'source': 'season_pass'},
+    {'key': 'frame_aurora_ring', 'type': 'frame', 'name': 'Aurora Ring', 'source': 'cosmetics'},
+    {'key': 'frame_solar_forge', 'type': 'frame', 'name': 'Solar Forge', 'source': 'cosmetics'},
+    {'key': 'frame_ocean_flux', 'type': 'frame', 'name': 'Ocean Flux', 'source': 'cosmetics'},
+    {'key': 'frame_crimson_edge', 'type': 'frame', 'name': 'Crimson Edge', 'source': 'cosmetics'},
+    {'key': 'frame_frost_arc', 'type': 'frame', 'name': 'Frost Arc', 'source': 'cosmetics'},
+    {'key': 'frame_void_signal', 'type': 'frame', 'name': 'Void Signal', 'source': 'cosmetics'},
+    {'key': 'frame_emerald_gate', 'type': 'frame', 'name': 'Emerald Gate', 'source': 'cosmetics'},
+    {'key': 'frame_titan_trim', 'type': 'frame', 'name': 'Titan Trim', 'source': 'cosmetics'},
+    {'key': 'trail_neon_sparks', 'type': 'trail', 'name': 'Neon Sparks', 'source': 'season_pass'},
     {'key': 'trail_solar_echo', 'type': 'trail', 'name': 'Solar Echo', 'source': 'season_pass'},
+    {'key': 'trail_prism_dust', 'type': 'trail', 'name': 'Prism Dust', 'source': 'cosmetics'},
+    {'key': 'trail_frost_shard', 'type': 'trail', 'name': 'Frost Shard', 'source': 'cosmetics'},
+    {'key': 'trail_ember_streak', 'type': 'trail', 'name': 'Ember Streak', 'source': 'cosmetics'},
+    {'key': 'trail_ion_wave', 'type': 'trail', 'name': 'Ion Wave', 'source': 'cosmetics'},
+    {'key': 'trail_comet_fall', 'type': 'trail', 'name': 'Comet Fall', 'source': 'cosmetics'},
+    {'key': 'trail_ghost_trace', 'type': 'trail', 'name': 'Ghost Trace', 'source': 'cosmetics'},
+    {'key': 'trail_emerald_mist', 'type': 'trail', 'name': 'Emerald Mist', 'source': 'cosmetics'},
+    {'key': 'trail_void_static', 'type': 'trail', 'name': 'Void Static', 'source': 'cosmetics'},
+    {'key': 'arena_gold_grid', 'type': 'arena', 'name': 'Gold Grid', 'source': 'season_pass'},
     {'key': 'arena_midnight_dome', 'type': 'arena', 'name': 'Midnight Dome', 'source': 'season_pass'},
+    {'key': 'arena_frost_vault', 'type': 'arena', 'name': 'Frost Vault', 'source': 'cosmetics'},
+    {'key': 'arena_solar_sanctum', 'type': 'arena', 'name': 'Solar Sanctum', 'source': 'cosmetics'},
+    {'key': 'arena_neon_circuit', 'type': 'arena', 'name': 'Neon Circuit', 'source': 'cosmetics'},
+    {'key': 'arena_obsidian_hall', 'type': 'arena', 'name': 'Obsidian Hall', 'source': 'cosmetics'},
+    {'key': 'arena_emerald_ruins', 'type': 'arena', 'name': 'Emerald Ruins', 'source': 'cosmetics'},
+    {'key': 'arena_crimson_core', 'type': 'arena', 'name': 'Crimson Core', 'source': 'cosmetics'},
+    {'key': 'arena_storm_hex', 'type': 'arena', 'name': 'Storm Hex', 'source': 'cosmetics'},
+    {'key': 'arena_titan_plate', 'type': 'arena', 'name': 'Titan Plate', 'source': 'cosmetics'},
+    {'key': 'cardback_tactical_black', 'type': 'cardback', 'name': 'Tactical Black', 'source': 'season_pass'},
     {'key': 'cardback_chrome_veil', 'type': 'cardback', 'name': 'Chrome Veil', 'source': 'season_pass'},
+    {'key': 'cardback_aurora_mesh', 'type': 'cardback', 'name': 'Aurora Mesh', 'source': 'cosmetics'},
+    {'key': 'cardback_gold_script', 'type': 'cardback', 'name': 'Gold Script', 'source': 'cosmetics'},
+    {'key': 'cardback_glitch_matrix', 'type': 'cardback', 'name': 'Glitch Matrix', 'source': 'cosmetics'},
+    {'key': 'cardback_frost_panel', 'type': 'cardback', 'name': 'Frost Panel', 'source': 'cosmetics'},
+    {'key': 'cardback_ember_carbon', 'type': 'cardback', 'name': 'Ember Carbon', 'source': 'cosmetics'},
+    {'key': 'cardback_void_fabric', 'type': 'cardback', 'name': 'Void Fabric', 'source': 'cosmetics'},
+    {'key': 'cardback_emerald_cells', 'type': 'cardback', 'name': 'Emerald Cells', 'source': 'cosmetics'},
+    {'key': 'cardback_signal_mesh', 'type': 'cardback', 'name': 'Signal Mesh', 'source': 'cosmetics'},
     {'key': 'guild_banner_crown', 'type': 'guild', 'name': 'Guild Crown', 'source': 'season_pass'},
     {'key': 'guild_banner_weekly', 'type': 'guild', 'name': 'Weekly War Banner', 'source': 'guild_reward'},
+    {'key': 'guild_banner_iron_union', 'type': 'guild', 'name': 'Iron Union', 'source': 'cosmetics'},
+    {'key': 'guild_banner_solar_order', 'type': 'guild', 'name': 'Solar Order', 'source': 'cosmetics'},
+    {'key': 'guild_banner_frost_legion', 'type': 'guild', 'name': 'Frost Legion', 'source': 'cosmetics'},
+    {'key': 'guild_banner_neon_howl', 'type': 'guild', 'name': 'Neon Howl', 'source': 'cosmetics'},
+    {'key': 'guild_banner_emerald_standard', 'type': 'guild', 'name': 'Emerald Standard', 'source': 'cosmetics'},
+    {'key': 'guild_banner_crimson_phalanx', 'type': 'guild', 'name': 'Crimson Phalanx', 'source': 'cosmetics'},
+    {'key': 'guild_banner_void_conclave', 'type': 'guild', 'name': 'Void Conclave', 'source': 'cosmetics'},
+    {'key': 'guild_banner_titan_company', 'type': 'guild', 'name': 'Titan Company', 'source': 'cosmetics'},
 ]
 
 PAGE_TEMPLATE = """
@@ -6619,47 +6659,79 @@ PAGE_TEMPLATE = """
       if (!profileCosmeticsPanel) return;
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
       const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
+      const cosmeticCatalog = Array.isArray(rewards.cosmetic_catalog) ? rewards.cosmetic_catalog : [];
       if (!state.wallet) {
         profileCosmeticsPanel.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы видеть косметику и её превью.</div>';
         return;
       }
-      if (!cosmetics.length) {
-        profileCosmeticsPanel.innerHTML = '<div class="user-item muted">Косметика пока не открыта. Премиум-пропуск и недельные награды клана открывают арены, рамки, следы и рубашки.</div>';
+      if (!cosmeticCatalog.length) {
+        profileCosmeticsPanel.innerHTML = '<div class="user-item muted">Каталог косметики пока недоступен.</div>';
         return;
       }
-      const featuredArena = cosmetics.find((item) => item.type === 'arena') || cosmetics[0];
-      const featuredFrame = cosmetics.find((item) => item.type === 'frame');
-      const featuredTrail = cosmetics.find((item) => item.type === 'trail');
-      const featuredBack = cosmetics.find((item) => item.type === 'cardback');
+      const unlockedKeys = new Set(cosmetics.map((item) => item.key));
+      const catalogByType = cosmeticCatalog.reduce((acc, item) => {
+        const key = item.type || 'other';
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(item);
+        return acc;
+      }, {});
+      const featuredArena = cosmetics.find((item) => item.type === 'arena') || (catalogByType.arena || [])[0] || cosmeticCatalog[0];
+      const featuredFrame = cosmetics.find((item) => item.type === 'frame') || (catalogByType.frame || [])[0] || null;
+      const featuredTrail = cosmetics.find((item) => item.type === 'trail') || (catalogByType.trail || [])[0] || null;
+      const featuredBack = cosmetics.find((item) => item.type === 'cardback') || (catalogByType.cardback || [])[0] || null;
+      const typeLabel = {
+        frame: 'Рамки',
+        trail: 'Следы',
+        arena: 'Арены',
+        cardback: 'Рубашки',
+        guild: 'Клановые баннеры',
+      };
+      const previewMetaMarkup = [
+        `Арена: ${featuredArena ? escapeHtml(featuredArena.name) : 'стандарт'}`,
+        `Рамка: ${featuredFrame ? escapeHtml(featuredFrame.name) : 'стандарт'}`,
+        `След: ${featuredTrail ? escapeHtml(featuredTrail.name) : 'стандарт'}`,
+        `Рубашка: ${featuredBack ? escapeHtml(featuredBack.name) : 'стандарт'}`
+      ].map((text) => `<div class="summary-chip">${text}</div>`).join('');
       profileCosmeticsPanel.innerHTML = `
         <div class="user-item" style="margin-bottom:14px;">
           <strong>Предпросмотр</strong>
-          <div style="margin-top:10px; min-height:200px; border-radius:18px; padding:18px; position:relative; overflow:hidden; background:${featuredArena && featuredArena.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.22), rgba(8,20,36,0.94))' : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))'};">
-            ${featuredTrail ? '<div style="position:absolute; width:160px; height:14px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(188,126,255,0.95), rgba(255,255,255,0.0)); top:34px; left:28px; transform:rotate(-15deg);"></div>' : ''}
-            <div style="position:absolute; inset:34px auto auto 34px; width:120px; height:168px; border-radius:18px; background:linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98)); border:${featuredFrame ? '2px solid rgba(83,246,184,0.78)' : '1px solid rgba(121,217,255,0.18)'}; box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
-            ${featuredBack ? '<div style="position:absolute; left:48px; top:56px; width:92px; height:128px; border-radius:12px; background:repeating-linear-gradient(135deg, rgba(255,211,110,0.18), rgba(255,211,110,0.18) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px);"></div>' : ''}
-            <div style="position:absolute; left:186px; top:70px; display:grid; gap:8px;">
-              <div class="summary-chip">${featuredArena ? `Арена: ${escapeHtml(featuredArena.name)}` : 'Арена: стандарт'}</div>
-              <div class="summary-chip">${featuredFrame ? `Рамка: ${escapeHtml(featuredFrame.name)}` : 'Рамка: стандарт'}</div>
-              <div class="summary-chip">${featuredTrail ? `След: ${escapeHtml(featuredTrail.name)}` : 'След: стандарт'}</div>
-              <div class="summary-chip">${featuredBack ? `Рубашка: ${escapeHtml(featuredBack.name)}` : 'Рубашка: стандарт'}</div>
+          <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:minmax(180px, 240px) minmax(0, 1fr); gap:22px; align-items:center; background:${featuredArena && featuredArena.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.22), rgba(8,20,36,0.94))' : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))'};">
+            <div style="position:relative; width:190px; height:220px; margin:0 auto;">
+              ${featuredTrail ? '<div style="position:absolute; width:160px; height:14px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(188,126,255,0.95), rgba(255,255,255,0.0)); top:12px; left:16px; transform:rotate(-15deg);"></div>' : ''}
+              <div style="position:absolute; left:22px; top:34px; width:120px; height:168px; border-radius:18px; background:linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98)); border:${featuredFrame ? '2px solid rgba(83,246,184,0.78)' : '1px solid rgba(121,217,255,0.18)'}; box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
+              ${featuredBack ? '<div style="position:absolute; left:40px; top:52px; width:84px; height:128px; border-radius:12px; background:repeating-linear-gradient(135deg, rgba(255,211,110,0.18), rgba(255,211,110,0.18) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px);"></div>' : ''}
+            </div>
+            <div style="display:grid; gap:12px; align-content:center;">
+              <div class="summary-chip-row">${previewMetaMarkup}</div>
+              <div class="tiny">Открыто: ${cosmetics.length} • Всего вариантов: ${cosmeticCatalog.length}</div>
+              <div class="tiny">Ниже показан полный каталог косметики по категориям. Закрытые варианты отображаются отдельно от уже открытых.</div>
             </div>
           </div>
         </div>
-        <div class="catalog-grid">
-          ${cosmetics.map((item) => `
-            <article class="catalog-card skill-card" style="padding:14px;">
-              <div class="catalog-kicker">${escapeHtml(item.type)}</div>
-              <strong>${escapeHtml(item.name)}</strong>
-              <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${item.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.18), rgba(8,20,36,0.92))' : item.type === 'frame' ? 'linear-gradient(180deg, rgba(83,246,184,0.14), rgba(8,20,36,0.92))' : item.type === 'trail' ? 'linear-gradient(180deg, rgba(188,126,255,0.18), rgba(8,20,36,0.92))' : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
-                <div style="position:absolute; inset:12px; border-radius:12px; border:${item.type === 'frame' ? '2px solid rgba(83,246,184,0.72)' : '1px solid rgba(121,217,255,0.18)'};"></div>
-                ${item.type === 'trail' ? '<div style="position:absolute; width:72px; height:10px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(188,126,255,0.95), rgba(255,255,255,0.0)); top:42px; left:20px; transform:rotate(-18deg);"></div>' : ''}
-                ${item.type === 'cardback' ? '<div style="position:absolute; inset:26px 30px; border-radius:10px; background:repeating-linear-gradient(135deg, rgba(255,211,110,0.18), rgba(255,211,110,0.18) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px);"></div>' : ''}
-                <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
-              </div>
-            </article>
-          `).join('')}
-        </div>
+        ${Object.entries(catalogByType).map(([type, items]) => `
+          <div class="user-item" style="margin-bottom:14px;">
+            <strong>${typeLabel[type] || type}</strong>
+            <div class="catalog-grid" style="margin-top:12px;">
+              ${items.map((item) => {
+                const unlocked = unlockedKeys.has(item.key);
+                return `
+                  <article class="catalog-card skill-card" style="padding:14px; opacity:${unlocked ? '1' : '0.62'};">
+                    <div class="catalog-kicker">${escapeHtml(typeLabel[type] || type)}</div>
+                    <strong>${escapeHtml(item.name)}</strong>
+                    <div class="tiny" style="margin-top:6px;">${unlocked ? 'Открыто' : 'Закрыто'}</div>
+                    <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.18), rgba(8,20,36,0.92))' : type === 'frame' ? 'linear-gradient(180deg, rgba(83,246,184,0.14), rgba(8,20,36,0.92))' : type === 'trail' ? 'linear-gradient(180deg, rgba(188,126,255,0.18), rgba(8,20,36,0.92))' : type === 'guild' ? 'linear-gradient(180deg, rgba(255,122,134,0.16), rgba(8,20,36,0.92))' : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
+                      <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '2px solid rgba(83,246,184,0.72)' : '1px solid rgba(121,217,255,0.18)'};"></div>
+                      ${type === 'trail' ? '<div style="position:absolute; width:72px; height:10px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(188,126,255,0.95), rgba(255,255,255,0.0)); top:42px; left:20px; transform:rotate(-18deg);"></div>' : ''}
+                      ${type === 'cardback' ? '<div style="position:absolute; inset:26px 30px; border-radius:10px; background:repeating-linear-gradient(135deg, rgba(255,211,110,0.18), rgba(255,211,110,0.18) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px);"></div>' : ''}
+                      ${type === 'guild' ? '<div style="position:absolute; inset:26px 24px; border-radius:10px; background:linear-gradient(135deg, rgba(255,122,134,0.22), rgba(255,211,110,0.18));"></div>' : ''}
+                      <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
+                    </div>
+                  </article>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `).join('')}
       `;
     }
 
@@ -10462,6 +10534,7 @@ def reward_summary(wallet):
     rewards['premium_pass_active'] = bool(rewards['premium_pass'])
     rewards['season_pass_track'] = season_pass_track_payload(wallet=wallet, rewards=rewards)
     rewards['cosmetics'] = cosmetic_inventory(wallet)
+    rewards['cosmetic_catalog'] = COSMETIC_CATALOG
     return rewards
 
 
