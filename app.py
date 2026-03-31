@@ -12081,7 +12081,7 @@ def score_from_domain(domain, wallet=None):
         'special_collections': list(metadata.get('specialCollections') or []),
         'bonus_score': bonus_score,
         'pool_base': base_score,
-        'pool_total': 2500 + max(0, bonus_score),
+        'pool_total': score,
         'score': score,
         'metadata': metadata,
     }
