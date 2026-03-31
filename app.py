@@ -6904,8 +6904,6 @@ PAGE_TEMPLATE = """
       }
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
-      const playerRailRect = playerRail ? playerRail.getBoundingClientRect() : playerRect;
-      const enemyRailRect = enemyRail ? enemyRail.getBoundingClientRect() : enemyRect;
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
       const clashCardWidth = compactClash ? 46 : 92;
       const clashCardHeight = compactClash ? 64 : 136;
@@ -6970,7 +6968,9 @@ PAGE_TEMPLATE = """
       playerClone.style.visibility = 'visible';
       playerClone.style.opacity = '1';
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
-      playerClone.style.top = `${Math.min(coreRect.height - clashCardHeight - verticalPadding + 6, Math.max(laneBottomBound - clashCardHeight, playerRailRect.top - coreRect.top))}px`;
+      const playerStartTop = laneBottomBound - clashCardHeight;
+      const enemyStartTop = laneTopBound;
+      playerClone.style.top = `${playerStartTop}px`;
       playerClone.style.width = `${clashCardWidth}px`;
       playerClone.style.height = `${clashCardHeight}px`;
       playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
@@ -6979,7 +6979,7 @@ PAGE_TEMPLATE = """
       enemyClone.style.visibility = 'visible';
       enemyClone.style.opacity = '1';
       enemyClone.style.left = `${enemyRect.left - coreRect.left}px`;
-      enemyClone.style.top = `${Math.max(verticalPadding - 6, Math.min(laneTopBound, enemyRailRect.bottom - coreRect.top - clashCardHeight))}px`;
+      enemyClone.style.top = `${enemyStartTop}px`;
       enemyClone.style.width = `${clashCardWidth}px`;
       enemyClone.style.height = `${clashCardHeight}px`;
       enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
@@ -6998,8 +6998,6 @@ PAGE_TEMPLATE = """
       requestAnimationFrame(() => laneReveal.classList.add('visible'));
       const playerStartLeft = playerRect.left - coreRect.left;
       const enemyStartLeft = enemyRect.left - coreRect.left;
-      const playerStartTop = Math.min(coreRect.height - clashCardHeight - verticalPadding + 6, Math.max(laneBottomBound - clashCardHeight, playerRailRect.top - coreRect.top));
-      const enemyStartTop = Math.max(verticalPadding - 6, Math.min(laneTopBound, enemyRailRect.bottom - coreRect.top - clashCardHeight));
       playerClone.animate([
         { opacity: 0.96, transform: 'translate3d(0, 0, 0) scale(1)' },
         { opacity: 1, transform: `translate3d(${playerTargetLeft - playerStartLeft}px, ${playerPrepTop - playerStartTop}px, 0) scale(1.02)` },
