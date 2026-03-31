@@ -7687,7 +7687,7 @@ PAGE_TEMPLATE = """
             ${result.tutorial && result.tutorial.completion_prompt ? `<div class="battle-reward-line">${result.tutorial.completion_prompt}</div>` : ''}
             <button class="secondary" onclick="viewBattleFlow()">Смотреть ход боя</button>
             ${result.opponent_wallet && result.opponent_wallet !== 'bot' ? '<button class="secondary" onclick="rematchLastOpponent()">Рематч</button>' : ''}
-            ${result.mode === 'tutorial' && result.result === 'win' ? '<button onclick="launchRecommendedMode(\'casual\')">В обычный бой</button><button class="secondary" onclick="launchRecommendedMode(\'ranked\')">В рейтинг</button>' : ''}
+            ${result.mode === 'tutorial' && result.result === 'win' ? `<button onclick="launchRecommendedMode('casual')">В обычный бой</button><button class="secondary" onclick="launchRecommendedMode('ranked')">В рейтинг</button>` : ''}
             <button onclick="repeatLastMode()">Играть ещё раз</button>
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
