@@ -194,16 +194,24 @@ def _build_cosmetic_catalog():
         'old_gold': {'frame': 'season_pass'},
         'neon_blue': {'arena': 'season_pass'},
     }
+    type_index = {'frame': 0, 'cardback': 0, 'arena': 0, 'guild': 0}
+    serial_prefix = {'frame': 'FRM', 'cardback': 'CBK', 'arena': 'ARN', 'guild': 'GBN'}
     for theme in COSMETIC_THEME_DEFS:
         slug = theme['slug']
         name = theme['name']
         theme_sources = premium_map.get(slug, {})
-        catalog.extend([
+        themed_items = [
             {'key': f'frame_{slug}', 'type': 'frame', 'name': f'{name} Frame', 'source': theme_sources.get('frame', 'cosmetics')},
             {'key': f'cardback_{slug}', 'type': 'cardback', 'name': f'{name} Monogram', 'source': theme_sources.get('cardback', 'season_pass')},
             {'key': f'arena_{slug}', 'type': 'arena', 'name': f'{name} Arena', 'source': theme_sources.get('arena', 'cosmetics')},
             {'key': f'guild_banner_{slug}', 'type': 'guild', 'name': f'{name} Banner', 'source': theme_sources.get('guild', 'cosmetics')},
-        ])
+        ]
+        for item in themed_items:
+            type_index[item['type']] += 1
+            serial = f"{serial_prefix[item['type']]}-{type_index[item['type']]:03d}"
+            item['serial'] = serial
+            item['nft_family'] = item['type']
+            catalog.append(item)
     return catalog
 
 
@@ -6636,7 +6644,7 @@ PAGE_TEMPLATE = """
             <span class="wallet-domain-chip">Редкость: ${item.rarity || '-'}</span>
             <span class="wallet-domain-chip">Тир: ${item.tier || '-'}</span>
             <span class="wallet-domain-chip">Удача: ${item.luck || 0}</span>
-            <span class="wallet-domain-chip">Пул: ${item.deck.discipline_pool || 0}</span>
+            <span class="wallet-domain-chip">Пул: ${(item.metadata && item.metadata.score) || item.deck.discipline_pool || 0}</span>
           </div>
           <div class="wallet-domain-mainline">Вклад карт: ${item.deck.total_score} • ${item.deck.cards && item.deck.cards.length ? `карт: ${item.deck.cards.length}` : 'колода еще не открыта'}</div>
           <div class="tiny">Роль / класс: ${item.metadata && item.metadata.role ? `${item.metadata.role} / ${item.metadata.class}` : '-'}</div>
@@ -6693,7 +6701,7 @@ PAGE_TEMPLATE = """
       const track = Array.isArray(rewards.season_pass_track) ? rewards.season_pass_track : [];
       const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
       const cosmeticsMarkup = cosmetics.length
-        ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}</div>`).join('')
+        ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}${item.serial ? ` • ${item.serial}` : ''}</div>`).join('')
         : '<div class="user-item muted">Косметика пока не открыта.</div>';
       const rewardTone = (text) => {
         const lower = String(text || '').toLowerCase();
@@ -6730,13 +6738,21 @@ PAGE_TEMPLATE = """
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
-              <div class="season-pass-scroll">
+              <div class="actions" style="margin-bottom:8px;">
+                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="-1">←</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="1">→</button>
+              </div>
+              <div class="season-pass-scroll" data-pass-track="premium">
                 <div class="season-pass-track">${premiumRow}</div>
               </div>
             </div>
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
-              <div class="season-pass-scroll">
+              <div class="actions" style="margin-bottom:8px;">
+                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="-1">←</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="1">→</button>
+              </div>
+              <div class="season-pass-scroll" data-pass-track="free">
                 <div class="season-pass-track">${freeRow}</div>
               </div>
             </div>
@@ -6753,6 +6769,15 @@ PAGE_TEMPLATE = """
           <div class="summary-chip-row">${cosmeticsMarkup}</div>
         </div>
       `;
+      achievementsList.querySelectorAll('.season-pass-nav').forEach((button) => {
+        button.addEventListener('click', () => {
+          const target = button.dataset.passTarget;
+          const dir = Number(button.dataset.dir || 0);
+          const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
+          if (!scroller || !dir) return;
+          scroller.scrollBy({left: dir * 260, behavior: 'smooth'});
+        });
+      });
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
     }
@@ -6996,6 +7021,7 @@ PAGE_TEMPLATE = """
             <div style="display:grid; gap:12px; align-content:center; min-width:0;">
               <div class="summary-chip-row">${previewMetaMarkup}</div>
               <div class="tiny">Открыто: ${cosmetics.length} • Всего вариантов: ${cosmeticCatalog.length}</div>
+              <div class="tiny">NFT-ready серийники: ${[featuredFrame, featuredBack, featuredArena, featuredGuild].filter(Boolean).map((item) => `${item.serial || '---'}`).join(' • ')}</div>
               <div class="tiny">Ниже показан полный каталог косметики по категориям. Закрытые варианты отображаются отдельно от уже открытых.</div>
               <div class="actions" style="margin-top:8px;">
                 <button type="button" class="secondary" id="toggle-cosmetics-catalog-btn">${state.showAllCosmetics ? 'Показать только открытое' : 'Посмотреть все виды кастомизации'}</button>
@@ -7018,11 +7044,13 @@ PAGE_TEMPLATE = """
                   <article class="catalog-card skill-card" style="padding:14px; opacity:${unlocked ? '1' : '0.62'};">
                     <div class="catalog-kicker">${escapeHtml(typeLabel[type] || type)}</div>
                     <strong>${escapeHtml(item.name)}</strong>
-                    <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')}</div>
+                    <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')} • ${escapeHtml(item.serial || '---')}</div>
                     <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' && itemArenaAsset ? `linear-gradient(180deg, rgba(8,20,36,0.28), rgba(8,20,36,0.5)), url(${itemArenaAsset}) center/cover no-repeat` : type === 'cardback' && itemBackAsset ? `linear-gradient(180deg, rgba(8,20,36,0.16), rgba(8,20,36,0.24)), url(${itemBackAsset}) center/cover no-repeat` : type === 'guild' && itemGuildAsset ? `linear-gradient(180deg, rgba(8,20,36,0.18), rgba(8,20,36,0.26)), url(${itemGuildAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
                       <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '1px solid rgba(83,246,184,0.32)' : '1px solid rgba(121,217,255,0.18)'};"></div>
                       ${type === 'frame' && itemFrameAsset ? `<img src="${itemFrameAsset}" alt="" style="position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px); object-fit:contain;">` : ''}
                       ${type === 'guild' && itemGuildAsset ? `<img src="${itemGuildAsset}" alt="" style="position:absolute; inset:16px; width:calc(100% - 32px); height:calc(100% - 32px); object-fit:contain;">` : ''}
+                      ${type === 'cardback' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:32px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('cardback', item.key).emoji)}</div>` : ''}
+                      ${type === 'arena' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:34px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('arena', item.key).emoji)}</div>` : ''}
                       <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
                     </div>
                     <div class="actions" style="margin-top:10px;">
@@ -10984,6 +11012,8 @@ def cosmetic_inventory(wallet):
             'key': row['cosmetic_key'],
             'name': meta_by_key.get(row['cosmetic_key'], {}).get('name', row['cosmetic_key']),
             'type': meta_by_key.get(row['cosmetic_key'], {}).get('type', 'cosmetic'),
+            'serial': meta_by_key.get(row['cosmetic_key'], {}).get('serial'),
+            'nft_family': meta_by_key.get(row['cosmetic_key'], {}).get('nft_family'),
             'source': row['source'],
             'equipped': bool(row['equipped']),
             'unlocked_at': row['unlocked_at'],
@@ -12204,12 +12234,9 @@ def domain_bonus_pool(domain):
     if not metadata:
         return 0
     score = int(metadata.get('score') or 2500)
-    tier_id = str(metadata.get('tierId') or 'regular').lower()
     level = max(1, int(metadata.get('level') or 1))
-    bounded = max(0, min(900, round((score - 2500) * 0.06)))
-    tier_flat = {'regular': 0, 'tier2': 80, 'tier1': 160, 'tier0': 260}.get(tier_id, 0)
     level_bonus = min(120, (level - 1) * 12)
-    return bounded + tier_flat + level_bonus
+    return max(0, score - 2500) + level_bonus
 
 
 def deck_power_pool(cards, domain=None):
