@@ -7304,10 +7304,10 @@ PAGE_TEMPLATE = """
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
       const playerCosmetics = (currentResult && currentResult.player_cosmetics) || {};
       const opponentCosmetics = (currentResult && currentResult.opponent_cosmetics) || {};
-      const clashCardWidth = compactClash ? 54 : 122;
-      const clashCardHeight = compactClash ? 78 : 176;
-      const clashGap = compactClash ? 18 : 24;
-      const impactGap = compactClash ? 12 : 16;
+      const clashCardWidth = compactClash ? 54 : 128;
+      const clashCardHeight = compactClash ? 78 : 188;
+      const clashGap = compactClash ? 22 : 34;
+      const impactGap = compactClash ? 14 : 20;
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 50 : 14;
       const laneTop = laneRect.top - coreRect.top;
