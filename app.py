@@ -6174,6 +6174,17 @@ PAGE_TEMPLATE = """
             <div class="tiny">${current.goals.weekly_reward_ready ? 'Награда уже доступна' : 'Награда пока закрыта'}</div>
           </article>
         </div>
+        <h4 style="margin:18px 0 8px;">Клановые задания</h4>
+        <div class="catalog-grid">
+          ${(current.goals.weekly_quests || []).map((quest) => `
+            <article class="catalog-card skill-card">
+              <div class="catalog-kicker">Задание</div>
+              <strong>${escapeHtml(quest.label || 'Цель')}</strong>
+              <div class="tiny">Прогресс: ${Number(quest.progress || 0)}/${Number(quest.target || 0)}</div>
+              <div class="tiny">Награда: ${escapeHtml(quest.reward || 'награда')}</div>
+            </article>
+          `).join('')}
+        </div>
         <h4 style="margin:18px 0 8px;">Объявления</h4>
         <div class="deck-list">${announcements}</div>
         <div class="row" style="margin:10px 0;">
@@ -6626,15 +6637,27 @@ PAGE_TEMPLATE = """
       const cosmeticsMarkup = cosmetics.length
         ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}</div>`).join('')
         : '<div class="user-item muted">Косметика пока не открыта.</div>';
+      const rewardTone = (text) => {
+        const lower = String(text || '').toLowerCase();
+        if (lower.includes('арена')) return 'radial-gradient(circle at top, rgba(69,215,255,0.2), rgba(13,22,37,0.94) 62%)';
+        if (lower.includes('рубаш')) return 'radial-gradient(circle at top, rgba(255,211,110,0.18), rgba(13,22,37,0.94) 62%)';
+        if (lower.includes('рамк')) return 'radial-gradient(circle at top, rgba(83,246,184,0.18), rgba(13,22,37,0.94) 62%)';
+        if (lower.includes('след')) return 'radial-gradient(circle at top, rgba(188,126,255,0.22), rgba(13,22,37,0.94) 62%)';
+        if (lower.includes('титул') || lower.includes('баннер')) return 'radial-gradient(circle at top, rgba(255,122,134,0.2), rgba(13,22,37,0.94) 62%)';
+        if (lower.includes('оскол')) return 'radial-gradient(circle at top, rgba(69,215,255,0.16), rgba(13,22,37,0.94) 62%)';
+        if (lower.includes('редк')) return 'radial-gradient(circle at top, rgba(255,122,134,0.16), rgba(13,22,37,0.94) 62%)';
+        if (lower.includes('lucky')) return 'radial-gradient(circle at top, rgba(255,211,110,0.18), rgba(13,22,37,0.94) 62%)';
+        return 'radial-gradient(circle at top, rgba(121,217,255,0.12), rgba(13,22,37,0.94) 62%)';
+      };
       const premiumRow = track.map((item) => `
-        <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:linear-gradient(180deg, rgba(58,44,16,0.76), rgba(10,20,32,0.94)); border-color:rgba(255, 211, 110, 0.28);">
+        <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:${rewardTone(item.premium)}; border-color:rgba(255, 211, 110, 0.28); min-width:220px;">
           <div class="catalog-kicker">Премиум • ур. ${item.level}</div>
           <strong>${item.premium ? escapeHtml(item.premium) : 'Нет награды'}</strong>
           <div class="tiny">${item.premium_ready ? 'Доступно' : 'Закрыто'}</div>
         </article>
       `).join('');
       const freeRow = track.map((item) => `
-        <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start;">
+        <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:${rewardTone(item.free)}; min-width:220px;">
           <div class="catalog-kicker">Бесплатно • ур. ${item.level}</div>
           <strong>${item.free ? escapeHtml(item.free) : 'Нет награды'}</strong>
           <div class="tiny">${item.free_ready ? 'Доступно' : 'Закрыто'}</div>
@@ -6648,11 +6671,15 @@ PAGE_TEMPLATE = """
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
-              <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(140px, 1fr));">${premiumRow}</div>
+              <div style="overflow-x:auto; padding-bottom:8px;">
+                <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(220px, 220px)); width:max-content;">${premiumRow}</div>
+              </div>
             </div>
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
-              <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(140px, 1fr));">${freeRow}</div>
+              <div style="overflow-x:auto; padding-bottom:8px;">
+                <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(220px, 220px)); width:max-content;">${freeRow}</div>
+              </div>
             </div>
           </div>
           <div class="actions" style="margin-top:10px;">
@@ -12433,8 +12460,10 @@ def spend_ability_state(ability_state, action_key):
     return state
 
 
-def choose_bot_round_action(planned_action, energy, ability_state, metadata, phase, round_index=0, previous_outcome=None, rng_seed=''):
+def choose_bot_round_action(planned_action, energy, ability_state, metadata, phase, round_index=0, previous_outcome=None, rng_seed='', allow_ability=True):
     actions = available_actions_for_state(energy, ability_state)
+    if not allow_ability:
+        actions = [action for action in actions if action != 'ability']
     if not actions:
         return 'guard'
     role = str((metadata or {}).get('role') or '')
@@ -12450,7 +12479,7 @@ def choose_bot_round_action(planned_action, energy, ability_state, metadata, pha
         weights['burst'] += 2
     if previous_outcome == 'win' and 'guard' in actions:
         weights['guard'] += 1
-    if 'ability' in actions:
+    if allow_ability and 'ability' in actions:
         ability_weight = 0
         if phase in {'risk', 'finisher'}:
             ability_weight += 2
@@ -13696,15 +13725,20 @@ def guild_goal_summary(guild_id):
     war_score = weekly_wins * 4 + int(pack_count or 0) * 3 + int(season_points or 0)
     war_target = max(140, len(wallets) * 45)
     weekly_reward_ready = weekly_wins >= weekly_win_target or int(pack_count or 0) >= weekly_pack_target or war_score >= war_target
+    raid_target = max(18, len(wallets) * 4)
+    pressure_target = max(8, len(wallets) * 2)
     weekly_quests = [
-        {'label': 'Победы недели', 'progress': weekly_wins, 'target': weekly_win_target},
-        {'label': 'Сундук гильдии', 'progress': int(pack_count or 0), 'target': weekly_pack_target},
-        {'label': 'Война недели', 'progress': war_score, 'target': war_target},
+        {'label': 'Победы недели', 'progress': weekly_wins, 'target': weekly_win_target, 'reward': 'осколки +5'},
+        {'label': 'Сундук гильдии', 'progress': int(pack_count or 0), 'target': weekly_pack_target, 'reward': 'редкий токен +1'},
+        {'label': 'Война недели', 'progress': war_score, 'target': war_target, 'reward': 'lucky +1 • баннер недели'},
+        {'label': 'Рейд клана', 'progress': min(weekly_wins + int(pack_count or 0), raid_target), 'target': raid_target, 'reward': 'след клана'},
+        {'label': 'Контроль сезона', 'progress': min(int(season_points or 0), pressure_target * 10), 'target': pressure_target * 10, 'reward': 'сезонные очки +10'},
     ]
     today_help = [
         f'Добейте {max(0, weekly_win_target - weekly_wins)} побед до недельной цели',
         f'Откройте ещё {max(0, weekly_pack_target - pack_count)} паков до сундука гильдии',
         f'Поднимите счёт войны недели до {war_target}',
+        f'Закройте рейд клана: {max(0, raid_target - (weekly_wins + int(pack_count or 0)))} шагов',
     ]
     return {
         'weekly_wins': weekly_wins,
@@ -14754,6 +14788,7 @@ def apply_solo_battle_action(session_id, wallet, action_key):
         round_index=idx,
         previous_outcome=prev_b,
         rng_seed=session_id,
+        allow_ability=False,
     )
     build_a = state.get('build_a') or {}
     build_b = state.get('build_b') or {}
