@@ -5329,6 +5329,7 @@ PAGE_TEMPLATE = """
       packTypes: [],
       selectedPackType: 'common',
       packPityThreshold: 20,
+      showAllCosmetics: false,
       canRestorePreviousDeck: false,
       matchmakingMode: null,
       matchmakingPolling: false,
@@ -6149,7 +6150,6 @@ PAGE_TEMPLATE = """
           <div class="tiny">${current.domain_identity ? `${escapeHtml(current.domain_identity)}.ton` : 'без доменного тега'} • роль ${escapeHtml(current.viewer_role || 'member')} • участников ${current.member_count}</div>
           <div class="tiny">${escapeHtml(current.description || 'Описание не заполнено')}</div>
           <div class="tiny">Недельные победы: ${current.goals.weekly_wins}/${current.goals.weekly_win_target} • Паки: ${current.goals.weekly_packs}/${current.goals.weekly_pack_target} • Сезон: ${current.goals.season_points}</div>
-          <div class="tiny">Война недели: ${current.goals.war_score}/${current.goals.war_target} • награда ${current.goals.weekly_reward_ready ? 'готова' : 'закрыта'}</div>
           <div class="tiny">Сегодня полезно клану: ${(current.goals.today_help || []).join(' • ')}</div>
           <div class="summary-chip-row">
             <span class="summary-chip">Инвайты: ${(data.pending_invites || []).length}</span>
@@ -6157,6 +6157,22 @@ PAGE_TEMPLATE = """
             <span class="summary-chip">Чат: ${(current.chat || []).length}</span>
           </div>
           <div class="actions" style="margin-top:10px;">${todayActionButtons.join('')}<button class="secondary" id="guild-weekly-reward-btn"${current.goals.weekly_reward_ready ? '' : ' disabled'}>Награда недели</button></div>
+        </div>
+        <div class="catalog-grid" style="margin:14px 0;">
+          <article class="catalog-card skill-card">
+            <div class="catalog-kicker">Клановая война</div>
+            <strong>Война недели</strong>
+            <div class="tiny">Счёт: ${current.goals.war_score}/${current.goals.war_target}</div>
+            <div class="tiny">Победы дают x4, открытые паки x3, сезонные очки тоже входят в войну.</div>
+            <div class="tiny">${current.goals.war_score >= current.goals.war_target ? 'Цель войны выполнена' : `До цели осталось ${Math.max(0, Number(current.goals.war_target || 0) - Number(current.goals.war_score || 0))}`}</div>
+          </article>
+          <article class="catalog-card skill-card">
+            <div class="catalog-kicker">Клановая награда</div>
+            <strong>Недельный сундук</strong>
+            <div class="tiny">Осколки +5 • Редкий токен +1</div>
+            <div class="tiny">${current.goals.war_score >= current.goals.war_target ? 'За выполненную войну дополнительно Lucky +1 и баннер недели.' : 'Lucky +1 и баннер недели даются только за выполненную войну.'}</div>
+            <div class="tiny">${current.goals.weekly_reward_ready ? 'Награда уже доступна' : 'Награда пока закрыта'}</div>
+          </article>
         </div>
         <h4 style="margin:18px 0 8px;">Объявления</h4>
         <div class="deck-list">${announcements}</div>
@@ -6675,10 +6691,15 @@ PAGE_TEMPLATE = """
         acc[key].push(item);
         return acc;
       }, {});
-      const featuredArena = cosmetics.find((item) => item.type === 'arena') || (catalogByType.arena || [])[0] || cosmeticCatalog[0];
-      const featuredFrame = cosmetics.find((item) => item.type === 'frame') || (catalogByType.frame || [])[0] || null;
-      const featuredTrail = cosmetics.find((item) => item.type === 'trail') || (catalogByType.trail || [])[0] || null;
-      const featuredBack = cosmetics.find((item) => item.type === 'cardback') || (catalogByType.cardback || [])[0] || null;
+      const equipped = rewards.equipped_cosmetics || {};
+      const featuredArena = (catalogByType.arena || []).find((item) => item.key === (equipped.arena && equipped.arena.key)) || cosmetics.find((item) => item.type === 'arena') || (catalogByType.arena || [])[0] || cosmeticCatalog[0];
+      const featuredFrame = (catalogByType.frame || []).find((item) => item.key === (equipped.frame && equipped.frame.key)) || cosmetics.find((item) => item.type === 'frame') || (catalogByType.frame || [])[0] || null;
+      const featuredTrail = (catalogByType.trail || []).find((item) => item.key === (equipped.trail && equipped.trail.key)) || cosmetics.find((item) => item.type === 'trail') || (catalogByType.trail || [])[0] || null;
+      const featuredBack = (catalogByType.cardback || []).find((item) => item.key === (equipped.cardback && equipped.cardback.key)) || cosmetics.find((item) => item.type === 'cardback') || (catalogByType.cardback || [])[0] || null;
+      const visibleCatalogByType = Object.fromEntries(Object.entries(catalogByType).map(([type, items]) => [
+        type,
+        state.showAllCosmetics ? items : items.filter((item) => unlockedKeys.has(item.key)),
+      ]));
       const typeLabel = {
         frame: 'Рамки',
         trail: 'Следы',
@@ -6705,26 +6726,33 @@ PAGE_TEMPLATE = """
               <div class="summary-chip-row">${previewMetaMarkup}</div>
               <div class="tiny">Открыто: ${cosmetics.length} • Всего вариантов: ${cosmeticCatalog.length}</div>
               <div class="tiny">Ниже показан полный каталог косметики по категориям. Закрытые варианты отображаются отдельно от уже открытых.</div>
+              <div class="actions" style="margin-top:8px;">
+                <button type="button" class="secondary" id="toggle-cosmetics-catalog-btn">${state.showAllCosmetics ? 'Показать только открытое' : 'Посмотреть все виды кастомизации'}</button>
+              </div>
             </div>
           </div>
         </div>
-        ${Object.entries(catalogByType).map(([type, items]) => `
+        ${Object.entries(visibleCatalogByType).filter(([, items]) => items.length).map(([type, items]) => `
           <div class="user-item" style="margin-bottom:14px;">
             <strong>${typeLabel[type] || type}</strong>
             <div class="catalog-grid" style="margin-top:12px;">
               ${items.map((item) => {
                 const unlocked = unlockedKeys.has(item.key);
+                const equippedNow = equipped[type] && equipped[type].key === item.key;
                 return `
                   <article class="catalog-card skill-card" style="padding:14px; opacity:${unlocked ? '1' : '0.62'};">
                     <div class="catalog-kicker">${escapeHtml(typeLabel[type] || type)}</div>
                     <strong>${escapeHtml(item.name)}</strong>
-                    <div class="tiny" style="margin-top:6px;">${unlocked ? 'Открыто' : 'Закрыто'}</div>
+                    <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')}</div>
                     <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.18), rgba(8,20,36,0.92))' : type === 'frame' ? 'linear-gradient(180deg, rgba(83,246,184,0.14), rgba(8,20,36,0.92))' : type === 'trail' ? 'linear-gradient(180deg, rgba(188,126,255,0.18), rgba(8,20,36,0.92))' : type === 'guild' ? 'linear-gradient(180deg, rgba(255,122,134,0.16), rgba(8,20,36,0.92))' : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
                       <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '2px solid rgba(83,246,184,0.72)' : '1px solid rgba(121,217,255,0.18)'};"></div>
                       ${type === 'trail' ? '<div style="position:absolute; width:72px; height:10px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(188,126,255,0.95), rgba(255,255,255,0.0)); top:42px; left:20px; transform:rotate(-18deg);"></div>' : ''}
                       ${type === 'cardback' ? '<div style="position:absolute; inset:26px 30px; border-radius:10px; background:repeating-linear-gradient(135deg, rgba(255,211,110,0.18), rgba(255,211,110,0.18) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px);"></div>' : ''}
                       ${type === 'guild' ? '<div style="position:absolute; inset:26px 24px; border-radius:10px; background:linear-gradient(135deg, rgba(255,122,134,0.22), rgba(255,211,110,0.18));"></div>' : ''}
                       <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
+                    </div>
+                    <div class="actions" style="margin-top:10px;">
+                      <button type="button" class="secondary equip-cosmetic-btn" data-cosmetic-key="${escapeHtml(item.key)}"${!unlocked || equippedNow ? ' disabled' : ''}>${equippedNow ? 'Выбрано' : (unlocked ? 'Выбрать' : 'Закрыто')}</button>
                     </div>
                   </article>
                 `;
@@ -6733,6 +6761,26 @@ PAGE_TEMPLATE = """
           </div>
         `).join('')}
       `;
+      const toggleBtn = document.getElementById('toggle-cosmetics-catalog-btn');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          state.showAllCosmetics = !state.showAllCosmetics;
+          renderCosmeticsPanel();
+        });
+      }
+      profileCosmeticsPanel.querySelectorAll('.equip-cosmetic-btn').forEach((button) => {
+        bindFunctionalControl(button, () => equipCosmeticChoice(button.dataset.cosmeticKey));
+      });
+    }
+
+    async function equipCosmeticChoice(cosmeticKey) {
+      if (!state.wallet || !cosmeticKey) return;
+      const data = await api('/api/cosmetics/equip', {
+        method: 'POST',
+        body: { wallet: state.wallet, cosmetic_key: cosmeticKey }
+      });
+      state.playerProfile = data.player || state.playerProfile;
+      renderProfile();
     }
 
     function renderCardCatalog(cards, skills = []) {
@@ -7065,7 +7113,7 @@ PAGE_TEMPLATE = """
       `).join('');
     }
 
-    function arenaDeckMarkup(cards, fallbackCard, side = 'player', activeSlot = null, featuredSlot = null) {
+    function arenaDeckMarkup(cards, fallbackCard, side = 'player', activeSlot = null, featuredSlot = null, cosmetics = null) {
       const normalized = Array.isArray(cards) && cards.length
         ? cards
         : (fallbackCard ? [fallbackCard] : []);
@@ -7077,7 +7125,7 @@ PAGE_TEMPLATE = """
         const isActive = Number(activeSlot || 0) === slot;
         const isFeatured = Number(featuredSlot || 0) === slot;
         return `
-          <div class="arena-slot-card ${side === 'enemy' ? 'enemy-card' : 'player-card'} ${isActive ? 'active-slot' : ''} ${isFeatured ? 'featured-slot' : ''}" data-slot="${slot}" data-side="${side}">
+          <div class="arena-slot-card ${side === 'enemy' ? 'enemy-card' : 'player-card'} ${isActive ? 'active-slot' : ''} ${isFeatured ? 'featured-slot' : ''}" data-slot="${slot}" data-side="${side}" style="${battleCardStyle(cosmetics, side)}">
             <strong>${slot}. ${card.title || 'Карта'}</strong>
             <div class="arena-slot-meta">${card.rarity || '-'}</div>
             <div class="arena-slot-meta">Базовая сила: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
@@ -7085,6 +7133,48 @@ PAGE_TEMPLATE = """
           </div>
         `;
       }).join('');
+    }
+
+    function battleArenaBackground(cosmetics) {
+      const arenaKey = (((cosmetics || {}).arena || {}).key || '');
+      if (arenaKey.includes('gold') || arenaKey.includes('solar')) {
+        return 'radial-gradient(circle at center, rgba(255,211,110,0.14), rgba(8,20,36,0.96))';
+      }
+      if (arenaKey.includes('midnight') || arenaKey.includes('void') || arenaKey.includes('obsidian')) {
+        return 'radial-gradient(circle at center, rgba(124,126,255,0.12), rgba(8,20,36,0.98))';
+      }
+      if (arenaKey.includes('emerald')) {
+        return 'radial-gradient(circle at center, rgba(83,246,184,0.14), rgba(8,20,36,0.96))';
+      }
+      if (arenaKey.includes('crimson')) {
+        return 'radial-gradient(circle at center, rgba(255,122,134,0.14), rgba(8,20,36,0.96))';
+      }
+      return 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.96))';
+    }
+
+    function battleCardStyle(cosmetics, side = 'player') {
+      const frameKey = (((cosmetics || {}).frame || {}).key || '');
+      const backKey = (((cosmetics || {}).cardback || {}).key || '');
+      let border = side === 'player' ? 'rgba(83,246,184,0.34)' : 'rgba(255,122,134,0.3)';
+      if (frameKey.includes('gold') || frameKey.includes('solar')) border = 'rgba(255,211,110,0.42)';
+      if (frameKey.includes('void') || frameKey.includes('obsidian')) border = 'rgba(174,126,255,0.38)';
+      if (frameKey.includes('crimson')) border = 'rgba(255,122,134,0.42)';
+      const back = backKey.includes('chrome') || backKey.includes('gold')
+        ? 'repeating-linear-gradient(135deg, rgba(255,211,110,0.14), rgba(255,211,110,0.14) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px)'
+        : backKey.includes('glitch') || backKey.includes('signal')
+          ? 'repeating-linear-gradient(90deg, rgba(69,215,255,0.14), rgba(69,215,255,0.14) 5px, rgba(8,20,36,0.0) 5px, rgba(8,20,36,0.0) 10px)'
+          : backKey.includes('ember') || backKey.includes('crimson')
+            ? 'repeating-linear-gradient(135deg, rgba(255,122,134,0.14), rgba(255,122,134,0.14) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px)'
+            : 'linear-gradient(180deg, rgba(10,18,30,0.98), rgba(8,16,29,0.98))';
+      return `border-color:${border}; background:${back};`;
+    }
+
+    function battleTrailStyle(cosmetics) {
+      const trailKey = (((cosmetics || {}).trail || {}).key || '');
+      if (trailKey.includes('solar') || trailKey.includes('ember')) return 'rgba(255,186,108,0.78)';
+      if (trailKey.includes('emerald')) return 'rgba(83,246,184,0.82)';
+      if (trailKey.includes('void') || trailKey.includes('ghost')) return 'rgba(174,126,255,0.78)';
+      return 'rgba(188,126,255,0.78)';
     }
 
     async function syncSoloBattleState(sessionId) {
@@ -7150,41 +7240,36 @@ PAGE_TEMPLATE = """
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
+      const playerCosmetics = (currentResult && currentResult.player_cosmetics) || {};
+      const opponentCosmetics = (currentResult && currentResult.opponent_cosmetics) || {};
       const clashCardWidth = compactClash ? 58 : 154;
       const clashCardHeight = compactClash ? 84 : 220;
-      const clashGap = compactClash ? 18 : 24;
-      const impactGap = compactClash ? 10 : 16;
-      const centerY = compactClash ? coreRect.height * 0.5 : coreRect.height * 0.5;
+      const clashGap = compactClash ? 34 : 46;
+      const impactGap = compactClash ? 20 : 28;
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 50 : 14;
       const laneTop = laneRect.top - coreRect.top;
       const laneBottom = laneRect.bottom - coreRect.top;
       const laneTopBound = compactClash ? Math.max(verticalPadding, laneTop + 10) : verticalPadding;
       const laneBottomBound = compactClash ? Math.min(coreRect.height - verticalPadding, laneBottom - 10) : (coreRect.height - verticalPadding);
-      const laneMidY = compactClash ? ((laneTopBound + laneBottomBound) / 2) : centerY;
-      const compactMidGap = compactClash ? 10 : 0;
+      const laneMidY = Math.max(
+        laneTopBound + clashCardHeight + clashGap / 2,
+        Math.min((laneTopBound + laneBottomBound) / 2, laneBottomBound - clashCardHeight - clashGap / 2)
+      );
       const laneTargetLeft = Math.max(
         clashLanePadding,
         Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
       );
       const playerTargetLeft = laneTargetLeft;
       const enemyTargetLeft = laneTargetLeft;
-      const rawEnemyTargetTop = compactClash ? Math.max(laneTopBound, centerY - clashCardHeight - clashGap) : (centerY - clashCardHeight - clashGap);
-      const rawPlayerTargetTop = compactClash ? Math.min(laneBottomBound - clashCardHeight, centerY + clashGap) : (centerY + clashGap);
-      const enemyTargetTop = Math.max(laneTopBound, rawEnemyTargetTop);
-      const playerTargetTop = Math.min(laneBottomBound - clashCardHeight, rawPlayerTargetTop);
+      const enemyTargetTop = Math.max(laneTopBound, laneMidY - clashCardHeight - clashGap / 2);
+      const playerTargetTop = Math.min(laneBottomBound - clashCardHeight, laneMidY + clashGap / 2);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
       const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 10 : 16) : playerTargetTop;
       const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 16) : enemyTargetTop;
-      const rawPlayerImpactTop = compactClash
-        ? Math.max(laneMidY + compactMidGap, centerY + impactGap)
-        : (centerY + impactGap);
-      const rawEnemyImpactTop = compactClash
-        ? Math.min(laneMidY - clashCardHeight - compactMidGap, centerY - clashCardHeight - impactGap)
-        : (centerY - clashCardHeight - impactGap);
-      const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, rawPlayerImpactTop);
-      const enemyImpactTop = Math.max(laneTopBound, rawEnemyImpactTop);
+      const enemyImpactTop = Math.max(laneTopBound, laneMidY - clashCardHeight - impactGap / 2);
+      const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, laneMidY + impactGap / 2);
       const playerImpactScale = playerAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
       const enemyImpactScale = enemyAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
       const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
@@ -7224,6 +7309,8 @@ PAGE_TEMPLATE = """
       playerClone.style.top = `${playerStartTop}px`;
       playerClone.style.width = `${clashCardWidth}px`;
       playerClone.style.height = `${clashCardHeight}px`;
+      playerClone.style.cssText += `;${battleCardStyle(playerCosmetics, 'player')}`;
+      playerClone.style.zIndex = '3';
       playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
       const enemyClone = enemySource.cloneNode(true);
       enemyClone.className = `${enemyClone.className} arena-lane-card enemy ${opponentActionKey}`.trim();
@@ -7235,6 +7322,8 @@ PAGE_TEMPLATE = """
       enemyClone.style.top = `${enemyStartTop}px`;
       enemyClone.style.width = `${clashCardWidth}px`;
       enemyClone.style.height = `${clashCardHeight}px`;
+      enemyClone.style.cssText += `;${battleCardStyle(opponentCosmetics, 'enemy')}`;
+      enemyClone.style.zIndex = '2';
       enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
       playerSource.style.visibility = 'hidden';
       playerSource.style.opacity = '0';
@@ -7244,6 +7333,7 @@ PAGE_TEMPLATE = """
       impactNode.className = `arena-lane-impact ${resultKey}`;
       impactNode.style.left = `${laneTargetLeft + clashCardWidth / 2}px`;
       impactNode.style.top = `${impactCenterY}px`;
+      impactNode.style.boxShadow = `0 0 0 18px ${battleTrailStyle(playerCosmetics)}22, 0 0 48px ${battleTrailStyle(playerCosmetics)}55`;
       laneReveal.appendChild(playerClone);
       laneReveal.appendChild(enemyClone);
       laneReveal.appendChild(impactNode);
@@ -7754,6 +7844,8 @@ PAGE_TEMPLATE = """
         const cooldownFill = `${Math.max(0, Math.min(100, (activeAbilityCooldownNow / activeAbilityCooldownMax) * 100))}%`;
         const chargesFill = `${Math.max(0, Math.min(100, (activeAbilityChargesNow / activeAbilityChargesMax) * 100))}%`;
         const rewardSummary = result.reward_summary || (state.playerProfile && state.playerProfile.rewards) || null;
+        const playerCosmetics = result.player_cosmetics || (rewardSummary && rewardSummary.equipped_cosmetics) || {};
+        const opponentCosmetics = result.opponent_cosmetics || {};
         const rewardGain = result.reward_gain || {};
         const rewardParts = [];
         if (Number(rewardGain.pack_shards || 0) > 0) rewardParts.push(`осколки +${Number(rewardGain.pack_shards || 0)}`);
@@ -7820,8 +7912,8 @@ PAGE_TEMPLATE = """
         const opponentActiveSlot = result.interactive_live
           ? Number((result.opponent_cards || [])[Math.min(result.interactive_round_index || 0, Math.max((result.opponent_cards || []).length - 1, 0))]?.slot || 0)
           : Number(result.opponent_featured_card?.slot || result.opponent_card?.slot || result.rounds?.[Math.max((result.rounds?.length || 1) - 1, 0)]?.opponent_card?.slot || 0);
-        const playerArenaDeck = arenaDeckMarkup(result.player_cards, result.player_card, 'player', playerActiveSlot, result.player_featured_card?.slot || result.selected_slot);
-        const opponentArenaDeck = arenaDeckMarkup(result.opponent_cards, result.opponent_card, 'enemy', opponentActiveSlot, result.opponent_featured_card?.slot);
+        const playerArenaDeck = arenaDeckMarkup(result.player_cards, result.player_card, 'player', playerActiveSlot, result.player_featured_card?.slot || result.selected_slot, playerCosmetics);
+        const opponentArenaDeck = arenaDeckMarkup(result.opponent_cards, result.opponent_card, 'enemy', opponentActiveSlot, result.opponent_featured_card?.slot, opponentCosmetics);
         const resourceBarMarkup = result.interactive_session_id ? `
           <div class="arena-player-resource-bar">
             <div class="arena-resource-pill mana" style="--fill:${energyFill};">
@@ -7867,7 +7959,7 @@ PAGE_TEMPLATE = """
         battleResult.innerHTML = `
           ${battleHeader}
           <section class="showdown-main arena-board">
-            <div class="arena-shell">
+            <div class="arena-shell" style="background:${battleArenaBackground(playerCosmetics)};">
               <div class="arena-rail enemy">
                 <div class="tiny"><strong>Колода соперника</strong> • ${opponentLabel}</div>
                 <div class="arena-deck-grid">
@@ -10456,6 +10548,7 @@ def week_utc_key():
 
 def grant_cosmetic(wallet, cosmetic_key, source):
     ensure_runtime_tables()
+    meta = next((item for item in COSMETIC_CATALOG if item['key'] == cosmetic_key), None)
     with closing(get_db()) as conn:
         conn.execute(
             '''
@@ -10464,7 +10557,68 @@ def grant_cosmetic(wallet, cosmetic_key, source):
             ''',
             (wallet, cosmetic_key, source, now_iso()),
         )
+        if meta:
+            same_type = conn.execute(
+                '''
+                SELECT pc.equipped, pc.cosmetic_key
+                FROM player_cosmetics pc
+                WHERE pc.wallet = ?
+                ''',
+                (wallet,),
+            ).fetchall()
+            type_keys = {item['key'] for item in COSMETIC_CATALOG if item['type'] == meta['type']}
+            if not any(row['equipped'] and row['cosmetic_key'] in type_keys for row in same_type):
+                conn.execute(
+                    'UPDATE player_cosmetics SET equipped = 1 WHERE wallet = ? AND cosmetic_key = ?',
+                    (wallet, cosmetic_key),
+                )
         conn.commit()
+
+
+def equipped_cosmetics(wallet):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            'SELECT cosmetic_key FROM player_cosmetics WHERE wallet = ? AND equipped = 1 ORDER BY unlocked_at DESC',
+            (wallet,),
+        ).fetchall()
+    meta_by_key = {item['key']: item for item in COSMETIC_CATALOG}
+    equipped = {}
+    for row in rows:
+        meta = meta_by_key.get(row['cosmetic_key'])
+        if not meta:
+            continue
+        equipped.setdefault(meta['type'], {
+            'key': meta['key'],
+            'name': meta['name'],
+            'type': meta['type'],
+        })
+    return equipped
+
+
+def equip_cosmetic(wallet, cosmetic_key):
+    ensure_runtime_tables()
+    meta = next((item for item in COSMETIC_CATALOG if item['key'] == cosmetic_key), None)
+    if not meta:
+        raise ValueError('Косметический предмет не найден.')
+    with closing(get_db()) as conn:
+        row = conn.execute(
+            'SELECT cosmetic_key FROM player_cosmetics WHERE wallet = ? AND cosmetic_key = ?',
+            (wallet, cosmetic_key),
+        ).fetchone()
+        if row is None:
+            raise ValueError('Этот предмет ещё не открыт.')
+        type_keys = [item['key'] for item in COSMETIC_CATALOG if item['type'] == meta['type']]
+        conn.executemany(
+            'UPDATE player_cosmetics SET equipped = 0 WHERE wallet = ? AND cosmetic_key = ?',
+            [(wallet, key) for key in type_keys],
+        )
+        conn.execute(
+            'UPDATE player_cosmetics SET equipped = 1 WHERE wallet = ? AND cosmetic_key = ?',
+            (wallet, cosmetic_key),
+        )
+        conn.commit()
+    return cosmetic_inventory(wallet), equipped_cosmetics(wallet)
 
 
 def cosmetic_inventory(wallet):
@@ -10535,6 +10689,7 @@ def reward_summary(wallet):
     rewards['season_pass_track'] = season_pass_track_payload(wallet=wallet, rewards=rewards)
     rewards['cosmetics'] = cosmetic_inventory(wallet)
     rewards['cosmetic_catalog'] = COSMETIC_CATALOG
+    rewards['equipped_cosmetics'] = equipped_cosmetics(wallet)
     return rewards
 
 
@@ -14373,6 +14528,8 @@ def build_solo_live_payload(state):
         'opponent_build': state.get('build_b', {}),
         'player_domain_metadata': state.get('domain_meta_a'),
         'opponent_domain_metadata': state.get('domain_meta_b'),
+        'player_cosmetics': equipped_cosmetics(state['wallet']),
+        'opponent_cosmetics': equipped_cosmetics(state.get('opponent_wallet')) if state.get('opponent_wallet') and state.get('opponent_wallet') != 'bot' else {},
         'interactive_energy': int(state.get('energy_a', 0)),
         'interactive_opponent_energy': int(state.get('energy_b', 0)),
         'interactive_active_ability': ((state.get('ability_state_a') or {}).get('active') or {}),
@@ -15046,6 +15203,8 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
             'lucky_tokens': 0,
             'season_points': (5 if invite['mode'] == 'ranked' else 4) if own_result == 'win' else (3 if invite['mode'] == 'ranked' else 2),
         },
+        'player_cosmetics': equipped_cosmetics(own_wallet),
+        'opponent_cosmetics': equipped_cosmetics(opp_wallet),
     }
     if rating_meta:
         if viewer_is_a:
@@ -15921,6 +16080,25 @@ def api_profile_update():
         )
         conn.commit()
     return jsonify({'ok': True, 'player': get_player(wallet), 'social': social_overview(wallet)})
+
+
+@app.route('/api/cosmetics/equip', methods=['POST'])
+def api_cosmetics_equip():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    cosmetic_key = clean_public_text(payload.get('cosmetic_key') or '', 64)
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    try:
+        inventory, equipped = equip_cosmetic(wallet, cosmetic_key)
+    except ValueError as error:
+        return json_error(str(error))
+    return jsonify({
+        'ok': True,
+        'inventory': inventory,
+        'equipped': equipped,
+        'player': get_player(wallet),
+    })
 
 
 @app.route('/api/deck/<wallet>')
