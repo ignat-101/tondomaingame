@@ -6907,11 +6907,11 @@ PAGE_TEMPLATE = """
       const playerRailRect = playerRail ? playerRail.getBoundingClientRect() : playerRect;
       const enemyRailRect = enemyRail ? enemyRail.getBoundingClientRect() : enemyRect;
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
-      const clashCardWidth = compactClash ? 46 : 78;
-      const clashCardHeight = compactClash ? 64 : 112;
-      const clashGap = compactClash ? 18 : 12;
-      const impactGap = compactClash ? 10 : 6;
-      const centerY = coreRect.height * 0.5;
+      const clashCardWidth = compactClash ? 46 : 92;
+      const clashCardHeight = compactClash ? 64 : 136;
+      const clashGap = compactClash ? 18 : 4;
+      const impactGap = compactClash ? 10 : 4;
+      const centerY = compactClash ? coreRect.height * 0.5 : coreRect.height * 0.58;
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 50 : 14;
       const laneTop = laneRect.top - coreRect.top;
@@ -6936,18 +6936,18 @@ PAGE_TEMPLATE = """
       const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 14) : enemyTargetTop;
       const rawPlayerImpactTop = compactClash
         ? Math.max(laneMidY + compactMidGap, playerTargetTop - (playerAttack ? 8 : 0))
-        : (playerAttack ? centerY + impactGap + 12 : playerTargetTop);
+        : (playerAttack ? centerY + impactGap + 4 : playerTargetTop);
       const rawEnemyImpactTop = compactClash
         ? Math.min(laneMidY - clashCardHeight - compactMidGap, enemyTargetTop + (enemyAttack ? 8 : 0))
-        : (enemyAttack ? centerY - clashCardHeight - impactGap - 12 : enemyTargetTop);
+        : (enemyAttack ? centerY - clashCardHeight - impactGap - 4 : enemyTargetTop);
       const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, rawPlayerImpactTop);
       const enemyImpactTop = Math.max(laneTopBound, rawEnemyImpactTop);
-      const playerImpactScale = playerAttack ? (compactClash ? 1.03 : 1.1) : 1.01;
-      const enemyImpactScale = enemyAttack ? (compactClash ? 1.03 : 1.1) : 1.01;
+      const playerImpactScale = playerAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
+      const enemyImpactScale = enemyAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
       const playerImpactRotate = playerAttack ? '-8deg' : '2deg';
       const enemyImpactRotate = enemyAttack ? '8deg' : '-2deg';
-      const playerRecoilY = playerAttack ? playerImpactTop + (compactClash ? 8 : 12) : playerTargetTop;
-      const enemyRecoilY = enemyAttack ? enemyImpactTop - (compactClash ? 8 : 12) : enemyTargetTop;
+      const playerRecoilY = playerAttack ? playerImpactTop + (compactClash ? 8 : 8) : playerTargetTop;
+      const enemyRecoilY = enemyAttack ? enemyImpactTop - (compactClash ? 8 : 8) : enemyTargetTop;
       const playerRecoilScale = playerAttack ? 1.02 : 1;
       const enemyRecoilScale = enemyAttack ? 1.02 : 1;
       const impactCenterY = ((enemyImpactTop + clashCardHeight) + playerImpactTop) / 2;
