@@ -6761,23 +6761,37 @@ PAGE_TEMPLATE = """
     function cosmeticAssetUrl(type, key) {
       const safeKey = String(key || '').toLowerCase();
       if (type === 'arena') {
+        if (safeKey.includes('frost')) return '/static/cosmetics/arenas/frost-vault.svg';
+        if (safeKey.includes('storm') || safeKey.includes('hex')) return '/static/cosmetics/arenas/storm-hex.svg';
+        if (safeKey.includes('crimson')) return '/static/cosmetics/arenas/crimson-core.svg';
         if (safeKey.includes('gold') || safeKey.includes('solar')) return '/static/cosmetics/arenas/gold-grid.svg';
         if (safeKey.includes('midnight') || safeKey.includes('void') || safeKey.includes('obsidian')) return '/static/cosmetics/arenas/midnight-dome.svg';
         if (safeKey.includes('emerald')) return '/static/cosmetics/arenas/emerald-ruins.svg';
         return '/static/cosmetics/arenas/neon-circuit.svg';
       }
       if (type === 'cardback') {
+        if (safeKey.includes('aurora')) return '/static/cosmetics/cardbacks/aurora-mesh.svg';
+        if (safeKey.includes('ember')) return '/static/cosmetics/cardbacks/ember-carbon.svg';
+        if (safeKey.includes('void')) return '/static/cosmetics/cardbacks/void-fabric.svg';
+        if (safeKey.includes('emerald')) return '/static/cosmetics/cardbacks/emerald-cells.svg';
         if (safeKey.includes('chrome')) return '/static/cosmetics/cardbacks/chrome-veil.svg';
         if (safeKey.includes('gold')) return '/static/cosmetics/cardbacks/gold-script.svg';
         if (safeKey.includes('glitch') || safeKey.includes('signal')) return '/static/cosmetics/cardbacks/glitch-matrix.svg';
         return '/static/cosmetics/cardbacks/tactical-black.svg';
       }
       if (type === 'frame') {
+        if (safeKey.includes('aurora')) return '/static/cosmetics/frames/aurora-ring.svg';
+        if (safeKey.includes('crimson')) return '/static/cosmetics/frames/crimson-edge.svg';
+        if (safeKey.includes('emerald')) return '/static/cosmetics/frames/emerald-gate.svg';
         if (safeKey.includes('obsidian') || safeKey.includes('void')) return '/static/cosmetics/frames/obsidian-crest.svg';
         if (safeKey.includes('solar') || safeKey.includes('gold')) return '/static/cosmetics/frames/solar-forge.svg';
         return '/static/cosmetics/frames/neon-pulse.svg';
       }
       if (type === 'trail') {
+        if (safeKey.includes('prism')) return '/static/cosmetics/trails/prism-dust.svg';
+        if (safeKey.includes('ember')) return '/static/cosmetics/trails/ember-streak.svg';
+        if (safeKey.includes('ghost')) return '/static/cosmetics/trails/ghost-trace.svg';
+        if (safeKey.includes('emerald')) return '/static/cosmetics/trails/emerald-mist.svg';
         if (safeKey.includes('solar') || safeKey.includes('ember')) return '/static/cosmetics/trails/solar-echo.svg';
         if (safeKey.includes('void') || safeKey.includes('ghost')) return '/static/cosmetics/trails/void-static.svg';
         return '/static/cosmetics/trails/neon-sparks.svg';
@@ -7324,6 +7338,7 @@ PAGE_TEMPLATE = """
     function battleTrailStyle(cosmetics) {
       const trailKey = (((cosmetics || {}).trail || {}).key || '');
       if (trailKey.includes('solar') || trailKey.includes('ember')) return 'rgba(255,186,108,0.78)';
+      if (trailKey.includes('prism')) return 'rgba(146,196,255,0.82)';
       if (trailKey.includes('emerald')) return 'rgba(83,246,184,0.82)';
       if (trailKey.includes('void') || trailKey.includes('ghost')) return 'rgba(174,126,255,0.78)';
       return 'rgba(188,126,255,0.78)';
@@ -7372,8 +7387,10 @@ PAGE_TEMPLATE = """
       }
       const opponentActionKey = latestRound.opponent_action || 'guard';
       const resultKey = latestRound.winner === 'player' ? 'win' : (latestRound.winner === 'opponent' ? 'lose' : 'draw');
+      const laneRect = activeLane.getBoundingClientRect();
       const coreRect = arenaCore.getBoundingClientRect();
       const arenaShell = battleResult.querySelector('.arena-shell');
+      const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
       const playerActiveSlot = Number(playerCard.slot || currentRoundIndex + 1);
       const opponentActiveSlot = Number(opponentCard.slot || currentRoundIndex + 1);
       const playerSource = battleResult.querySelector(`.arena-rail.player .arena-slot-card[data-slot="${playerActiveSlot}"].active-slot`) ||
@@ -7403,7 +7420,7 @@ PAGE_TEMPLATE = """
       const laneMidY = compactClash ? (coreRect.height * 0.55) : (coreRect.height * 0.52);
       const laneTargetLeft = Math.max(
         clashLanePadding,
-        Math.min((coreRect.width - clashCardWidth) / 2, coreRect.width - clashCardWidth - clashLanePadding)
+        Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
       );
       const playerTargetLeft = laneTargetLeft;
       const enemyTargetLeft = laneTargetLeft;

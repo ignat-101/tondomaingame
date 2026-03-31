@@ -1,0 +1,28 @@
+<svg width="512" height="768" viewBox="0 0 512 768" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="768" rx="36" fill="#07110E"/>
+  <rect x="14" y="14" width="484" height="740" rx="30" fill="url(#bg)"/>
+  <g opacity="0.4" stroke="#53F6B8" stroke-width="4">
+    <path d="M90 116H420"/>
+    <path d="M90 222H420"/>
+    <path d="M90 328H420"/>
+    <path d="M90 434H420"/>
+    <path d="M90 540H420"/>
+    <path d="M90 646H420"/>
+    <path d="M126 90V678"/>
+    <path d="M224 90V678"/>
+    <path d="M322 90V678"/>
+    <path d="M420 90V678"/>
+  </g>
+  <circle cx="256" cy="384" r="166" fill="url(#glow)"/>
+  <defs>
+    <linearGradient id="bg" x1="58" y1="48" x2="438" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#103326"/>
+      <stop offset="0.52" stop-color="#0A1E1C"/>
+      <stop offset="1" stop-color="#0A1120"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 384) rotate(90) scale(166)">
+      <stop stop-color="#53F6B8" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#53F6B8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
