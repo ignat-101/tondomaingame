@@ -1915,6 +1915,7 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x;
       scroll-snap-type: x proximity;
+      scroll-behavior: smooth;
       scrollbar-width: thin;
       overscroll-behavior-x: contain;
     }
@@ -1922,7 +1923,7 @@ PAGE_TEMPLATE = """
     .season-pass-track {
       display: grid;
       grid-auto-flow: column;
-      grid-auto-columns: 220px;
+      grid-auto-columns: clamp(186px, 32vw, 220px);
       gap: 12px;
       width: max-content;
     }
@@ -6938,10 +6939,11 @@ PAGE_TEMPLATE = """
             <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}" stroke="${theme.accent}" stroke-opacity="0.68" stroke-width="6"/>
             <rect x="42" y="42" width="428" height="684" rx="24" fill="${theme.base}" fill-opacity="0.22"/>
             ${giftThemePattern(theme)}
-            <circle cx="256" cy="356" r="152" fill="${theme.base}" fill-opacity="0.12" stroke="${theme.accent}" stroke-opacity="0.6" stroke-width="10"/>
-            <text x="256" y="418" text-anchor="middle" font-size="196">${escapeSvg(theme.emoji)}</text>
-            <rect x="86" y="600" width="340" height="74" rx="24" fill="${theme.secondary}" fill-opacity="0.74" stroke="${theme.accent}" stroke-opacity="0.26" stroke-width="3"/>
-            <text x="256" y="646" text-anchor="middle" font-size="34" fill="${theme.text}" font-weight="800" opacity="0.96">${escapeSvg(theme.name)}</text>
+            <circle cx="256" cy="356" r="160" fill="${theme.base}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.66" stroke-width="12"/>
+            <circle cx="256" cy="356" r="114" fill="${theme.secondary}" fill-opacity="0.34" stroke="${theme.accent}" stroke-opacity="0.28" stroke-width="4"/>
+            <text x="256" y="422" text-anchor="middle" font-size="214">${escapeSvg(theme.emoji)}</text>
+            <rect x="92" y="598" width="328" height="78" rx="26" fill="${theme.base}" fill-opacity="0.46" stroke="${theme.accent}" stroke-opacity="0.34" stroke-width="4"/>
+            <text x="256" y="646" text-anchor="middle" font-size="32" fill="${theme.text}" font-weight="800" opacity="0.98">${escapeSvg(theme.name)}</text>
           </svg>
         `);
       }
@@ -6968,8 +6970,9 @@ PAGE_TEMPLATE = """
               ${giftThemePattern(theme)}
             </g>
             <rect x="366" y="130" width="868" height="640" rx="56" fill="${theme.base}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.36" stroke-width="8"/>
-            <circle cx="800" cy="382" r="188" fill="${theme.base}" fill-opacity="0.1" stroke="${theme.accent}" stroke-opacity="0.52" stroke-width="12"/>
-            <text x="800" y="456" text-anchor="middle" font-size="236">${escapeSvg(theme.emoji)}</text>
+            <circle cx="800" cy="382" r="198" fill="${theme.base}" fill-opacity="0.06" stroke="${theme.accent}" stroke-opacity="0.58" stroke-width="14"/>
+            <circle cx="800" cy="382" r="132" fill="${theme.secondary}" fill-opacity="0.22" stroke="${theme.accent}" stroke-opacity="0.26" stroke-width="5"/>
+            <text x="800" y="470" text-anchor="middle" font-size="252">${escapeSvg(theme.emoji)}</text>
             <rect x="516" y="656" width="568" height="96" rx="28" fill="${theme.secondary}" fill-opacity="0.58" stroke="${theme.accent}" stroke-opacity="0.32" stroke-width="4"/>
             <text x="800" y="718" text-anchor="middle" font-size="48" fill="${theme.text}" font-weight="800">${escapeSvg(theme.name)}</text>
             <defs>
@@ -7081,8 +7084,8 @@ PAGE_TEMPLATE = """
                       <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '1px solid rgba(83,246,184,0.32)' : '1px solid rgba(121,217,255,0.18)'};"></div>
                       ${type === 'frame' && itemFrameAsset ? `<img src="${itemFrameAsset}" alt="" style="position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px); object-fit:contain;">` : ''}
                       ${type === 'guild' && itemGuildAsset ? `<img src="${itemGuildAsset}" alt="" style="position:absolute; inset:16px; width:calc(100% - 32px); height:calc(100% - 32px); object-fit:contain;">` : ''}
-                      ${type === 'cardback' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:40px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('cardback', item.key).emoji)}</div>` : ''}
-                      ${type === 'arena' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:42px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('arena', item.key).emoji)}</div>` : ''}
+                      ${type === 'cardback' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:48px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('cardback', item.key).emoji)}</div>` : ''}
+                      ${type === 'arena' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:50px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('arena', item.key).emoji)}</div>` : ''}
                       <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
                     </div>
                     <div class="actions" style="margin-top:10px;">
@@ -7575,9 +7578,12 @@ PAGE_TEMPLATE = """
       const step = Math.max(160, Math.floor(scroller.clientWidth * 0.82));
       const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
       const nextLeft = Math.max(0, Math.min(maxLeft, scroller.scrollLeft + Number(dir) * step));
-      scroller.scrollLeft = nextLeft;
       if (typeof scroller.scrollTo === 'function') {
         scroller.scrollTo({ left: nextLeft, behavior: 'smooth' });
+      } else if (typeof scroller.scrollBy === 'function') {
+        scroller.scrollBy({ left: Number(dir) * step, behavior: 'smooth' });
+      } else {
+        scroller.scrollLeft = nextLeft;
       }
     };
 
