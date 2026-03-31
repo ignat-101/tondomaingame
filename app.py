@@ -78,6 +78,8 @@ TEN_K_CONFIG_URL = 'https://10kclub.com/api/clubs/10k/config'
 DAILY_FREE_PACKS = int(os.getenv('DAILY_FREE_PACKS', '1'))
 PACK_PRICE_NANO = int(os.getenv('PACK_PRICE_NANO', '1000000000'))  # 1 TON
 PACK_RECEIVER_WALLET = os.getenv('PACK_RECEIVER_WALLET', '').strip()
+SEASON_PASS_PRICE_NANO = int(os.getenv('SEASON_PASS_PRICE_NANO', '1490000000'))
+SEASON_PASS_RECEIVER_WALLET = os.getenv('SEASON_PASS_RECEIVER_WALLET', PACK_RECEIVER_WALLET).strip()
 ALLOW_GUEST_WITHOUT_DOMAIN = os.getenv('ALLOW_GUEST_WITHOUT_DOMAIN', '0').strip().lower() in {'1', 'true', 'yes', 'on'}
 ENV_FILE_PATH = Path(os.getenv('ENV_FILE_PATH', '.env'))
 PACK_PITY_THRESHOLD = int(os.getenv('PACK_PITY_THRESHOLD', '20'))
@@ -150,6 +152,22 @@ PACK_TYPES = {
         'costs': {'lucky_tokens': 1},
     },
 }
+
+SEASON_PASS_TRACK = [
+    {'level': 1, 'free': '💠 4 осколка', 'premium': 'Рамка Neon Pulse'},
+    {'level': 2, 'free': '🎟️ 1 редкий токен', 'premium': 'Аватар Guild Spark'},
+    {'level': 3, 'free': '✨ 1 lucky-токен', 'premium': 'Арена Gold Grid'},
+    {'level': 4, 'free': '💠 6 осколков', 'premium': 'Рубашка Tactical Black'},
+    {'level': 5, 'free': '🎟️ 1 редкий токен', 'premium': 'Титул 10K Vanguard'},
+]
+
+COSMETIC_CATALOG = [
+    {'key': 'frame_neon_pulse', 'type': 'frame', 'name': 'Neon Pulse', 'source': 'season_pass'},
+    {'key': 'avatar_guild_spark', 'type': 'avatar', 'name': 'Guild Spark', 'source': 'season_pass'},
+    {'key': 'arena_gold_grid', 'type': 'arena', 'name': 'Gold Grid', 'source': 'season_pass'},
+    {'key': 'cardback_tactical_black', 'type': 'cardback', 'name': 'Tactical Black', 'source': 'season_pass'},
+    {'key': 'guild_banner_weekly', 'type': 'guild', 'name': 'Weekly War Banner', 'source': 'guild_reward'},
+]
 
 PAGE_TEMPLATE = """
 <!doctype html>
@@ -1699,6 +1717,31 @@ PAGE_TEMPLATE = """
       font-size: 9px;
       line-height: 1.18;
       opacity: 0.9;
+    }
+
+    .arena-owner-badge {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(12, 20, 34, 0.74);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      z-index: 2;
+    }
+
+    .arena-owner-badge.player {
+      color: rgba(83, 246, 184, 0.96);
+      border-color: rgba(83, 246, 184, 0.28);
+    }
+
+    .arena-owner-badge.enemy {
+      color: rgba(255, 122, 134, 0.96);
+      border-color: rgba(255, 122, 134, 0.28);
     }
 
     .arena-action-sticker {
@@ -4901,7 +4944,7 @@ PAGE_TEMPLATE = """
         <div class="step-chip" data-step-chip="pack">2. Распаковка</div>
         <div class="step-chip" data-step-chip="modes">3. Режимы игры</div>
         <div class="step-chip" data-step-chip="profile">4. Профиль</div>
-        <div class="step-chip" data-step-chip="achievements">5. Достижения</div>
+        <div class="step-chip" data-step-chip="achievements">5. Кланы</div>
       </div>
     </section>
 
@@ -4990,7 +5033,7 @@ PAGE_TEMPLATE = """
             <button class="secondary" id="rebind-domain-btn">Перепривязать домен</button>
             <button class="secondary" id="shuffle-deck-btn" disabled>Перемешать карты</button>
             <button id="open-pack-btn" disabled>Открыть ежедневный пак</button>
-            <button id="buy-pack-btn" disabled>Открыть пак за 1 TON</button>
+            <button id="buy-pack-btn" disabled>Купить премиум-пропуск</button>
           </div>
 
           <div class="actions" id="pack-type-picker" style="margin-top:10px;"></div>
@@ -4999,6 +5042,7 @@ PAGE_TEMPLATE = """
             <strong>Экономика паков</strong>
             <div class="tiny" id="pack-rewards-summary">Подключи кошелёк, чтобы видеть осколки, токены и сезонный прогресс.</div>
             <div class="tiny" id="pack-season-summary" style="margin-top:6px;">Сезон: -</div>
+            <div class="tiny" style="margin-top:6px;">Платный пак карт убран. Донат идёт в премиум-пропуск, косметику и более быстрый сбор сезонной валюты без прямой силы.</div>
             <div class="actions" style="margin-top:10px;">
               <button class="secondary" id="claim-daily-reward-btn" disabled>Забрать дейлик</button>
               <button class="secondary" id="claim-quest-reward-btn" disabled>Забрать квест побед</button>
@@ -5122,10 +5166,10 @@ PAGE_TEMPLATE = """
         </section>
 
         <section class="panel view" id="view-achievements">
-          <h2>Достижения</h2>
-          <p class="muted">Открывай достижения за игру, коллекцию доменов и рейтинг.</p>
+          <h2>Кланы и сезон</h2>
+          <p class="muted">Клановые цели, война недели, сезонный пропуск и косметические награды без p2w.</p>
           <div class="actions">
-            <button id="refresh-achievements-btn" disabled>Обновить достижения</button>
+            <button id="refresh-achievements-btn" disabled>Обновить клан и сезон</button>
           </div>
           <div class="deck-list" id="achievements-list"></div>
         </section>
@@ -5175,7 +5219,7 @@ PAGE_TEMPLATE = """
     <button id="nav-pack">Карты</button>
     <button id="nav-modes">Игра</button>
     <button id="nav-profile">Профиль</button>
-    <button id="nav-achievements">Достижения</button>
+    <button id="nav-achievements">Кланы</button>
   </nav>
 
   <div class="currency-float" id="global-currency-float">
@@ -5624,7 +5668,7 @@ PAGE_TEMPLATE = """
       }
       const seasonTarget = Number(rewards.season_target || (Number(rewards.season_level || 1) * 12));
       packRewardsSummary.textContent = `Баланс: ${rewards.pack_shards || 0} осколков • ${rewards.rare_tokens || 0} редких токенов • ${rewards.lucky_tokens || 0} lucky-токенов`;
-      packSeasonSummary.textContent = `Сезон ${rewards.season_level || 1} • ${rewards.season_points || 0}/${seasonTarget} очков • дейлик ${rewards.daily_available ? 'готов' : 'получен'} • квест ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}`;
+      packSeasonSummary.textContent = `Сезон ${rewards.season_level || 1} • ${rewards.season_points || 0}/${seasonTarget} очков • пропуск ${rewards.premium_pass_active ? 'premium' : 'free'} • квест ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}`;
       claimDailyRewardBtn.disabled = !(state.wallet && rewards.daily_available);
       claimQuestRewardBtn.disabled = !(state.wallet && rewards.quest_ready);
       document.querySelectorAll('.reward-pack-btn').forEach((button) => {
@@ -5690,9 +5734,10 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>Награды и сезон</strong>
           <div class="tiny">Осколки: ${rewards.pack_shards || 0} • Редкие токены: ${rewards.rare_tokens || 0} • Lucky-токены: ${rewards.lucky_tokens || 0}</div>
-          <div class="tiny">Сезон: ур. ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 12} очков</div>
+          <div class="tiny">Сезон: ур. ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 12} очков • ${rewards.premium_pass_active ? 'премиум активен' : 'free-трек'}</div>
           <div class="tiny">Дейлик: ${rewards.daily_available ? 'готов' : 'получен'} • Квест: ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}</div>
           <div class="tiny">Синергии: ${synergies && synergies.labels && synergies.labels.length ? synergies.labels.join(' • ') : 'нет'}</div>
+          <div class="tiny">Косметика: ${Array.isArray(rewards.cosmetics) && rewards.cosmetics.length ? rewards.cosmetics.map((item) => item.name).join(' • ') : 'ещё не открыта'}</div>
         </div>
       ` : '<div class="user-item muted">Подключи кошелёк, чтобы видеть награды и сезонный прогресс.</div>';
       if (profileRewardsPanel) profileRewardsPanel.innerHTML = content;
@@ -6030,13 +6075,14 @@ PAGE_TEMPLATE = """
           <div class="tiny">${current.domain_identity ? `${escapeHtml(current.domain_identity)}.ton` : 'без доменного тега'} • роль ${escapeHtml(current.viewer_role || 'member')} • участников ${current.member_count}</div>
           <div class="tiny">${escapeHtml(current.description || 'Описание не заполнено')}</div>
           <div class="tiny">Недельные победы: ${current.goals.weekly_wins}/${current.goals.weekly_win_target} • Паки: ${current.goals.weekly_packs}/${current.goals.weekly_pack_target} • Сезон: ${current.goals.season_points}</div>
+          <div class="tiny">Война недели: ${current.goals.war_score}/${current.goals.war_target} • награда ${current.goals.weekly_reward_ready ? 'готова' : 'закрыта'}</div>
           <div class="tiny">Сегодня полезно клану: ${(current.goals.today_help || []).join(' • ')}</div>
           <div class="summary-chip-row">
             <span class="summary-chip">Инвайты: ${(data.pending_invites || []).length}</span>
             <span class="summary-chip">Заявки: ${(current.pending_requests || []).length}</span>
             <span class="summary-chip">Чат: ${(current.chat || []).length}</span>
           </div>
-          <div class="actions" style="margin-top:10px;">${todayActionButtons.join('')}</div>
+          <div class="actions" style="margin-top:10px;">${todayActionButtons.join('')}<button class="secondary" id="guild-weekly-reward-btn"${current.goals.weekly_reward_ready ? '' : ' disabled'}>Награда недели</button></div>
         </div>
         <h4 style="margin:18px 0 8px;">Объявления</h4>
         <div class="deck-list">${announcements}</div>
@@ -6064,12 +6110,14 @@ PAGE_TEMPLATE = """
       const guildHelpBattleBtn = document.getElementById('guild-help-battle-btn');
       const guildHelpPackBtn = document.getElementById('guild-help-pack-btn');
       const guildHelpProfileBtn = document.getElementById('guild-help-profile-btn');
+      const guildWeeklyRewardBtn = document.getElementById('guild-weekly-reward-btn');
       if (chatBtn) bindFunctionalControl(chatBtn, sendGuildChatMessage);
       if (announcementBtn && !announcementBtn.disabled) bindFunctionalControl(announcementBtn, sendGuildAnnouncement);
       if (inviteBtn && !inviteBtn.disabled) bindFunctionalControl(inviteBtn, sendGuildInvite);
       if (guildHelpBattleBtn) bindFunctionalControl(guildHelpBattleBtn, () => switchView('modes'));
       if (guildHelpPackBtn) bindFunctionalControl(guildHelpPackBtn, () => switchView('pack'));
       if (guildHelpProfileBtn) bindFunctionalControl(guildHelpProfileBtn, () => switchView('profile'));
+      if (guildWeeklyRewardBtn && !guildWeeklyRewardBtn.disabled) bindFunctionalControl(guildWeeklyRewardBtn, claimGuildWeeklyReward);
       renderSocialGuildBadges();
     }
 
@@ -6411,6 +6459,7 @@ PAGE_TEMPLATE = """
       renderSocialPanel();
       renderGuildPanel();
       renderTutorialPanel();
+      renderClanSeasonHub();
     }
 
     function renderOwnedDecks(decks, currentDomain) {
@@ -6474,19 +6523,81 @@ PAGE_TEMPLATE = """
       mobileGlobalPlayersList.innerHTML = markup;
     }
 
-    function renderAchievements(items) {
-      state.achievements = items || [];
-      if (!state.achievements.length) {
-        achievementsList.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы увидеть достижения.</div>';
+    function renderClanSeasonHub() {
+      if (!achievementsList) return;
+      if (!state.wallet) {
+        achievementsList.innerHTML = '<div class="user-item muted">Подключи кошелёк, чтобы открыть клановый хаб и сезонный пропуск.</div>';
         return;
       }
-      achievementsList.innerHTML = state.achievements.map((item) => `
+      const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
+      const guilds = state.guildData || {};
+      const currentGuild = guilds.current_guild || null;
+      const track = Array.isArray(rewards.season_pass_track) ? rewards.season_pass_track : [];
+      const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
+      const cosmeticsMarkup = cosmetics.length
+        ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}</div>`).join('')
+        : '<div class="user-item muted">Косметика пока не открыта. Премиум-пропуск и недельные награды клана открывают визуальные предметы.</div>';
+      const guildMarkup = currentGuild
+        ? `
+          <div class="user-item">
+            <strong>${escapeHtml(currentGuild.name)}</strong>
+            <div class="tiny">${escapeHtml(currentGuild.description || 'Описание не заполнено')}</div>
+            <div class="tiny">Роль: ${escapeHtml(currentGuild.viewer_role || 'member')} • участников: ${Number(currentGuild.member_count || 0)}</div>
+            <div class="summary-chip-row">
+              ${(currentGuild.goals.weekly_quests || []).map((quest) => `<span class="summary-chip">${escapeHtml(quest.label)}: ${Number(quest.progress || 0)}/${Number(quest.target || 0)}</span>`).join('')}
+            </div>
+            <div class="tiny">Война недели: ${Number(currentGuild.goals.war_score || 0)}/${Number(currentGuild.goals.war_target || 0)} • награда ${currentGuild.goals.weekly_reward_ready ? 'готова' : 'ещё не открыта'}</div>
+            <div class="tiny">Сегодня полезно клану: ${(currentGuild.goals.today_help || []).join(' • ')}</div>
+            <div class="actions" style="margin-top:10px;">
+              <button id="open-profile-guild-btn">Открыть управление кланом</button>
+              <button class="secondary" id="claim-guild-weekly-btn"${currentGuild.goals.weekly_reward_ready ? '' : ' disabled'}>Забрать недельную награду</button>
+            </div>
+          </div>
+        `
+        : `
+          <div class="user-item">
+            <strong>Ты ещё не в клане</strong>
+            <div class="tiny">Вступай в рекомендованный клан и забирай недельные награды за общие победы, сундуки и войну недели.</div>
+            <div class="actions" style="margin-top:10px;">
+              <button id="open-profile-guild-btn">Открыть кланы</button>
+            </div>
+          </div>
+        `;
+      const passMarkup = `
         <div class="user-item">
-          <strong>${item.unlocked ? '🏆' : '🔒'} ${item.title}</strong>
-          <div class="tiny">${item.description}</div>
-          <div class="tiny">${item.progress}</div>
+          <strong>Сезонный пропуск</strong>
+          <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
+          <div class="tiny">Премиум даёт косметику и ускоряет прогресс валюты. Боевой силы не даёт.</div>
+          <div class="catalog-grid" style="margin-top:10px;">
+            ${track.map((item) => `
+              <article class="catalog-card skill-card">
+                <div class="catalog-kicker">Уровень ${item.level}</div>
+                <strong>Free: ${escapeHtml(item.free)}</strong>
+                <div class="tiny">Premium: ${escapeHtml(item.premium)}</div>
+                <div class="tiny">${item.free_ready ? 'Free готов' : 'Free закрыт'} • ${item.premium_ready ? 'Premium готов' : 'Premium закрыт'}</div>
+              </article>
+            `).join('')}
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button id="buy-season-pass-btn"${rewards.premium_pass_active ? ' disabled' : ''}>Купить премиум-пропуск за 1.49 TON</button>
+          </div>
         </div>
-      `).join('');
+      `;
+      achievementsList.innerHTML = `
+        ${guildMarkup}
+        ${passMarkup}
+        <div class="user-item">
+          <strong>Косметика</strong>
+          <div class="tiny">Монетизация идёт через внешний вид: арены, рамки карт, аватарки, рубашки и баннеры клановой войны.</div>
+          <div class="summary-chip-row">${cosmeticsMarkup}</div>
+        </div>
+      `;
+      const openGuildBtn = document.getElementById('open-profile-guild-btn');
+      const claimGuildBtn = document.getElementById('claim-guild-weekly-btn');
+      const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
+      if (openGuildBtn) bindFunctionalControl(openGuildBtn, () => switchView('profile'));
+      if (claimGuildBtn && !claimGuildBtn.disabled) bindFunctionalControl(claimGuildBtn, claimGuildWeeklyReward);
+      if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
     }
 
     function renderCardCatalog(cards, skills = []) {
@@ -6595,13 +6706,14 @@ PAGE_TEMPLATE = """
       const searching = Boolean(state.matchmakingMode);
       const selectedPack = state.selectedPackType || 'common';
       const selectedPackMeta = packTypeMeta(selectedPack);
-      const paidPackMeta = packTypeMeta('lucky');
       document.getElementById('check-domains-btn').disabled = !connected;
       document.getElementById('shuffle-deck-btn').disabled = !(connected && hasDomain && hasCards);
       document.getElementById('open-pack-btn').disabled = !(connected && hasDomain) || selectedPack !== 'common';
       document.getElementById('open-pack-btn').textContent = selectedPack === 'common' ? 'Открыть ежедневный пак' : 'Ежедневный пак: только Common';
-      buyPackBtn.disabled = !(connected && hasDomain && tonConnectUI && paidPackMeta);
-      buyPackBtn.textContent = `Оплатить ${paidPackMeta ? paidPackMeta.label : 'Lucky Pack'} за 1 TON`;
+      buyPackBtn.disabled = !(connected && tonConnectUI) || Boolean(state.playerProfile && state.playerProfile.rewards && state.playerProfile.rewards.premium_pass_active);
+      buyPackBtn.textContent = state.playerProfile && state.playerProfile.rewards && state.playerProfile.rewards.premium_pass_active
+        ? 'Премиум-пропуск активен'
+        : 'Купить премиум-пропуск за 1.49 TON';
       document.getElementById('continue-to-modes-btn').disabled = !hasCards;
       document.getElementById('play-ranked-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards) || searching;
@@ -6907,8 +7019,8 @@ PAGE_TEMPLATE = """
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
       const clashCardWidth = compactClash ? 46 : 92;
       const clashCardHeight = compactClash ? 64 : 136;
-      const clashGap = compactClash ? 18 : 4;
-      const impactGap = compactClash ? 10 : 4;
+      const clashGap = compactClash ? 22 : 10;
+      const impactGap = compactClash ? 12 : 8;
       const centerY = compactClash ? coreRect.height * 0.5 : coreRect.height * 0.58;
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 50 : 14;
@@ -6973,7 +7085,7 @@ PAGE_TEMPLATE = """
       playerClone.style.top = `${playerStartTop}px`;
       playerClone.style.width = `${clashCardWidth}px`;
       playerClone.style.height = `${clashCardHeight}px`;
-      playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
+      playerClone.insertAdjacentHTML('beforeend', `<div class="arena-owner-badge player">Ты</div><div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
       const enemyClone = enemySource.cloneNode(true);
       enemyClone.className = `${enemyClone.className} arena-lane-card enemy ${opponentActionKey}`.trim();
       enemyClone.style.visibility = 'visible';
@@ -6982,7 +7094,7 @@ PAGE_TEMPLATE = """
       enemyClone.style.top = `${enemyStartTop}px`;
       enemyClone.style.width = `${clashCardWidth}px`;
       enemyClone.style.height = `${clashCardHeight}px`;
-      enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
+      enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-owner-badge enemy">${currentResult.mode === 'bot' ? 'Бот' : 'Враг'}</div><div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
       playerSource.style.visibility = 'hidden';
       playerSource.style.opacity = '0';
       enemySource.style.visibility = 'hidden';
@@ -8492,19 +8604,39 @@ PAGE_TEMPLATE = """
       }
     }
 
-    async function buyPackWithTon() {
+    async function claimGuildWeeklyReward() {
+      if (!state.wallet || !state.guildData || !state.guildData.current_guild) return;
+      try {
+        const data = await api('/api/guilds/reward/claim', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            guild_id: state.guildData.current_guild.id
+          }
+        });
+        state.guildData = data.guilds || state.guildData;
+        if (state.playerProfile) {
+          state.playerProfile.rewards = data.rewards;
+        }
+        renderProfile();
+        setStatus(document.getElementById('pack-status'), 'Недельная награда клана получена.', 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
+    async function buySeasonPassWithTon() {
       await prepareFunctionalInteraction();
-      if (!state.wallet || !state.selectedDomain) return;
-      const selectedPackType = 'lucky';
+      if (!state.wallet) return;
       if (!tonConnectUI) {
         setStatus(document.getElementById('pack-status'), 'TonConnect не инициализирован.', 'error');
         return;
       }
       try {
-        setStatus(document.getElementById('pack-status'), `Создаём TON-платёж для ${packTypeMeta(selectedPackType)?.label || selectedPackType}...`, 'warning');
-        const intent = await api('/api/pack/payment-intent', {
+        setStatus(document.getElementById('pack-status'), 'Создаём TON-платёж для премиум-пропуска...', 'warning');
+        const intent = await api('/api/pass/payment-intent', {
           method: 'POST',
-          body: { wallet: state.wallet, domain: state.selectedDomain, pack_type: selectedPackType }
+          body: { wallet: state.wallet }
         });
         const tx = await tonConnectUI.sendTransaction({
           validUntil: intent.valid_until,
@@ -8515,7 +8647,7 @@ PAGE_TEMPLATE = """
             }
           ]
         });
-        await api('/api/pack/payment-confirm', {
+        const confirmed = await api('/api/pass/payment-confirm', {
           method: 'POST',
           body: {
             wallet: state.wallet,
@@ -8523,13 +8655,12 @@ PAGE_TEMPLATE = """
             tx_hash: tx && tx.boc ? tx.boc.slice(0, 120) : ''
           }
         });
-        state.pendingPackSource = 'paid';
-        state.pendingPackPaymentId = intent.payment_id;
-        packShowcase.classList.remove('opened');
-        foilPack.classList.remove('opening');
-        foilPack.classList.remove('vanishing');
-        packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
-        setStatus(document.getElementById('pack-status'), `Платёж подтверждён. Нажми на пак, чтобы открыть ${packTypeMeta(selectedPackType)?.label || selectedPackType}.`, 'success');
+        if (state.playerProfile) {
+          state.playerProfile.rewards = confirmed.rewards;
+        }
+        renderProfile();
+        updateButtons();
+        setStatus(document.getElementById('pack-status'), 'Премиум-пропуск активирован. Карты за донат больше не продаются: только косметика и ускорение прогресса.', 'success');
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
@@ -8993,16 +9124,7 @@ PAGE_TEMPLATE = """
     }
 
     async function loadAchievements() {
-      if (!state.wallet) {
-        renderAchievements([]);
-        return;
-      }
-      try {
-        const data = await api(`/api/achievements/${encodeURIComponent(state.wallet)}`);
-        renderAchievements(data.achievements || []);
-      } catch (error) {
-        achievementsList.innerHTML = `<div class="user-item error">${error.message}</div>`;
-      }
+      renderClanSeasonHub();
     }
 
     async function registerPlayer() {
@@ -9145,7 +9267,7 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(document.getElementById('rebind-domain-btn'), rebindDomain);
     bindFunctionalControl(document.getElementById('shuffle-deck-btn'), shuffleDeck);
     bindFunctionalControl(document.getElementById('open-pack-btn'), () => openPack('daily'));
-    bindFunctionalControl(buyPackBtn, buyPackWithTon);
+    bindFunctionalControl(buyPackBtn, buySeasonPassWithTon);
     bindFunctionalControl(claimDailyRewardBtn, claimDailyReward);
     bindFunctionalControl(claimQuestRewardBtn, claimQuestReward);
     if (restorePreviousDeckBtn) {
@@ -9156,10 +9278,6 @@ PAGE_TEMPLATE = """
     });
     bindFunctionalControl(foilPack, () => {
       if (state.packOpening) {
-        return;
-      }
-      if (state.pendingPackSource === 'paid' && state.pendingPackPaymentId) {
-        openPack('paid', state.pendingPackPaymentId, state.selectedPackType || 'lucky');
         return;
       }
       if (!document.getElementById('open-pack-btn').disabled) {
@@ -9618,10 +9736,36 @@ def init_db():
                 lucky_tokens INTEGER NOT NULL DEFAULT 0,
                 season_points INTEGER NOT NULL DEFAULT 0,
                 season_level INTEGER NOT NULL DEFAULT 1,
+                premium_pass INTEGER NOT NULL DEFAULT 0,
                 wins_for_quest INTEGER NOT NULL DEFAULT 0,
                 wins_claimed INTEGER NOT NULL DEFAULT 0,
                 daily_claimed_on TEXT,
                 updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS guild_reward_claims (
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (guild_id, wallet, week_key)
+            );
+            CREATE TABLE IF NOT EXISTS player_cosmetics (
+                wallet TEXT NOT NULL,
+                cosmetic_key TEXT NOT NULL,
+                source TEXT NOT NULL,
+                equipped INTEGER NOT NULL DEFAULT 0,
+                unlocked_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, cosmetic_key)
+            );
+            CREATE TABLE IF NOT EXISTS season_pass_payments (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                amount_nano INTEGER NOT NULL,
+                memo TEXT NOT NULL,
+                status TEXT NOT NULL,
+                tx_hash TEXT,
+                created_at TEXT NOT NULL,
+                confirmed_at TEXT
             );
             CREATE TABLE IF NOT EXISTS tutorial_progress (
                 wallet TEXT PRIMARY KEY,
@@ -9732,6 +9876,9 @@ def init_db():
         matchmaking_columns = {row['name'] for row in conn.execute("PRAGMA table_info(matchmaking_queue)").fetchall()}
         if 'selected_slot' not in matchmaking_columns:
             conn.execute('ALTER TABLE matchmaking_queue ADD COLUMN selected_slot INTEGER')
+        reward_columns = {row['name'] for row in conn.execute("PRAGMA table_info(player_rewards)").fetchall()}
+        if 'premium_pass' not in reward_columns:
+            conn.execute('ALTER TABLE player_rewards ADD COLUMN premium_pass INTEGER NOT NULL DEFAULT 0')
         conn.commit()
 
 
@@ -9822,10 +9969,36 @@ def ensure_runtime_tables():
                 lucky_tokens INTEGER NOT NULL DEFAULT 0,
                 season_points INTEGER NOT NULL DEFAULT 0,
                 season_level INTEGER NOT NULL DEFAULT 1,
+                premium_pass INTEGER NOT NULL DEFAULT 0,
                 wins_for_quest INTEGER NOT NULL DEFAULT 0,
                 wins_claimed INTEGER NOT NULL DEFAULT 0,
                 daily_claimed_on TEXT,
                 updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS guild_reward_claims (
+                guild_id TEXT NOT NULL,
+                wallet TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (guild_id, wallet, week_key)
+            );
+            CREATE TABLE IF NOT EXISTS player_cosmetics (
+                wallet TEXT NOT NULL,
+                cosmetic_key TEXT NOT NULL,
+                source TEXT NOT NULL,
+                equipped INTEGER NOT NULL DEFAULT 0,
+                unlocked_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, cosmetic_key)
+            );
+            CREATE TABLE IF NOT EXISTS season_pass_payments (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                amount_nano INTEGER NOT NULL,
+                memo TEXT NOT NULL,
+                status TEXT NOT NULL,
+                tx_hash TEXT,
+                created_at TEXT NOT NULL,
+                confirmed_at TEXT
             );
             CREATE TABLE IF NOT EXISTS tutorial_progress (
                 wallet TEXT PRIMARY KEY,
@@ -9850,6 +10023,9 @@ def ensure_runtime_tables():
         matchmaking_columns = {row['name'] for row in conn.execute("PRAGMA table_info(matchmaking_queue)").fetchall()}
         if 'selected_slot' not in matchmaking_columns:
             conn.execute('ALTER TABLE matchmaking_queue ADD COLUMN selected_slot INTEGER')
+        reward_columns = {row['name'] for row in conn.execute("PRAGMA table_info(player_rewards)").fetchall()}
+        if 'premium_pass' not in reward_columns:
+            conn.execute('ALTER TABLE player_rewards ADD COLUMN premium_pass INTEGER NOT NULL DEFAULT 0')
         conn.commit()
 
 
@@ -10122,14 +10298,69 @@ def ensure_player_rewards(wallet):
                 '''
                 INSERT INTO player_rewards (
                     wallet, pack_shards, rare_tokens, lucky_tokens, season_points,
-                    season_level, wins_for_quest, wins_claimed, daily_claimed_on, updated_at
-                ) VALUES (?, 0, 0, 0, 0, 1, 0, 0, NULL, ?)
+                    season_level, premium_pass, wins_for_quest, wins_claimed, daily_claimed_on, updated_at
+                ) VALUES (?, 0, 0, 0, 0, 1, 0, 0, 0, NULL, ?)
                 ''',
                 (wallet, now_iso()),
             )
             conn.commit()
             row = conn.execute('SELECT * FROM player_rewards WHERE wallet = ?', (wallet,)).fetchone()
     return dict(row)
+
+
+def week_utc_key():
+    now_dt = now_utc()
+    return f'{now_dt.isocalendar().year}-W{now_dt.isocalendar().week:02d}'
+
+
+def grant_cosmetic(wallet, cosmetic_key, source):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT OR IGNORE INTO player_cosmetics (wallet, cosmetic_key, source, equipped, unlocked_at)
+            VALUES (?, ?, ?, 0, ?)
+            ''',
+            (wallet, cosmetic_key, source, now_iso()),
+        )
+        conn.commit()
+
+
+def cosmetic_inventory(wallet):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            'SELECT cosmetic_key, source, equipped, unlocked_at FROM player_cosmetics WHERE wallet = ? ORDER BY unlocked_at DESC',
+            (wallet,),
+        ).fetchall()
+    meta_by_key = {item['key']: item for item in COSMETIC_CATALOG}
+    return [
+        {
+            'key': row['cosmetic_key'],
+            'name': meta_by_key.get(row['cosmetic_key'], {}).get('name', row['cosmetic_key']),
+            'type': meta_by_key.get(row['cosmetic_key'], {}).get('type', 'cosmetic'),
+            'source': row['source'],
+            'equipped': bool(row['equipped']),
+            'unlocked_at': row['unlocked_at'],
+        }
+        for row in rows
+    ]
+
+
+def season_pass_track_payload(wallet=None, rewards=None):
+    rewards = rewards or ({'season_level': 1, 'premium_pass': 0} if wallet is None else ensure_player_rewards(wallet))
+    season_level = int(rewards.get('season_level', 1) or 1)
+    premium_active = bool(rewards.get('premium_pass', 0))
+    payload = []
+    for item in SEASON_PASS_TRACK:
+        payload.append(
+            {
+                **item,
+                'free_ready': season_level >= int(item['level']),
+                'premium_ready': premium_active and season_level >= int(item['level']),
+            }
+        )
+    return payload
 
 
 def normalize_reward_progress_fields(*, pack_shards, rare_tokens, lucky_tokens, season_points, season_level, wins_for_quest, wins_claimed):
@@ -10158,6 +10389,10 @@ def reward_summary(wallet):
     rewards['next_quest_target'] = int(rewards.get('wins_claimed', 0)) + 3
     rewards['season_target'] = max(12, int(rewards.get('season_level', 1)) * 12)
     rewards['season_progress'] = round(int(rewards.get('season_points', 0)) / max(1, rewards['season_target']), 3)
+    rewards['premium_pass'] = int(rewards.get('premium_pass', 0) or 0)
+    rewards['premium_pass_active'] = bool(rewards['premium_pass'])
+    rewards['season_pass_track'] = season_pass_track_payload(wallet=wallet, rewards=rewards)
+    rewards['cosmetics'] = cosmetic_inventory(wallet)
     return rewards
 
 
@@ -10263,10 +10498,11 @@ def grant_tutorial_reward(wallet):
 
 def grant_match_rewards(wallet, *, won=False, ranked=False):
     rewards = ensure_player_rewards(wallet)
-    pack_shards = int(rewards.get('pack_shards', 0)) + (2 if won else 1)
+    premium_bonus = 1 if int(rewards.get('premium_pass', 0) or 0) else 0
+    pack_shards = int(rewards.get('pack_shards', 0)) + (2 if won else 1) + premium_bonus
     rare_tokens = int(rewards.get('rare_tokens', 0))
     lucky_tokens = int(rewards.get('lucky_tokens', 0))
-    season_points = int(rewards.get('season_points', 0)) + (3 if ranked else 2) + (2 if won else 0)
+    season_points = int(rewards.get('season_points', 0)) + (3 if ranked else 2) + (2 if won else 0) + premium_bonus
     wins_for_quest = int(rewards.get('wins_for_quest', 0)) + (1 if won else 0)
     wins_claimed = int(rewards.get('wins_claimed', 0))
     normalized = normalize_reward_progress_fields(
@@ -10673,6 +10909,96 @@ def confirm_pack_payment(payment_id, wallet, tx_hash=None):
         conn.commit()
         updated = conn.execute('SELECT * FROM pack_payments WHERE id = ?', (payment_id,)).fetchone()
     return dict(updated)
+
+
+def create_season_pass_payment(wallet):
+    payment_id = uuid.uuid4().hex
+    memo = f'PASS:{payment_id}:{wallet[:8]}'
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO season_pass_payments (id, wallet, amount_nano, memo, status, tx_hash, created_at, confirmed_at)
+            VALUES (?, ?, ?, ?, 'pending', NULL, ?, NULL)
+            ''',
+            (payment_id, wallet, SEASON_PASS_PRICE_NANO, memo, now_iso()),
+        )
+        conn.commit()
+    return payment_id, memo
+
+
+def confirm_season_pass_payment(payment_id, wallet, tx_hash=None):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM season_pass_payments WHERE id = ?', (payment_id,)).fetchone()
+        if row is None:
+            raise ValueError('Платёж пропуска не найден.')
+        if row['wallet'] != wallet:
+            raise ValueError('Платёж принадлежит другому кошельку.')
+        if row['status'] != 'confirmed':
+            conn.execute(
+                'UPDATE season_pass_payments SET status = ?, tx_hash = ?, confirmed_at = ? WHERE id = ?',
+                ('confirmed', tx_hash, now_iso(), payment_id),
+            )
+            conn.execute(
+                'UPDATE player_rewards SET premium_pass = 1, updated_at = ? WHERE wallet = ?',
+                (now_iso(), wallet),
+            )
+            conn.commit()
+        updated = conn.execute('SELECT * FROM season_pass_payments WHERE id = ?', (payment_id,)).fetchone()
+    grant_cosmetic(wallet, 'frame_neon_pulse', 'season_pass')
+    grant_cosmetic(wallet, 'avatar_guild_spark', 'season_pass')
+    return dict(updated), reward_summary(wallet)
+
+
+def claim_guild_weekly_reward(wallet, guild_id):
+    membership = current_guild_membership(wallet)
+    if membership is None or membership['guild_id'] != guild_id:
+        raise ValueError('Ты не состоишь в этом клане.')
+    goals = guild_goal_summary(guild_id)
+    if not goals.get('weekly_reward_ready'):
+        raise ValueError('Клан ещё не выполнил недельную цель.')
+    claim_key = week_utc_key()
+    with closing(get_db()) as conn:
+        existing = conn.execute(
+            'SELECT 1 FROM guild_reward_claims WHERE guild_id = ? AND wallet = ? AND week_key = ? LIMIT 1',
+            (guild_id, wallet, claim_key),
+        ).fetchone()
+        if existing is not None:
+            raise ValueError('Недельная награда клана уже забрана.')
+    rewards = ensure_player_rewards(wallet)
+    normalized = normalize_reward_progress_fields(
+        pack_shards=int(rewards.get('pack_shards', 0)) + 5,
+        rare_tokens=int(rewards.get('rare_tokens', 0)) + 1,
+        lucky_tokens=int(rewards.get('lucky_tokens', 0)) + (1 if goals.get('war_score', 0) >= goals.get('war_target', 999999) else 0),
+        season_points=int(rewards.get('season_points', 0)) + 4,
+        season_level=int(rewards.get('season_level', 1) or 1),
+        wins_for_quest=int(rewards.get('wins_for_quest', 0) or 0),
+        wins_claimed=int(rewards.get('wins_claimed', 0) or 0),
+    )
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            UPDATE player_rewards
+            SET pack_shards = ?, rare_tokens = ?, lucky_tokens = ?, season_points = ?, season_level = ?, updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (
+                normalized['pack_shards'],
+                normalized['rare_tokens'],
+                normalized['lucky_tokens'],
+                normalized['season_points'],
+                normalized['season_level'],
+                now_iso(),
+                wallet,
+            ),
+        )
+        conn.execute(
+            'INSERT INTO guild_reward_claims (guild_id, wallet, week_key, created_at) VALUES (?, ?, ?, ?)',
+            (guild_id, wallet, claim_key, now_iso()),
+        )
+        conn.commit()
+    if goals.get('war_score', 0) >= goals.get('war_target', 999999):
+        grant_cosmetic(wallet, 'guild_banner_weekly', 'guild_reward')
+    return reward_summary(wallet)
 
 
 def fetch_10k_config(force_refresh=False):
@@ -13017,6 +13343,10 @@ def guild_goal_summary(guild_id):
             'weekly_pack_target': 12,
             'season_points': 0,
             'season_rank_score': 0,
+            'war_score': 0,
+            'war_target': 140,
+            'weekly_reward_ready': False,
+            'weekly_quests': [],
             'today_help': [],
         }
     seven_days_ago = datetime.fromtimestamp(now_utc().timestamp() - 7 * 86400, tz=timezone.utc).isoformat()
@@ -13060,10 +13390,18 @@ def guild_goal_summary(guild_id):
     weekly_wins = int(ranked or 0) + int(telemetry or 0)
     weekly_pack_target = max(12, len(wallets) * 3)
     weekly_win_target = max(25, len(wallets) * 6)
+    war_score = weekly_wins * 4 + int(pack_count or 0) * 3 + int(season_points or 0)
+    war_target = max(140, len(wallets) * 45)
+    weekly_reward_ready = weekly_wins >= weekly_win_target or int(pack_count or 0) >= weekly_pack_target or war_score >= war_target
+    weekly_quests = [
+        {'label': 'Победы недели', 'progress': weekly_wins, 'target': weekly_win_target},
+        {'label': 'Сундук гильдии', 'progress': int(pack_count or 0), 'target': weekly_pack_target},
+        {'label': 'Война недели', 'progress': war_score, 'target': war_target},
+    ]
     today_help = [
         f'Добейте {max(0, weekly_win_target - weekly_wins)} побед до недельной цели',
         f'Откройте ещё {max(0, weekly_pack_target - pack_count)} паков до сундука гильдии',
-        f'Поднимите сезонный счёт до {max(len(wallets) * 120, 300)} очков',
+        f'Поднимите счёт войны недели до {war_target}',
     ]
     return {
         'weekly_wins': weekly_wins,
@@ -13072,6 +13410,10 @@ def guild_goal_summary(guild_id):
         'weekly_pack_target': weekly_pack_target,
         'season_points': int(season_points or 0),
         'season_rank_score': int(season_points or 0) + weekly_wins * 5 + int(pack_count or 0) * 2,
+        'war_score': war_score,
+        'war_target': war_target,
+        'weekly_reward_ready': weekly_reward_ready,
+        'weekly_quests': weekly_quests,
         'today_help': today_help,
     }
 
@@ -16201,6 +16543,65 @@ def api_pack_payment_confirm():
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'payment': payment})
+
+
+@app.route('/api/pass/payment-intent', methods=['POST'])
+def api_pass_payment_intent():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи TON-кошелёк.')
+    if not SEASON_PASS_RECEIVER_WALLET:
+        return json_error('Не настроен адрес получателя оплаты пропуска.', 500)
+    rewards = reward_summary(wallet)
+    if rewards.get('premium_pass_active'):
+        return json_error('Премиум-пропуск уже активен.')
+    payment_id, memo = create_season_pass_payment(wallet)
+    return jsonify(
+        {
+            'ok': True,
+            'payment_id': payment_id,
+            'amount_nano': SEASON_PASS_PRICE_NANO,
+            'amount_ton': SEASON_PASS_PRICE_NANO / 1_000_000_000,
+            'receiver_wallet': SEASON_PASS_RECEIVER_WALLET,
+            'memo': memo,
+            'payload_base64': base64.b64encode(memo.encode()).decode(),
+            'valid_until': int(now_utc().timestamp()) + 600,
+        }
+    )
+
+
+@app.route('/api/pass/payment-confirm', methods=['POST'])
+def api_pass_payment_confirm():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    payment_id = (payload.get('payment_id') or '').strip()
+    tx_hash = (payload.get('tx_hash') or '').strip() or None
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи TON-кошелёк.')
+    if not payment_id:
+        return json_error('Не указан payment_id.')
+    try:
+        payment, rewards = confirm_season_pass_payment(payment_id, wallet, tx_hash=tx_hash)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'payment': payment, 'rewards': rewards})
+
+
+@app.route('/api/guilds/reward/claim', methods=['POST'])
+def api_guild_reward_claim():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    guild_id = (payload.get('guild_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not guild_id:
+        return json_error('Не указан guild_id.')
+    try:
+        rewards = claim_guild_weekly_reward(wallet, guild_id)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'rewards': rewards, 'guilds': guild_overview_for_wallet(wallet)})
 
 
 @app.route('/api/matchmaking/<mode>/search', methods=['POST'])
