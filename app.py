@@ -369,7 +369,7 @@ PAGE_TEMPLATE = """
 
     .stepper {
       display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 8px;
       width: 100%;
     }
@@ -4444,7 +4444,7 @@ PAGE_TEMPLATE = """
         right: 8px;
         bottom: calc(8px + env(safe-area-inset-bottom));
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 8px;
         padding: 8px;
         border-radius: 18px;
@@ -5020,7 +5020,7 @@ PAGE_TEMPLATE = """
       right: 8px;
       bottom: calc(8px + env(safe-area-inset-bottom));
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 8px;
       padding: 8px;
       border-radius: 18px;
@@ -5070,12 +5070,11 @@ PAGE_TEMPLATE = """
       </div>
 
       <div class="stepper">
-        <div class="step-chip active" data-step-chip="wallet">1. Кошелёк</div>
-        <div class="step-chip" data-step-chip="pack">2. Распаковка</div>
-        <div class="step-chip" data-step-chip="modes">3. Режимы игры</div>
-        <div class="step-chip" data-step-chip="profile">4. Профиль</div>
-        <div class="step-chip" data-step-chip="guilds">5. Кланы</div>
-        <div class="step-chip" data-step-chip="achievements">6. Пропуск</div>
+        <div class="step-chip" data-step-chip="pack">1. Карты</div>
+        <div class="step-chip" data-step-chip="modes">2. Игра</div>
+        <div class="step-chip active" data-step-chip="profile">3. Профиль</div>
+        <div class="step-chip" data-step-chip="guilds">4. Кланы</div>
+        <div class="step-chip" data-step-chip="achievements">5. Пропуск</div>
       </div>
     </section>
 
@@ -5278,6 +5277,7 @@ PAGE_TEMPLATE = """
 
         <section class="panel view" id="view-profile">
           <h2>Профиль</h2>
+          <div id="profile-wallet-hub" class="deck-list"></div>
           <div id="mobile-profile-summary" class="deck-list"></div>
           <div id="mobile-rewards-panel" class="deck-list" style="margin-top:14px;"></div>
           <h3 style="margin-top:20px;">Публичный профиль</h3>
@@ -5354,7 +5354,6 @@ PAGE_TEMPLATE = """
   </div>
 
   <nav class="mobile-nav">
-    <button id="nav-wallet">Кошелёк</button>
     <button id="nav-pack">Карты</button>
     <button id="nav-modes">Игра</button>
     <button id="nav-profile">Профиль</button>
@@ -5445,6 +5444,7 @@ PAGE_TEMPLATE = """
     const faqPanel = document.getElementById('faq-panel');
     const socialPanel = document.getElementById('social-panel');
     const guildPanel = document.getElementById('guild-panel');
+    const profileWalletHub = document.getElementById('profile-wallet-hub');
     const mobileLeaderboard = document.getElementById('mobile-leaderboard');
     const mobileDeckView = document.getElementById('mobile-deck-view');
     const mobileGlobalPlayersList = document.getElementById('mobile-global-players-list');
@@ -6361,6 +6361,9 @@ PAGE_TEMPLATE = """
     }
 
     function switchView(name) {
+      if (name === 'wallet') {
+        name = 'profile';
+      }
       resetHorizontalViewportDrift();
       syncTmaMode();
       syncTmaViewport();
@@ -6383,6 +6386,21 @@ PAGE_TEMPLATE = """
           softCameraFocus(preferredCard);
         }
       }
+    }
+
+    function mountWalletIntoProfile() {
+      const walletView = document.getElementById('view-wallet');
+      if (!walletView || !profileWalletHub || walletView.dataset.movedToProfile === '1') {
+        return;
+      }
+      const fragment = document.createDocumentFragment();
+      Array.from(walletView.childNodes).forEach((node) => {
+        fragment.appendChild(node);
+      });
+      profileWalletHub.appendChild(fragment);
+      walletView.dataset.movedToProfile = '1';
+      walletView.style.display = 'none';
+      walletView.classList.remove('active');
     }
 
     function animateModeChoice(modeName) {
@@ -8779,7 +8797,8 @@ PAGE_TEMPLATE = """
       renderDeck(null);
       refreshOneCardSelector();
       updateButtons();
-      switchView('wallet');
+      mountWalletIntoProfile();
+      switchView('profile');
       setStatus(walletStatus, 'Выбери домен заново и открой новую колоду.', 'warning');
       setStatus(document.getElementById('pack-status'), 'Привязка домена сброшена. Можно выбрать другой домен.', 'warning');
       renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
@@ -9907,7 +9926,7 @@ PAGE_TEMPLATE = """
 
     bindFunctionalControl(document.getElementById('check-domains-btn'), checkDomains);
     bindFunctionalControl(walletOpenPackBtn, () => switchView('pack'));
-    bindFunctionalControl(document.getElementById('back-to-wallet-btn'), () => switchView('wallet'));
+    bindFunctionalControl(document.getElementById('back-to-wallet-btn'), () => switchView('profile'));
     bindFunctionalControl(document.getElementById('rebind-domain-btn'), rebindDomain);
     bindFunctionalControl(document.getElementById('shuffle-deck-btn'), shuffleDeck);
     bindFunctionalControl(document.getElementById('open-pack-btn'), () => openPack('daily'));
@@ -9973,7 +9992,6 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(showDeckBtn, showDeck);
     bindFunctionalControl(toggleDeckBtn, toggleDeck);
     bindFunctionalControl(document.getElementById('mobile-show-deck-btn'), showDeck);
-    bindFunctionalControl(document.getElementById('nav-wallet'), () => switchView('wallet'));
     bindFunctionalControl(document.getElementById('nav-pack'), () => switchView('pack'));
     bindFunctionalControl(document.getElementById('nav-modes'), () => switchView('modes'));
     bindFunctionalControl(document.getElementById('nav-profile'), () => switchView('profile'));
@@ -10049,13 +10067,14 @@ PAGE_TEMPLATE = """
     loadGlobalPlayers();
     loadAchievements();
     loadCardCatalog();
+    mountWalletIntoProfile();
     renderProfile();
     renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
     renderDeck(null);
     renderOwnedDecks([], null);
     renderClanSeasonHub();
     refreshOneCardSelector();
-    switchView('wallet');
+    switchView('profile');
     updateButtons();
   </script>
 </body>
