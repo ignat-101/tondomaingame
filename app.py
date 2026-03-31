@@ -161,6 +161,52 @@ PAGE_TEMPLATE = """
   <meta name="description" content="TON 10K Club mini game with wallet connection, real domain checks and Telegram integration.">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+  <script>
+    function loadExternalScript(src) {
+      return new Promise((resolve, reject) => {
+        const existing = Array.from(document.scripts || []).find((node) => node.src === src);
+        if (existing) {
+          if (existing.dataset.loaded === 'true') {
+            resolve(true);
+            return;
+          }
+          existing.addEventListener('load', () => resolve(true), {once: true});
+          existing.addEventListener('error', () => reject(new Error(`Не удалось загрузить ${src}`)), {once: true});
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.crossOrigin = 'anonymous';
+        script.addEventListener('load', () => {
+          script.dataset.loaded = 'true';
+          resolve(true);
+        }, {once: true});
+        script.addEventListener('error', () => reject(new Error(`Не удалось загрузить ${src}`)), {once: true});
+        document.head.appendChild(script);
+      });
+    }
+
+    async function ensureTonConnectUiScript() {
+      if (window.TON_CONNECT_UI && window.TON_CONNECT_UI.TonConnectUI) {
+        return true;
+      }
+      const candidates = [
+        'https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js',
+        'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js'
+      ];
+      for (const src of candidates) {
+        try {
+          await loadExternalScript(src);
+          if (window.TON_CONNECT_UI && window.TON_CONNECT_UI.TonConnectUI) {
+            return true;
+          }
+        } catch (_) {
+        }
+      }
+      return false;
+    }
+  </script>
   <style>
     :root {
       --bg: #071019;
@@ -9014,6 +9060,15 @@ PAGE_TEMPLATE = """
     }
 
     async function initTonConnect() {
+      const tonConnectReady = await ensureTonConnectUiScript();
+      if (!tonConnectReady || !window.TON_CONNECT_UI || !window.TON_CONNECT_UI.TonConnectUI) {
+        setStatus(walletStatus, 'TonConnect UI не загрузился. Обнови страницу или отключи блокировщики скриптов/VPN для этого сайта.', 'error');
+        const tonConnectRoot = document.getElementById('ton-connect');
+        if (tonConnectRoot) {
+          tonConnectRoot.innerHTML = '<div class="tiny" style="color: var(--danger);">TonConnect не загрузился</div>';
+        }
+        return;
+      }
       tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: `${window.location.origin}/tonconnect-manifest.json`,
         buttonRootId: 'ton-connect'
