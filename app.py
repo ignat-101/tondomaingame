@@ -1063,13 +1063,11 @@ PAGE_TEMPLATE = """
       position: relative;
       min-height: 220px;
       border-radius: 26px;
-      border: 1px solid rgba(121, 217, 255, 0.16);
+      border: 1px solid rgba(121, 217, 255, 0.08);
       background:
-        radial-gradient(circle at 50% 50%, rgba(14, 44, 55, 0.44), transparent 42%),
-        linear-gradient(180deg, rgba(6, 14, 26, 0.98), rgba(3, 9, 18, 0.98));
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.02),
-        inset 0 0 90px rgba(0, 0, 0, 0.18);
+        radial-gradient(circle at 50% 50%, rgba(14, 44, 55, 0.12), transparent 42%),
+        linear-gradient(180deg, rgba(6, 14, 26, 0.28), rgba(3, 9, 18, 0.18));
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.01);
       overflow: hidden;
       isolation: isolate;
     }
@@ -1079,7 +1077,7 @@ PAGE_TEMPLATE = """
       position: absolute;
       inset: 16px;
       border-radius: 20px;
-      border: 1px solid rgba(255, 211, 110, 0.08);
+      border: 1px solid rgba(255, 211, 110, 0.04);
       pointer-events: none;
     }
 
@@ -6825,20 +6823,6 @@ PAGE_TEMPLATE = """
       old_gold: { name: 'Old Gold', emoji: '👑', base: '#6C5520', secondary: '#8E7330', accent: '#D5BA63', glow: 'rgba(213,186,99,0.28)', text: '#FFF6DD', motif: 'crown' },
       neon_blue: { name: 'Neon Blue', emoji: '💠', base: '#0E2F7B', secondary: '#1747B7', accent: '#6CD8FF', glow: 'rgba(108,216,255,0.3)', text: '#F1F9FF', motif: 'grid' },
     };
-    const GIFT_CARD_SHEET_URL = '/static/cosmetics/cardbacks/gift-cardbacks-sheet.png';
-    const GIFT_CARD_SHEET_POSITIONS = {
-      black: '0% 0%',
-      onyx_black: '25% 0%',
-      ivory_white: '50% 0%',
-      midnight_blue: '75% 0%',
-      fire_engine: '100% 0%',
-      khaki_green: '0% 100%',
-      deep_cyan: '25% 100%',
-      satin_gold: '50% 100%',
-      old_gold: '75% 100%',
-      neon_blue: '100% 100%',
-    };
-
     function escapeSvg(text) {
       return String(text || '')
         .replace(/&/g, '&amp;')
@@ -6862,16 +6846,17 @@ PAGE_TEMPLATE = """
     }
 
     function giftCardbackSurface(key) {
-      const slug = themeSlugFromKey(key);
-      const position = GIFT_CARD_SHEET_POSITIONS[slug] || '0% 0%';
-      return `url(${GIFT_CARD_SHEET_URL}) ${position} / 500% 200% no-repeat`;
+      const asset = cosmeticAssetUrl('cardback', key);
+      return asset
+        ? `linear-gradient(180deg, rgba(8,16,28,0.06), rgba(8,16,28,0.16)), url(${asset}) center/contain no-repeat`
+        : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))';
     }
 
     function giftArenaSurface(key) {
-      const theme = cosmeticTheme('arena', key);
-      const slug = themeSlugFromKey(key);
-      const position = GIFT_CARD_SHEET_POSITIONS[slug] || '0% 0%';
-      return `radial-gradient(circle at center, ${theme.glow.replace(/0\\.\\d+\\)/, '0.22)')}, rgba(8,20,36,0.16) 44%, rgba(8,20,36,0.3) 78%), linear-gradient(180deg, rgba(8,16,28,0.06), rgba(8,16,28,0.18)), url(${GIFT_CARD_SHEET_URL}) ${position} / 500% 200% no-repeat`;
+      const asset = cosmeticAssetUrl('arena', key);
+      return asset
+        ? `url(${asset}) center/cover no-repeat`
+        : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))';
     }
 
     function giftThemePattern(theme) {
@@ -7114,8 +7099,6 @@ PAGE_TEMPLATE = """
                       <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '1px solid rgba(83,246,184,0.32)' : '1px solid rgba(121,217,255,0.18)'};"></div>
                       ${type === 'frame' && itemFrameAsset ? `<img src="${itemFrameAsset}" alt="" style="position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px); object-fit:contain;">` : ''}
                       ${type === 'guild' && itemGuildAsset ? `<img src="${itemGuildAsset}" alt="" style="position:absolute; inset:16px; width:calc(100% - 32px); height:calc(100% - 32px); object-fit:contain;">` : ''}
-                      ${type === 'cardback' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:66px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('cardback', item.key).emoji)}</div>` : ''}
-                      ${type === 'arena' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:72px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('arena', item.key).emoji)}</div>` : ''}
                       <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
                     </div>
                     <div class="actions" style="margin-top:10px;">
