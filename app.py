@@ -155,10 +155,15 @@ PACK_TYPES = {
 
 SEASON_PASS_TRACK = [
     {'level': 1, 'free': '💠 4 осколка', 'premium': 'Рамка Neon Pulse'},
-    {'level': 2, 'free': '🎟️ 1 редкий токен', 'premium': 'След Neon Sparks'},
-    {'level': 3, 'free': '✨ 1 lucky-токен', 'premium': 'Арена Gold Grid'},
-    {'level': 4, 'free': '💠 6 осколков', 'premium': 'Рубашка Tactical Black'},
-    {'level': 5, 'free': '🎟️ 1 редкий токен', 'premium': 'Титул 10K Vanguard'},
+    {'level': 2, 'free': None, 'premium': 'След Neon Sparks'},
+    {'level': 3, 'free': '🎟️ 1 редкий токен', 'premium': 'Арена Gold Grid'},
+    {'level': 4, 'free': None, 'premium': 'Рубашка Tactical Black'},
+    {'level': 5, 'free': '✨ 1 lucky-токен', 'premium': 'Титул 10K Vanguard'},
+    {'level': 6, 'free': None, 'premium': 'Рамка Obsidian Crest'},
+    {'level': 7, 'free': '💠 6 осколков', 'premium': 'След Solar Echo'},
+    {'level': 8, 'free': None, 'premium': 'Арена Midnight Dome'},
+    {'level': 9, 'free': '🎟️ 1 редкий токен', 'premium': 'Рубашка Chrome Veil'},
+    {'level': 10, 'free': None, 'premium': 'Знамя Guild Crown'},
 ]
 
 COSMETIC_CATALOG = [
@@ -166,6 +171,11 @@ COSMETIC_CATALOG = [
     {'key': 'trail_neon_sparks', 'type': 'trail', 'name': 'Neon Sparks', 'source': 'season_pass'},
     {'key': 'arena_gold_grid', 'type': 'arena', 'name': 'Gold Grid', 'source': 'season_pass'},
     {'key': 'cardback_tactical_black', 'type': 'cardback', 'name': 'Tactical Black', 'source': 'season_pass'},
+    {'key': 'frame_obsidian_crest', 'type': 'frame', 'name': 'Obsidian Crest', 'source': 'season_pass'},
+    {'key': 'trail_solar_echo', 'type': 'trail', 'name': 'Solar Echo', 'source': 'season_pass'},
+    {'key': 'arena_midnight_dome', 'type': 'arena', 'name': 'Midnight Dome', 'source': 'season_pass'},
+    {'key': 'cardback_chrome_veil', 'type': 'cardback', 'name': 'Chrome Veil', 'source': 'season_pass'},
+    {'key': 'guild_banner_crown', 'type': 'guild', 'name': 'Guild Crown', 'source': 'season_pass'},
     {'key': 'guild_banner_weekly', 'type': 'guild', 'name': 'Weekly War Banner', 'source': 'guild_reward'},
 ]
 
@@ -320,10 +330,17 @@ PAGE_TEMPLATE = """
       line-height: 1.6;
     }
 
-    .badge-row, .stepper, .stats-strip, .links-row {
+    .badge-row, .stats-strip, .links-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .stepper {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
     }
 
     .badge, .step-chip, .stat-chip, .market-link {
@@ -333,6 +350,14 @@ PAGE_TEMPLATE = """
       padding: 9px 14px;
       font-size: 14px;
       color: var(--muted);
+    }
+
+    .step-chip {
+      width: 100%;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .step-chip.active {
@@ -1654,6 +1679,11 @@ PAGE_TEMPLATE = """
       word-break: break-word;
     }
 
+    .arena-lane-card.simplified {
+      padding: 0;
+      display: block;
+    }
+
     .arena-lane-card.player {
       border-color: rgba(83, 246, 184, 0.4);
       box-shadow:
@@ -1736,10 +1766,27 @@ PAGE_TEMPLATE = """
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     }
 
+    .arena-lane-card.simplified .arena-action-sticker {
+      left: 50%;
+      top: 50%;
+      right: auto;
+      bottom: auto;
+      transform: translate(-50%, -50%);
+      width: 64px;
+      height: 64px;
+      opacity: 0.94;
+      background: rgba(7, 16, 28, 0.56);
+    }
+
     .arena-action-sticker svg {
       width: 18px;
       height: 18px;
       display: block;
+    }
+
+    .arena-lane-card.simplified .arena-action-sticker svg {
+      width: 32px;
+      height: 32px;
     }
 
     .arena-action-sticker span {
@@ -1748,6 +1795,10 @@ PAGE_TEMPLATE = """
       justify-content: center;
       font-size: 16px;
       line-height: 1;
+    }
+
+    .arena-lane-card.simplified .arena-action-sticker span {
+      font-size: 30px;
     }
 
     .arena-action-sticker.burst {
@@ -4289,7 +4340,7 @@ PAGE_TEMPLATE = """
         right: 8px;
         bottom: calc(8px + env(safe-area-inset-bottom));
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 8px;
         padding: 8px;
         border-radius: 18px;
@@ -4865,7 +4916,7 @@ PAGE_TEMPLATE = """
       right: 8px;
       bottom: calc(8px + env(safe-area-inset-bottom));
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 8px;
       padding: 8px;
       border-radius: 18px;
@@ -7029,9 +7080,9 @@ PAGE_TEMPLATE = """
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
       const clashCardWidth = compactClash ? 58 : 154;
       const clashCardHeight = compactClash ? 84 : 220;
-      const clashGap = compactClash ? 24 : 34;
-      const impactGap = compactClash ? 14 : 26;
-      const centerY = compactClash ? coreRect.height * 0.54 : coreRect.height * 0.62;
+      const clashGap = compactClash ? 18 : 24;
+      const impactGap = compactClash ? 10 : 16;
+      const centerY = compactClash ? coreRect.height * 0.5 : coreRect.height * 0.5;
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 50 : 14;
       const laneTop = laneRect.top - coreRect.top;
@@ -7046,20 +7097,20 @@ PAGE_TEMPLATE = """
       );
       const playerTargetLeft = laneTargetLeft;
       const enemyTargetLeft = laneTargetLeft;
-      const rawEnemyTargetTop = compactClash ? laneTopBound : (centerY - clashCardHeight - clashGap);
-      const rawPlayerTargetTop = compactClash ? (laneBottomBound - clashCardHeight) : (centerY + clashGap);
+      const rawEnemyTargetTop = compactClash ? Math.max(laneTopBound, centerY - clashCardHeight - clashGap) : (centerY - clashCardHeight - clashGap);
+      const rawPlayerTargetTop = compactClash ? Math.min(laneBottomBound - clashCardHeight, centerY + clashGap) : (centerY + clashGap);
       const enemyTargetTop = Math.max(laneTopBound, rawEnemyTargetTop);
       const playerTargetTop = Math.min(laneBottomBound - clashCardHeight, rawPlayerTargetTop);
       const playerAttack = playerActionKey === 'burst';
       const enemyAttack = opponentActionKey === 'burst';
-      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 10 : 24) : playerTargetTop;
-      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 24) : enemyTargetTop;
+      const playerPrepTop = playerAttack ? playerTargetTop - (compactClash ? 10 : 16) : playerTargetTop;
+      const enemyPrepTop = enemyAttack ? enemyTargetTop + (compactClash ? 10 : 16) : enemyTargetTop;
       const rawPlayerImpactTop = compactClash
-        ? Math.max(laneMidY + compactMidGap, playerTargetTop - (playerAttack ? 8 : 0))
-        : (centerY + impactGap + 18);
+        ? Math.max(laneMidY + compactMidGap, centerY + impactGap)
+        : (centerY + impactGap);
       const rawEnemyImpactTop = compactClash
-        ? Math.min(laneMidY - clashCardHeight - compactMidGap, enemyTargetTop + (enemyAttack ? 8 : 0))
-        : (centerY - clashCardHeight - impactGap - 6);
+        ? Math.min(laneMidY - clashCardHeight - compactMidGap, centerY - clashCardHeight - impactGap)
+        : (centerY - clashCardHeight - impactGap);
       const playerImpactTop = Math.min(laneBottomBound - clashCardHeight, rawPlayerImpactTop);
       const enemyImpactTop = Math.max(laneTopBound, rawEnemyImpactTop);
       const playerImpactScale = playerAttack ? (compactClash ? 1.03 : 1.08) : 1.01;
@@ -7087,6 +7138,8 @@ PAGE_TEMPLATE = """
       const enemySourceOpacity = enemySource.style.opacity;
       const playerClone = playerSource.cloneNode(true);
       playerClone.className = `${playerClone.className} arena-lane-card player ${playerActionKey}`.trim();
+      playerClone.classList.add('simplified');
+      playerClone.innerHTML = '';
       playerClone.style.visibility = 'visible';
       playerClone.style.opacity = '1';
       playerClone.style.left = `${playerRect.left - coreRect.left}px`;
@@ -7102,6 +7155,8 @@ PAGE_TEMPLATE = """
       playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
       const enemyClone = enemySource.cloneNode(true);
       enemyClone.className = `${enemyClone.className} arena-lane-card enemy ${opponentActionKey}`.trim();
+      enemyClone.classList.add('simplified');
+      enemyClone.innerHTML = '';
       enemyClone.style.visibility = 'visible';
       enemyClone.style.opacity = '1';
       enemyClone.style.left = `${enemyRect.left - coreRect.left}px`;
@@ -10960,6 +11015,13 @@ def confirm_season_pass_payment(payment_id, wallet, tx_hash=None):
         updated = conn.execute('SELECT * FROM season_pass_payments WHERE id = ?', (payment_id,)).fetchone()
     grant_cosmetic(wallet, 'frame_neon_pulse', 'season_pass')
     grant_cosmetic(wallet, 'trail_neon_sparks', 'season_pass')
+    grant_cosmetic(wallet, 'arena_gold_grid', 'season_pass')
+    grant_cosmetic(wallet, 'cardback_tactical_black', 'season_pass')
+    grant_cosmetic(wallet, 'frame_obsidian_crest', 'season_pass')
+    grant_cosmetic(wallet, 'trail_solar_echo', 'season_pass')
+    grant_cosmetic(wallet, 'arena_midnight_dome', 'season_pass')
+    grant_cosmetic(wallet, 'cardback_chrome_veil', 'season_pass')
+    grant_cosmetic(wallet, 'guild_banner_crown', 'season_pass')
     return dict(updated), reward_summary(wallet)
 
 
