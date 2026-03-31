@@ -1895,6 +1895,49 @@ PAGE_TEMPLATE = """
       box-shadow: 0 0 28px rgba(255, 211, 110, 0.2);
     }
 
+    .arena-clash-debug {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 14;
+      display: grid;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: rgba(4, 12, 22, 0.88);
+      color: rgba(224, 239, 255, 0.96);
+      font-size: 10px;
+      line-height: 1.25;
+      backdrop-filter: blur(10px);
+      max-width: min(280px, calc(100% - 24px));
+      pointer-events: none;
+    }
+
+    .arena-clash-debug strong {
+      color: #fff1c5;
+      font-size: 10px;
+    }
+
+    .arena-lane-card-debug {
+      position: absolute;
+      left: 6px;
+      top: 6px;
+      z-index: 15;
+      max-width: calc(100% - 12px);
+      padding: 3px 6px;
+      border-radius: 999px;
+      background: rgba(4, 12, 22, 0.78);
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      color: rgba(230, 240, 255, 0.95);
+      font-size: 9px;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      backdrop-filter: blur(8px);
+    }
+
     .arena-score-card {
       width: min(100%, 360px);
       display: grid;
@@ -7352,6 +7395,8 @@ PAGE_TEMPLATE = """
       const playerSourceOpacity = playerSource.style.opacity;
       const enemySourceVisibility = enemySource.style.visibility;
       const enemySourceOpacity = enemySource.style.opacity;
+      const playerSourceSide = playerSource.closest('.arena-rail')?.classList.contains('player') ? 'player-rail' : 'unknown';
+      const enemySourceSide = enemySource.closest('.arena-rail')?.classList.contains('enemy') ? 'enemy-rail' : 'unknown';
       const playerClone = playerSource.cloneNode(true);
       playerClone.className = `${playerClone.className} arena-lane-card player ${playerActionKey}`.trim();
       playerClone.classList.add('simplified');
@@ -7370,6 +7415,7 @@ PAGE_TEMPLATE = """
       playerClone.style.height = `${clashCardHeight}px`;
       playerClone.style.cssText += `;${battleCardStyle(playerCosmetics, 'player')}`;
       playerClone.style.zIndex = '3';
+      playerClone.insertAdjacentHTML('beforeend', `<div class="arena-lane-card-debug">PLAYER • slot ${playerActiveSlot} • ${playerActionKey} • ${playerSourceSide}</div>`);
       playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
       const enemyClone = enemySource.cloneNode(true);
       enemyClone.className = `${enemyClone.className} arena-lane-card enemy ${opponentActionKey}`.trim();
@@ -7383,6 +7429,7 @@ PAGE_TEMPLATE = """
       enemyClone.style.height = `${clashCardHeight}px`;
       enemyClone.style.cssText += `;${battleCardStyle(opponentCosmetics, 'enemy')}`;
       enemyClone.style.zIndex = '2';
+      enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-lane-card-debug">ENEMY • slot ${opponentActiveSlot} • ${opponentActionKey} • ${enemySourceSide}</div>`);
       enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
       playerSource.style.visibility = 'hidden';
       playerSource.style.opacity = '0';
@@ -7399,9 +7446,17 @@ PAGE_TEMPLATE = """
         impactNode.style.backgroundSize = 'cover, cover';
         impactNode.style.backgroundPosition = 'center, center';
       }
+      const debugNode = document.createElement('div');
+      debugNode.className = 'arena-clash-debug';
+      debugNode.innerHTML = `
+        <div><strong>PLAYER</strong> slot ${playerActiveSlot} • action ${playerActionKey} • source ${playerSourceSide}</div>
+        <div><strong>ENEMY</strong> slot ${opponentActiveSlot} • action ${opponentActionKey} • source ${enemySourceSide}</div>
+        <div><strong>TOP</strong> player ${Math.round(playerStartTop)} → ${Math.round(playerTargetTop)} • enemy ${Math.round(enemyStartTop)} → ${Math.round(enemyTargetTop)}</div>
+      `;
       laneReveal.appendChild(playerClone);
       laneReveal.appendChild(enemyClone);
       laneReveal.appendChild(impactNode);
+      laneReveal.appendChild(debugNode);
       arenaCore.appendChild(laneReveal);
       requestAnimationFrame(() => laneReveal.classList.add('visible'));
       const playerStartLeft = playerRect.left - coreRect.left;
