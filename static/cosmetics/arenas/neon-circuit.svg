@@ -1,0 +1,22 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#07131F"/>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <g opacity="0.4" stroke="#46D7FF" stroke-width="3">
+    <path d="M180 150H520V240H980V150H1420"/>
+    <path d="M220 730H620V640H980V730H1380"/>
+    <path d="M300 220V660"/>
+    <path d="M800 120V780"/>
+    <path d="M1300 220V660"/>
+  </g>
+  <circle cx="800" cy="450" r="210" fill="url(#glow)"/>
+  <defs>
+    <linearGradient id="g" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10253D"/>
+      <stop offset="1" stop-color="#08111D"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(800 450) rotate(90) scale(210)">
+      <stop stop-color="#46D7FF" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="#46D7FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

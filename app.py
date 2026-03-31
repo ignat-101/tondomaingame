@@ -6671,13 +6671,13 @@ PAGE_TEMPLATE = """
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
-              <div style="overflow-x:auto; padding-bottom:8px;">
+              <div style="overflow-x:auto; overflow-y:hidden; padding-bottom:8px; -webkit-overflow-scrolling:touch;">
                 <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(220px, 220px)); width:max-content;">${premiumRow}</div>
               </div>
             </div>
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
-              <div style="overflow-x:auto; padding-bottom:8px;">
+              <div style="overflow-x:auto; overflow-y:hidden; padding-bottom:8px; -webkit-overflow-scrolling:touch;">
                 <div class="catalog-grid" style="grid-template-columns:repeat(${Math.max(track.length, 1)}, minmax(220px, 220px)); width:max-content;">${freeRow}</div>
               </div>
             </div>
@@ -6696,6 +6696,33 @@ PAGE_TEMPLATE = """
       `;
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
+    }
+
+    function cosmeticAssetUrl(type, key) {
+      const safeKey = String(key || '').toLowerCase();
+      if (type === 'arena') {
+        if (safeKey.includes('gold') || safeKey.includes('solar')) return '/static/cosmetics/arenas/gold-grid.svg';
+        if (safeKey.includes('midnight') || safeKey.includes('void') || safeKey.includes('obsidian')) return '/static/cosmetics/arenas/midnight-dome.svg';
+        if (safeKey.includes('emerald')) return '/static/cosmetics/arenas/emerald-ruins.svg';
+        return '/static/cosmetics/arenas/neon-circuit.svg';
+      }
+      if (type === 'cardback') {
+        if (safeKey.includes('chrome')) return '/static/cosmetics/cardbacks/chrome-veil.svg';
+        if (safeKey.includes('gold')) return '/static/cosmetics/cardbacks/gold-script.svg';
+        if (safeKey.includes('glitch') || safeKey.includes('signal')) return '/static/cosmetics/cardbacks/glitch-matrix.svg';
+        return '/static/cosmetics/cardbacks/tactical-black.svg';
+      }
+      if (type === 'frame') {
+        if (safeKey.includes('obsidian') || safeKey.includes('void')) return '/static/cosmetics/frames/obsidian-crest.svg';
+        if (safeKey.includes('solar') || safeKey.includes('gold')) return '/static/cosmetics/frames/solar-forge.svg';
+        return '/static/cosmetics/frames/neon-pulse.svg';
+      }
+      if (type === 'trail') {
+        if (safeKey.includes('solar') || safeKey.includes('ember')) return '/static/cosmetics/trails/solar-echo.svg';
+        if (safeKey.includes('void') || safeKey.includes('ghost')) return '/static/cosmetics/trails/void-static.svg';
+        return '/static/cosmetics/trails/neon-sparks.svg';
+      }
+      return '';
     }
 
     function renderCosmeticsPanel() {
@@ -6723,6 +6750,11 @@ PAGE_TEMPLATE = """
       const featuredFrame = (catalogByType.frame || []).find((item) => item.key === (equipped.frame && equipped.frame.key)) || cosmetics.find((item) => item.type === 'frame') || (catalogByType.frame || [])[0] || null;
       const featuredTrail = (catalogByType.trail || []).find((item) => item.key === (equipped.trail && equipped.trail.key)) || cosmetics.find((item) => item.type === 'trail') || (catalogByType.trail || [])[0] || null;
       const featuredBack = (catalogByType.cardback || []).find((item) => item.key === (equipped.cardback && equipped.cardback.key)) || cosmetics.find((item) => item.type === 'cardback') || (catalogByType.cardback || [])[0] || null;
+      const compactPreview = document.body.classList.contains('tma-app') || window.innerWidth <= 760;
+      const arenaAsset = cosmeticAssetUrl('arena', featuredArena && featuredArena.key);
+      const frameAsset = cosmeticAssetUrl('frame', featuredFrame && featuredFrame.key);
+      const trailAsset = cosmeticAssetUrl('trail', featuredTrail && featuredTrail.key);
+      const backAsset = cosmeticAssetUrl('cardback', featuredBack && featuredBack.key);
       const visibleCatalogByType = Object.fromEntries(Object.entries(catalogByType).map(([type, items]) => [
         type,
         state.showAllCosmetics ? items : items.filter((item) => unlockedKeys.has(item.key)),
@@ -6743,13 +6775,13 @@ PAGE_TEMPLATE = """
       profileCosmeticsPanel.innerHTML = `
         <div class="user-item" style="margin-bottom:14px;">
           <strong>Предпросмотр</strong>
-          <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:minmax(180px, 240px) minmax(0, 1fr); gap:22px; align-items:center; background:${featuredArena && featuredArena.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.22), rgba(8,20,36,0.94))' : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))'};">
+          <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:${compactPreview ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)'}; gap:22px; align-items:center; overflow:hidden; background:${arenaAsset ? `linear-gradient(180deg, rgba(5,16,30,0.64), rgba(5,16,30,0.88)), url(${arenaAsset}) center/cover no-repeat` : (featuredArena && featuredArena.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.22), rgba(8,20,36,0.94))' : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))')};">
             <div style="position:relative; width:190px; height:220px; margin:0 auto;">
-              ${featuredTrail ? '<div style="position:absolute; width:160px; height:14px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(188,126,255,0.95), rgba(255,255,255,0.0)); top:12px; left:16px; transform:rotate(-15deg);"></div>' : ''}
-              <div style="position:absolute; left:22px; top:34px; width:120px; height:168px; border-radius:18px; background:linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98)); border:${featuredFrame ? '2px solid rgba(83,246,184,0.78)' : '1px solid rgba(121,217,255,0.18)'}; box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
-              ${featuredBack ? '<div style="position:absolute; left:40px; top:52px; width:84px; height:128px; border-radius:12px; background:repeating-linear-gradient(135deg, rgba(255,211,110,0.18), rgba(255,211,110,0.18) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px);"></div>' : ''}
+              ${featuredTrail ? `<img src="${trailAsset}" alt="" style="position:absolute; width:170px; height:34px; top:4px; left:8px; object-fit:contain; transform:rotate(-14deg); opacity:0.98;">` : ''}
+              <div style="position:absolute; left:22px; top:34px; width:120px; height:168px; border-radius:18px; background:${backAsset ? `linear-gradient(180deg, rgba(10,18,30,0.66), rgba(10,18,30,0.8)), url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))'}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
+              ${featuredFrame ? `<img src="${frameAsset}" alt="" style="position:absolute; left:14px; top:26px; width:136px; height:184px; object-fit:contain;">` : ''}
             </div>
-            <div style="display:grid; gap:12px; align-content:center;">
+            <div style="display:grid; gap:12px; align-content:center; min-width:0;">
               <div class="summary-chip-row">${previewMetaMarkup}</div>
               <div class="tiny">Открыто: ${cosmetics.length} • Всего вариантов: ${cosmeticCatalog.length}</div>
               <div class="tiny">Ниже показан полный каталог косметики по категориям. Закрытые варианты отображаются отдельно от уже открытых.</div>
@@ -6766,15 +6798,19 @@ PAGE_TEMPLATE = """
               ${items.map((item) => {
                 const unlocked = unlockedKeys.has(item.key);
                 const equippedNow = equipped[type] && equipped[type].key === item.key;
+                const itemArenaAsset = cosmeticAssetUrl('arena', item.key);
+                const itemFrameAsset = cosmeticAssetUrl('frame', item.key);
+                const itemTrailAsset = cosmeticAssetUrl('trail', item.key);
+                const itemBackAsset = cosmeticAssetUrl('cardback', item.key);
                 return `
                   <article class="catalog-card skill-card" style="padding:14px; opacity:${unlocked ? '1' : '0.62'};">
                     <div class="catalog-kicker">${escapeHtml(typeLabel[type] || type)}</div>
                     <strong>${escapeHtml(item.name)}</strong>
                     <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')}</div>
-                    <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.18), rgba(8,20,36,0.92))' : type === 'frame' ? 'linear-gradient(180deg, rgba(83,246,184,0.14), rgba(8,20,36,0.92))' : type === 'trail' ? 'linear-gradient(180deg, rgba(188,126,255,0.18), rgba(8,20,36,0.92))' : type === 'guild' ? 'linear-gradient(180deg, rgba(255,122,134,0.16), rgba(8,20,36,0.92))' : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
-                      <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '2px solid rgba(83,246,184,0.72)' : '1px solid rgba(121,217,255,0.18)'};"></div>
-                      ${type === 'trail' ? '<div style="position:absolute; width:72px; height:10px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(188,126,255,0.95), rgba(255,255,255,0.0)); top:42px; left:20px; transform:rotate(-18deg);"></div>' : ''}
-                      ${type === 'cardback' ? '<div style="position:absolute; inset:26px 30px; border-radius:10px; background:repeating-linear-gradient(135deg, rgba(255,211,110,0.18), rgba(255,211,110,0.18) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px);"></div>' : ''}
+                    <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' && itemArenaAsset ? `linear-gradient(180deg, rgba(8,20,36,0.45), rgba(8,20,36,0.84)), url(${itemArenaAsset}) center/cover no-repeat` : type === 'cardback' && itemBackAsset ? `linear-gradient(180deg, rgba(8,20,36,0.45), rgba(8,20,36,0.84)), url(${itemBackAsset}) center/cover no-repeat` : type === 'trail' ? 'linear-gradient(180deg, rgba(188,126,255,0.18), rgba(8,20,36,0.92))' : type === 'guild' ? 'linear-gradient(180deg, rgba(255,122,134,0.16), rgba(8,20,36,0.92))' : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
+                      <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '1px solid rgba(83,246,184,0.32)' : '1px solid rgba(121,217,255,0.18)'};"></div>
+                      ${type === 'frame' && itemFrameAsset ? `<img src="${itemFrameAsset}" alt="" style="position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px); object-fit:contain;">` : ''}
+                      ${type === 'trail' && itemTrailAsset ? `<img src="${itemTrailAsset}" alt="" style="position:absolute; width:92px; height:18px; top:38px; left:8px; object-fit:contain; transform:rotate(-18deg);">` : ''}
                       ${type === 'guild' ? '<div style="position:absolute; inset:26px 24px; border-radius:10px; background:linear-gradient(135deg, rgba(255,122,134,0.22), rgba(255,211,110,0.18));"></div>' : ''}
                       <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
                     </div>
@@ -7164,36 +7200,35 @@ PAGE_TEMPLATE = """
 
     function battleArenaBackground(cosmetics) {
       const arenaKey = (((cosmetics || {}).arena || {}).key || '');
-      if (arenaKey.includes('gold') || arenaKey.includes('solar')) {
-        return 'radial-gradient(circle at center, rgba(255,211,110,0.14), rgba(8,20,36,0.96))';
-      }
-      if (arenaKey.includes('midnight') || arenaKey.includes('void') || arenaKey.includes('obsidian')) {
-        return 'radial-gradient(circle at center, rgba(124,126,255,0.12), rgba(8,20,36,0.98))';
-      }
-      if (arenaKey.includes('emerald')) {
-        return 'radial-gradient(circle at center, rgba(83,246,184,0.14), rgba(8,20,36,0.96))';
-      }
-      if (arenaKey.includes('crimson')) {
-        return 'radial-gradient(circle at center, rgba(255,122,134,0.14), rgba(8,20,36,0.96))';
-      }
-      return 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.96))';
+      const asset = cosmeticAssetUrl('arena', arenaKey);
+      const tint = arenaKey.includes('gold') || arenaKey.includes('solar')
+        ? 'rgba(255,211,110,0.16)'
+        : arenaKey.includes('midnight') || arenaKey.includes('void') || arenaKey.includes('obsidian')
+          ? 'rgba(124,126,255,0.14)'
+          : arenaKey.includes('emerald')
+            ? 'rgba(83,246,184,0.16)'
+            : arenaKey.includes('crimson')
+              ? 'rgba(255,122,134,0.16)'
+              : 'rgba(69,215,255,0.14)';
+      return asset
+        ? `linear-gradient(180deg, rgba(5,14,26,0.56), rgba(5,14,26,0.86)), radial-gradient(circle at center, ${tint}, rgba(8,20,36,0.96) 72%), url(${asset}) center/cover no-repeat`
+        : `radial-gradient(circle at center, ${tint}, rgba(8,20,36,0.96) 72%)`;
     }
 
     function battleCardStyle(cosmetics, side = 'player') {
       const frameKey = (((cosmetics || {}).frame || {}).key || '');
       const backKey = (((cosmetics || {}).cardback || {}).key || '');
+      const frameAsset = cosmeticAssetUrl('frame', frameKey);
+      const backAsset = cosmeticAssetUrl('cardback', backKey);
       let border = side === 'player' ? 'rgba(83,246,184,0.34)' : 'rgba(255,122,134,0.3)';
       if (frameKey.includes('gold') || frameKey.includes('solar')) border = 'rgba(255,211,110,0.42)';
       if (frameKey.includes('void') || frameKey.includes('obsidian')) border = 'rgba(174,126,255,0.38)';
       if (frameKey.includes('crimson')) border = 'rgba(255,122,134,0.42)';
-      const back = backKey.includes('chrome') || backKey.includes('gold')
-        ? 'repeating-linear-gradient(135deg, rgba(255,211,110,0.14), rgba(255,211,110,0.14) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px)'
-        : backKey.includes('glitch') || backKey.includes('signal')
-          ? 'repeating-linear-gradient(90deg, rgba(69,215,255,0.14), rgba(69,215,255,0.14) 5px, rgba(8,20,36,0.0) 5px, rgba(8,20,36,0.0) 10px)'
-          : backKey.includes('ember') || backKey.includes('crimson')
-            ? 'repeating-linear-gradient(135deg, rgba(255,122,134,0.14), rgba(255,122,134,0.14) 6px, rgba(8,20,36,0.0) 6px, rgba(8,20,36,0.0) 12px)'
-            : 'linear-gradient(180deg, rgba(10,18,30,0.98), rgba(8,16,29,0.98))';
-      return `border-color:${border}; background:${back};`;
+      const base = backAsset
+        ? `linear-gradient(180deg, rgba(10,18,30,0.66), rgba(8,16,29,0.8)), url(${backAsset}) center/cover no-repeat`
+        : 'linear-gradient(180deg, rgba(10,18,30,0.98), rgba(8,16,29,0.98))';
+      const frameLayer = frameAsset ? `, url(${frameAsset}) center/100% 100% no-repeat` : '';
+      return `border-color:${border}; background:${base}${frameLayer};`;
     }
 
     function battleTrailStyle(cosmetics) {
@@ -7269,20 +7304,17 @@ PAGE_TEMPLATE = """
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
       const playerCosmetics = (currentResult && currentResult.player_cosmetics) || {};
       const opponentCosmetics = (currentResult && currentResult.opponent_cosmetics) || {};
-      const clashCardWidth = compactClash ? 58 : 154;
-      const clashCardHeight = compactClash ? 84 : 220;
-      const clashGap = compactClash ? 34 : 46;
-      const impactGap = compactClash ? 20 : 28;
+      const clashCardWidth = compactClash ? 54 : 122;
+      const clashCardHeight = compactClash ? 78 : 176;
+      const clashGap = compactClash ? 18 : 24;
+      const impactGap = compactClash ? 12 : 16;
       const clashLanePadding = compactClash ? 6 : 10;
       const verticalPadding = compactClash ? 50 : 14;
       const laneTop = laneRect.top - coreRect.top;
       const laneBottom = laneRect.bottom - coreRect.top;
       const laneTopBound = compactClash ? Math.max(verticalPadding, laneTop + 10) : verticalPadding;
       const laneBottomBound = compactClash ? Math.min(coreRect.height - verticalPadding, laneBottom - 10) : (coreRect.height - verticalPadding);
-      const laneMidY = Math.max(
-        laneTopBound + clashCardHeight + clashGap / 2,
-        Math.min((laneTopBound + laneBottomBound) / 2, laneBottomBound - clashCardHeight - clashGap / 2)
-      );
+      const laneMidY = (laneTopBound + laneBottomBound) / 2;
       const laneTargetLeft = Math.max(
         clashLanePadding,
         Math.min(laneCenter - clashCardWidth / 2, coreRect.width - clashCardWidth - clashLanePadding)
@@ -7361,6 +7393,12 @@ PAGE_TEMPLATE = """
       impactNode.style.left = `${laneTargetLeft + clashCardWidth / 2}px`;
       impactNode.style.top = `${impactCenterY}px`;
       impactNode.style.boxShadow = `0 0 0 18px ${battleTrailStyle(playerCosmetics)}22, 0 0 48px ${battleTrailStyle(playerCosmetics)}55`;
+      const impactTrailAsset = cosmeticAssetUrl('trail', (((playerCosmetics || {}).trail || {}).key || ''));
+      if (impactTrailAsset) {
+        impactNode.style.backgroundImage = `radial-gradient(circle, rgba(216, 228, 255, 0.22), rgba(216, 228, 255, 0.02) 68%), url(${impactTrailAsset})`;
+        impactNode.style.backgroundSize = 'cover, cover';
+        impactNode.style.backgroundPosition = 'center, center';
+      }
       laneReveal.appendChild(playerClone);
       laneReveal.appendChild(enemyClone);
       laneReveal.appendChild(impactNode);
