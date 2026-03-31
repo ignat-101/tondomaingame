@@ -1906,12 +1906,13 @@ PAGE_TEMPLATE = """
     }
 
     .season-pass-scroll {
+      display: block;
       overflow-x: auto;
       overflow-y: hidden;
       width: 100%;
       max-width: 100%;
       padding-bottom: 8px;
-      padding-inline: 2px;
+      padding-inline: 0;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x;
       scroll-snap-type: x proximity;
@@ -1923,7 +1924,7 @@ PAGE_TEMPLATE = """
     .season-pass-track {
       display: grid;
       grid-auto-flow: column;
-      grid-auto-columns: clamp(186px, 32vw, 220px);
+      grid-auto-columns: clamp(216px, 30vw, 260px);
       gap: 12px;
       width: max-content;
     }
@@ -4345,7 +4346,7 @@ PAGE_TEMPLATE = """
       }
 
       .season-pass-track {
-        grid-auto-columns: min(82vw, 186px);
+        grid-auto-columns: min(78vw, 248px);
       }
 
       .hero,
@@ -6771,8 +6772,8 @@ PAGE_TEMPLATE = """
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
               <div class="actions" style="margin-bottom:8px;">
-                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="-1" onclick="scrollSeasonPassTrack('premium', -1)">←</button>
-                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="1" onclick="scrollSeasonPassTrack('premium', 1)">→</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="-1">←</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="1">→</button>
               </div>
               <div class="season-pass-scroll" data-pass-track="premium">
                 <div class="season-pass-track">${premiumRow}</div>
@@ -6781,8 +6782,8 @@ PAGE_TEMPLATE = """
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
               <div class="actions" style="margin-bottom:8px;">
-                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="-1" onclick="scrollSeasonPassTrack('free', -1)">←</button>
-                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="1" onclick="scrollSeasonPassTrack('free', 1)">→</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="-1">←</button>
+                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="1">→</button>
               </div>
               <div class="season-pass-scroll" data-pass-track="free">
                 <div class="season-pass-track">${freeRow}</div>
@@ -6805,6 +6806,9 @@ PAGE_TEMPLATE = """
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
       });
+      achievementsList.querySelectorAll('.season-pass-nav').forEach((button) => {
+        bindFunctionalControl(button, () => scrollSeasonPassTrack(button.dataset.passTarget, Number(button.dataset.dir || 0)));
+      });
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
     }
@@ -6820,6 +6824,19 @@ PAGE_TEMPLATE = """
       satin_gold: { name: 'Satin Gold', emoji: '✨', base: '#8B6D1B', secondary: '#BF9830', accent: '#FFE08A', glow: 'rgba(255,224,138,0.3)', text: '#FFF7DE', motif: 'gems' },
       old_gold: { name: 'Old Gold', emoji: '👑', base: '#6C5520', secondary: '#8E7330', accent: '#D5BA63', glow: 'rgba(213,186,99,0.28)', text: '#FFF6DD', motif: 'crown' },
       neon_blue: { name: 'Neon Blue', emoji: '💠', base: '#0E2F7B', secondary: '#1747B7', accent: '#6CD8FF', glow: 'rgba(108,216,255,0.3)', text: '#F1F9FF', motif: 'grid' },
+    };
+    const GIFT_CARD_SHEET_URL = '/static/cosmetics/cardbacks/gift-cardbacks-sheet.png';
+    const GIFT_CARD_SHEET_POSITIONS = {
+      black: '0% 0%',
+      onyx_black: '25% 0%',
+      ivory_white: '50% 0%',
+      midnight_blue: '75% 0%',
+      fire_engine: '100% 0%',
+      khaki_green: '0% 100%',
+      deep_cyan: '25% 100%',
+      satin_gold: '50% 100%',
+      old_gold: '75% 100%',
+      neon_blue: '100% 100%',
     };
 
     function escapeSvg(text) {
@@ -6842,6 +6859,19 @@ PAGE_TEMPLATE = """
 
     function cosmeticTheme(type, key) {
       return GIFT_THEMES[themeSlugFromKey(key)] || GIFT_THEMES.black;
+    }
+
+    function giftCardbackSurface(key) {
+      const slug = themeSlugFromKey(key);
+      const position = GIFT_CARD_SHEET_POSITIONS[slug] || '0% 0%';
+      return `url(${GIFT_CARD_SHEET_URL}) ${position} / 500% 200% no-repeat`;
+    }
+
+    function giftArenaSurface(key) {
+      const theme = cosmeticTheme('arena', key);
+      const slug = themeSlugFromKey(key);
+      const position = GIFT_CARD_SHEET_POSITIONS[slug] || '0% 0%';
+      return `radial-gradient(circle at center, ${theme.glow.replace(/0\\.\\d+\\)/, '0.22)')}, rgba(8,20,36,0.16) 44%, rgba(8,20,36,0.3) 78%), linear-gradient(180deg, rgba(8,16,28,0.06), rgba(8,16,28,0.18)), url(${GIFT_CARD_SHEET_URL}) ${position} / 500% 200% no-repeat`;
     }
 
     function giftThemePattern(theme) {
@@ -7047,10 +7077,10 @@ PAGE_TEMPLATE = """
       profileCosmeticsPanel.innerHTML = `
         <div class="user-item" style="margin-bottom:14px;">
           <strong>Предпросмотр</strong>
-          <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:${compactPreview ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)'}; gap:22px; align-items:center; overflow:hidden; background:${arenaAsset ? `url(${arenaAsset}) center/cover no-repeat` : (featuredArena && featuredArena.type === 'arena' ? 'radial-gradient(circle at center, rgba(255,211,110,0.22), rgba(8,20,36,0.94))' : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))')};">
+          <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:${compactPreview ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)'}; gap:22px; align-items:center; overflow:hidden; background:${featuredArena ? giftArenaSurface(featuredArena.key) : (arenaAsset ? `url(${arenaAsset}) center/cover no-repeat` : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))')};">
             <div style="position:relative; width:190px; height:220px; margin:0 auto;">
               ${featuredGuild ? `<img src="${guildAsset}" alt="" style="position:absolute; right:-4px; top:0; width:92px; height:58px; object-fit:contain; opacity:0.96;">` : ''}
-              <div style="position:absolute; left:22px; top:34px; width:120px; height:168px; border-radius:18px; background:${backAsset ? `url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))'}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
+              <div style="position:absolute; left:22px; top:34px; width:120px; height:168px; border-radius:18px; background:${featuredBack ? giftCardbackSurface(featuredBack.key) : (backAsset ? `url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))')}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
               ${featuredFrame ? `<img src="${frameAsset}" alt="" style="position:absolute; left:14px; top:26px; width:136px; height:184px; object-fit:contain;">` : ''}
             </div>
             <div style="display:grid; gap:12px; align-content:center; min-width:0;">
@@ -7080,12 +7110,12 @@ PAGE_TEMPLATE = """
                     <div class="catalog-kicker">${escapeHtml(typeLabel[type] || type)}</div>
                     <strong>${escapeHtml(item.name)}</strong>
                     <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')}</div>
-                    <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' && itemArenaAsset ? `url(${itemArenaAsset}) center/cover no-repeat` : type === 'cardback' && itemBackAsset ? `url(${itemBackAsset}) center/cover no-repeat` : type === 'guild' && itemGuildAsset ? `url(${itemGuildAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
+                      <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' ? giftArenaSurface(item.key) : type === 'cardback' ? giftCardbackSurface(item.key) : type === 'guild' && itemGuildAsset ? `url(${itemGuildAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
                       <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '1px solid rgba(83,246,184,0.32)' : '1px solid rgba(121,217,255,0.18)'};"></div>
                       ${type === 'frame' && itemFrameAsset ? `<img src="${itemFrameAsset}" alt="" style="position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px); object-fit:contain;">` : ''}
                       ${type === 'guild' && itemGuildAsset ? `<img src="${itemGuildAsset}" alt="" style="position:absolute; inset:16px; width:calc(100% - 32px); height:calc(100% - 32px); object-fit:contain;">` : ''}
-                      ${type === 'cardback' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:48px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('cardback', item.key).emoji)}</div>` : ''}
-                      ${type === 'arena' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:50px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('arena', item.key).emoji)}</div>` : ''}
+                      ${type === 'cardback' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:66px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('cardback', item.key).emoji)}</div>` : ''}
+                      ${type === 'arena' ? `<div style="position:absolute; inset:0; display:grid; place-items:center; font-size:72px; text-shadow:0 4px 18px rgba(0,0,0,0.45);">${escapeHtml(cosmeticTheme('arena', item.key).emoji)}</div>` : ''}
                       <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
                     </div>
                     <div class="actions" style="margin-top:10px;">
@@ -7531,9 +7561,11 @@ PAGE_TEMPLATE = """
     function battleArenaBackground(cosmetics) {
       const arenaKey = (((cosmetics || {}).arena || {}).key || '');
       const asset = cosmeticAssetUrl('arena', arenaKey);
-      return asset
-        ? `url(${asset}) center/cover no-repeat`
-        : `radial-gradient(circle at center, rgba(69,215,255,0.14), rgba(8,20,36,0.96) 72%)`;
+      return arenaKey
+        ? giftArenaSurface(arenaKey)
+        : (asset
+          ? `url(${asset}) center/cover no-repeat`
+          : `radial-gradient(circle at center, rgba(69,215,255,0.14), rgba(8,20,36,0.96) 72%)`);
     }
 
     function battleCardStyle(cosmetics, side = 'player') {
@@ -7565,9 +7597,11 @@ PAGE_TEMPLATE = """
       } else if (backKey.includes('tactical') || backKey.includes('black')) {
         glow = 'rgba(255,186,108,0.18)';
       }
-      const base = backAsset
-        ? `url(${backAsset}) center/cover no-repeat`
-        : 'linear-gradient(180deg, rgba(10,18,30,0.98), rgba(8,16,29,0.98))';
+      const base = backKey
+        ? giftCardbackSurface(backKey)
+        : (backAsset
+          ? `url(${backAsset}) center/cover no-repeat`
+          : 'linear-gradient(180deg, rgba(10,18,30,0.98), rgba(8,16,29,0.98))');
       const frameLayer = frameAsset ? `, url(${frameAsset}) center/100% 100% no-repeat` : '';
       return `border-color:${border}; background:${base}${frameLayer}; box-shadow:0 0 0 1px ${border}, 0 16px 32px ${glow}, inset 0 0 0 1px rgba(255,255,255,0.03); filter:saturate(1.12) contrast(1.04);`;
     }
@@ -7575,13 +7609,15 @@ PAGE_TEMPLATE = """
     window.scrollSeasonPassTrack = function scrollSeasonPassTrack(target, dir) {
       const scroller = achievementsList ? achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`) : null;
       if (!scroller || !dir) return;
-      const step = Math.max(160, Math.floor(scroller.clientWidth * 0.82));
+      const track = scroller.querySelector('.season-pass-track');
+      const firstCard = track ? track.firstElementChild : null;
+      const gap = track ? parseFloat(window.getComputedStyle(track).columnGap || window.getComputedStyle(track).gap || '12') : 12;
+      const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : 0;
+      const step = Math.max(cardWidth + gap, Math.floor(scroller.clientWidth * 0.92), 220);
       const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
       const nextLeft = Math.max(0, Math.min(maxLeft, scroller.scrollLeft + Number(dir) * step));
       if (typeof scroller.scrollTo === 'function') {
         scroller.scrollTo({ left: nextLeft, behavior: 'smooth' });
-      } else if (typeof scroller.scrollBy === 'function') {
-        scroller.scrollBy({ left: Number(dir) * step, behavior: 'smooth' });
       } else {
         scroller.scrollLeft = nextLeft;
       }
