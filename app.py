@@ -167,14 +167,14 @@ COSMETIC_THEME_DEFS = [
 ]
 
 SEASON_PASS_TRACK = [
-    {'level': 1, 'free': '💠 4 осколка', 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 2, 'free': None, 'premium_reward': {'kind': 'currency', 'label': '💠 8 осколков', 'pack_shards': 8}},
-    {'level': 3, 'free': '🎟️ 1 редкий токен', 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 4, 'free': None, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
-    {'level': 5, 'free': '✨ 1 lucky-токен', 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 6, 'free': None, 'premium_reward': {'kind': 'currency', 'label': '✨ 2 lucky-токена', 'lucky_tokens': 2}},
-    {'level': 7, 'free': '💠 6 осколков', 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 8, 'free': None, 'premium_reward': {'kind': 'currency', 'label': '💠 12 осколков • 🎟️ 1 токен', 'pack_shards': 12, 'rare_tokens': 1}},
+    {'level': 1, 'free_reward': {'kind': 'currency', 'label': '💠 4 осколка', 'pack_shards': 4}, 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 2, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '💠 8 осколков', 'pack_shards': 8}},
+    {'level': 3, 'free_reward': {'kind': 'currency', 'label': '🎟️ 1 редкий токен', 'rare_tokens': 1}, 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 4, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
+    {'level': 5, 'free_reward': {'kind': 'currency', 'label': '✨ 1 lucky-токен', 'lucky_tokens': 1}, 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 6, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '✨ 2 lucky-токена', 'lucky_tokens': 2}},
+    {'level': 7, 'free_reward': {'kind': 'currency', 'label': '💠 6 осколков', 'pack_shards': 6}, 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 8, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '💠 12 осколков • 🎟️ 1 токен', 'pack_shards': 12, 'rare_tokens': 1}},
 ]
 
 
@@ -6721,14 +6721,20 @@ PAGE_TEMPLATE = """
         <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:${rewardTone(item.premium)}; border-color:rgba(255, 211, 110, 0.28); min-width:220px;">
           <div class="catalog-kicker">Премиум • ур. ${item.level}</div>
           <strong>${item.premium ? escapeHtml(item.premium) : 'Нет награды'}</strong>
-          <div class="tiny">${item.premium_ready ? 'Доступно' : 'Закрыто'}</div>
+          <div class="tiny">${item.premium_claimed ? 'Получено' : (item.premium_claimable ? 'Можно забрать' : (item.premium_ready ? 'Доступно' : 'Закрыто'))}</div>
+          <div class="actions" style="margin-top:auto;">
+            <button type="button" class="secondary season-pass-claim-btn" data-pass-claim="premium" data-level="${item.level}"${item.premium_claimable ? '' : ' disabled'}>${item.premium_claimed ? 'Получено' : 'Забрать'}</button>
+          </div>
         </article>
       `).join('');
       const freeRow = track.map((item) => `
         <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:${rewardTone(item.free)}; min-width:220px;">
           <div class="catalog-kicker">Бесплатно • ур. ${item.level}</div>
           <strong>${item.free ? escapeHtml(item.free) : 'Нет награды'}</strong>
-          <div class="tiny">${item.free_ready ? 'Доступно' : 'Закрыто'}</div>
+          <div class="tiny">${item.free_claimed ? 'Получено' : (item.free_claimable ? 'Можно забрать' : (item.free_ready ? 'Доступно' : 'Закрыто'))}</div>
+          <div class="actions" style="margin-top:auto;">
+            <button type="button" class="secondary season-pass-claim-btn" data-pass-claim="free" data-level="${item.level}"${item.free_claimable ? '' : ' disabled'}>${item.free_claimed ? 'Получено' : 'Забрать'}</button>
+          </div>
         </article>
       `).join('');
       const passMarkup = `
@@ -6777,8 +6783,14 @@ PAGE_TEMPLATE = """
           const dir = Number(button.dataset.dir || 0);
           const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
           if (!scroller || !dir) return;
-          scroller.scrollBy({left: dir * 260, behavior: 'smooth'});
+          const step = Math.max(220, Math.floor(scroller.clientWidth * 0.72));
+          const nextLeft = Math.max(0, scroller.scrollLeft + dir * step);
+          scroller.scrollTo({left: nextLeft, behavior: 'smooth'});
         });
+      });
+      achievementsList.querySelectorAll('.season-pass-claim-btn').forEach((button) => {
+        if (button.disabled) return;
+        bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
       });
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
@@ -7092,6 +7104,19 @@ PAGE_TEMPLATE = """
       });
       state.playerProfile = data.player || state.playerProfile;
       renderProfile();
+    }
+
+    async function claimSeasonPassReward(level, tier) {
+      if (!state.wallet || !level || !tier) return;
+      const data = await api('/api/rewards/season-pass-claim', {
+        method: 'POST',
+        body: { wallet: state.wallet, level: Number(level), tier }
+      });
+      if (state.playerProfile) {
+        state.playerProfile.rewards = data.rewards || state.playerProfile.rewards;
+      }
+      renderProfile();
+      if (typeof renderWalletPanel === 'function') renderWalletPanel();
     }
 
     function renderFaqPanel() {
@@ -10389,6 +10414,13 @@ def init_db():
                 created_at TEXT NOT NULL,
                 confirmed_at TEXT
             );
+            CREATE TABLE IF NOT EXISTS season_pass_claims (
+                wallet TEXT NOT NULL,
+                reward_tier TEXT NOT NULL,
+                level INTEGER NOT NULL,
+                claimed_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, reward_tier, level)
+            );
             CREATE TABLE IF NOT EXISTS tutorial_progress (
                 wallet TEXT PRIMARY KEY,
                 started_at TEXT,
@@ -10623,6 +10655,13 @@ def ensure_runtime_tables():
                 tx_hash TEXT,
                 created_at TEXT NOT NULL,
                 confirmed_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS season_pass_claims (
+                wallet TEXT NOT NULL,
+                reward_tier TEXT NOT NULL,
+                level INTEGER NOT NULL,
+                claimed_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, reward_tier, level)
             );
             CREATE TABLE IF NOT EXISTS tutorial_progress (
                 wallet TEXT PRIMARY KEY,
@@ -11121,47 +11160,124 @@ def season_pass_random_cosmetic_pack_item(wallet, level):
     return pool[index]
 
 
-def apply_season_pass_unlocks(wallet, rewards=None):
-    rewards = rewards or ensure_player_rewards(wallet)
-    premium_active = bool(int(rewards.get('premium_pass', 0) or 0))
-    if not premium_active:
-        return
+def season_pass_claimed_levels(wallet):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            'SELECT reward_tier, level FROM season_pass_claims WHERE wallet = ?',
+            (wallet,),
+        ).fetchall()
+    claimed = {'free': set(), 'premium': set()}
+    for row in rows:
+        tier = str(row['reward_tier'] or '').strip().lower()
+        if tier in claimed:
+            claimed[tier].add(int(row['level'] or 0))
+    return claimed
+
+
+def season_pass_reward_descriptor(wallet, level, reward_tier):
+    item = next((entry for entry in SEASON_PASS_TRACK if int(entry['level']) == int(level)), None)
+    if not item:
+        raise ValueError('Уровень пропуска не найден.')
+    tier = str(reward_tier or '').strip().lower()
+    if tier not in {'free', 'premium'}:
+        raise ValueError('Неизвестный тип награды пропуска.')
+    reward = dict(item.get(f'{tier}_reward') or {})
+    if not reward:
+        return {'level': int(level), 'tier': tier, 'reward': None, 'label': 'Нет награды'}
+    if reward.get('kind') == 'cosmetic_pack':
+        reward_meta = season_pass_random_cosmetic_pack_item(wallet, level)
+        return {
+            'level': int(level),
+            'tier': tier,
+            'reward': reward,
+            'label': 'Случайная косметика',
+            'reward_meta': reward_meta,
+        }
+    return {
+        'level': int(level),
+        'tier': tier,
+        'reward': reward,
+        'label': reward.get('label') or 'Награда',
+        'reward_meta': None,
+    }
+
+
+def claim_season_pass_reward(wallet, level, reward_tier):
+    rewards = ensure_player_rewards(wallet)
+    descriptor = season_pass_reward_descriptor(wallet, level, reward_tier)
+    reward = descriptor.get('reward')
+    if not reward:
+        raise ValueError('На этом уровне нет награды.')
+    tier = descriptor['tier']
+    level = int(descriptor['level'])
     season_level = int(rewards.get('season_level', 1) or 1)
-    for item in SEASON_PASS_TRACK:
-        if season_level < int(item['level']):
-            continue
-        premium_reward = dict(item.get('premium_reward') or {})
-        if premium_reward.get('kind') != 'cosmetic_pack':
-            continue
-        cosmetic = season_pass_random_cosmetic_pack_item(wallet, item['level'])
-        if cosmetic:
-            grant_cosmetic(wallet, cosmetic['key'], 'season_pass')
+    if season_level < level:
+        raise ValueError('Этот уровень пропуска ещё не открыт.')
+    if tier == 'premium' and not bool(int(rewards.get('premium_pass', 0) or 0)):
+        raise ValueError('Премиум-пропуск не активирован.')
+    claimed = season_pass_claimed_levels(wallet)
+    if level in claimed[tier]:
+        raise ValueError('Награда этого уровня уже собрана.')
+    with closing(get_db()) as conn:
+        if reward.get('kind') == 'cosmetic_pack':
+            reward_meta = descriptor.get('reward_meta')
+            if reward_meta:
+                grant_cosmetic(wallet, reward_meta['key'], 'season_pass')
+        elif reward.get('kind') == 'currency':
+            current = ensure_player_rewards(wallet)
+            pack_shards = int(current.get('pack_shards', 0) or 0) + int(reward.get('pack_shards', 0) or 0)
+            rare_tokens = int(current.get('rare_tokens', 0) or 0) + int(reward.get('rare_tokens', 0) or 0)
+            lucky_tokens = int(current.get('lucky_tokens', 0) or 0) + int(reward.get('lucky_tokens', 0) or 0)
+            conn.execute(
+                '''
+                UPDATE player_rewards
+                SET pack_shards = ?, rare_tokens = ?, lucky_tokens = ?, updated_at = ?
+                WHERE wallet = ?
+                ''',
+                (pack_shards, rare_tokens, lucky_tokens, now_iso(), wallet),
+            )
+        conn.execute(
+            '''
+            INSERT INTO season_pass_claims (wallet, reward_tier, level, claimed_at)
+            VALUES (?, ?, ?, ?)
+            ''',
+            (wallet, tier, level, now_iso()),
+        )
+        conn.commit()
+    return reward_summary(wallet)
 
 
 def season_pass_track_payload(wallet=None, rewards=None):
     rewards = rewards or ({'season_level': 1, 'premium_pass': 0} if wallet is None else ensure_player_rewards(wallet))
     season_level = int(rewards.get('season_level', 1) or 1)
     premium_active = bool(rewards.get('premium_pass', 0))
+    claimed = season_pass_claimed_levels(wallet) if wallet else {'free': set(), 'premium': set()}
     payload = []
     for item in SEASON_PASS_TRACK:
-        premium_reward = dict(item.get('premium_reward') or {})
-        premium_meta = None
-        premium_label = None
-        premium_key = None
-        if wallet and premium_reward.get('kind') == 'cosmetic_pack':
-            premium_meta = season_pass_random_cosmetic_pack_item(wallet, item['level'])
-            if premium_meta:
-                premium_label = f'Косметический пак • {premium_meta["name"]}'
-                premium_key = premium_meta['key']
-        elif premium_reward.get('kind') == 'currency':
-            premium_label = premium_reward.get('label')
+        premium_descriptor = season_pass_reward_descriptor(wallet, item['level'], 'premium') if wallet else {
+            'label': (dict(item.get('premium_reward') or {}).get('label') if dict(item.get('premium_reward') or {}).get('kind') == 'currency' else 'Случайная косметика')
+            if item.get('premium_reward') else None,
+            'reward': dict(item.get('premium_reward') or {}),
+        }
+        free_descriptor = season_pass_reward_descriptor(wallet, item['level'], 'free') if wallet else {
+            'label': dict(item.get('free_reward') or {}).get('label') if item.get('free_reward') else None,
+            'reward': dict(item.get('free_reward') or {}),
+        }
+        premium_claimed = int(item['level']) in claimed['premium']
+        free_claimed = int(item['level']) in claimed['free']
         payload.append(
             {
                 **item,
-                'premium': premium_label,
-                'premium_key': premium_key,
+                'premium': premium_descriptor.get('label'),
+                'premium_key': (premium_descriptor.get('reward_meta') or {}).get('key') if premium_descriptor else None,
+                'free': free_descriptor.get('label'),
                 'free_ready': season_level >= int(item['level']),
                 'premium_ready': premium_active and season_level >= int(item['level']),
+                'free_claimed': free_claimed,
+                'premium_claimed': premium_claimed,
+                'free_claimable': bool(free_descriptor.get('reward')) and season_level >= int(item['level']) and not free_claimed,
+                'premium_claimable': bool(premium_descriptor.get('reward')) and premium_active and season_level >= int(item['level']) and not premium_claimed,
             }
         )
     return payload
@@ -11195,8 +11311,6 @@ def reward_summary(wallet):
     rewards['season_progress'] = round(int(rewards.get('season_points', 0)) / max(1, rewards['season_target']), 3)
     rewards['premium_pass'] = int(rewards.get('premium_pass', 0) or 0)
     rewards['premium_pass_active'] = bool(rewards['premium_pass'])
-    if rewards['premium_pass_active']:
-        apply_season_pass_unlocks(wallet, rewards)
     rewards['season_pass_track'] = season_pass_track_payload(wallet=wallet, rewards=rewards)
     rewards['cosmetics'] = cosmetic_inventory(wallet)
     rewards['cosmetic_catalog'] = COSMETIC_CATALOG
@@ -17328,6 +17442,24 @@ def api_rewards_quest():
         return json_error('Некорректный адрес кошелька.')
     try:
         rewards = claim_win_quest_reward(wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'wallet': wallet, 'rewards': rewards})
+
+
+@app.route('/api/rewards/season-pass-claim', methods=['POST'])
+def api_rewards_season_pass_claim():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    reward_tier = (payload.get('tier') or '').strip().lower()
+    try:
+        level = int(payload.get('level'))
+    except (TypeError, ValueError):
+        return json_error('Нужен корректный уровень пропуска.', 400)
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    try:
+        rewards = claim_season_pass_reward(wallet, level, reward_tier)
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'wallet': wallet, 'rewards': rewards})
