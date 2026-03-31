@@ -1908,11 +1908,14 @@ PAGE_TEMPLATE = """
     .season-pass-scroll {
       overflow-x: auto;
       overflow-y: hidden;
+      width: 100%;
+      max-width: 100%;
       padding-bottom: 8px;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x;
       scroll-snap-type: x proximity;
       scrollbar-width: thin;
+      overscroll-behavior-x: contain;
     }
 
     .season-pass-track {
@@ -5182,6 +5185,7 @@ PAGE_TEMPLATE = """
               <button class="secondary reward-pack-btn" data-reward-pack="rare" disabled>Редкий пак за 1 редкий токен</button>
               <button class="secondary reward-pack-btn" data-reward-pack="epic" disabled>Эпический пак за 6 осколков + 1 редкий токен</button>
               <button class="secondary reward-pack-btn" data-reward-pack="lucky" disabled>Счастливый пак за 1 lucky-токен</button>
+              <button class="secondary" type="button" disabled>Косметический пак только из пропуска</button>
             </div>
           </div>
 
@@ -6802,8 +6806,13 @@ PAGE_TEMPLATE = """
           const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
           if (!scroller || !dir) return;
           const step = Math.max(220, Math.floor(scroller.clientWidth * 0.72));
-          const nextLeft = Math.max(0, scroller.scrollLeft + dir * step);
-          scroller.scrollTo({left: nextLeft, behavior: 'smooth'});
+          const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+          const nextLeft = Math.max(0, Math.min(maxLeft, scroller.scrollLeft + dir * step));
+          if (typeof scroller.scrollTo === 'function') {
+            scroller.scrollTo({left: nextLeft, behavior: 'smooth'});
+          } else {
+            scroller.scrollLeft = nextLeft;
+          }
         });
       });
       achievementsList.querySelectorAll('.season-pass-claim-btn').forEach((button) => {
@@ -6941,13 +6950,13 @@ PAGE_TEMPLATE = """
         return svgDataUrl(`
           <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
             <rect width="512" height="768" rx="36" fill="${theme.base}"/>
-            <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}" stroke="${theme.accent}" stroke-opacity="0.35" stroke-width="4"/>
+            <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="4"/>
             ${giftThemePattern(theme)}
-            <path d="M92 124H420V318L256 420 92 318Z" fill="${theme.accent}" fill-opacity="0.18"/>
-            <path d="M108 144H404V302L256 390 108 302Z" fill="${theme.base}" fill-opacity="0.24" stroke="${theme.accent}" stroke-opacity="0.38" stroke-width="5"/>
-            <text x="256" y="302" text-anchor="middle" font-size="108">${escapeSvg(theme.emoji)}</text>
-            <rect x="86" y="530" width="340" height="96" rx="22" fill="${theme.base}" fill-opacity="0.36" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="4"/>
-            <text x="256" y="590" text-anchor="middle" font-size="36" fill="${theme.text}" font-weight="700">${escapeSvg(theme.name)}</text>
+            <rect x="78" y="94" width="356" height="580" rx="30" fill="${theme.base}" fill-opacity="0.14" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="6"/>
+            <circle cx="256" cy="372" r="120" fill="${theme.base}" fill-opacity="0.22" stroke="${theme.accent}" stroke-opacity="0.44" stroke-width="8"/>
+            <text x="256" y="408" text-anchor="middle" font-size="164">${escapeSvg(theme.emoji)}</text>
+            <rect x="108" y="620" width="296" height="58" rx="20" fill="${theme.base}" fill-opacity="0.38" stroke="${theme.accent}" stroke-opacity="0.18" stroke-width="3"/>
+            <text x="256" y="658" text-anchor="middle" font-size="28" fill="${theme.text}" font-weight="700" opacity="0.92">${escapeSvg(theme.name)}</text>
           </svg>
         `);
       }
@@ -6966,18 +6975,18 @@ PAGE_TEMPLATE = """
           <svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
             <rect width="1600" height="900" fill="${theme.base}"/>
             <rect width="1600" height="900" fill="url(#g)"/>
-            <g opacity="0.28" stroke="${theme.accent}" stroke-width="3">
+            <g opacity="0.24" stroke="${theme.accent}" stroke-width="3">
               <path d="M120 180H1480"/><path d="M120 720H1480"/>
               <path d="M220 120V780"/><path d="M800 80V820"/><path d="M1380 120V780"/>
             </g>
             <g transform="translate(528 110) scale(2.25)">
               ${giftThemePattern(theme)}
             </g>
-            <path d="M520 150H1080V414L800 590 520 414Z" fill="${theme.accent}" fill-opacity="0.16"/>
-            <path d="M566 184H1034V396L800 544 566 396Z" fill="${theme.base}" fill-opacity="0.28" stroke="${theme.accent}" stroke-opacity="0.4" stroke-width="6"/>
-            <text x="800" y="404" text-anchor="middle" font-size="164">${escapeSvg(theme.emoji)}</text>
-            <rect x="560" y="654" width="480" height="92" rx="26" fill="${theme.base}" fill-opacity="0.32" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="5"/>
-            <text x="800" y="713" text-anchor="middle" font-size="46" fill="${theme.text}" font-weight="700">${escapeSvg(theme.name)}</text>
+            <rect x="366" y="130" width="868" height="640" rx="56" fill="${theme.base}" fill-opacity="0.16" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="8"/>
+            <circle cx="800" cy="392" r="168" fill="${theme.base}" fill-opacity="0.18" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="10"/>
+            <text x="800" y="446" text-anchor="middle" font-size="208">${escapeSvg(theme.emoji)}</text>
+            <rect x="560" y="666" width="480" height="88" rx="24" fill="${theme.base}" fill-opacity="0.36" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="4"/>
+            <text x="800" y="723" text-anchor="middle" font-size="44" fill="${theme.text}" font-weight="700">${escapeSvg(theme.name)}</text>
             <defs>
               <linearGradient id="g" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
                 <stop stop-color="${theme.secondary}"/>
@@ -7193,6 +7202,13 @@ PAGE_TEMPLATE = """
                   <div class="tiny">Lucky-бонус: ${pack.lucky_bonus ? 'есть' : 'нет'} • гарантия после ${state.packPityThreshold} паков без легендарки</div>
                 </article>
               `).join('')}
+              <article class="catalog-card skill-card" style="border-color:rgba(174,126,255,0.28); background:radial-gradient(circle at top, rgba(145,112,255,0.18), rgba(13,22,37,0.94) 66%);">
+                <div class="catalog-kicker">Пак</div>
+                <strong>Косметический пак</strong>
+                <div class="tiny">Содержимое: 1 случайный косметический предмет</div>
+                <div class="tiny">Шансы: все типы и все цвета с одинаковым шансом</div>
+                <div class="tiny">Источник: только из премиум-пропуска</div>
+              </article>
             </div>
           </div>
         `
@@ -7538,7 +7554,7 @@ PAGE_TEMPLATE = """
               ? 'rgba(255,122,134,0.16)'
               : 'rgba(69,215,255,0.14)';
       return asset
-        ? `linear-gradient(180deg, rgba(5,14,26,0.56), rgba(5,14,26,0.86)), radial-gradient(circle at center, ${tint}, rgba(8,20,36,0.96) 72%), url(${asset}) center/cover no-repeat`
+        ? `linear-gradient(180deg, rgba(5,14,26,0.18), rgba(5,14,26,0.42)), radial-gradient(circle at center, ${tint}, rgba(8,20,36,0.78) 72%), url(${asset}) center/cover no-repeat`
         : `radial-gradient(circle at center, ${tint}, rgba(8,20,36,0.96) 72%)`;
     }
 
@@ -7549,40 +7565,40 @@ PAGE_TEMPLATE = """
       const backAsset = cosmeticAssetUrl('cardback', backKey);
       let border = side === 'player' ? 'rgba(83,246,184,0.34)' : 'rgba(255,122,134,0.3)';
       let glow = side === 'player' ? 'rgba(83,246,184,0.18)' : 'rgba(255,122,134,0.16)';
-      let overlay = 'rgba(8, 15, 28, 0.22)';
+      let overlay = 'rgba(8, 15, 28, 0.08)';
       if (frameKey.includes('gold') || frameKey.includes('solar')) border = 'rgba(255,211,110,0.42)';
       if (frameKey.includes('void') || frameKey.includes('obsidian')) border = 'rgba(174,126,255,0.38)';
       if (frameKey.includes('crimson')) border = 'rgba(255,122,134,0.42)';
       if (backKey.includes('gold') || backKey.includes('script')) {
         glow = 'rgba(255,211,110,0.24)';
-        overlay = 'rgba(56, 38, 10, 0.14)';
+        overlay = 'rgba(56, 38, 10, 0.06)';
       } else if (backKey.includes('aurora')) {
         glow = 'rgba(101, 221, 255, 0.22)';
-        overlay = 'rgba(17, 34, 52, 0.14)';
+        overlay = 'rgba(17, 34, 52, 0.06)';
       } else if (backKey.includes('chrome')) {
         glow = 'rgba(125, 225, 255, 0.22)';
-        overlay = 'rgba(12, 30, 38, 0.16)';
+        overlay = 'rgba(12, 30, 38, 0.08)';
       } else if (backKey.includes('frost')) {
         glow = 'rgba(191, 231, 255, 0.2)';
-        overlay = 'rgba(18, 34, 54, 0.18)';
+        overlay = 'rgba(18, 34, 54, 0.08)';
       } else if (backKey.includes('ember')) {
         glow = 'rgba(255, 138, 92, 0.22)';
-        overlay = 'rgba(52, 20, 10, 0.16)';
+        overlay = 'rgba(52, 20, 10, 0.08)';
       } else if (backKey.includes('emerald')) {
         glow = 'rgba(83,246,184,0.24)';
-        overlay = 'rgba(10, 42, 28, 0.14)';
+        overlay = 'rgba(10, 42, 28, 0.06)';
       } else if (backKey.includes('void')) {
         glow = 'rgba(174,126,255,0.24)';
-        overlay = 'rgba(27, 12, 42, 0.16)';
+        overlay = 'rgba(27, 12, 42, 0.08)';
       } else if (backKey.includes('glitch') || backKey.includes('signal')) {
         glow = 'rgba(188,126,255,0.24)';
-        overlay = 'rgba(34, 14, 44, 0.16)';
+        overlay = 'rgba(34, 14, 44, 0.08)';
       } else if (backKey.includes('tactical') || backKey.includes('black')) {
         glow = 'rgba(255,186,108,0.18)';
-        overlay = 'rgba(22, 18, 10, 0.14)';
+        overlay = 'rgba(22, 18, 10, 0.06)';
       }
       const base = backAsset
-        ? `linear-gradient(180deg, ${overlay}, rgba(8,16,29,0.08)), url(${backAsset}) center/cover no-repeat`
+        ? `linear-gradient(180deg, ${overlay}, rgba(8,16,29,0.02)), url(${backAsset}) center/cover no-repeat`
         : 'linear-gradient(180deg, rgba(10,18,30,0.98), rgba(8,16,29,0.98))';
       const frameLayer = frameAsset ? `, url(${frameAsset}) center/100% 100% no-repeat` : '';
       return `border-color:${border}; background:${base}${frameLayer}; box-shadow:0 0 0 1px ${border}, 0 16px 32px ${glow}, inset 0 0 0 1px rgba(255,255,255,0.03); filter:saturate(1.12) contrast(1.04);`;
