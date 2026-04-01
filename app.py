@@ -9171,7 +9171,6 @@ PAGE_TEMPLATE = """
     }
 
     async function checkDomains() {
-      await prepareFunctionalInteraction();
       if (!state.wallet) {
         await openWalletConnect();
         return;
@@ -9218,7 +9217,6 @@ PAGE_TEMPLATE = """
     }
 
     async function openWalletConnect() {
-      await prepareFunctionalInteraction();
       if (!tonConnectUI) {
         await initTonConnect();
       }
