@@ -2003,20 +2003,34 @@ PAGE_TEMPLATE = """
     }
 
     .season-pass-pager {
-      display: flex;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) 44px;
       align-items: center;
-      justify-content: space-between;
       gap: 10px;
       margin-top: 10px;
     }
 
+    .season-pass-page-btn {
+      width: 44px;
+      min-width: 44px;
+      min-height: 40px;
+      padding: 0;
+      font-size: 18px;
+      line-height: 1;
+      justify-content: center;
+    }
+
     .season-pass-pager-label {
       min-width: 0;
-      flex: 1 1 auto;
       text-align: center;
       color: var(--muted);
       font-size: 12px;
       white-space: nowrap;
+    }
+
+    .season-pass-board .catalog-card strong {
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .arena-clash-debug strong {
@@ -4903,6 +4917,20 @@ PAGE_TEMPLATE = """
         flex-basis: min(64vw, 190px);
       }
 
+      .season-pass-board .catalog-card {
+        min-height: 104px !important;
+        padding: 10px !important;
+      }
+
+      .season-pass-board .catalog-card strong {
+        font-size: 14px;
+        line-height: 1.18;
+      }
+
+      .season-pass-pager-label {
+        font-size: 11px;
+      }
+
       .arena-choice-hub {
         min-height: 212px;
         padding: 14px 0 8px;
@@ -6913,7 +6941,6 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
-          <div class="tiny">Используй кнопки ← / → или тяни дорожку вбок, чтобы посмотреть все 8 уровней.</div>
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
@@ -6960,6 +6987,7 @@ PAGE_TEMPLATE = """
         const trackEl = scroller.querySelector('.season-pass-track');
         const cards = trackEl ? Array.from(trackEl.children).filter((child) => !child.classList.contains('season-pass-track-spacer')) : [];
         const label = achievementsList.querySelector(`[data-pass-page-label="${target}"]`);
+        scroller.dataset.passIndex = '0';
         const currentIndex = () => {
           if (!cards.length) return 0;
           const center = scroller.scrollLeft + scroller.clientWidth / 2;
@@ -6976,8 +7004,10 @@ PAGE_TEMPLATE = """
           return bestIndex;
         };
         const syncPagerLabel = () => {
+          const idx = currentIndex();
+          scroller.dataset.passIndex = String(idx);
           if (label) {
-            label.textContent = `Уровень ${currentIndex() + 1} / ${cards.length || 1}`;
+            label.textContent = `Уровень ${idx + 1} / ${cards.length || 1}`;
           }
         };
         scroller.addEventListener('scroll', syncPagerLabel, { passive: true });
@@ -6995,19 +7025,17 @@ PAGE_TEMPLATE = """
           const trackEl = scroller ? scroller.querySelector('.season-pass-track') : null;
           const cards = trackEl ? Array.from(trackEl.children).filter((child) => !child.classList.contains('season-pass-track-spacer')) : [];
           if (!scroller || !cards.length) return;
-          const center = scroller.scrollLeft + scroller.clientWidth / 2;
-          let current = 0;
-          let bestDistance = Infinity;
-          cards.forEach((card, index) => {
-            const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-            const distance = Math.abs(cardCenter - center);
-            if (distance < bestDistance) {
-              bestDistance = distance;
-              current = index;
-            }
-          });
+          const current = Math.max(0, Math.min(cards.length - 1, Number(scroller.dataset.passIndex || 0)));
           const next = Math.max(0, Math.min(cards.length - 1, current + dir));
-          cards[next].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+          const nextCard = cards[next];
+          const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+          const desiredLeft = Math.max(0, Math.min(maxLeft, nextCard.offsetLeft));
+          if (typeof scroller.scrollTo === 'function') {
+            scroller.scrollTo({ left: desiredLeft, behavior: 'smooth' });
+          } else {
+            scroller.scrollLeft = desiredLeft;
+          }
+          scroller.dataset.passIndex = String(next);
           const label = achievementsList.querySelector(`[data-pass-page-label="${target}"]`);
           if (label) {
             label.textContent = `Уровень ${next + 1} / ${cards.length}`;
