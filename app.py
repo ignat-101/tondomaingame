@@ -6848,7 +6848,7 @@ PAGE_TEMPLATE = """
     function giftCardbackSurface(key) {
       const asset = cosmeticAssetUrl('cardback', key);
       return asset
-        ? `linear-gradient(180deg, rgba(8,16,28,0.06), rgba(8,16,28,0.16)), url(${asset}) center/contain no-repeat`
+        ? `url(${asset}) center/cover no-repeat`
         : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))';
     }
 
