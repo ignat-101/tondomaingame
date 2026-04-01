@@ -5146,9 +5146,9 @@ PAGE_TEMPLATE = """
             </div>
             <div class="wallet-flow-note">Подключи кошелёк, проверь свои `.ton` домены и сразу переходи к готовой колоде. Если карты для домена уже были открыты, они подтянутся автоматически.</div>
             <div class="wallet-quick-actions">
-              <button id="connect-wallet-btn">Подключить кошелёк</button>
-              <button id="check-domains-btn">Проверить наличие доменов</button>
-              <button class="secondary" id="wallet-open-pack-btn" disabled>К распаковке</button>
+              <button type="button" id="connect-wallet-btn" onclick="window.openWalletConnect && window.openWalletConnect(); return false;">Подключить кошелёк</button>
+              <button type="button" id="check-domains-btn" onclick="window.checkDomains && window.checkDomains(); return false;">Проверить наличие доменов</button>
+              <button type="button" class="secondary" id="wallet-open-pack-btn" disabled>К распаковке</button>
             </div>
             <div class="tiny" style="margin-top:8px; color: var(--warning);">Чтобы откалибровать экран в TMA, нажми «Проверить наличие доменов».</div>
             <div class="tiny" id="wallet-tech-status" style="margin-top:6px; color: var(--muted);"></div>
@@ -9179,6 +9179,7 @@ PAGE_TEMPLATE = """
     }
 
     async function checkDomains() {
+      setStatus(walletStatus, 'Запускаем проверку доменов...', 'warning');
       if (!state.wallet) {
         await openWalletConnect();
         return;
@@ -9225,6 +9226,7 @@ PAGE_TEMPLATE = """
     }
 
     async function openWalletConnect() {
+      setStatus(walletStatus, 'Открываем TonConnect...', 'warning');
       if (!tonConnectUI) {
         await initTonConnect();
       }
@@ -9256,6 +9258,8 @@ PAGE_TEMPLATE = """
         tonConnectRoot.scrollIntoView({behavior: 'smooth', block: 'center'});
       }
     }
+    window.openWalletConnect = openWalletConnect;
+    window.checkDomains = checkDomains;
 
     async function openPack(source = 'daily', paymentId = null, packType = null) {
       await prepareFunctionalInteraction();
