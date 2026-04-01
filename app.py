@@ -1935,6 +1935,13 @@ PAGE_TEMPLATE = """
       max-width: 100%;
     }
 
+    .season-pass-slider {
+      width: 100%;
+      margin-top: 10px;
+      accent-color: #53f6b8;
+      cursor: pointer;
+    }
+
     .arena-clash-debug strong {
       color: #fff1c5;
       font-size: 10px;
@@ -5176,7 +5183,7 @@ PAGE_TEMPLATE = """
             <strong>Экономика паков</strong>
             <div class="tiny" id="pack-rewards-summary">Подключи кошелёк, чтобы видеть осколки, токены и сезонный прогресс.</div>
             <div class="tiny" id="pack-season-summary" style="margin-top:6px;">Сезон: -</div>
-            <div class="tiny" style="margin-top:6px;">Платный пак карт убран. Донат идёт в премиум-пропуск, косметику и более быстрый сбор сезонной валюты без прямой силы.</div>
+            <div class="tiny" style="margin-top:6px;">Платный пак карт убран. Донат идёт в премиум-пропуск и сезонные награды.</div>
             <div class="actions" style="margin-top:10px;">
               <button class="secondary" id="claim-daily-reward-btn" disabled>Забрать дейлик</button>
               <button class="secondary" id="claim-quest-reward-btn" disabled>Забрать квест побед</button>
@@ -6811,7 +6818,8 @@ PAGE_TEMPLATE = """
         slider.addEventListener('input', () => {
           scroller.scrollTo({ left: Number(slider.value || 0), behavior: 'auto' });
         });
-        syncSlider();
+        requestAnimationFrame(syncSlider);
+        setTimeout(syncSlider, 60);
       });
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
@@ -6829,6 +6837,7 @@ PAGE_TEMPLATE = """
       old_gold: { name: 'Old Gold', emoji: '👑', base: '#6C5520', secondary: '#8E7330', accent: '#D5BA63', glow: 'rgba(213,186,99,0.28)', text: '#FFF6DD', motif: 'crown' },
       neon_blue: { name: 'Neon Blue', emoji: '💠', base: '#0E2F7B', secondary: '#1747B7', accent: '#6CD8FF', glow: 'rgba(108,216,255,0.3)', text: '#F1F9FF', motif: 'grid' },
     };
+    const COSMETIC_ASSET_VERSION = '20260401c';
     function escapeSvg(text) {
       return String(text || '')
         .replace(/&/g, '&amp;')
@@ -6954,7 +6963,7 @@ PAGE_TEMPLATE = """
       const theme = cosmeticTheme(type, key);
       if (!theme) return '';
       if (type === 'cardback') {
-        return `/static/cosmetics/cardbacks/generated/${themeSlugFromKey(key)}.svg`;
+        return `/static/cosmetics/cardbacks/generated/${themeSlugFromKey(key)}.svg?v=${COSMETIC_ASSET_VERSION}`;
       }
       if (type === 'frame') {
         return svgDataUrl(`
@@ -6967,7 +6976,7 @@ PAGE_TEMPLATE = """
         `);
       }
       if (type === 'arena') {
-        return svgDataUrl(`
+        return `${svgDataUrl(`
           <svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
             <rect width="1600" height="900" fill="${theme.base}"/>
             <rect width="1600" height="900" fill="url(#g)"/>
@@ -6991,17 +7000,17 @@ PAGE_TEMPLATE = """
               </linearGradient>
             </defs>
           </svg>
-        `);
+        `}#v=${COSMETIC_ASSET_VERSION}`;
       }
       if (type === 'guild') {
-        return svgDataUrl(`
+        return `${svgDataUrl(`
           <svg width="512" height="256" viewBox="0 0 512 256" xmlns="http://www.w3.org/2000/svg">
             <rect width="512" height="256" rx="26" fill="${theme.base}"/>
             <rect x="14" y="14" width="484" height="228" rx="20" fill="${theme.secondary}" stroke="${theme.accent}" stroke-width="4"/>
             <path d="M76 54H436V136L256 208L76 136Z" fill="${theme.accent}" fill-opacity="0.22"/>
             <text x="256" y="154" text-anchor="middle" font-size="68" fill="${theme.text}" stroke="${theme.accent}" stroke-opacity="0.36" stroke-width="3" paint-order="stroke fill">${escapeSvg(theme.emoji)}</text>
           </svg>
-        `);
+        `}#v=${COSMETIC_ASSET_VERSION}`;
       }
       return '';
     }
@@ -13598,8 +13607,8 @@ def bot_cards_slightly_weaker_than_player(player_cards, seed_value):
 
     for slot, source in enumerate(normalized_cards[:5], start=1):
         # Keep bot playable, but leave room for player decisions to matter more.
-        scale = rng.uniform(0.72, 0.85)
-        score = max(1, int(round(source.get('pool_value', source.get('score', 100)) * scale + rng.uniform(-8.0, 0.0))))
+        scale = rng.uniform(0.80, 0.92)
+        score = max(1, int(round(source.get('pool_value', source.get('score', 100)) * scale + rng.uniform(-6.0, 4.0))))
         rarity_key = str(source.get('rarity_key') or 'basic').lower()
         if rarity_key not in RARITY_LABELS:
             rarity_key = 'basic'
@@ -17866,7 +17875,7 @@ def api_match_bot():
     player_build = load_deck_build(wallet, domain, player_cards)
     base_seed = f'bot-duel:{wallet}:{domain}:{now_iso()}'
     bot_cards = bot_cards_slightly_weaker_than_player(player_cards, base_seed)
-    bot_pool = max(1450, int(round(player_build['pool'] * 0.76)))
+    bot_pool = max(1750, int(round(player_build['pool'] * 0.86)))
     bot_build = {'pool': bot_pool, 'points': default_discipline_build(bot_pool)}
     selected_slot = selected_slot or auto_tactical_slot(player_cards, player_build['points'])
     result = create_solo_battle(
