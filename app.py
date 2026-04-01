@@ -302,7 +302,7 @@ PAGE_TEMPLATE = """
     .shell {
       max-width: 1240px;
       margin: 0 auto;
-      padding: 28px 18px 64px;
+      padding: 28px 18px 132px;
     }
 
     .hero {
@@ -2802,7 +2802,37 @@ PAGE_TEMPLATE = """
     }
 
     .mobile-nav {
-      display: none;
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 12px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      width: min(calc(100vw - 24px), 860px);
+      padding: 8px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(7, 16, 25, 0.96);
+      backdrop-filter: blur(16px);
+      z-index: 40;
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.34);
+    }
+
+    .mobile-nav button {
+      min-height: 42px;
+      height: 42px;
+      padding: 6px 10px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1;
+      white-space: normal;
+      word-break: break-word;
+      min-width: 0;
+      border-radius: 12px;
     }
 
     .mobile-nav button.active {
@@ -7298,7 +7328,7 @@ PAGE_TEMPLATE = """
       const searching = Boolean(state.matchmakingMode);
       const selectedPack = state.selectedPackType || 'common';
       const selectedPackMeta = packTypeMeta(selectedPack);
-      document.getElementById('check-domains-btn').disabled = !connected;
+      document.getElementById('check-domains-btn').disabled = false;
       document.getElementById('shuffle-deck-btn').disabled = !(connected && hasDomain && hasCards);
       document.getElementById('open-pack-btn').disabled = !(connected && hasDomain) || selectedPack !== 'common';
       document.getElementById('open-pack-btn').textContent = selectedPack === 'common' ? 'Открыть ежедневный пак' : 'Ежедневный пак: только Common';
@@ -9132,6 +9162,14 @@ PAGE_TEMPLATE = """
 
     async function checkDomains() {
       await prepareFunctionalInteraction();
+      if (!state.wallet) {
+        setStatus(walletStatus, 'Сначала подключи кошелёк через TonConnect.', 'warning');
+        const tonConnectRoot = document.getElementById('ton-connect');
+        if (tonConnectRoot) {
+          tonConnectRoot.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+        return;
+      }
       setStatus(walletStatus, 'Проверяем NFT и 10K домены в кошельке...', 'warning');
       try {
         const data = await api('/api/wallet/domains', {
