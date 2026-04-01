@@ -1276,9 +1276,9 @@ PAGE_TEMPLATE = """
     }
 
     .season-pass-track-spacer {
-      flex: 0 0 140px;
-      width: 140px;
-      min-width: 140px;
+      flex: 0 0 320px;
+      width: 320px;
+      min-width: 320px;
       pointer-events: none;
     }
 
@@ -1964,7 +1964,7 @@ PAGE_TEMPLATE = """
       width: 100%;
       max-width: 100%;
       padding-bottom: 8px;
-      padding-inline: 0;
+      padding-inline: 0 24px;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x;
       scroll-snap-type: x proximity;
@@ -1986,6 +1986,7 @@ PAGE_TEMPLATE = """
       gap: 12px;
       width: max-content;
       min-width: max-content;
+      padding-right: 320px;
     }
 
     .season-pass-track > * {
@@ -6944,9 +6945,14 @@ PAGE_TEMPLATE = """
         };
         slider.addEventListener('input', applySlider);
         slider.addEventListener('change', applySlider);
-        requestAnimationFrame(syncSlider);
-        setTimeout(syncSlider, 120);
-        setTimeout(syncSlider, 300);
+        const resync = () => {
+          syncSlider();
+          slider.dataset.maxLeft = String(maxLeftFor());
+        };
+        requestAnimationFrame(resync);
+        setTimeout(resync, 120);
+        setTimeout(resync, 300);
+        setTimeout(resync, 700);
       });
       achievementsList.querySelectorAll('.season-pass-scroll').forEach((scroller) => {
         let dragging = false;
