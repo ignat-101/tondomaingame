@@ -2803,13 +2803,15 @@ PAGE_TEMPLATE = """
 
     .mobile-nav {
       position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 12px;
+      right: 12px;
       bottom: 12px;
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 8px;
-      width: min(calc(100vw - 24px), 860px);
+      width: auto;
+      max-width: 860px;
+      margin: 0 auto;
       padding: 8px;
       border-radius: 18px;
       border: 1px solid var(--line);
