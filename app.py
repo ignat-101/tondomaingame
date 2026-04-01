@@ -7261,9 +7261,9 @@ PAGE_TEMPLATE = """
           <strong>Предпросмотр</strong>
           <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:${compactPreview ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)'}; gap:22px; align-items:center; overflow:hidden; background:${featuredArena ? giftArenaSurface(featuredArena.key) : (arenaAsset ? `url(${arenaAsset}) center/cover no-repeat` : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))')};">
             <div style="position:relative; width:190px; height:220px; margin:0 auto;">
-              ${featuredGuild ? `<img src="${guildAsset}" alt="" style="position:absolute; left:50%; transform:translateX(-50%); top:10px; width:84px; height:52px; object-fit:contain; opacity:0.96;">` : ''}
-              <div style="position:absolute; left:22px; top:34px; width:120px; height:168px; border-radius:18px; background:${featuredBack ? giftCardbackSurface(featuredBack.key) : (backAsset ? `url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))')}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
-              ${featuredFrame ? `<img src="${frameAsset}" alt="" style="position:absolute; left:14px; top:26px; width:136px; height:184px; object-fit:contain;">` : ''}
+              ${featuredGuild ? `<img src="${guildAsset}" alt="" style="position:absolute; left:50%; top:22px; transform:translateX(-50%); width:110px; height:64px; object-fit:contain; opacity:0.98; z-index:1; pointer-events:none;">` : ''}
+              <div style="position:absolute; left:35px; top:48px; width:120px; height:168px; border-radius:18px; background:${featuredBack ? giftCardbackSurface(featuredBack.key) : (backAsset ? `url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))')}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28); z-index:2;"></div>
+              ${featuredFrame ? `<img src="${frameAsset}" alt="" style="position:absolute; left:27px; top:40px; width:136px; height:184px; object-fit:contain; z-index:3; pointer-events:none;">` : ''}
             </div>
             <div style="display:grid; gap:12px; align-content:center; min-width:0;">
               <div class="summary-chip-row">${previewMetaMarkup}</div>
