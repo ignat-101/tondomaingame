@@ -1076,6 +1076,13 @@ PAGE_TEMPLATE = """
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.01);
       overflow: hidden;
       isolation: isolate;
+      --arena-overlay-text: rgba(245, 250, 255, 0.96);
+      --arena-overlay-muted: rgba(224, 238, 255, 0.76);
+      --arena-route-main: rgba(255, 255, 255, 0.76);
+      --arena-route-alt: rgba(255, 255, 255, 0.52);
+      --arena-route-active: rgba(255, 255, 255, 0.96);
+      --arena-state-bg: rgba(255, 255, 255, 0.06);
+      --arena-state-border: rgba(255, 255, 255, 0.16);
     }
 
     .arena-core::before {
@@ -1102,25 +1109,25 @@ PAGE_TEMPLATE = """
 
     .arena-route-path {
       fill: none;
-      stroke: rgba(255, 211, 110, 0.7);
+      stroke: var(--arena-route-main);
       stroke-width: 2.2;
       stroke-linecap: round;
       stroke-dasharray: 5 10;
-      filter: drop-shadow(0 0 6px rgba(255, 211, 110, 0.18));
+      filter: drop-shadow(0 0 6px color-mix(in srgb, var(--arena-route-main) 24%, transparent));
       animation: arenaDashFlow 2.4s linear infinite;
       opacity: 0.84;
     }
 
     .arena-route-path.alt {
-      stroke: rgba(69, 215, 255, 0.52);
+      stroke: var(--arena-route-alt);
       stroke-dasharray: 4 11;
       animation-duration: 2.8s;
     }
 
     .arena-route-path.active {
-      stroke: rgba(83, 246, 184, 0.9);
+      stroke: var(--arena-route-active);
       stroke-width: 3;
-      filter: drop-shadow(0 0 10px rgba(83, 246, 184, 0.24));
+      filter: drop-shadow(0 0 10px color-mix(in srgb, var(--arena-route-active) 28%, transparent));
     }
 
     .arena-choice-hub {
@@ -1193,20 +1200,20 @@ PAGE_TEMPLATE = """
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(121, 217, 255, 0.22);
-      background: rgba(8, 19, 34, 0.94);
+      border: 1px solid var(--arena-state-border);
+      background: color-mix(in srgb, var(--arena-state-bg) 88%, rgba(8, 19, 34, 0.72));
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
       pointer-events: none;
     }
 
     .arena-round-choice-slot.resolved .arena-round-marker {
-      border-color: rgba(255, 211, 110, 0.24);
-      color: #ffe59d;
+      border-color: var(--arena-state-border);
+      color: var(--arena-overlay-text);
     }
 
     .arena-round-choice-slot.active .arena-round-marker {
-      border-color: rgba(83, 246, 184, 0.42);
-      box-shadow: 0 0 0 1px rgba(83, 246, 184, 0.12), 0 10px 20px rgba(0, 0, 0, 0.18);
+      border-color: var(--arena-route-active);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--arena-route-active) 16%, transparent), 0 10px 20px rgba(0, 0, 0, 0.18);
     }
 
     .arena-round-state {
@@ -1216,9 +1223,9 @@ PAGE_TEMPLATE = """
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.03);
-      color: rgba(213, 235, 255, 0.72);
+      border: 1px solid var(--arena-state-border);
+      background: var(--arena-state-bg);
+      color: var(--arena-overlay-muted);
       font-size: 11px;
       letter-spacing: 0.04em;
       white-space: nowrap;
@@ -1228,21 +1235,35 @@ PAGE_TEMPLATE = """
     }
 
     .arena-round-state.win {
-      border-color: rgba(83, 246, 184, 0.34);
-      background: rgba(83, 246, 184, 0.12);
-      color: #dfffee;
+      border-color: color-mix(in srgb, var(--arena-route-active) 40%, transparent);
+      background: color-mix(in srgb, var(--arena-route-active) 12%, transparent);
+      color: var(--arena-overlay-text);
     }
 
     .arena-round-state.lose {
-      border-color: rgba(255, 122, 134, 0.34);
-      background: rgba(255, 122, 134, 0.12);
-      color: #ffe0e5;
+      border-color: color-mix(in srgb, var(--arena-overlay-text) 28%, transparent);
+      background: color-mix(in srgb, var(--arena-overlay-text) 8%, transparent);
+      color: var(--arena-overlay-text);
     }
 
     .arena-round-state.draw {
-      border-color: rgba(255, 211, 110, 0.34);
-      background: rgba(255, 211, 110, 0.12);
-      color: #ffe9ad;
+      border-color: color-mix(in srgb, var(--arena-overlay-text) 28%, transparent);
+      background: color-mix(in srgb, var(--arena-overlay-text) 8%, transparent);
+      color: var(--arena-overlay-text);
+    }
+
+    .summary-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .season-pass-track-spacer {
+      flex: 0 0 24px;
+      width: 24px;
+      min-width: 24px;
+      pointer-events: none;
     }
 
     .arena-battle-dock {
@@ -6838,7 +6859,7 @@ PAGE_TEMPLATE = """
             <button type="button" class="secondary season-pass-claim-btn" data-pass-claim="premium" data-level="${item.level}"${item.premium_claimable ? '' : ' disabled'}>${item.premium_claimed ? 'Получено' : 'Забрать'}</button>
           </div>
         </article>
-      `).join('');
+      `).join('') + '<div class="season-pass-track-spacer" aria-hidden="true"></div>';
       const freeRow = track.map((item) => `
         <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:${rewardTone(item.free)}; min-width:220px;">
           <div class="catalog-kicker">Бесплатно • ур. ${item.level}</div>
@@ -6848,7 +6869,7 @@ PAGE_TEMPLATE = """
             <button type="button" class="secondary season-pass-claim-btn" data-pass-claim="free" data-level="${item.level}"${item.free_claimable ? '' : ' disabled'}>${item.free_claimed ? 'Получено' : 'Забрать'}</button>
           </div>
         </article>
-      `).join('');
+      `).join('') + '<div class="season-pass-track-spacer" aria-hidden="true"></div>';
       const passMarkup = `
         <div class="user-item">
           <strong>Сезонный пропуск</strong>
@@ -7017,6 +7038,13 @@ PAGE_TEMPLATE = """
         `--arena-ui-chip-bg:${hexToRgba(theme.accent, isIvory ? 0.18 : 0.16)}`,
         `--arena-ui-chip-border:${hexToRgba(theme.accent, isIvory ? 0.42 : 0.38)}`,
         `--arena-ui-chip-text:${chipText}`,
+        `--arena-overlay-text:${isIvory ? '#111111' : '#ffffff'}`,
+        `--arena-overlay-muted:${isIvory ? 'rgba(17,17,17,0.78)' : 'rgba(255,255,255,0.76)'}`,
+        `--arena-route-main:${isIvory ? 'rgba(17,17,17,0.74)' : 'rgba(255,255,255,0.72)'}`,
+        `--arena-route-alt:${isIvory ? 'rgba(17,17,17,0.54)' : 'rgba(255,255,255,0.52)'}`,
+        `--arena-route-active:${isIvory ? '#111111' : '#ffffff'}`,
+        `--arena-state-bg:${isIvory ? 'rgba(17,17,17,0.07)' : 'rgba(255,255,255,0.06)'}`,
+        `--arena-state-border:${isIvory ? 'rgba(17,17,17,0.18)' : 'rgba(255,255,255,0.16)'}`,
       ].join(';');
     }
 
@@ -7203,7 +7231,7 @@ PAGE_TEMPLATE = """
           <strong>Предпросмотр</strong>
           <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:${compactPreview ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)'}; gap:22px; align-items:center; overflow:hidden; background:${featuredArena ? giftArenaSurface(featuredArena.key) : (arenaAsset ? `url(${arenaAsset}) center/cover no-repeat` : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))')};">
             <div style="position:relative; width:190px; height:220px; margin:0 auto;">
-              ${featuredGuild ? `<img src="${guildAsset}" alt="" style="position:absolute; right:-4px; top:0; width:92px; height:58px; object-fit:contain; opacity:0.96;">` : ''}
+              ${featuredGuild ? `<img src="${guildAsset}" alt="" style="position:absolute; right:8px; top:10px; width:84px; height:52px; object-fit:contain; opacity:0.96;">` : ''}
               <div style="position:absolute; left:22px; top:34px; width:120px; height:168px; border-radius:18px; background:${featuredBack ? giftCardbackSurface(featuredBack.key) : (backAsset ? `url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))')}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28);"></div>
               ${featuredFrame ? `<img src="${frameAsset}" alt="" style="position:absolute; left:14px; top:26px; width:136px; height:184px; object-fit:contain;">` : ''}
             </div>
