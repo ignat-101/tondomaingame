@@ -6948,19 +6948,7 @@ PAGE_TEMPLATE = """
       const theme = cosmeticTheme(type, key);
       if (!theme) return '';
       if (type === 'cardback') {
-        return svgDataUrl(`
-          <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
-            <rect width="512" height="768" rx="36" fill="${theme.base}"/>
-            <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}" stroke="${theme.accent}" stroke-opacity="0.68" stroke-width="6"/>
-            <rect x="42" y="42" width="428" height="684" rx="24" fill="${theme.base}" fill-opacity="0.22"/>
-            ${giftThemePattern(theme)}
-            <circle cx="256" cy="356" r="160" fill="${theme.base}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.66" stroke-width="12"/>
-            <circle cx="256" cy="356" r="114" fill="${theme.secondary}" fill-opacity="0.34" stroke="${theme.accent}" stroke-opacity="0.28" stroke-width="4"/>
-            <text x="256" y="422" text-anchor="middle" font-size="214" fill="${theme.text}" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="6" paint-order="stroke fill">${escapeSvg(theme.emoji)}</text>
-            <rect x="92" y="598" width="328" height="78" rx="26" fill="${theme.base}" fill-opacity="0.46" stroke="${theme.accent}" stroke-opacity="0.34" stroke-width="4"/>
-            <text x="256" y="646" text-anchor="middle" font-size="32" fill="${theme.text}" font-weight="800" opacity="0.98">${escapeSvg(theme.name)}</text>
-          </svg>
-        `);
+        return `/static/cosmetics/cardbacks/gifts/${themeSlugFromKey(key)}.png`;
       }
       if (type === 'frame') {
         return svgDataUrl(`
