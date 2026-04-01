@@ -7035,7 +7035,7 @@ PAGE_TEMPLATE = """
               </linearGradient>
             </defs>
           </svg>
-        `}#v=${COSMETIC_ASSET_VERSION}`;
+        `)}#v=${COSMETIC_ASSET_VERSION}`;
       }
       if (type === 'guild') {
         return `${svgDataUrl(`
@@ -7045,7 +7045,7 @@ PAGE_TEMPLATE = """
             <path d="M76 54H436V136L256 208L76 136Z" fill="${theme.accent}" fill-opacity="0.22"/>
             <text x="256" y="154" text-anchor="middle" font-size="68" fill="${theme.text}" stroke="${theme.accent}" stroke-opacity="0.36" stroke-width="3" paint-order="stroke fill">${escapeSvg(theme.emoji)}</text>
           </svg>
-        `}#v=${COSMETIC_ASSET_VERSION}`;
+        `)}#v=${COSMETIC_ASSET_VERSION}`;
       }
       return '';
     }
