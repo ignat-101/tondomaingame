@@ -5146,7 +5146,7 @@ PAGE_TEMPLATE = """
             </div>
             <div class="wallet-flow-note">Подключи кошелёк, проверь свои `.ton` домены и сразу переходи к готовой колоде. Если карты для домена уже были открыты, они подтянутся автоматически.</div>
             <div class="wallet-quick-actions">
-              <button id="check-domains-btn" disabled>Проверить наличие доменов</button>
+              <button id="check-domains-btn">Проверить наличие доменов</button>
               <button class="secondary" id="wallet-open-pack-btn" disabled>К распаковке</button>
             </div>
             <div class="tiny" style="margin-top:8px; color: var(--warning);">Чтобы откалибровать экран в TMA, нажми «Проверить наличие доменов».</div>
