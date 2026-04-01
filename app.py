@@ -9227,10 +9227,10 @@ PAGE_TEMPLATE = """
         return;
       }
       try {
-        if (typeof tonConnectUI.openModal === 'function') {
-          await tonConnectUI.openModal();
-        } else if (typeof tonConnectUI.connectWallet === 'function') {
+        if (typeof tonConnectUI.connectWallet === 'function') {
           await tonConnectUI.connectWallet();
+        } else if (typeof tonConnectUI.openModal === 'function') {
+          await tonConnectUI.openModal();
         } else {
           throw new Error('TonConnect modal недоступен');
         }
