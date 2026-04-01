@@ -5151,6 +5151,7 @@ PAGE_TEMPLATE = """
               <button class="secondary" id="wallet-open-pack-btn" disabled>К распаковке</button>
             </div>
             <div class="tiny" style="margin-top:8px; color: var(--warning);">Чтобы откалибровать экран в TMA, нажми «Проверить наличие доменов».</div>
+            <div class="tiny" id="wallet-tech-status" style="margin-top:6px; color: var(--muted);"></div>
           </div>
 
           <div class="actions">
@@ -5454,6 +5455,7 @@ PAGE_TEMPLATE = """
     const walletBadge = document.getElementById('wallet-badge');
     const currencyBadge = document.getElementById('currency-badge');
     const walletStatus = document.getElementById('wallet-status');
+    const walletTechStatus = document.getElementById('wallet-tech-status');
     const walletQuickWallet = document.getElementById('wallet-quick-wallet');
     const walletQuickDomain = document.getElementById('wallet-quick-domain');
     const walletQuickCurrency = document.getElementById('wallet-quick-currency');
@@ -7344,6 +7346,12 @@ PAGE_TEMPLATE = """
       buyPackBtn.textContent = state.playerProfile && state.playerProfile.rewards && state.playerProfile.rewards.premium_pass_active
         ? 'Премиум-пропуск активен'
         : 'Купить премиум-пропуск за 1.49 TON';
+      if (walletTechStatus) {
+        const tonUiLoaded = Boolean(window.TON_CONNECT_UI && window.TON_CONNECT_UI.TonConnectUI);
+        const tonUiCreated = Boolean(tonConnectUI);
+        const tonAccount = Boolean(tonConnectUI && tonConnectUI.account && tonConnectUI.account.address);
+        walletTechStatus.textContent = `TonConnect: script ${tonUiLoaded ? 'ok' : 'x'} • ui ${tonUiCreated ? 'ok' : 'x'} • account ${tonAccount ? 'ok' : 'x'}`;
+      }
       document.getElementById('continue-to-modes-btn').disabled = !hasCards;
       document.getElementById('play-ranked-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards) || searching;
@@ -9229,7 +9237,10 @@ PAGE_TEMPLATE = """
         return;
       }
       try {
-        if (typeof tonConnectUI.connectWallet === 'function') {
+        const nativeTrigger = document.querySelector('#ton-connect button, #ton-connect [role="button"]');
+        if (nativeTrigger && typeof nativeTrigger.click === 'function') {
+          nativeTrigger.click();
+        } else if (typeof tonConnectUI.connectWallet === 'function') {
           await tonConnectUI.connectWallet();
         } else if (typeof tonConnectUI.openModal === 'function') {
           await tonConnectUI.openModal();
