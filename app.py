@@ -2003,13 +2003,10 @@ PAGE_TEMPLATE = """
     }
 
     .season-pass-pager {
-      display: grid;
-      grid-template-columns: 44px minmax(0, 1fr) 44px;
+      display: inline-flex;
       align-items: center;
-      min-height: 44px;
-      width: min(100%, 280px);
-      margin: 0 auto 10px;
-      gap: 12px;
+      gap: 8px;
+      margin: 0;
     }
 
     .season-pass-page-btn {
@@ -2042,12 +2039,18 @@ PAGE_TEMPLATE = """
 
     .season-pass-pager-label {
       min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
       text-align: center;
       color: var(--muted);
       font-size: 12px;
       white-space: nowrap;
+    }
+
+    .season-pass-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
     .season-pass-board .catalog-card strong {
@@ -6972,22 +6975,26 @@ PAGE_TEMPLATE = """
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
-              <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
-              <div class="season-pass-pager">
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1" aria-label="Предыдущий уровень премиум-пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
-                <div class="season-pass-pager-label" data-pass-page-label="premium">Уровень 1 / ${track.length}</div>
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1" aria-label="Следующий уровень премиум-пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+              <div class="season-pass-head">
+                <div class="tiny" style="margin:0; color:#ffe3a1;">Премиум</div>
+                <div class="season-pass-pager">
+                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1" aria-label="Предыдущий уровень премиум-пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
+                  <div class="season-pass-pager-label" data-pass-page-label="premium">1 / ${track.length}</div>
+                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1" aria-label="Следующий уровень премиум-пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+                </div>
               </div>
               <div class="season-pass-scroll" data-pass-track="premium">
                 <div class="season-pass-track">${premiumRow}</div>
               </div>
             </div>
             <div>
-              <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
-              <div class="season-pass-pager">
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1" aria-label="Предыдущий уровень бесплатного пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
-                <div class="season-pass-pager-label" data-pass-page-label="free">Уровень 1 / ${track.length}</div>
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1" aria-label="Следующий уровень бесплатного пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+              <div class="season-pass-head">
+                <div class="tiny" style="margin:0;">Бесплатно</div>
+                <div class="season-pass-pager">
+                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1" aria-label="Предыдущий уровень бесплатного пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
+                  <div class="season-pass-pager-label" data-pass-page-label="free">1 / ${track.length}</div>
+                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1" aria-label="Следующий уровень бесплатного пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+                </div>
               </div>
               <div class="season-pass-scroll" data-pass-track="free">
                 <div class="season-pass-track">${freeRow}</div>
@@ -7032,11 +7039,11 @@ PAGE_TEMPLATE = """
           });
           return bestIndex;
         };
-        const syncPagerLabel = () => {
+          const syncPagerLabel = () => {
           const idx = currentIndex();
           scroller.dataset.passIndex = String(idx);
           if (label) {
-            label.textContent = `Уровень ${idx + 1} / ${cards.length || 1}`;
+            label.textContent = `${idx + 1} / ${cards.length || 1}`;
           }
         };
         scroller.addEventListener('scroll', syncPagerLabel, { passive: true });
@@ -7067,7 +7074,7 @@ PAGE_TEMPLATE = """
           scroller.dataset.passIndex = String(next);
           const label = achievementsList.querySelector(`[data-pass-page-label="${target}"]`);
           if (label) {
-            label.textContent = `Уровень ${next + 1} / ${cards.length}`;
+            label.textContent = `${next + 1} / ${cards.length}`;
           }
         });
       });
