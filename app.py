@@ -5146,6 +5146,7 @@ PAGE_TEMPLATE = """
             </div>
             <div class="wallet-flow-note">Подключи кошелёк, проверь свои `.ton` домены и сразу переходи к готовой колоде. Если карты для домена уже были открыты, они подтянутся автоматически.</div>
             <div class="wallet-quick-actions">
+              <button id="connect-wallet-btn">Подключить кошелёк</button>
               <button id="check-domains-btn">Проверить наличие доменов</button>
               <button class="secondary" id="wallet-open-pack-btn" disabled>К распаковке</button>
             </div>
@@ -7328,6 +7329,11 @@ PAGE_TEMPLATE = """
       const searching = Boolean(state.matchmakingMode);
       const selectedPack = state.selectedPackType || 'common';
       const selectedPackMeta = packTypeMeta(selectedPack);
+      const connectWalletBtn = document.getElementById('connect-wallet-btn');
+      if (connectWalletBtn) {
+        connectWalletBtn.disabled = false;
+        connectWalletBtn.textContent = connected ? 'Кошелёк подключён' : 'Подключить кошелёк';
+      }
       document.getElementById('check-domains-btn').disabled = false;
       document.getElementById('shuffle-deck-btn').disabled = !(connected && hasDomain && hasCards);
       document.getElementById('open-pack-btn').disabled = !(connected && hasDomain) || selectedPack !== 'common';
@@ -9163,18 +9169,7 @@ PAGE_TEMPLATE = """
     async function checkDomains() {
       await prepareFunctionalInteraction();
       if (!state.wallet) {
-        setStatus(walletStatus, 'Сначала подключи кошелёк через TonConnect.', 'warning');
-        if (tonConnectUI && typeof tonConnectUI.openModal === 'function') {
-          try {
-            await tonConnectUI.openModal();
-          } catch (error) {
-            setStatus(walletStatus, 'Не удалось открыть TonConnect. Обнови страницу и попробуй снова.', 'error');
-          }
-        }
-        const tonConnectRoot = document.getElementById('ton-connect');
-        if (tonConnectRoot) {
-          tonConnectRoot.scrollIntoView({behavior: 'smooth', block: 'center'});
-        }
+        await openWalletConnect();
         return;
       }
       setStatus(walletStatus, 'Проверяем NFT и 10K домены в кошельке...', 'warning');
@@ -9215,6 +9210,37 @@ PAGE_TEMPLATE = """
         }
       } catch (error) {
         setStatus(walletStatus, error.message, 'error');
+      }
+    }
+
+    async function openWalletConnect() {
+      await prepareFunctionalInteraction();
+      if (!tonConnectUI) {
+        await initTonConnect();
+      }
+      if (!tonConnectUI) {
+        setStatus(walletStatus, 'TonConnect не инициализирован. Обнови страницу и попробуй снова.', 'error');
+        return;
+      }
+      if (tonConnectUI.account && tonConnectUI.account.address) {
+        setStatus(walletStatus, `Кошелёк уже подключен: ${tonConnectUI.account.address}`, 'success');
+        return;
+      }
+      try {
+        if (typeof tonConnectUI.openModal === 'function') {
+          await tonConnectUI.openModal();
+        } else if (typeof tonConnectUI.connectWallet === 'function') {
+          await tonConnectUI.connectWallet();
+        } else {
+          throw new Error('TonConnect modal недоступен');
+        }
+        setStatus(walletStatus, 'Открой кошелёк и подтверди подключение.', 'warning');
+      } catch (error) {
+        setStatus(walletStatus, 'Не удалось открыть TonConnect. Обнови страницу и попробуй снова.', 'error');
+      }
+      const tonConnectRoot = document.getElementById('ton-connect');
+      if (tonConnectRoot) {
+        tonConnectRoot.scrollIntoView({behavior: 'smooth', block: 'center'});
       }
     }
 
@@ -9990,6 +10016,7 @@ PAGE_TEMPLATE = """
       await applyConnection();
     }
 
+    bindFunctionalControl(document.getElementById('connect-wallet-btn'), openWalletConnect);
     bindFunctionalControl(document.getElementById('check-domains-btn'), checkDomains);
     bindFunctionalControl(walletOpenPackBtn, () => switchView('pack'));
     bindFunctionalControl(document.getElementById('back-to-wallet-btn'), () => switchView('profile'));
