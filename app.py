@@ -2006,6 +2006,21 @@ PAGE_TEMPLATE = """
       font-weight: 600;
     }
 
+    .season-pass-stage {
+      display: grid;
+      justify-items: start;
+    }
+
+    .season-pass-stage-card {
+      display: none !important;
+      width: min(100%, 420px);
+      max-width: 100%;
+    }
+
+    .season-pass-stage-card.is-active {
+      display: grid !important;
+    }
+
     .season-pass-scroll.dragging {
       cursor: grabbing;
       user-select: none;
@@ -4902,13 +4917,6 @@ PAGE_TEMPLATE = """
         min-height: 212px;
       }
 
-      .season-pass-scroll {
-        width: calc(100% + 2px);
-        margin-right: -2px;
-        padding-inline: 0 18px;
-        padding-bottom: 12px;
-      }
-
       .season-pass-jump {
         gap: 8px;
         margin: 6px 0 10px;
@@ -4930,7 +4938,8 @@ PAGE_TEMPLATE = """
         flex-basis: min(58vw, 176px);
       }
 
-      .season-pass-board .catalog-card {
+      .season-pass-board .catalog-card,
+      .season-pass-stage-card {
         min-height: 104px !important;
         padding: 10px !important;
         min-width: 0 !important;
@@ -6932,8 +6941,8 @@ PAGE_TEMPLATE = """
         if (lower.includes('lucky')) return 'radial-gradient(circle at top, rgba(255,211,110,0.18), rgba(13,22,37,0.94) 62%)';
         return 'radial-gradient(circle at top, rgba(121,217,255,0.12), rgba(13,22,37,0.94) 62%)';
       };
-      const premiumRow = track.map((item) => `
-        <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:${rewardTone(item.premium)}; border-color:rgba(255, 211, 110, 0.28); min-width:220px;">
+      const premiumRow = track.map((item, index) => `
+        <article class="catalog-card skill-card season-pass-stage-card${index === 0 ? ' is-active' : ''}" data-pass-card-index="${index}" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:${rewardTone(item.premium)}; border-color:rgba(255, 211, 110, 0.28); min-width:220px;">
           <div class="catalog-kicker">Премиум • ур. ${item.level}</div>
           <strong>${item.premium ? escapeHtml(item.premium) : 'Нет награды'}</strong>
           <div class="tiny">${item.premium_claimed ? 'Получено' : (item.premium_claimable ? 'Можно забрать' : (item.premium_ready ? 'Доступно' : 'Закрыто'))}</div>
@@ -6941,9 +6950,9 @@ PAGE_TEMPLATE = """
             <button type="button" class="secondary season-pass-claim-btn" data-pass-claim="premium" data-level="${item.level}"${item.premium_claimable ? '' : ' disabled'}>${item.premium_claimed ? 'Получено' : 'Забрать'}</button>
           </div>
         </article>
-      `).join('') + '<div class="season-pass-track-spacer" aria-hidden="true"></div>';
-      const freeRow = track.map((item) => `
-        <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:${rewardTone(item.free)}; min-width:220px;">
+      `).join('');
+      const freeRow = track.map((item, index) => `
+        <article class="catalog-card skill-card season-pass-stage-card${index === 0 ? ' is-active' : ''}" data-pass-card-index="${index}" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:${rewardTone(item.free)}; min-width:220px;">
           <div class="catalog-kicker">Бесплатно • ур. ${item.level}</div>
           <strong>${item.free ? escapeHtml(item.free) : 'Нет награды'}</strong>
           <div class="tiny">${item.free_claimed ? 'Получено' : (item.free_claimable ? 'Можно забрать' : (item.free_ready ? 'Доступно' : 'Закрыто'))}</div>
@@ -6951,7 +6960,7 @@ PAGE_TEMPLATE = """
             <button type="button" class="secondary season-pass-claim-btn" data-pass-claim="free" data-level="${item.level}"${item.free_claimable ? '' : ' disabled'}>${item.free_claimed ? 'Получено' : 'Забрать'}</button>
           </div>
         </article>
-      `).join('') + '<div class="season-pass-track-spacer" aria-hidden="true"></div>';
+      `).join('');
       const passMarkup = `
         <div class="user-item">
           <strong>Сезонный пропуск</strong>
@@ -6966,14 +6975,14 @@ PAGE_TEMPLATE = """
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin:0 0 8px; color:#ffe3a1;">Премиум</div>
-              <div class="season-pass-scroll" data-pass-track="premium">
-                <div class="season-pass-track">${premiumRow}</div>
+              <div class="season-pass-stage" data-pass-stage="premium">
+                ${premiumRow}
               </div>
             </div>
             <div>
               <div class="tiny" style="margin:0 0 8px;">Бесплатно</div>
-              <div class="season-pass-scroll" data-pass-track="free">
-                <div class="season-pass-track">${freeRow}</div>
+              <div class="season-pass-stage" data-pass-stage="free">
+                ${freeRow}
               </div>
             </div>
           </div>
@@ -6993,102 +7002,27 @@ PAGE_TEMPLATE = """
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
       });
-      const getPassScroller = (target) => achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
-      const getPassCards = (target) => {
-        const scroller = getPassScroller(target);
-        const trackEl = scroller ? scroller.querySelector('.season-pass-track') : null;
-        return trackEl ? Array.from(trackEl.children).filter((child) => !child.classList.contains('season-pass-track-spacer')) : [];
-      };
       const passLevelSelect = achievementsList.querySelector('.season-pass-level-select');
-      const syncPassLevelSelect = () => {
-        const premiumScroller = getPassScroller('premium');
-        const premiumCards = getPassCards('premium');
-        let index = 0;
-        if (premiumScroller && premiumCards.length) {
-          const center = premiumScroller.scrollLeft + premiumScroller.clientWidth / 2;
-          let bestIndex = 0;
-          let bestDistance = Infinity;
-          premiumCards.forEach((card, cardIndex) => {
-            const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-            const distance = Math.abs(cardCenter - center);
-            if (distance < bestDistance) {
-              bestDistance = distance;
-              bestIndex = cardIndex;
-            }
+      const showPassLevel = (index) => {
+        ['premium', 'free'].forEach((target) => {
+          const stage = achievementsList.querySelector(`.season-pass-stage[data-pass-stage="${target}"]`);
+          if (!stage) return;
+          stage.querySelectorAll('.season-pass-stage-card').forEach((card) => {
+            card.classList.toggle('is-active', Number(card.dataset.passCardIndex || 0) === index);
           });
-          index = bestIndex;
-        }
-        if (passLevelSelect) {
-          passLevelSelect.value = String(index + 1);
-        }
-      };
-      const scrollPassToIndex = (target, index, behavior = 'smooth') => {
-        const scroller = getPassScroller(target);
-        const cards = getPassCards(target);
-        if (!scroller || !cards.length) return;
-        const next = Math.max(0, Math.min(cards.length - 1, Number(index) || 0));
-        const nextCard = cards[next];
-        const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
-        const desiredLeft = Math.max(0, Math.min(maxLeft, nextCard.offsetLeft));
-        if (typeof scroller.scrollTo === 'function') {
-          scroller.scrollTo({ left: desiredLeft, behavior });
-        } else {
-          scroller.scrollLeft = desiredLeft;
-        }
+        });
+        if (passLevelSelect) passLevelSelect.value = String(index + 1);
       };
       window.jumpSeasonPassLevel = function jumpSeasonPassLevel(levelValue) {
         const next = Math.max(0, Math.min(track.length - 1, Number(levelValue || 1) - 1));
-        scrollPassToIndex('premium', next, 'smooth');
-        scrollPassToIndex('free', next, 'smooth');
-        if (passLevelSelect) {
-          passLevelSelect.value = String(next + 1);
-        }
+        showPassLevel(next);
       };
-      ['premium', 'free'].forEach((target) => {
-        const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
-        if (!scroller) return;
-        scroller.addEventListener('scroll', syncPassLevelSelect, { passive: true });
-        requestAnimationFrame(syncPassLevelSelect);
-        setTimeout(syncPassLevelSelect, 120);
-        setTimeout(syncPassLevelSelect, 300);
-        setTimeout(syncPassLevelSelect, 700);
-      });
-      achievementsList.querySelectorAll('.season-pass-scroll').forEach((scroller) => {
-        let dragging = false;
-        let startX = 0;
-        let startLeft = 0;
-        const startDrag = (clientX) => {
-          dragging = true;
-          startX = clientX;
-          startLeft = scroller.scrollLeft;
-          scroller.classList.add('dragging');
-        };
-        const moveDrag = (clientX) => {
-          if (!dragging) return;
-          scroller.scrollLeft = startLeft - (clientX - startX);
-        };
-        const endDrag = () => {
-          dragging = false;
-          scroller.classList.remove('dragging');
-        };
-        scroller.addEventListener('mousedown', (event) => startDrag(event.clientX));
-        scroller.addEventListener('touchstart', (event) => {
-          if (!event.touches || !event.touches[0]) return;
-          startDrag(event.touches[0].clientX);
-        }, { passive: true });
-        window.addEventListener('mousemove', (event) => moveDrag(event.clientX));
-        window.addEventListener('touchmove', (event) => {
-          if (!event.touches || !event.touches[0]) return;
-          moveDrag(event.touches[0].clientX);
-        }, { passive: true });
-        window.addEventListener('mouseup', endDrag);
-        window.addEventListener('touchend', endDrag, { passive: true });
-        scroller.addEventListener('wheel', (event) => {
-          if (!event.deltaY && !event.deltaX) return;
-          event.preventDefault();
-          scroller.scrollLeft += event.deltaX || event.deltaY;
-        }, { passive: false });
-      });
+      if (passLevelSelect) {
+        passLevelSelect.addEventListener('change', (event) => {
+          window.jumpSeasonPassLevel(event.target.value);
+        });
+      }
+      showPassLevel(Math.max(0, Math.min(track.length - 1, Number(passLevelSelect ? passLevelSelect.value : 1) - 1)));
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
     }
