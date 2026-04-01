@@ -5638,12 +5638,14 @@ PAGE_TEMPLATE = """
       syncTmaViewport();
     }
 
-    function bindFunctionalControl(node, handler, eventName = 'click') {
+    function bindFunctionalControl(node, handler, eventName = 'click', options = {}) {
       if (!node) {
         return;
       }
       node.addEventListener(eventName, async (event) => {
-        await prepareFunctionalInteraction();
+        if (!options.skipPrepare) {
+          await prepareFunctionalInteraction();
+        }
         return handler(event);
       });
     }
@@ -7977,6 +7979,7 @@ PAGE_TEMPLATE = """
             ].filter(Boolean);
             const impactParts = [
               `база ${round.player_value || 0}/${round.opponent_value || 0}`,
+              `прокачка ${round.player_boost || 0}/${round.opponent_boost || 0}`,
               `действие ${round.player_action_bonus || 0}/${round.opponent_action_bonus || 0}`,
               `стратегия ${round.player_strategy_bonus || 0}/${round.opponent_strategy_bonus || 0}`,
               `навык ${round.player_skill_bonus || 0}/${round.opponent_skill_bonus || 0}`,
@@ -8029,6 +8032,7 @@ PAGE_TEMPLATE = """
                   </div>
                 </div>
                 <div class="arena-decision-chips">
+                  <span class="arena-decision-chip featured" style="animation-delay:${delay + 20}ms;">Прокачка дисциплин: +${round.player_boost || 0} / +${round.opponent_boost || 0}</span>
                   <span class="arena-decision-chip action player ${playerActionClass}" style="animation-delay:${delay + 40}ms;">Твой выбор: ${playerAction.ruLabel}</span>
                   <span class="arena-decision-chip action enemy ${opponentActionClass}" style="animation-delay:${delay + 90}ms;">Соперник: ${opponentAction.ruLabel}</span>
                   <span class="arena-decision-chip strategy" style="animation-delay:${delay + 140}ms;">Стратегия: ${playerStrategy.label} / ${opponentStrategy.label}</span>
@@ -10016,8 +10020,8 @@ PAGE_TEMPLATE = """
       await applyConnection();
     }
 
-    bindFunctionalControl(document.getElementById('connect-wallet-btn'), openWalletConnect);
-    bindFunctionalControl(document.getElementById('check-domains-btn'), checkDomains);
+    bindFunctionalControl(document.getElementById('connect-wallet-btn'), openWalletConnect, 'click', {skipPrepare: true});
+    bindFunctionalControl(document.getElementById('check-domains-btn'), checkDomains, 'click', {skipPrepare: true});
     bindFunctionalControl(walletOpenPackBtn, () => switchView('pack'));
     bindFunctionalControl(document.getElementById('back-to-wallet-btn'), () => switchView('profile'));
     bindFunctionalControl(document.getElementById('rebind-domain-btn'), rebindDomain);
