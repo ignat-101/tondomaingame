@@ -2008,7 +2008,7 @@ PAGE_TEMPLATE = """
       align-items: center;
       min-height: 44px;
       width: min(100%, 280px);
-      margin: 10px auto 0;
+      margin: 0 auto 10px;
       gap: 12px;
     }
 
@@ -6961,24 +6961,24 @@ PAGE_TEMPLATE = """
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
-              <div class="season-pass-scroll" data-pass-track="premium">
-                <div class="season-pass-track">${premiumRow}</div>
-              </div>
               <div class="season-pass-pager">
                 <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1">◀</button>
                 <div class="season-pass-pager-label" data-pass-page-label="premium">Уровень 1 / ${track.length}</div>
                 <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1">▶</button>
               </div>
+              <div class="season-pass-scroll" data-pass-track="premium">
+                <div class="season-pass-track">${premiumRow}</div>
+              </div>
             </div>
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
-              <div class="season-pass-scroll" data-pass-track="free">
-                <div class="season-pass-track">${freeRow}</div>
-              </div>
               <div class="season-pass-pager">
                 <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1">◀</button>
                 <div class="season-pass-pager-label" data-pass-page-label="free">Уровень 1 / ${track.length}</div>
                 <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1">▶</button>
+              </div>
+              <div class="season-pass-scroll" data-pass-track="free">
+                <div class="season-pass-track">${freeRow}</div>
               </div>
             </div>
           </div>
