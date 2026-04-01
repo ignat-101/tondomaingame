@@ -1979,34 +1979,31 @@ PAGE_TEMPLATE = """
       pointer-events: auto;
     }
 
-    .season-pass-level-nav {
+    .season-pass-jump {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      align-items: center;
+      gap: 10px;
       margin: 8px 0 14px;
+      flex-wrap: wrap;
     }
 
-    .season-pass-level-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 42px;
-      min-height: 36px;
-      padding: 0 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 214, 130, 0.32);
-      background: rgba(10, 23, 40, 0.82);
-      color: #eaf4ff;
+    .season-pass-jump .tiny {
+      margin: 0;
       font-size: 13px;
       font-weight: 700;
-      line-height: 1;
+      color: #cfe3ff;
     }
 
-    .season-pass-level-btn.is-active {
-      background: linear-gradient(135deg, rgba(38, 181, 168, 0.26), rgba(90, 214, 182, 0.16));
-      border-color: rgba(122, 239, 200, 0.54);
-      color: #ffffff;
-      box-shadow: 0 0 0 1px rgba(122, 239, 200, 0.22), 0 10px 20px rgba(0, 0, 0, 0.16);
+    .season-pass-level-select {
+      min-width: 148px;
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(121, 217, 255, 0.28);
+      background: rgba(10, 23, 40, 0.88);
+      color: #f3f8ff;
+      font-size: 14px;
+      font-weight: 600;
     }
 
     .season-pass-scroll.dragging {
@@ -4912,16 +4909,16 @@ PAGE_TEMPLATE = """
         padding-bottom: 12px;
       }
 
-      .season-pass-level-nav {
-        gap: 6px;
+      .season-pass-jump {
+        gap: 8px;
         margin: 6px 0 10px;
       }
 
-      .season-pass-level-btn {
-        min-width: 36px;
-        min-height: 32px;
-        padding: 0 10px;
-        font-size: 12px;
+      .season-pass-level-select {
+        min-width: 132px;
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 13px;
       }
 
       .season-pass-track {
@@ -6960,15 +6957,11 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
-          <div class="season-pass-level-nav">
-            ${track.map((_, index) => `
-              <button
-                type="button"
-                class="secondary season-pass-level-btn${index === 0 ? ' is-active' : ''}"
-                data-pass-level-index="${index}"
-                aria-label="Открыть уровень ${index + 1}"
-              >${index + 1}</button>
-            `).join('')}
+          <div class="season-pass-jump">
+            <div class="tiny">Перейти к уровню</div>
+            <select class="season-pass-level-select" onchange="window.jumpSeasonPassLevel(this.value)">
+              ${track.map((item) => `<option value="${item.level}">${item.level} / ${track.length}</option>`).join('')}
+            </select>
           </div>
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
@@ -7000,14 +6993,14 @@ PAGE_TEMPLATE = """
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
       });
-      const passTrackState = {};
       const getPassScroller = (target) => achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
       const getPassCards = (target) => {
         const scroller = getPassScroller(target);
         const trackEl = scroller ? scroller.querySelector('.season-pass-track') : null;
         return trackEl ? Array.from(trackEl.children).filter((child) => !child.classList.contains('season-pass-track-spacer')) : [];
       };
-      const syncPassLevelButtons = () => {
+      const passLevelSelect = achievementsList.querySelector('.season-pass-level-select');
+      const syncPassLevelSelect = () => {
         const premiumScroller = getPassScroller('premium');
         const premiumCards = getPassCards('premium');
         let index = 0;
@@ -7025,9 +7018,9 @@ PAGE_TEMPLATE = """
           });
           index = bestIndex;
         }
-        achievementsList.querySelectorAll('.season-pass-level-btn').forEach((button) => {
-          button.classList.toggle('is-active', Number(button.dataset.passLevelIndex || 0) === index);
-        });
+        if (passLevelSelect) {
+          passLevelSelect.value = String(index + 1);
+        }
       };
       const scrollPassToIndex = (target, index, behavior = 'smooth') => {
         const scroller = getPassScroller(target);
@@ -7042,26 +7035,23 @@ PAGE_TEMPLATE = """
         } else {
           scroller.scrollLeft = desiredLeft;
         }
-        passTrackState[target] = next;
       };
-      achievementsList.querySelectorAll('.season-pass-level-btn').forEach((button) => {
-        bindFunctionalControl(button, () => {
-          const next = Number(button.dataset.passLevelIndex || 0);
-          scrollPassToIndex('premium', next, 'smooth');
-          scrollPassToIndex('free', next, 'smooth');
-          achievementsList.querySelectorAll('.season-pass-level-btn').forEach((levelButton) => {
-            levelButton.classList.toggle('is-active', levelButton === button);
-          });
-        });
-      });
+      window.jumpSeasonPassLevel = function jumpSeasonPassLevel(levelValue) {
+        const next = Math.max(0, Math.min(track.length - 1, Number(levelValue || 1) - 1));
+        scrollPassToIndex('premium', next, 'smooth');
+        scrollPassToIndex('free', next, 'smooth');
+        if (passLevelSelect) {
+          passLevelSelect.value = String(next + 1);
+        }
+      };
       ['premium', 'free'].forEach((target) => {
         const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
         if (!scroller) return;
-        scroller.addEventListener('scroll', syncPassLevelButtons, { passive: true });
-        requestAnimationFrame(syncPassLevelButtons);
-        setTimeout(syncPassLevelButtons, 120);
-        setTimeout(syncPassLevelButtons, 300);
-        setTimeout(syncPassLevelButtons, 700);
+        scroller.addEventListener('scroll', syncPassLevelSelect, { passive: true });
+        requestAnimationFrame(syncPassLevelSelect);
+        setTimeout(syncPassLevelSelect, 120);
+        setTimeout(syncPassLevelSelect, 300);
+        setTimeout(syncPassLevelSelect, 700);
       });
       achievementsList.querySelectorAll('.season-pass-scroll').forEach((scroller) => {
         let dragging = false;
