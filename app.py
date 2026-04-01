@@ -9164,6 +9164,13 @@ PAGE_TEMPLATE = """
       await prepareFunctionalInteraction();
       if (!state.wallet) {
         setStatus(walletStatus, 'Сначала подключи кошелёк через TonConnect.', 'warning');
+        if (tonConnectUI && typeof tonConnectUI.openModal === 'function') {
+          try {
+            await tonConnectUI.openModal();
+          } catch (error) {
+            setStatus(walletStatus, 'Не удалось открыть TonConnect. Обнови страницу и попробуй снова.', 'error');
+          }
+        }
         const tonConnectRoot = document.getElementById('ton-connect');
         if (tonConnectRoot) {
           tonConnectRoot.scrollIntoView({behavior: 'smooth', block: 'center'});
