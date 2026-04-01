@@ -966,7 +966,7 @@ PAGE_TEMPLATE = """
       padding: 6px 8px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.16);
-      background: rgba(8, 20, 36, 0.88);
+      background: rgba(8, 20, 36, 0.66);
       box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.04);
     }
 
@@ -1923,6 +1923,12 @@ PAGE_TEMPLATE = """
       scroll-behavior: smooth;
       scrollbar-width: thin;
       overscroll-behavior-x: contain;
+      cursor: grab;
+    }
+
+    .season-pass-scroll.dragging {
+      cursor: grabbing;
+      user-select: none;
     }
 
     .season-pass-track {
@@ -6872,6 +6878,25 @@ PAGE_TEMPLATE = """
         setTimeout(syncSlider, 120);
         setTimeout(syncSlider, 300);
       });
+      achievementsList.querySelectorAll('.season-pass-scroll').forEach((scroller) => {
+        let dragging = false;
+        let startX = 0;
+        let startLeft = 0;
+        scroller.addEventListener('mousedown', (event) => {
+          dragging = true;
+          startX = event.clientX;
+          startLeft = scroller.scrollLeft;
+          scroller.classList.add('dragging');
+        });
+        window.addEventListener('mousemove', (event) => {
+          if (!dragging) return;
+          scroller.scrollLeft = startLeft - (event.clientX - startX);
+        });
+        window.addEventListener('mouseup', () => {
+          dragging = false;
+          scroller.classList.remove('dragging');
+        });
+      });
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
     }
@@ -7678,7 +7703,7 @@ PAGE_TEMPLATE = """
     window.syncSeasonPassFromSlider = function syncSeasonPassFromSlider(slider) {
       if (!slider) return;
       const target = slider.dataset.passSlider;
-      const scroller = achievementsList ? achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`) : null;
+      const scroller = document.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
       if (!scroller) return;
       const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
       const ratio = Math.max(0, Math.min(100, Number(slider.value || 0))) / 100;
@@ -8488,14 +8513,14 @@ PAGE_TEMPLATE = """
         battleResult.innerHTML = `
           ${battleHeader}
           <section class="showdown-main arena-board">
-            <div class="arena-shell" style="background:${battleArenaBackground(playerCosmetics)};">
+            <div class="arena-shell">
               <div class="arena-rail enemy">
                 <div class="tiny"><strong>Колода соперника</strong> • ${opponentLabel}</div>
                 <div class="arena-deck-grid">
                   ${opponentArenaDeck}
                 </div>
               </div>
-              <div class="arena-core">
+              <div class="arena-core" style="background:${battleArenaBackground(playerCosmetics)};">
                 ${arenaRoutes}
                 <div class="arena-choice-hub">
                   <div class="prebattle-stage arena-choice-panel" id="prebattle-stage">
