@@ -6948,7 +6948,35 @@ PAGE_TEMPLATE = """
       const theme = cosmeticTheme(type, key);
       if (!theme) return '';
       if (type === 'cardback') {
-        return `/static/cosmetics/cardbacks/gifts/${themeSlugFromKey(key)}.png`;
+        const slug = themeSlugFromKey(key);
+        const monogramFill = ['black', 'onyx_black'].includes(slug)
+          ? '#F4F7FF'
+          : slug === 'ivory_white'
+            ? '#2B2219'
+            : slug === 'fire_engine'
+              ? '#FFF6EF'
+              : theme.text;
+        const monogramStroke = slug === 'ivory_white'
+          ? 'rgba(109,86,51,0.42)'
+          : slug === 'fire_engine'
+            ? 'rgba(255,209,176,0.38)'
+            : 'rgba(255,255,255,0.16)';
+        const innerGlow = ['black', 'onyx_black'].includes(slug)
+          ? 'rgba(255,255,255,0.08)'
+          : theme.glow.replace(/0\.\d+\)/, '0.16)');
+        return svgDataUrl(`
+          <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
+            <rect width="512" height="768" rx="36" fill="${theme.base}"/>
+            <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}" stroke="${theme.accent}" stroke-opacity="0.68" stroke-width="6"/>
+            <rect x="42" y="42" width="428" height="684" rx="24" fill="${theme.base}" fill-opacity="0.22"/>
+            ${giftThemePattern(theme)}
+            <circle cx="256" cy="356" r="160" fill="${innerGlow}" stroke="${theme.accent}" stroke-opacity="0.72" stroke-width="12"/>
+            <circle cx="256" cy="356" r="114" fill="${theme.secondary}" fill-opacity="0.34" stroke="${theme.accent}" stroke-opacity="0.34" stroke-width="4"/>
+            <text x="256" y="422" text-anchor="middle" font-size="214" fill="${monogramFill}" stroke="${monogramStroke}" stroke-width="6" paint-order="stroke fill">${escapeSvg(theme.emoji)}</text>
+            <rect x="92" y="598" width="328" height="78" rx="26" fill="${theme.base}" fill-opacity="0.46" stroke="${theme.accent}" stroke-opacity="0.34" stroke-width="4"/>
+            <text x="256" y="646" text-anchor="middle" font-size="32" fill="${theme.text}" font-weight="800" opacity="0.98">${escapeSvg(theme.name)}</text>
+          </svg>
+        `);
       }
       if (type === 'frame') {
         return svgDataUrl(`
