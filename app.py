@@ -2003,14 +2003,18 @@ PAGE_TEMPLATE = """
     }
 
     .season-pass-pager {
-      display: grid;
-      grid-template-columns: 44px minmax(0, 1fr) 44px;
+      position: relative;
+      display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      min-height: 44px;
+      width: 100%;
       margin-top: 10px;
     }
 
     .season-pass-page-btn {
+      position: absolute;
+      top: 0;
       width: 44px;
       min-width: 44px;
       min-height: 40px;
@@ -2020,8 +2024,17 @@ PAGE_TEMPLATE = """
       justify-content: center;
     }
 
+    .season-pass-page-btn[data-dir="-1"] {
+      left: 0;
+    }
+
+    .season-pass-page-btn[data-dir="1"] {
+      right: 0;
+    }
+
     .season-pass-pager-label {
       min-width: 0;
+      max-width: calc(100% - 112px);
       text-align: center;
       color: var(--muted);
       font-size: 12px;
