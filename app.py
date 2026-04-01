@@ -973,6 +973,15 @@ PAGE_TEMPLATE = """
 
     .arena-core {
       order: 2;
+      --arena-ui-base: rgba(8, 23, 43, 0.94);
+      --arena-ui-secondary: rgba(10, 29, 34, 0.96);
+      --arena-ui-accent: #45d7ff;
+      --arena-ui-accent-soft: rgba(69, 215, 255, 0.18);
+      --arena-ui-accent-border: rgba(69, 215, 255, 0.34);
+      --arena-ui-text: #f4fbff;
+      --arena-ui-chip-bg: rgba(255, 211, 110, 0.10);
+      --arena-ui-chip-border: rgba(255, 211, 110, 0.34);
+      --arena-ui-chip-text: #ffe59d;
     }
 
     .arena-rail.player {
@@ -1253,9 +1262,14 @@ PAGE_TEMPLATE = """
       gap: 8px;
       padding: 8px 10px 10px;
       border-radius: 16px;
+      color: var(--arena-ui-text);
+      border: 1px solid var(--arena-ui-accent-border);
       background:
-        linear-gradient(135deg, rgba(8, 23, 43, 0.94), rgba(10, 29, 34, 0.96)),
-        radial-gradient(circle at top, rgba(69, 215, 255, 0.12), transparent 62%);
+        linear-gradient(135deg, var(--arena-ui-base), var(--arena-ui-secondary)),
+        radial-gradient(circle at top, var(--arena-ui-accent-soft), transparent 62%);
+      box-shadow:
+        0 16px 32px rgba(0, 0, 0, 0.26),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
     }
 
     .arena-battle-dock .interactive-battle-head {
@@ -2499,6 +2513,7 @@ PAGE_TEMPLATE = """
       font-weight: 800;
       letter-spacing: 0.03em;
       font-size: clamp(18px, 5vw, 24px);
+      color: var(--arena-ui-text);
     }
 
     .interactive-timer {
@@ -2510,12 +2525,12 @@ PAGE_TEMPLATE = """
       margin: 0 auto;
       padding: 0 12px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 211, 110, 0.34);
-      background: rgba(255, 211, 110, 0.1);
-      color: #ffe59d;
+      border: 1px solid var(--arena-ui-chip-border);
+      background: var(--arena-ui-chip-bg);
+      color: var(--arena-ui-chip-text);
       font-weight: 800;
       letter-spacing: 0.04em;
-      box-shadow: 0 10px 24px rgba(255, 211, 110, 0.1);
+      box-shadow: 0 10px 24px var(--arena-ui-accent-soft);
     }
 
     .interactive-battle-actions {
@@ -2528,9 +2543,9 @@ PAGE_TEMPLATE = """
     .interactive-action-btn {
       min-height: 54px;
       border-radius: 16px;
-      border: 1px solid rgba(121, 217, 255, 0.22);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text);
+      border: 1px solid var(--arena-ui-accent-border);
+      background: linear-gradient(135deg, var(--arena-ui-accent-soft), rgba(255, 255, 255, 0.04));
+      color: var(--arena-ui-text);
       font-weight: 800;
       opacity: 0;
       transform: translateY(12px) scale(0.94);
@@ -2540,27 +2555,28 @@ PAGE_TEMPLATE = """
     .interactive-action-btn:hover,
     .interactive-action-btn:active {
       transform: translateY(-1px) scale(1.01);
-      box-shadow: 0 12px 28px rgba(69, 215, 255, 0.18);
+      box-shadow: 0 12px 28px var(--arena-ui-accent-soft);
     }
 
     .interactive-action-btn.burst {
-      border-color: rgba(255, 122, 134, 0.42);
-      background: linear-gradient(135deg, rgba(255, 122, 134, 0.18), rgba(255, 255, 255, 0.04));
+      border-color: var(--arena-ui-accent-border);
+      background: linear-gradient(135deg, var(--arena-ui-accent-soft), rgba(255, 255, 255, 0.04));
     }
 
     .interactive-action-btn.guard {
-      border-color: rgba(83, 246, 184, 0.42);
-      background: linear-gradient(135deg, rgba(83, 246, 184, 0.18), rgba(255, 255, 255, 0.04));
+      border-color: var(--arena-ui-accent-border);
+      background: linear-gradient(135deg, var(--arena-ui-accent-soft), rgba(255, 255, 255, 0.04));
     }
 
     .interactive-action-btn.channel {
-      border-color: rgba(69, 215, 255, 0.42);
-      background: linear-gradient(135deg, rgba(69, 215, 255, 0.18), rgba(255, 255, 255, 0.04));
+      border-color: var(--arena-ui-accent-border);
+      background: linear-gradient(135deg, var(--arena-ui-accent-soft), rgba(255, 255, 255, 0.04));
     }
 
     .interactive-action-btn.ability {
-      border-color: rgba(255, 211, 110, 0.48);
-      background: linear-gradient(135deg, rgba(255, 211, 110, 0.22), rgba(255, 255, 255, 0.04));
+      border-color: var(--arena-ui-chip-border);
+      background: linear-gradient(135deg, var(--arena-ui-chip-bg), rgba(255, 255, 255, 0.04));
+      color: var(--arena-ui-chip-text);
     }
 
     .interactive-action-btn.choice-ready {
@@ -4394,7 +4410,12 @@ PAGE_TEMPLATE = """
       }
 
       .season-pass-track {
-        grid-auto-columns: min(78vw, 248px);
+        gap: 10px;
+        padding-right: 12px;
+      }
+
+      .season-pass-track > * {
+        flex-basis: min(74vw, 228px);
       }
 
       .hero,
@@ -4812,6 +4833,19 @@ PAGE_TEMPLATE = """
 
       .arena-core {
         min-height: 212px;
+      }
+
+      .season-pass-scroll {
+        padding-inline: 2px 10px;
+      }
+
+      .season-pass-track {
+        gap: 10px;
+        padding-right: 18px;
+      }
+
+      .season-pass-track > * {
+        flex-basis: min(72vw, 214px);
       }
 
       .arena-choice-hub {
@@ -6952,6 +6986,40 @@ PAGE_TEMPLATE = """
       return GIFT_THEMES[themeSlugFromKey(key)] || GIFT_THEMES.black;
     }
 
+    function hexToRgba(hex, alpha) {
+      const value = String(hex || '').replace('#', '').trim();
+      const normalized = value.length === 3
+        ? value.split('').map((chunk) => chunk + chunk).join('')
+        : value;
+      if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+        return `rgba(69,215,255,${alpha})`;
+      }
+      const intValue = parseInt(normalized, 16);
+      const r = (intValue >> 16) & 255;
+      const g = (intValue >> 8) & 255;
+      const b = intValue & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function battleArenaUiStyle(cosmetics) {
+      const arenaKey = (((cosmetics || {}).arena || {}).key || '');
+      const theme = cosmeticTheme('arena', arenaKey);
+      const isIvory = themeSlugFromKey(arenaKey) === 'ivory_white';
+      const text = isIvory ? '#141414' : (theme.text || '#f4fbff');
+      const chipText = isIvory ? '#241a10' : '#fff1b8';
+      return [
+        `--arena-ui-base:${hexToRgba(theme.base, isIvory ? 0.82 : 0.9)}`,
+        `--arena-ui-secondary:${hexToRgba(theme.secondary, isIvory ? 0.76 : 0.92)}`,
+        `--arena-ui-accent:${theme.accent}`,
+        `--arena-ui-accent-soft:${hexToRgba(theme.accent, isIvory ? 0.14 : 0.2)}`,
+        `--arena-ui-accent-border:${hexToRgba(theme.accent, isIvory ? 0.34 : 0.38)}`,
+        `--arena-ui-text:${text}`,
+        `--arena-ui-chip-bg:${hexToRgba(theme.accent, isIvory ? 0.18 : 0.16)}`,
+        `--arena-ui-chip-border:${hexToRgba(theme.accent, isIvory ? 0.42 : 0.38)}`,
+        `--arena-ui-chip-text:${chipText}`,
+      ].join(';');
+    }
+
     function giftCardbackSurface(key) {
       const asset = cosmeticAssetUrl('cardback', key);
       return asset
@@ -8508,7 +8576,7 @@ PAGE_TEMPLATE = """
                   ${opponentArenaDeck}
                 </div>
               </div>
-              <div class="arena-core" style="background:${battleArenaBackground(playerCosmetics)};">
+              <div class="arena-core" style="background:${battleArenaBackground(playerCosmetics)}; ${battleArenaUiStyle(playerCosmetics)};">
                 ${arenaRoutes}
                 <div class="arena-choice-hub">
                   <div class="prebattle-stage arena-choice-panel" id="prebattle-stage">
