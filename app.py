@@ -6932,23 +6932,18 @@ PAGE_TEMPLATE = """
         const maxLeftFor = () => Math.max(0, scroller.scrollWidth - scroller.clientWidth);
         const syncSlider = () => {
           const maxLeft = maxLeftFor();
-          const ratio = maxLeft > 0 ? (scroller.scrollLeft / maxLeft) * 100 : 0;
-          slider.max = '100';
-          slider.value = String(Math.max(0, Math.min(100, Math.round(ratio))));
+          slider.max = String(Math.max(0, Math.round(maxLeft)));
+          slider.value = String(Math.max(0, Math.min(Math.round(maxLeft), Math.round(scroller.scrollLeft))));
         };
         scroller.addEventListener('scroll', syncSlider, { passive: true });
         const applySlider = () => {
           const maxLeft = maxLeftFor();
-          const ratio = Math.max(0, Math.min(100, Number(slider.value || 0))) / 100;
-          const nextLeft = Math.round(maxLeft * ratio);
+          const nextLeft = Math.max(0, Math.min(maxLeft, Number(slider.value || 0)));
           scroller.scrollLeft = nextLeft;
         };
         slider.addEventListener('input', applySlider);
         slider.addEventListener('change', applySlider);
-        const resync = () => {
-          syncSlider();
-          slider.dataset.maxLeft = String(maxLeftFor());
-        };
+        const resync = () => syncSlider();
         requestAnimationFrame(resync);
         setTimeout(resync, 120);
         setTimeout(resync, 300);
@@ -7812,8 +7807,8 @@ PAGE_TEMPLATE = """
       const scroller = document.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
       if (!scroller) return;
       const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
-      const ratio = Math.max(0, Math.min(100, Number(slider.value || 0))) / 100;
-      scroller.scrollLeft = Math.round(maxLeft * ratio);
+      const nextLeft = Math.max(0, Math.min(maxLeft, Number(slider.value || 0)));
+      scroller.scrollLeft = nextLeft;
     };
 
     function battleTrailStyle(cosmetics) {
@@ -7893,8 +7888,8 @@ PAGE_TEMPLATE = """
       const clashCardHeight = compactClash ? 82 : 196;
       const clashGap = compactClash ? 12 : 22;
       const clashLanePadding = compactClash ? 6 : 10;
-      const laneTop = laneRect.top - coreRect.top;
-      const laneHeight = laneRect.height;
+      const laneTop = compactClash ? 18 : 24;
+      const laneHeight = Math.max(140, coreRect.height - (compactClash ? 36 : 48));
       const laneTopBound = laneTop + (compactClash ? 6 : 10);
       const laneBottomBound = laneTop + laneHeight - (compactClash ? 6 : 10);
       const laneCenterY = laneTop + laneHeight / 2;
@@ -7904,8 +7899,8 @@ PAGE_TEMPLATE = """
       );
       const playerTargetLeft = laneTargetLeft;
       const enemyTargetLeft = laneTargetLeft;
-      let enemyTargetTop = laneCenterY - clashCardHeight - clashGap / 2;
-      let playerTargetTop = laneCenterY + clashGap / 2;
+      let enemyTargetTop = laneCenterY - clashCardHeight;
+      let playerTargetTop = laneCenterY;
       enemyTargetTop = Math.max(laneTopBound, enemyTargetTop);
       playerTargetTop = Math.min(laneBottomBound - clashCardHeight, playerTargetTop);
       if (playerTargetTop <= enemyTargetTop + clashCardHeight + clashGap) {
@@ -7935,7 +7930,7 @@ PAGE_TEMPLATE = """
       const enemyRecoilY = enemyAttack ? enemyImpactTop - (compactClash ? 8 : 8) : enemyTargetTop;
       const playerRecoilScale = playerAttack ? 1.02 : 1;
       const enemyRecoilScale = enemyAttack ? 1.02 : 1;
-      const impactCenterY = ((enemyImpactTop + clashCardHeight) + playerImpactTop) / 2;
+      const impactCenterY = laneCenterY;
       const laneReveal = document.createElement('div');
       laneReveal.className = 'arena-lane-clash';
       laneReveal.style.setProperty('--clash-card-width', `${clashCardWidth}px`);
