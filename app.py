@@ -353,6 +353,10 @@ PAGE_TEMPLATE = """
       max-width: 100%;
     }
 
+    h1 br {
+      display: none;
+    }
+
     .hero p {
       margin: 0;
       max-width: 720px;
@@ -4448,12 +4452,12 @@ PAGE_TEMPLATE = """
       }
 
       .season-pass-track {
-        gap: 10px;
-        padding-right: 12px;
+        gap: 8px;
+        padding-right: 120px;
       }
 
       .season-pass-track > * {
-        flex-basis: min(74vw, 228px);
+        flex-basis: min(68vw, 196px);
       }
 
       .hero,
@@ -4874,16 +4878,19 @@ PAGE_TEMPLATE = """
       }
 
       .season-pass-scroll {
-        padding-inline: 2px 10px;
+        width: calc(100% + 2px);
+        margin-right: -2px;
+        padding-inline: 0 18px;
+        padding-bottom: 12px;
       }
 
       .season-pass-track {
-        gap: 10px;
-        padding-right: 18px;
+        gap: 8px;
+        padding-right: 140px;
       }
 
       .season-pass-track > * {
-        flex-basis: min(72vw, 214px);
+        flex-basis: min(64vw, 190px);
       }
 
       .arena-choice-hub {
@@ -5107,6 +5114,10 @@ PAGE_TEMPLATE = """
       line-height: 0.94;
     }
 
+    body.tma-app h1 br {
+      display: block;
+    }
+
     body.tma-app .mode-card.preferred-mode {
       padding-top: 76px;
     }
@@ -5184,7 +5195,7 @@ PAGE_TEMPLATE = """
       <div class="hero-top">
         <div>
           <div class="eyebrow">TON 10K Club Battle Flow</div>
-          <h1>tondomaingame</h1>
+          <h1>tondomain<br>game</h1>
           <p>
             Подключи кошелек для проверки владение доменом для начала игры.
           </p>
