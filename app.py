@@ -2002,13 +2002,6 @@ PAGE_TEMPLATE = """
       max-width: 100%;
     }
 
-    .season-pass-slider {
-      width: 100%;
-      margin-top: 10px;
-      accent-color: #53f6b8;
-      cursor: pointer;
-    }
-
     .season-pass-pager {
       display: flex;
       align-items: center;
@@ -6920,7 +6913,7 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
-          <div class="tiny">Листай дорожки горизонтально или двигай ползунок, чтобы посмотреть все 8 уровней.</div>
+          <div class="tiny">Используй кнопки ← / → или тяни дорожку вбок, чтобы посмотреть все 8 уровней.</div>
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
@@ -6932,7 +6925,6 @@ PAGE_TEMPLATE = """
                 <div class="season-pass-pager-label" data-pass-page-label="premium">Уровень 1 / ${track.length}</div>
                 <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1">→</button>
               </div>
-              <input type="range" min="0" max="100" value="0" step="1" class="season-pass-slider" data-pass-slider="premium" aria-label="Прокрутка премиум-пропуска" oninput="window.syncSeasonPassFromSlider && window.syncSeasonPassFromSlider(this)" onchange="window.syncSeasonPassFromSlider && window.syncSeasonPassFromSlider(this)">
             </div>
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
@@ -6944,7 +6936,6 @@ PAGE_TEMPLATE = """
                 <div class="season-pass-pager-label" data-pass-page-label="free">Уровень 1 / ${track.length}</div>
                 <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1">→</button>
               </div>
-              <input type="range" min="0" max="100" value="0" step="1" class="season-pass-slider" data-pass-slider="free" aria-label="Прокрутка бесплатного пропуска" oninput="window.syncSeasonPassFromSlider && window.syncSeasonPassFromSlider(this)" onchange="window.syncSeasonPassFromSlider && window.syncSeasonPassFromSlider(this)">
             </div>
           </div>
           <div class="actions" style="margin-top:10px;">
@@ -6963,14 +6954,12 @@ PAGE_TEMPLATE = """
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
       });
-      achievementsList.querySelectorAll('.season-pass-slider').forEach((slider) => {
-        const target = slider.dataset.passSlider;
+      ['premium', 'free'].forEach((target) => {
         const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
         if (!scroller) return;
         const trackEl = scroller.querySelector('.season-pass-track');
         const cards = trackEl ? Array.from(trackEl.children).filter((child) => !child.classList.contains('season-pass-track-spacer')) : [];
         const label = achievementsList.querySelector(`[data-pass-page-label="${target}"]`);
-        const maxLeftFor = () => Math.max(0, scroller.scrollWidth - scroller.clientWidth);
         const currentIndex = () => {
           if (!cards.length) return 0;
           const center = scroller.scrollLeft + scroller.clientWidth / 2;
@@ -6986,29 +6975,16 @@ PAGE_TEMPLATE = """
           });
           return bestIndex;
         };
-        const syncSlider = () => {
-          const maxLeft = maxLeftFor();
-          const ratio = maxLeft > 0 ? (scroller.scrollLeft / maxLeft) * 100 : 0;
-          slider.max = '100';
-          slider.value = String(Math.max(0, Math.min(100, ratio)));
+        const syncPagerLabel = () => {
           if (label) {
             label.textContent = `Уровень ${currentIndex() + 1} / ${cards.length || 1}`;
           }
         };
-        scroller.addEventListener('scroll', syncSlider, { passive: true });
-        const applySlider = () => {
-          const maxLeft = maxLeftFor();
-          const ratio = Math.max(0, Math.min(100, Number(slider.value || 0))) / 100;
-          const nextLeft = Math.max(0, Math.min(maxLeft, ratio * maxLeft));
-          scroller.scrollLeft = nextLeft;
-        };
-        slider.addEventListener('input', applySlider);
-        slider.addEventListener('change', applySlider);
-        const resync = () => syncSlider();
-        requestAnimationFrame(resync);
-        setTimeout(resync, 120);
-        setTimeout(resync, 300);
-        setTimeout(resync, 700);
+        scroller.addEventListener('scroll', syncPagerLabel, { passive: true });
+        requestAnimationFrame(syncPagerLabel);
+        setTimeout(syncPagerLabel, 120);
+        setTimeout(syncPagerLabel, 300);
+        setTimeout(syncPagerLabel, 700);
       });
       achievementsList.querySelectorAll('.season-pass-page-btn').forEach((button) => {
         bindFunctionalControl(button, () => {
