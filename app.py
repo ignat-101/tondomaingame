@@ -5119,8 +5119,8 @@ PAGE_TEMPLATE = """
       </div>
 
       <div class="stepper">
-        <div class="step-chip" data-step-chip="pack">1. Карты</div>
-        <div class="step-chip active" data-step-chip="profile">2. Профиль</div>
+        <div class="step-chip active" data-step-chip="profile">1. Профиль</div>
+        <div class="step-chip" data-step-chip="pack">2. Карты</div>
         <div class="step-chip" data-step-chip="modes">3. Игра</div>
         <div class="step-chip" data-step-chip="guilds">4. Кланы</div>
         <div class="step-chip" data-step-chip="achievements">5. Пропуск</div>
@@ -5406,8 +5406,8 @@ PAGE_TEMPLATE = """
   </div>
 
   <nav class="mobile-nav">
-    <button id="nav-pack">Карты</button>
     <button id="nav-profile">Профиль</button>
+    <button id="nav-pack">Карты</button>
     <button id="nav-modes">Игра</button>
     <button id="nav-guilds">Кланы</button>
     <button id="nav-achievements">Пропуск</button>
@@ -7039,11 +7039,15 @@ PAGE_TEMPLATE = """
               ${giftThemePattern(theme)}
             </g>
             <rect x="366" y="130" width="868" height="640" rx="56" fill="${theme.base}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.36" stroke-width="8"/>
-            <circle cx="800" cy="382" r="198" fill="${theme.base}" fill-opacity="0.06" stroke="${theme.accent}" stroke-opacity="0.58" stroke-width="14"/>
-            <circle cx="800" cy="382" r="132" fill="${theme.secondary}" fill-opacity="0.22" stroke="${theme.accent}" stroke-opacity="0.26" stroke-width="5"/>
-            <text x="800" y="470" text-anchor="middle" font-size="252" fill="${theme.text}" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="8" paint-order="stroke fill">${escapeSvg(theme.emoji)}</text>
-            <rect x="516" y="656" width="568" height="96" rx="28" fill="${theme.secondary}" fill-opacity="0.58" stroke="${theme.accent}" stroke-opacity="0.32" stroke-width="4"/>
-            <text x="800" y="718" text-anchor="middle" font-size="48" fill="${theme.text}" font-weight="800">${escapeSvg(theme.name)}</text>
+            <rect x="430" y="188" width="740" height="526" rx="42" fill="${theme.secondary}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.22" stroke-width="4"/>
+            <text x="520" y="266" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
+            <text x="800" y="246" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
+            <text x="1080" y="266" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
+            <text x="1244" y="450" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
+            <text x="1080" y="640" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
+            <text x="800" y="676" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
+            <text x="520" y="640" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
+            <text x="356" y="450" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
             <defs>
               <linearGradient id="g" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
                 <stop stop-color="${theme.secondary}"/>
