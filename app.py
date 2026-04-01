@@ -2013,35 +2013,26 @@ PAGE_TEMPLATE = """
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 44px;
-      min-width: 44px;
-      min-height: 40px;
-      padding: 0;
-      font-size: 18px;
+      width: 52px;
+      min-width: 52px;
+      min-height: 42px;
+      padding: 0 10px;
+      font-size: 22px;
+      font-weight: 700;
       line-height: 1;
       color: #f4fbff;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(121, 217, 255, 0.24);
+      background: rgba(10, 23, 40, 0.88);
+      border: 1px solid rgba(121, 217, 255, 0.34);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
       z-index: 1;
-    }
-
-    .season-pass-page-btn svg {
-      width: 18px;
-      height: 18px;
-      display: block;
-      stroke: currentColor;
-      stroke-width: 2.6;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      pointer-events: none;
     }
 
     .season-pass-pager-label {
       min-width: 0;
       text-align: center;
-      color: var(--muted);
-      font-size: 12px;
+      color: #cde6ff;
+      font-size: 13px;
+      font-weight: 600;
       white-space: nowrap;
     }
 
@@ -2051,6 +2042,12 @@ PAGE_TEMPLATE = """
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 8px;
+    }
+
+    .season-pass-head .tiny {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
     }
 
     .season-pass-board .catalog-card strong {
@@ -6978,9 +6975,9 @@ PAGE_TEMPLATE = """
               <div class="season-pass-head">
                 <div class="tiny" style="margin:0; color:#ffe3a1;">Премиум</div>
                 <div class="season-pass-pager">
-                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1" aria-label="Предыдущий уровень премиум-пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
+                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1" aria-label="Предыдущий уровень премиум-пропуска">←</button>
                   <div class="season-pass-pager-label" data-pass-page-label="premium">1 / ${track.length}</div>
-                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1" aria-label="Следующий уровень премиум-пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1" aria-label="Следующий уровень премиум-пропуска">→</button>
                 </div>
               </div>
               <div class="season-pass-scroll" data-pass-track="premium">
@@ -6991,9 +6988,9 @@ PAGE_TEMPLATE = """
               <div class="season-pass-head">
                 <div class="tiny" style="margin:0;">Бесплатно</div>
                 <div class="season-pass-pager">
-                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1" aria-label="Предыдущий уровень бесплатного пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
+                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1" aria-label="Предыдущий уровень бесплатного пропуска">←</button>
                   <div class="season-pass-pager-label" data-pass-page-label="free">1 / ${track.length}</div>
-                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1" aria-label="Следующий уровень бесплатного пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1" aria-label="Следующий уровень бесплатного пропуска">→</button>
                 </div>
               </div>
               <div class="season-pass-scroll" data-pass-track="free">
