@@ -2013,13 +2013,19 @@ PAGE_TEMPLATE = """
     }
 
     .season-pass-page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       width: 44px;
       min-width: 44px;
       min-height: 40px;
       padding: 0;
       font-size: 18px;
       line-height: 1;
-      justify-content: center;
+      color: #f4fbff;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(121, 217, 255, 0.24);
+      z-index: 1;
     }
 
     .season-pass-pager-label {
@@ -6959,9 +6965,9 @@ PAGE_TEMPLATE = """
                 <div class="season-pass-track">${premiumRow}</div>
               </div>
               <div class="season-pass-pager">
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1">←</button>
+                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1">◀</button>
                 <div class="season-pass-pager-label" data-pass-page-label="premium">Уровень 1 / ${track.length}</div>
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1">→</button>
+                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1">▶</button>
               </div>
             </div>
             <div>
@@ -6970,9 +6976,9 @@ PAGE_TEMPLATE = """
                 <div class="season-pass-track">${freeRow}</div>
               </div>
               <div class="season-pass-pager">
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1">←</button>
+                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1">◀</button>
                 <div class="season-pass-pager-label" data-pass-page-label="free">Уровень 1 / ${track.length}</div>
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1">→</button>
+                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1">▶</button>
               </div>
             </div>
           </div>
