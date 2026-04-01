@@ -2028,6 +2028,18 @@ PAGE_TEMPLATE = """
       z-index: 1;
     }
 
+    .season-pass-page-btn svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      stroke: currentColor;
+      stroke-width: 2.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+
     .season-pass-pager-label {
       min-width: 0;
       overflow: hidden;
@@ -6962,9 +6974,9 @@ PAGE_TEMPLATE = """
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
               <div class="season-pass-pager">
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1">◀</button>
+                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1" aria-label="Предыдущий уровень премиум-пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
                 <div class="season-pass-pager-label" data-pass-page-label="premium">Уровень 1 / ${track.length}</div>
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1">▶</button>
+                <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1" aria-label="Следующий уровень премиум-пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
               </div>
               <div class="season-pass-scroll" data-pass-track="premium">
                 <div class="season-pass-track">${premiumRow}</div>
@@ -6973,9 +6985,9 @@ PAGE_TEMPLATE = """
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
               <div class="season-pass-pager">
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1">◀</button>
+                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1" aria-label="Предыдущий уровень бесплатного пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
                 <div class="season-pass-pager-label" data-pass-page-label="free">Уровень 1 / ${track.length}</div>
-                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1">▶</button>
+                <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1" aria-label="Следующий уровень бесплатного пропуска"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
               </div>
               <div class="season-pass-scroll" data-pass-track="free">
                 <div class="season-pass-track">${freeRow}</div>
