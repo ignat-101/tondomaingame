@@ -944,11 +944,8 @@ PAGE_TEMPLATE = """
     }
 
     .showdown-main.arena-board {
-      background:
-        radial-gradient(circle at 50% 22%, rgba(69, 215, 255, 0.16), transparent 30%),
-        radial-gradient(circle at 50% 70%, rgba(83, 246, 184, 0.08), transparent 42%),
-        linear-gradient(180deg, rgba(7, 18, 33, 0.98), rgba(3, 10, 20, 0.98));
-      box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.06);
+      background: transparent;
+      box-shadow: none;
       padding: 12px;
     }
 
@@ -1911,7 +1908,7 @@ PAGE_TEMPLATE = """
 
     .season-pass-scroll {
       display: block;
-      overflow-x: auto;
+      overflow-x: scroll;
       overflow-y: hidden;
       width: 100%;
       max-width: 100%;
@@ -1924,6 +1921,7 @@ PAGE_TEMPLATE = """
       scrollbar-width: thin;
       overscroll-behavior-x: contain;
       cursor: grab;
+      pointer-events: auto;
     }
 
     .season-pass-scroll.dragging {
@@ -6882,20 +6880,37 @@ PAGE_TEMPLATE = """
         let dragging = false;
         let startX = 0;
         let startLeft = 0;
-        scroller.addEventListener('mousedown', (event) => {
+        const startDrag = (clientX) => {
           dragging = true;
-          startX = event.clientX;
+          startX = clientX;
           startLeft = scroller.scrollLeft;
           scroller.classList.add('dragging');
-        });
-        window.addEventListener('mousemove', (event) => {
+        };
+        const moveDrag = (clientX) => {
           if (!dragging) return;
-          scroller.scrollLeft = startLeft - (event.clientX - startX);
-        });
-        window.addEventListener('mouseup', () => {
+          scroller.scrollLeft = startLeft - (clientX - startX);
+        };
+        const endDrag = () => {
           dragging = false;
           scroller.classList.remove('dragging');
-        });
+        };
+        scroller.addEventListener('mousedown', (event) => startDrag(event.clientX));
+        scroller.addEventListener('touchstart', (event) => {
+          if (!event.touches || !event.touches[0]) return;
+          startDrag(event.touches[0].clientX);
+        }, { passive: true });
+        window.addEventListener('mousemove', (event) => moveDrag(event.clientX));
+        window.addEventListener('touchmove', (event) => {
+          if (!event.touches || !event.touches[0]) return;
+          moveDrag(event.touches[0].clientX);
+        }, { passive: true });
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag, { passive: true });
+        scroller.addEventListener('wheel', (event) => {
+          if (!event.deltaY && !event.deltaX) return;
+          event.preventDefault();
+          scroller.scrollLeft += event.deltaX || event.deltaY;
+        }, { passive: false });
       });
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
