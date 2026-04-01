@@ -4927,20 +4927,27 @@ PAGE_TEMPLATE = """
       }
 
       .season-pass-track > * {
-        flex-basis: min(64vw, 190px);
+        flex-basis: min(58vw, 176px);
       }
 
       .season-pass-board .catalog-card {
         min-height: 104px !important;
         padding: 10px !important;
+        min-width: 0 !important;
       }
 
       .season-pass-board .catalog-card strong {
-        font-size: 14px;
-        line-height: 1.18;
+        font-size: 13px;
+        line-height: 1.14;
       }
 
       .season-pass-pager-label {
+        font-size: 11px;
+      }
+
+      .season-pass-board .catalog-kicker,
+      .season-pass-board .tiny,
+      .season-pass-board .secondary {
         font-size: 11px;
       }
 
