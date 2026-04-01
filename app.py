@@ -1979,46 +1979,38 @@ PAGE_TEMPLATE = """
       pointer-events: auto;
     }
 
-    .season-pass-jump {
+    .season-pass-level-row {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+
+    .season-pass-level-meta {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin: 8px 0 14px;
+      margin-bottom: 8px;
       flex-wrap: wrap;
     }
 
-    .season-pass-jump .tiny {
-      margin: 0;
-      font-size: 13px;
+    .season-pass-level-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background: rgba(10, 23, 40, 0.78);
+      color: #eef6ff;
+      font-size: 12px;
       font-weight: 700;
-      color: #cfe3ff;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
-    .season-pass-level-select {
-      min-width: 148px;
-      min-height: 38px;
-      padding: 0 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(121, 217, 255, 0.28);
-      background: rgba(10, 23, 40, 0.88);
-      color: #f3f8ff;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .season-pass-stage {
-      display: grid;
-      justify-items: start;
-    }
-
-    .season-pass-stage-card {
-      display: none !important;
-      width: min(100%, 420px);
-      max-width: 100%;
-    }
-
-    .season-pass-stage-card.is-active {
-      display: grid !important;
+    .season-pass-level-row .catalog-card {
+      min-width: 0 !important;
     }
 
     .season-pass-scroll.dragging {
@@ -4918,15 +4910,7 @@ PAGE_TEMPLATE = """
       }
 
       .season-pass-jump {
-        gap: 8px;
-        margin: 6px 0 10px;
-      }
-
-      .season-pass-level-select {
-        min-width: 132px;
-        min-height: 34px;
-        padding: 0 12px;
-        font-size: 13px;
+        display: none;
       }
 
       .season-pass-track {
@@ -4938,11 +4922,15 @@ PAGE_TEMPLATE = """
         flex-basis: min(58vw, 176px);
       }
 
-      .season-pass-board .catalog-card,
-      .season-pass-stage-card {
+      .season-pass-board .catalog-card {
         min-height: 104px !important;
         padding: 10px !important;
         min-width: 0 !important;
+      }
+
+      .season-pass-level-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
       }
 
       .season-pass-board .catalog-card strong {
@@ -6015,7 +6003,7 @@ PAGE_TEMPLATE = """
         });
         return;
       }
-      const seasonTarget = Number(rewards.season_target || (Number(rewards.season_level || 1) * 12));
+      const seasonTarget = Number(rewards.season_target || (Number(rewards.season_level || 1) * 16));
       packRewardsSummary.textContent = `Баланс: ${rewards.pack_shards || 0} осколков • ${rewards.rare_tokens || 0} редких токенов • ${rewards.lucky_tokens || 0} lucky-токенов`;
       packSeasonSummary.textContent = `Сезон ${rewards.season_level || 1} • ${rewards.season_points || 0}/${seasonTarget} очков • пропуск ${rewards.premium_pass_active ? 'premium' : 'free'} • квест ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}`;
       claimDailyRewardBtn.disabled = !(state.wallet && rewards.daily_available);
@@ -6083,7 +6071,7 @@ PAGE_TEMPLATE = """
         <div class="user-item">
           <strong>Награды и сезон</strong>
           <div class="tiny">Осколки: ${rewards.pack_shards || 0} • Редкие токены: ${rewards.rare_tokens || 0} • Lucky-токены: ${rewards.lucky_tokens || 0}</div>
-          <div class="tiny">Сезон: ур. ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 12} очков • ${rewards.premium_pass_active ? 'премиум активен' : 'free-трек'}</div>
+          <div class="tiny">Сезон: ур. ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 16} очков • ${rewards.premium_pass_active ? 'премиум активен' : 'free-трек'}</div>
           <div class="tiny">Дейлик: ${rewards.daily_available ? 'готов' : 'получен'} • Квест: ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}</div>
           <div class="tiny">Синергии: ${synergies && synergies.labels && synergies.labels.length ? synergies.labels.join(' • ') : 'нет'}</div>
           <div class="tiny">Косметика: ${Array.isArray(rewards.cosmetics) && rewards.cosmetics.length ? rewards.cosmetics.map((item) => item.name).join(' • ') : 'ещё не открыта'}</div>
@@ -6964,7 +6952,7 @@ PAGE_TEMPLATE = """
       const passMarkup = `
         <div class="user-item">
           <strong>Сезонный пропуск</strong>
-          <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
+          <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 16)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
           <div class="season-pass-jump">
             <div class="tiny">Перейти к уровню</div>
@@ -11624,12 +11612,18 @@ def season_pass_track_payload(wallet=None, rewards=None):
     return payload
 
 
+SEASON_PASS_LEVEL_POINTS = 16
+SEASON_PASS_TUTORIAL_POINTS = 3
+SEASON_PASS_DAILY_POINTS = 1
+SEASON_PASS_GUILD_CLAIM_POINTS = 3
+
+
 def normalize_reward_progress_fields(*, pack_shards, rare_tokens, lucky_tokens, season_points, season_level, wins_for_quest, wins_claimed):
     season_level = max(1, int(season_level or 1))
     season_points = max(0, int(season_points or 0))
     lucky_tokens = max(0, int(lucky_tokens or 0))
-    while season_points >= season_level * 12:
-        season_points -= season_level * 12
+    while season_points >= season_level * SEASON_PASS_LEVEL_POINTS:
+        season_points -= season_level * SEASON_PASS_LEVEL_POINTS
         season_level += 1
         lucky_tokens += 1
     return {
@@ -11648,7 +11642,7 @@ def reward_summary(wallet):
     rewards['daily_available'] = rewards.get('daily_claimed_on') != today_utc_str()
     rewards['quest_ready'] = int(rewards.get('wins_for_quest', 0)) - int(rewards.get('wins_claimed', 0)) >= 3
     rewards['next_quest_target'] = int(rewards.get('wins_claimed', 0)) + 3
-    rewards['season_target'] = max(12, int(rewards.get('season_level', 1)) * 12)
+    rewards['season_target'] = max(SEASON_PASS_LEVEL_POINTS, int(rewards.get('season_level', 1)) * SEASON_PASS_LEVEL_POINTS)
     rewards['season_progress'] = round(int(rewards.get('season_points', 0)) / max(1, rewards['season_target']), 3)
     rewards['premium_pass'] = int(rewards.get('premium_pass', 0) or 0)
     rewards['premium_pass_active'] = bool(rewards['premium_pass'])
@@ -11732,7 +11726,7 @@ def grant_tutorial_reward(wallet):
         pack_shards=int(rewards.get('pack_shards', 0)) + 5,
         rare_tokens=int(rewards.get('rare_tokens', 0)) + 1,
         lucky_tokens=int(rewards.get('lucky_tokens', 0)),
-        season_points=int(rewards.get('season_points', 0)) + 4,
+        season_points=int(rewards.get('season_points', 0)) + SEASON_PASS_TUTORIAL_POINTS,
         season_level=rewards.get('season_level', 1),
         wins_for_quest=rewards.get('wins_for_quest', 0),
         wins_claimed=rewards.get('wins_claimed', 0),
@@ -11756,7 +11750,7 @@ def grant_tutorial_reward(wallet):
         )
         conn.commit()
     update_tutorial_progress(wallet, rewarded_at=now_iso())
-    return reward_summary(wallet), {'pack_shards': 5, 'rare_tokens': 1, 'lucky_tokens': 0, 'season_points': 4}
+    return reward_summary(wallet), {'pack_shards': 5, 'rare_tokens': 1, 'lucky_tokens': 0, 'season_points': SEASON_PASS_TUTORIAL_POINTS}
 
 
 def grant_match_rewards(wallet, *, won=False, ranked=False):
@@ -11809,7 +11803,7 @@ def claim_daily_reward(wallet):
         pack_shards=int(rewards.get('pack_shards', 0)) + 3,
         rare_tokens=rewards.get('rare_tokens', 0),
         lucky_tokens=rewards.get('lucky_tokens', 0),
-        season_points=int(rewards.get('season_points', 0)) + 2,
+        season_points=int(rewards.get('season_points', 0)) + SEASON_PASS_DAILY_POINTS,
         season_level=rewards.get('season_level', 1),
         wins_for_quest=rewards.get('wins_for_quest', 0),
         wins_claimed=rewards.get('wins_claimed', 0),
@@ -12230,7 +12224,7 @@ def claim_guild_weekly_reward(wallet, guild_id):
         pack_shards=int(rewards.get('pack_shards', 0)) + 5,
         rare_tokens=int(rewards.get('rare_tokens', 0)) + 1,
         lucky_tokens=int(rewards.get('lucky_tokens', 0)) + (1 if goals.get('war_score', 0) >= goals.get('war_target', 999999) else 0),
-        season_points=int(rewards.get('season_points', 0)) + 4,
+        season_points=int(rewards.get('season_points', 0)) + SEASON_PASS_GUILD_CLAIM_POINTS,
         season_level=int(rewards.get('season_level', 1) or 1),
         wins_for_quest=int(rewards.get('wins_for_quest', 0) or 0),
         wins_claimed=int(rewards.get('wins_claimed', 0) or 0),
