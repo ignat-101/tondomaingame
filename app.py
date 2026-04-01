@@ -1065,8 +1065,8 @@ PAGE_TEMPLATE = """
       border-radius: 26px;
       border: 1px solid rgba(121, 217, 255, 0.08);
       background:
-        radial-gradient(circle at 50% 50%, rgba(14, 44, 55, 0.12), transparent 42%),
-        linear-gradient(180deg, rgba(6, 14, 26, 0.28), rgba(3, 9, 18, 0.18));
+        radial-gradient(circle at 50% 50%, rgba(14, 44, 55, 0.04), transparent 42%),
+        linear-gradient(180deg, rgba(6, 14, 26, 0.08), rgba(3, 9, 18, 0.04));
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.01);
       overflow: hidden;
       isolation: isolate;
@@ -1077,7 +1077,7 @@ PAGE_TEMPLATE = """
       position: absolute;
       inset: 16px;
       border-radius: 20px;
-      border: 1px solid rgba(255, 211, 110, 0.04);
+      border: 1px solid rgba(255, 211, 110, 0.025);
       pointer-events: none;
     }
 
@@ -1801,10 +1801,14 @@ PAGE_TEMPLATE = """
       right: auto;
       bottom: auto;
       transform: translate(-50%, -50%);
-      width: 64px;
-      height: 64px;
-      opacity: 0.94;
-      background: rgba(7, 16, 28, 0.56);
+      width: auto;
+      height: auto;
+      padding: 0;
+      opacity: 0.96;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      backdrop-filter: none;
     }
 
     .arena-action-sticker svg {
@@ -1827,7 +1831,9 @@ PAGE_TEMPLATE = """
     }
 
     .arena-lane-card.simplified .arena-action-sticker span {
-      font-size: 30px;
+      font-size: 42px;
+      line-height: 1;
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
     }
 
     .arena-action-sticker.burst {
@@ -6816,14 +6822,14 @@ PAGE_TEMPLATE = """
               <div class="season-pass-scroll" data-pass-track="premium">
                 <div class="season-pass-track">${premiumRow}</div>
               </div>
-              <input type="range" min="0" max="100" value="0" step="1" class="season-pass-slider" data-pass-slider="premium" aria-label="Прокрутка премиум-пропуска">
+              <input type="range" min="0" max="100" value="0" step="1" class="season-pass-slider" data-pass-slider="premium" aria-label="Прокрутка премиум-пропуска" oninput="window.syncSeasonPassFromSlider && window.syncSeasonPassFromSlider(this)" onchange="window.syncSeasonPassFromSlider && window.syncSeasonPassFromSlider(this)">
             </div>
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
               <div class="season-pass-scroll" data-pass-track="free">
                 <div class="season-pass-track">${freeRow}</div>
               </div>
-              <input type="range" min="0" max="100" value="0" step="1" class="season-pass-slider" data-pass-slider="free" aria-label="Прокрутка бесплатного пропуска">
+              <input type="range" min="0" max="100" value="0" step="1" class="season-pass-slider" data-pass-slider="free" aria-label="Прокрутка бесплатного пропуска" oninput="window.syncSeasonPassFromSlider && window.syncSeasonPassFromSlider(this)" onchange="window.syncSeasonPassFromSlider && window.syncSeasonPassFromSlider(this)">
             </div>
           </div>
           <div class="actions" style="margin-top:10px;">
@@ -7663,6 +7669,16 @@ PAGE_TEMPLATE = """
       } else {
         scroller.scrollLeft = nextLeft;
       }
+    };
+
+    window.syncSeasonPassFromSlider = function syncSeasonPassFromSlider(slider) {
+      if (!slider) return;
+      const target = slider.dataset.passSlider;
+      const scroller = achievementsList ? achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`) : null;
+      if (!scroller) return;
+      const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+      const ratio = Math.max(0, Math.min(100, Number(slider.value || 0))) / 100;
+      scroller.scrollLeft = Math.round(maxLeft * ratio);
     };
 
     function battleTrailStyle(cosmetics) {
