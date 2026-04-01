@@ -6956,7 +6956,7 @@ PAGE_TEMPLATE = """
             ${giftThemePattern(theme)}
             <circle cx="256" cy="356" r="160" fill="${theme.base}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.66" stroke-width="12"/>
             <circle cx="256" cy="356" r="114" fill="${theme.secondary}" fill-opacity="0.34" stroke="${theme.accent}" stroke-opacity="0.28" stroke-width="4"/>
-            <text x="256" y="422" text-anchor="middle" font-size="214">${escapeSvg(theme.emoji)}</text>
+            <text x="256" y="422" text-anchor="middle" font-size="214" fill="${theme.text}" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="6" paint-order="stroke fill">${escapeSvg(theme.emoji)}</text>
             <rect x="92" y="598" width="328" height="78" rx="26" fill="${theme.base}" fill-opacity="0.46" stroke="${theme.accent}" stroke-opacity="0.34" stroke-width="4"/>
             <text x="256" y="646" text-anchor="middle" font-size="32" fill="${theme.text}" font-weight="800" opacity="0.98">${escapeSvg(theme.name)}</text>
           </svg>
@@ -6987,7 +6987,7 @@ PAGE_TEMPLATE = """
             <rect x="366" y="130" width="868" height="640" rx="56" fill="${theme.base}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.36" stroke-width="8"/>
             <circle cx="800" cy="382" r="198" fill="${theme.base}" fill-opacity="0.06" stroke="${theme.accent}" stroke-opacity="0.58" stroke-width="14"/>
             <circle cx="800" cy="382" r="132" fill="${theme.secondary}" fill-opacity="0.22" stroke="${theme.accent}" stroke-opacity="0.26" stroke-width="5"/>
-            <text x="800" y="470" text-anchor="middle" font-size="252">${escapeSvg(theme.emoji)}</text>
+            <text x="800" y="470" text-anchor="middle" font-size="252" fill="${theme.text}" stroke="${theme.accent}" stroke-opacity="0.42" stroke-width="8" paint-order="stroke fill">${escapeSvg(theme.emoji)}</text>
             <rect x="516" y="656" width="568" height="96" rx="28" fill="${theme.secondary}" fill-opacity="0.58" stroke="${theme.accent}" stroke-opacity="0.32" stroke-width="4"/>
             <text x="800" y="718" text-anchor="middle" font-size="48" fill="${theme.text}" font-weight="800">${escapeSvg(theme.name)}</text>
             <defs>
@@ -7005,7 +7005,7 @@ PAGE_TEMPLATE = """
             <rect width="512" height="256" rx="26" fill="${theme.base}"/>
             <rect x="14" y="14" width="484" height="228" rx="20" fill="${theme.secondary}" stroke="${theme.accent}" stroke-width="4"/>
             <path d="M76 54H436V136L256 208L76 136Z" fill="${theme.accent}" fill-opacity="0.22"/>
-            <text x="256" y="154" text-anchor="middle" font-size="68">${escapeSvg(theme.emoji)}</text>
+            <text x="256" y="154" text-anchor="middle" font-size="68" fill="${theme.text}" stroke="${theme.accent}" stroke-opacity="0.36" stroke-width="3" paint-order="stroke fill">${escapeSvg(theme.emoji)}</text>
           </svg>
         `);
       }
