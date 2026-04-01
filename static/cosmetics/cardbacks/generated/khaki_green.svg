@@ -1,11 +1,21 @@
 <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
-<rect width="512" height="768" rx="36" fill="#465236"/>
-<rect x="18" y="18" width="476" height="732" rx="28" fill="#67784A" stroke="#C8D89A" stroke-opacity="0.68" stroke-width="6"/>
-<rect x="42" y="42" width="428" height="684" rx="24" fill="#465236" fill-opacity="0.22"/>
-<g opacity="0.18" fill="#C8D89A"><path d="M138 182c62 4 106 46 110 114-60-4-106-44-110-114Z"/><path d="M374 478c-62-4-106-46-110-114 60 4 106 44 110 114Z"/><path d="M136 560c52-30 116-26 164 12-54 30-116 26-164-12Z"/></g>
-<circle cx="256" cy="356" r="160" fill="rgba(200,216,154,0.16)" stroke="#C8D89A" stroke-opacity="0.72" stroke-width="12"/>
-<circle cx="256" cy="356" r="114" fill="#67784A" fill-opacity="0.34" stroke="#C8D89A" stroke-opacity="0.34" stroke-width="4"/>
-<text x="256" y="422" text-anchor="middle" font-size="214" fill="#F2F8E6" stroke="rgba(200,216,154,0.32)" stroke-width="6" paint-order="stroke fill">🌿</text>
-<rect x="92" y="598" width="328" height="78" rx="26" fill="#465236" fill-opacity="0.46" stroke="#C8D89A" stroke-opacity="0.34" stroke-width="4"/>
-<text x="256" y="646" text-anchor="middle" font-size="32" fill="#F2F8E6" font-weight="800" opacity="0.98">Khaki Green</text>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#67784A"/>
+    <stop offset="1" stop-color="#465236"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="0.5" cy="0.45" r="0.65">
+    <stop offset="0" stop-color="#C8D89A" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#465236" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="512" height="768" rx="38" fill="url(#bg)"/>
+<rect x="14" y="14" width="484" height="740" rx="30" fill="none" stroke="#C8D89A" stroke-width="6" stroke-opacity="0.85"/>
+<rect x="30" y="30" width="452" height="708" rx="26" fill="url(#glow)" stroke="#C8D89A" stroke-width="2" stroke-opacity="0.22"/>
+<g opacity="0.16" fill="#C8D89A"><path d="M140 450c66 -144 176 -194 176 -194s10 122 -84 220c-48 50 -92 44 -92 44Z"/><path d="M312 238c74 38 118 114 118 114s-88 28 -164 -12c-54 -28 -76 -80 -76 -80s54 -38 122 -22Z"/></g>
+<text x="96" y="116" text-anchor="middle" font-size="56" fill="#F2F8E6" opacity="0.94">🌿</text>
+<text x="416" y="116" text-anchor="middle" font-size="56" fill="#F2F8E6" opacity="0.94">🌿</text>
+<text x="96" y="640" text-anchor="middle" font-size="56" fill="#F2F8E6" opacity="0.94">🌿</text>
+<text x="416" y="640" text-anchor="middle" font-size="56" fill="#F2F8E6" opacity="0.94">🌿</text>
+<text x="256" y="704" text-anchor="middle" font-size="28" fill="#F2F8E6" opacity="0.72" font-weight="700">Khaki Green</text>
 </svg>

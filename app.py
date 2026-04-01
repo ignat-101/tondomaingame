@@ -6816,14 +6816,14 @@ PAGE_TEMPLATE = """
               <div class="season-pass-scroll" data-pass-track="premium">
                 <div class="season-pass-track">${premiumRow}</div>
               </div>
-              <input type="range" min="0" max="0" value="0" step="1" class="season-pass-slider" data-pass-slider="premium" aria-label="Прокрутка премиум-пропуска">
+              <input type="range" min="0" max="100" value="0" step="1" class="season-pass-slider" data-pass-slider="premium" aria-label="Прокрутка премиум-пропуска">
             </div>
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
               <div class="season-pass-scroll" data-pass-track="free">
                 <div class="season-pass-track">${freeRow}</div>
               </div>
-              <input type="range" min="0" max="0" value="0" step="1" class="season-pass-slider" data-pass-slider="free" aria-label="Прокрутка бесплатного пропуска">
+              <input type="range" min="0" max="100" value="0" step="1" class="season-pass-slider" data-pass-slider="free" aria-label="Прокрутка бесплатного пропуска">
             </div>
           </div>
           <div class="actions" style="margin-top:10px;">
@@ -6846,17 +6846,25 @@ PAGE_TEMPLATE = """
         const target = slider.dataset.passSlider;
         const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
         if (!scroller) return;
+        const maxLeftFor = () => Math.max(0, scroller.scrollWidth - scroller.clientWidth);
         const syncSlider = () => {
-          const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
-          slider.max = String(maxLeft);
-          slider.value = String(Math.min(maxLeft, Math.max(0, Math.round(scroller.scrollLeft))));
+          const maxLeft = maxLeftFor();
+          const ratio = maxLeft > 0 ? (scroller.scrollLeft / maxLeft) * 100 : 0;
+          slider.max = '100';
+          slider.value = String(Math.max(0, Math.min(100, Math.round(ratio))));
         };
         scroller.addEventListener('scroll', syncSlider, { passive: true });
-        slider.addEventListener('input', () => {
-          scroller.scrollTo({ left: Number(slider.value || 0), behavior: 'auto' });
-        });
+        const applySlider = () => {
+          const maxLeft = maxLeftFor();
+          const ratio = Math.max(0, Math.min(100, Number(slider.value || 0))) / 100;
+          const nextLeft = Math.round(maxLeft * ratio);
+          scroller.scrollLeft = nextLeft;
+        };
+        slider.addEventListener('input', applySlider);
+        slider.addEventListener('change', applySlider);
         requestAnimationFrame(syncSlider);
-        setTimeout(syncSlider, 60);
+        setTimeout(syncSlider, 120);
+        setTimeout(syncSlider, 300);
       });
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
