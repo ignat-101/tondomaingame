@@ -6765,27 +6765,21 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
-          <div class="tiny">Листай дорожки влево и вправо, чтобы посмотреть все 8 уровней.</div>
+          <div class="tiny">Листай дорожки горизонтально или двигай ползунок, чтобы посмотреть все 8 уровней.</div>
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
               <div class="tiny" style="margin-bottom:8px; color:#ffe3a1;">Премиум</div>
-              <div class="actions" style="margin-bottom:8px;">
-                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="-1">←</button>
-                <button type="button" class="secondary season-pass-nav" data-pass-target="premium" data-dir="1">→</button>
-              </div>
               <div class="season-pass-scroll" data-pass-track="premium">
                 <div class="season-pass-track">${premiumRow}</div>
               </div>
+              <input type="range" min="0" max="0" value="0" step="1" class="season-pass-slider" data-pass-slider="premium" aria-label="Прокрутка премиум-пропуска">
             </div>
             <div>
               <div class="tiny" style="margin-bottom:8px;">Бесплатно</div>
-              <div class="actions" style="margin-bottom:8px;">
-                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="-1">←</button>
-                <button type="button" class="secondary season-pass-nav" data-pass-target="free" data-dir="1">→</button>
-              </div>
               <div class="season-pass-scroll" data-pass-track="free">
                 <div class="season-pass-track">${freeRow}</div>
               </div>
+              <input type="range" min="0" max="0" value="0" step="1" class="season-pass-slider" data-pass-slider="free" aria-label="Прокрутка бесплатного пропуска">
             </div>
           </div>
           <div class="actions" style="margin-top:10px;">
@@ -6804,8 +6798,20 @@ PAGE_TEMPLATE = """
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
       });
-      achievementsList.querySelectorAll('.season-pass-nav').forEach((button) => {
-        bindFunctionalControl(button, () => scrollSeasonPassTrack(button.dataset.passTarget, Number(button.dataset.dir || 0)));
+      achievementsList.querySelectorAll('.season-pass-slider').forEach((slider) => {
+        const target = slider.dataset.passSlider;
+        const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
+        if (!scroller) return;
+        const syncSlider = () => {
+          const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+          slider.max = String(maxLeft);
+          slider.value = String(Math.min(maxLeft, Math.max(0, Math.round(scroller.scrollLeft))));
+        };
+        scroller.addEventListener('scroll', syncSlider, { passive: true });
+        slider.addEventListener('input', () => {
+          scroller.scrollTo({ left: Number(slider.value || 0), behavior: 'auto' });
+        });
+        syncSlider();
       });
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
@@ -6948,35 +6954,7 @@ PAGE_TEMPLATE = """
       const theme = cosmeticTheme(type, key);
       if (!theme) return '';
       if (type === 'cardback') {
-        const slug = themeSlugFromKey(key);
-        const monogramFill = ['black', 'onyx_black'].includes(slug)
-          ? '#F4F7FF'
-          : slug === 'ivory_white'
-            ? '#2B2219'
-            : slug === 'fire_engine'
-              ? '#FFF6EF'
-              : theme.text;
-        const monogramStroke = slug === 'ivory_white'
-          ? 'rgba(109,86,51,0.42)'
-          : slug === 'fire_engine'
-            ? 'rgba(255,209,176,0.38)'
-            : 'rgba(255,255,255,0.16)';
-        const innerGlow = ['black', 'onyx_black'].includes(slug)
-          ? 'rgba(255,255,255,0.08)'
-          : theme.glow.replace(/0\.\d+\)/, '0.16)');
-        return svgDataUrl(`
-          <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
-            <rect width="512" height="768" rx="36" fill="${theme.base}"/>
-            <rect x="18" y="18" width="476" height="732" rx="28" fill="${theme.secondary}" stroke="${theme.accent}" stroke-opacity="0.68" stroke-width="6"/>
-            <rect x="42" y="42" width="428" height="684" rx="24" fill="${theme.base}" fill-opacity="0.22"/>
-            ${giftThemePattern(theme)}
-            <circle cx="256" cy="356" r="160" fill="${innerGlow}" stroke="${theme.accent}" stroke-opacity="0.72" stroke-width="12"/>
-            <circle cx="256" cy="356" r="114" fill="${theme.secondary}" fill-opacity="0.34" stroke="${theme.accent}" stroke-opacity="0.34" stroke-width="4"/>
-            <text x="256" y="422" text-anchor="middle" font-size="214" fill="${monogramFill}" stroke="${monogramStroke}" stroke-width="6" paint-order="stroke fill">${escapeSvg(theme.emoji)}</text>
-            <rect x="92" y="598" width="328" height="78" rx="26" fill="${theme.base}" fill-opacity="0.46" stroke="${theme.accent}" stroke-opacity="0.34" stroke-width="4"/>
-            <text x="256" y="646" text-anchor="middle" font-size="32" fill="${theme.text}" font-weight="800" opacity="0.98">${escapeSvg(theme.name)}</text>
-          </svg>
-        `);
+        return `/static/cosmetics/cardbacks/generated/${themeSlugFromKey(key)}.svg`;
       }
       if (type === 'frame') {
         return svgDataUrl(`
@@ -7175,7 +7153,7 @@ PAGE_TEMPLATE = """
         },
         {
           title: 'Как работают паки',
-          body: 'Бесплатные и reward-паки дают карты и валюту. Редкость идёт по порядку: Basic, Rare, Epic, Mythic, Legendary. Платный сезонный пропуск даёт косметику, а не силу.'
+          body: 'Бесплатные и reward-паки дают карты и валюту. Редкость идёт по порядку: Basic, Rare, Epic, Mythic, Legendary.'
         },
         {
           title: 'Что даёт сезонный пропуск',
