@@ -1280,9 +1280,9 @@ PAGE_TEMPLATE = """
     }
 
     .season-pass-track-spacer {
-      flex: 0 0 320px;
-      width: 320px;
-      min-width: 320px;
+      flex: 0 0 520px;
+      width: 520px;
+      min-width: 520px;
       pointer-events: none;
     }
 
@@ -6943,13 +6943,15 @@ PAGE_TEMPLATE = """
         const maxLeftFor = () => Math.max(0, scroller.scrollWidth - scroller.clientWidth);
         const syncSlider = () => {
           const maxLeft = maxLeftFor();
-          slider.max = String(Math.max(0, Math.round(maxLeft)));
-          slider.value = String(Math.max(0, Math.min(Math.round(maxLeft), Math.round(scroller.scrollLeft))));
+          const ratio = maxLeft > 0 ? (scroller.scrollLeft / maxLeft) * 100 : 0;
+          slider.max = '100';
+          slider.value = String(Math.max(0, Math.min(100, ratio)));
         };
         scroller.addEventListener('scroll', syncSlider, { passive: true });
         const applySlider = () => {
           const maxLeft = maxLeftFor();
-          const nextLeft = Math.max(0, Math.min(maxLeft, Number(slider.value || 0)));
+          const ratio = Math.max(0, Math.min(100, Number(slider.value || 0))) / 100;
+          const nextLeft = Math.max(0, Math.min(maxLeft, ratio * maxLeft));
           scroller.scrollLeft = nextLeft;
         };
         slider.addEventListener('input', applySlider);
