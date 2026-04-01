@@ -1930,15 +1930,16 @@ PAGE_TEMPLATE = """
     }
 
     .season-pass-track {
-      display: grid;
-      grid-auto-flow: column;
-      grid-auto-columns: clamp(216px, 30vw, 260px);
+      display: flex;
+      flex-wrap: nowrap;
       gap: 12px;
       width: max-content;
+      min-width: max-content;
     }
 
     .season-pass-track > * {
       scroll-snap-align: start;
+      flex: 0 0 clamp(216px, 30vw, 260px);
     }
 
     .season-pass-scroll[data-pass-track] {
@@ -7067,35 +7068,7 @@ PAGE_TEMPLATE = """
         `);
       }
       if (type === 'arena') {
-        return `${svgDataUrl(`
-          <svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
-            <rect width="1600" height="900" fill="${theme.base}"/>
-            <rect width="1600" height="900" fill="url(#g)"/>
-            <g opacity="0.24" stroke="${theme.accent}" stroke-width="3">
-              <path d="M120 180H1480"/><path d="M120 720H1480"/>
-              <path d="M220 120V780"/><path d="M800 80V820"/><path d="M1380 120V780"/>
-            </g>
-            <g transform="translate(528 110) scale(2.25)">
-              ${giftThemePattern(theme)}
-            </g>
-            <rect x="366" y="130" width="868" height="640" rx="56" fill="${theme.base}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.36" stroke-width="8"/>
-            <rect x="430" y="188" width="740" height="526" rx="42" fill="${theme.secondary}" fill-opacity="0.08" stroke="${theme.accent}" stroke-opacity="0.22" stroke-width="4"/>
-            <text x="520" y="266" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
-            <text x="800" y="246" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
-            <text x="1080" y="266" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
-            <text x="1244" y="450" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
-            <text x="1080" y="640" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
-            <text x="800" y="676" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
-            <text x="520" y="640" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
-            <text x="356" y="450" text-anchor="middle" font-size="98" fill="${theme.text}" opacity="0.94">${escapeSvg(theme.emoji)}</text>
-            <defs>
-              <linearGradient id="g" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
-                <stop stop-color="${theme.secondary}"/>
-                <stop offset="1" stop-color="${theme.base}"/>
-              </linearGradient>
-            </defs>
-          </svg>
-        `)}#v=${COSMETIC_ASSET_VERSION}`;
+        return `/static/cosmetics/arenas/generated/${themeSlugFromKey(key)}.svg?v=${COSMETIC_ASSET_VERSION}`;
       }
       if (type === 'guild') {
         return `${svgDataUrl(`
