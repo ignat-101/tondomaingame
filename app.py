@@ -1979,6 +1979,36 @@ PAGE_TEMPLATE = """
       pointer-events: auto;
     }
 
+    .season-pass-level-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 14px;
+    }
+
+    .season-pass-level-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 214, 130, 0.32);
+      background: rgba(10, 23, 40, 0.82);
+      color: #eaf4ff;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .season-pass-level-btn.is-active {
+      background: linear-gradient(135deg, rgba(38, 181, 168, 0.26), rgba(90, 214, 182, 0.16));
+      border-color: rgba(122, 239, 200, 0.54);
+      color: #ffffff;
+      box-shadow: 0 0 0 1px rgba(122, 239, 200, 0.22), 0 10px 20px rgba(0, 0, 0, 0.16);
+    }
+
     .season-pass-scroll.dragging {
       cursor: grabbing;
       user-select: none;
@@ -2000,54 +2030,6 @@ PAGE_TEMPLATE = """
 
     .season-pass-scroll[data-pass-track] {
       max-width: 100%;
-    }
-
-    .season-pass-pager {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin: 0;
-    }
-
-    .season-pass-page-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 52px;
-      min-width: 52px;
-      min-height: 42px;
-      padding: 0 10px;
-      font-size: 22px;
-      font-weight: 700;
-      line-height: 1;
-      color: #f4fbff;
-      background: rgba(10, 23, 40, 0.88);
-      border: 1px solid rgba(121, 217, 255, 0.34);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
-      z-index: 1;
-    }
-
-    .season-pass-pager-label {
-      min-width: 0;
-      text-align: center;
-      color: #cde6ff;
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .season-pass-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .season-pass-head .tiny {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 700;
     }
 
     .season-pass-board .catalog-card strong {
@@ -4930,6 +4912,18 @@ PAGE_TEMPLATE = """
         padding-bottom: 12px;
       }
 
+      .season-pass-level-nav {
+        gap: 6px;
+        margin: 6px 0 10px;
+      }
+
+      .season-pass-level-btn {
+        min-width: 36px;
+        min-height: 32px;
+        padding: 0 10px;
+        font-size: 12px;
+      }
+
       .season-pass-track {
         gap: 8px;
         padding-right: 140px;
@@ -4948,10 +4942,6 @@ PAGE_TEMPLATE = """
       .season-pass-board .catalog-card strong {
         font-size: 13px;
         line-height: 1.14;
-      }
-
-      .season-pass-pager-label {
-        font-size: 11px;
       }
 
       .season-pass-board .catalog-kicker,
@@ -6970,29 +6960,25 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 12)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
+          <div class="season-pass-level-nav">
+            ${track.map((_, index) => `
+              <button
+                type="button"
+                class="secondary season-pass-level-btn${index === 0 ? ' is-active' : ''}"
+                data-pass-level-index="${index}"
+                aria-label="Открыть уровень ${index + 1}"
+              >${index + 1}</button>
+            `).join('')}
+          </div>
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
-              <div class="season-pass-head">
-                <div class="tiny" style="margin:0; color:#ffe3a1;">Премиум</div>
-                <div class="season-pass-pager">
-                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="-1" aria-label="Предыдущий уровень премиум-пропуска">←</button>
-                  <div class="season-pass-pager-label" data-pass-page-label="premium">1 / ${track.length}</div>
-                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="premium" data-dir="1" aria-label="Следующий уровень премиум-пропуска">→</button>
-                </div>
-              </div>
+              <div class="tiny" style="margin:0 0 8px; color:#ffe3a1;">Премиум</div>
               <div class="season-pass-scroll" data-pass-track="premium">
                 <div class="season-pass-track">${premiumRow}</div>
               </div>
             </div>
             <div>
-              <div class="season-pass-head">
-                <div class="tiny" style="margin:0;">Бесплатно</div>
-                <div class="season-pass-pager">
-                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="-1" aria-label="Предыдущий уровень бесплатного пропуска">←</button>
-                  <div class="season-pass-pager-label" data-pass-page-label="free">1 / ${track.length}</div>
-                  <button type="button" class="secondary season-pass-page-btn" data-pass-page="free" data-dir="1" aria-label="Следующий уровень бесплатного пропуска">→</button>
-                </div>
-              </div>
+              <div class="tiny" style="margin:0 0 8px;">Бесплатно</div>
               <div class="season-pass-scroll" data-pass-track="free">
                 <div class="season-pass-track">${freeRow}</div>
               </div>
@@ -7014,66 +7000,68 @@ PAGE_TEMPLATE = """
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
       });
-      ['premium', 'free'].forEach((target) => {
-        const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
-        if (!scroller) return;
-        const trackEl = scroller.querySelector('.season-pass-track');
-        const cards = trackEl ? Array.from(trackEl.children).filter((child) => !child.classList.contains('season-pass-track-spacer')) : [];
-        const label = achievementsList.querySelector(`[data-pass-page-label="${target}"]`);
-        scroller.dataset.passIndex = '0';
-        const currentIndex = () => {
-          if (!cards.length) return 0;
-          const center = scroller.scrollLeft + scroller.clientWidth / 2;
+      const passTrackState = {};
+      const getPassScroller = (target) => achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
+      const getPassCards = (target) => {
+        const scroller = getPassScroller(target);
+        const trackEl = scroller ? scroller.querySelector('.season-pass-track') : null;
+        return trackEl ? Array.from(trackEl.children).filter((child) => !child.classList.contains('season-pass-track-spacer')) : [];
+      };
+      const syncPassLevelButtons = () => {
+        const premiumScroller = getPassScroller('premium');
+        const premiumCards = getPassCards('premium');
+        let index = 0;
+        if (premiumScroller && premiumCards.length) {
+          const center = premiumScroller.scrollLeft + premiumScroller.clientWidth / 2;
           let bestIndex = 0;
           let bestDistance = Infinity;
-          cards.forEach((card, index) => {
+          premiumCards.forEach((card, cardIndex) => {
             const cardCenter = card.offsetLeft + card.offsetWidth / 2;
             const distance = Math.abs(cardCenter - center);
             if (distance < bestDistance) {
               bestDistance = distance;
-              bestIndex = index;
+              bestIndex = cardIndex;
             }
           });
-          return bestIndex;
-        };
-          const syncPagerLabel = () => {
-          const idx = currentIndex();
-          scroller.dataset.passIndex = String(idx);
-          if (label) {
-            label.textContent = `${idx + 1} / ${cards.length || 1}`;
-          }
-        };
-        scroller.addEventListener('scroll', syncPagerLabel, { passive: true });
-        requestAnimationFrame(syncPagerLabel);
-        setTimeout(syncPagerLabel, 120);
-        setTimeout(syncPagerLabel, 300);
-        setTimeout(syncPagerLabel, 700);
-      });
-      achievementsList.querySelectorAll('.season-pass-page-btn').forEach((button) => {
-        bindFunctionalControl(button, () => {
-          const target = button.dataset.passPage;
-          const dir = Number(button.dataset.dir || 0);
-          if (!target || !dir) return;
-          const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
-          const trackEl = scroller ? scroller.querySelector('.season-pass-track') : null;
-          const cards = trackEl ? Array.from(trackEl.children).filter((child) => !child.classList.contains('season-pass-track-spacer')) : [];
-          if (!scroller || !cards.length) return;
-          const current = Math.max(0, Math.min(cards.length - 1, Number(scroller.dataset.passIndex || 0)));
-          const next = Math.max(0, Math.min(cards.length - 1, current + dir));
-          const nextCard = cards[next];
-          const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
-          const desiredLeft = Math.max(0, Math.min(maxLeft, nextCard.offsetLeft));
-          if (typeof scroller.scrollTo === 'function') {
-            scroller.scrollTo({ left: desiredLeft, behavior: 'smooth' });
-          } else {
-            scroller.scrollLeft = desiredLeft;
-          }
-          scroller.dataset.passIndex = String(next);
-          const label = achievementsList.querySelector(`[data-pass-page-label="${target}"]`);
-          if (label) {
-            label.textContent = `${next + 1} / ${cards.length}`;
-          }
+          index = bestIndex;
+        }
+        achievementsList.querySelectorAll('.season-pass-level-btn').forEach((button) => {
+          button.classList.toggle('is-active', Number(button.dataset.passLevelIndex || 0) === index);
         });
+      };
+      const scrollPassToIndex = (target, index, behavior = 'smooth') => {
+        const scroller = getPassScroller(target);
+        const cards = getPassCards(target);
+        if (!scroller || !cards.length) return;
+        const next = Math.max(0, Math.min(cards.length - 1, Number(index) || 0));
+        const nextCard = cards[next];
+        const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+        const desiredLeft = Math.max(0, Math.min(maxLeft, nextCard.offsetLeft));
+        if (typeof scroller.scrollTo === 'function') {
+          scroller.scrollTo({ left: desiredLeft, behavior });
+        } else {
+          scroller.scrollLeft = desiredLeft;
+        }
+        passTrackState[target] = next;
+      };
+      achievementsList.querySelectorAll('.season-pass-level-btn').forEach((button) => {
+        bindFunctionalControl(button, () => {
+          const next = Number(button.dataset.passLevelIndex || 0);
+          scrollPassToIndex('premium', next, 'smooth');
+          scrollPassToIndex('free', next, 'smooth');
+          achievementsList.querySelectorAll('.season-pass-level-btn').forEach((levelButton) => {
+            levelButton.classList.toggle('is-active', levelButton === button);
+          });
+        });
+      });
+      ['premium', 'free'].forEach((target) => {
+        const scroller = achievementsList.querySelector(`.season-pass-scroll[data-pass-track="${target}"]`);
+        if (!scroller) return;
+        scroller.addEventListener('scroll', syncPassLevelButtons, { passive: true });
+        requestAnimationFrame(syncPassLevelButtons);
+        setTimeout(syncPassLevelButtons, 120);
+        setTimeout(syncPassLevelButtons, 300);
+        setTimeout(syncPassLevelButtons, 700);
       });
       achievementsList.querySelectorAll('.season-pass-scroll').forEach((scroller) => {
         let dragging = false;
