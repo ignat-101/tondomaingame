@@ -4280,6 +4280,35 @@ PAGE_TEMPLATE = """
       line-height: 1.45;
     }
 
+    .wallet-telegram-panel {
+      display: grid;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(111, 204, 255, 0.16);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .wallet-telegram-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #telegram-login-widget {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    #telegram-login-widget > iframe {
+      max-width: 100%;
+    }
+
     .wallet-section {
       margin-top: 14px;
       padding: 14px;
@@ -5331,6 +5360,15 @@ PAGE_TEMPLATE = """
               <button type="button" id="check-domains-btn" onclick="window.checkDomains && window.checkDomains(); return false;">Проверить наличие доменов</button>
               <button type="button" class="secondary" id="wallet-open-pack-btn" disabled>К распаковке</button>
             </div>
+            <div class="wallet-telegram-panel">
+              <div class="wallet-telegram-head">
+                <strong>Telegram</strong>
+                <div class="tiny" id="telegram-link-summary">Не привязан</div>
+              </div>
+              <div class="tiny">Привяжи Telegram прямо на сайте. После этого можно получать уведомления о приглашениях в бой, ежедневной награде и наградах пропуска.</div>
+              <div id="telegram-login-widget"></div>
+              <div class="status" id="telegram-link-status"></div>
+            </div>
             <div class="tiny" style="margin-top:8px; color: var(--warning);">Чтобы откалибровать экран в TMA, нажми «Проверить наличие доменов».</div>
             <div class="tiny" id="wallet-tech-status" style="margin-top:6px; color: var(--muted);"></div>
           </div>
@@ -5626,7 +5664,8 @@ PAGE_TEMPLATE = """
       disciplineBuild: null,
       battleLaunchInFlight: false,
       lastReplayTapAt: 0,
-      interactiveActionInFlight: false
+      interactiveActionInFlight: false,
+      telegramWidgetSignature: ''
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -5637,6 +5676,9 @@ PAGE_TEMPLATE = """
     const currencyBadge = document.getElementById('currency-badge');
     const walletStatus = document.getElementById('wallet-status');
     const walletTechStatus = document.getElementById('wallet-tech-status');
+    const telegramLinkSummary = document.getElementById('telegram-link-summary');
+    const telegramLinkStatus = document.getElementById('telegram-link-status');
+    const telegramLoginWidget = document.getElementById('telegram-login-widget');
     const walletQuickWallet = document.getElementById('wallet-quick-wallet');
     const walletQuickDomain = document.getElementById('wallet-quick-domain');
     const walletQuickCurrency = document.getElementById('wallet-quick-currency');
@@ -6867,6 +6909,7 @@ PAGE_TEMPLATE = """
         </div>
       `;
       document.getElementById('mobile-show-deck-btn').disabled = showDeckBtn.disabled;
+      renderTelegramLinkPanel();
       renderRewardsPanels();
       renderPackEconomy();
       renderIdentityPanel();
@@ -6876,6 +6919,62 @@ PAGE_TEMPLATE = """
       renderGuildPanel();
       renderTutorialPanel();
       renderClanSeasonHub();
+    }
+
+    function telegramLinkTitle() {
+      const telegram = state.playerProfile && state.playerProfile.telegram;
+      if (!telegram) {
+        return state.wallet ? 'Не привязан' : 'Сначала подключи кошелёк';
+      }
+      if (telegram.username) {
+        return `Привязан: @${telegram.username}`;
+      }
+      if (telegram.first_name) {
+        return `Привязан: ${telegram.first_name}`;
+      }
+      return 'Telegram привязан';
+    }
+
+    function mountTelegramLoginWidget() {
+      if (!telegramLoginWidget) return;
+      const signature = state.wallet ? `${state.wallet}:${telegramLinkTitle()}` : '';
+      if (state.telegramWidgetSignature === signature && telegramLoginWidget.childElementCount) {
+        return;
+      }
+      state.telegramWidgetSignature = signature;
+      telegramLoginWidget.innerHTML = '';
+      if (!telegramBotUsername) {
+        telegramLoginWidget.innerHTML = '<div class="tiny" style="color: var(--warning);">TG_BOT_USERNAME не настроен на сервере.</div>';
+        return;
+      }
+      if (!state.wallet) {
+        telegramLoginWidget.innerHTML = '<div class="tiny" style="color: var(--muted);">Сначала подключи TON-кошелёк, потом привяжи Telegram.</div>';
+        return;
+      }
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.setAttribute('data-telegram-login', telegramBotUsername);
+      script.setAttribute('data-size', 'large');
+      script.setAttribute('data-radius', '12');
+      script.setAttribute('data-request-access', 'write');
+      script.setAttribute('data-userpic', 'false');
+      script.setAttribute('data-lang', 'ru');
+      script.setAttribute('data-onauth', 'window.onTelegramSiteAuth(user)');
+      telegramLoginWidget.appendChild(script);
+    }
+
+    function renderTelegramLinkPanel() {
+      if (!telegramLinkSummary || !telegramLoginWidget) return;
+      telegramLinkSummary.textContent = telegramLinkTitle();
+      if (!state.wallet) {
+        setStatus(telegramLinkStatus, 'Telegram можно привязать после подключения кошелька.', 'warning');
+      } else if (state.playerProfile && state.playerProfile.telegram_linked) {
+        setStatus(telegramLinkStatus, 'Telegram подключён на сайте. Уведомления можно отправлять напрямую.', 'success');
+      } else {
+        setStatus(telegramLinkStatus, 'Нажми кнопку Telegram ниже, чтобы привязать аккаунт к текущему кошельку.', 'warning');
+      }
+      mountTelegramLoginWidget();
     }
 
     function renderOwnedDecks(decks, currentDomain) {
@@ -9495,8 +9594,32 @@ PAGE_TEMPLATE = """
         tonConnectRoot.scrollIntoView({behavior: 'smooth', block: 'center'});
       }
     }
+
+    async function onTelegramSiteAuth(user) {
+      if (!state.wallet) {
+        setStatus(telegramLinkStatus, 'Сначала подключи TON-кошелёк, потом привязывай Telegram.', 'warning');
+        return;
+      }
+      setStatus(telegramLinkStatus, 'Привязываем Telegram к текущему кошельку...', 'warning');
+      try {
+        const data = await api('/api/telegram/site-link', {
+          method: 'POST',
+          body: { wallet: state.wallet, telegram: user || {} }
+        });
+        state.playerProfile = data.player || state.playerProfile;
+        renderProfile();
+        setStatus(
+          telegramLinkStatus,
+          `Telegram привязан: ${data.telegram && data.telegram.username ? `@${data.telegram.username}` : (data.telegram && data.telegram.first_name) || 'аккаунт подключён'}.`,
+          'success'
+        );
+      } catch (error) {
+        setStatus(telegramLinkStatus, error.message, 'error');
+      }
+    }
     window.openWalletConnect = openWalletConnect;
     window.checkDomains = checkDomains;
+    window.onTelegramSiteAuth = onTelegramSiteAuth;
 
     async function openPack(source = 'daily', paymentId = null, packType = null) {
       await prepareFunctionalInteraction();
@@ -14534,8 +14657,12 @@ def player_last_seen(wallet):
 def link_wallet_to_telegram(wallet, telegram_user_id):
     link = telegram_user_link(telegram_user_id)
     if link is None:
-        raise ValueError('Сначала запусти бота в Telegram через /start, потом открой mini app.')
+        raise ValueError('Сначала привяжи Telegram через сайт или внутри Telegram mini app.')
     with closing(get_db()) as conn:
+        conn.execute(
+            'UPDATE telegram_users SET wallet = NULL, updated_at = ? WHERE wallet = ? AND telegram_user_id != ?',
+            (now_iso(), wallet, telegram_user_id),
+        )
         conn.execute(
             'UPDATE telegram_users SET wallet = ?, updated_at = ?, linked_at = COALESCE(linked_at, ?) WHERE telegram_user_id = ?',
             (wallet, now_iso(), now_iso(), telegram_user_id),
@@ -14568,6 +14695,38 @@ def validate_telegram_init_data(init_data):
     if 'user' in pairs:
         pairs['user'] = json.loads(pairs['user'])
     return pairs
+
+
+def validate_telegram_login_data(payload):
+    if not TG_BOT_TOKEN:
+        raise ValueError('TG_BOT_TOKEN не настроен.')
+    if not isinstance(payload, dict):
+        raise ValueError('Некорректные Telegram-данные.')
+    normalized = {}
+    for key, value in payload.items():
+        if value is None:
+            continue
+        normalized[str(key)] = str(value)
+    received_hash = normalized.pop('hash', None)
+    auth_date = normalized.get('auth_date')
+    telegram_user_id = normalized.get('id')
+    if not received_hash or not auth_date or not telegram_user_id:
+        raise ValueError('Некорректные Telegram login data.')
+    if now_utc().timestamp() - int(auth_date) > TELEGRAM_INITDATA_MAX_AGE:
+        raise ValueError('Сессия Telegram устарела. Повтори вход через Telegram.')
+    data_check_string = '\n'.join(f'{key}={normalized[key]}' for key in sorted(normalized.keys()))
+    secret_key = hashlib.sha256(TG_BOT_TOKEN.encode()).digest()
+    calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(calculated_hash, received_hash):
+        raise ValueError('Не удалось подтвердить Telegram-login.')
+    return {
+        'id': int(telegram_user_id),
+        'first_name': normalized.get('first_name') or '',
+        'last_name': normalized.get('last_name') or '',
+        'username': normalized.get('username') or '',
+        'photo_url': normalized.get('photo_url') or '',
+        'auth_date': int(auth_date),
+    }
 
 
 def resolve_player_reference(reference):
@@ -15546,6 +15705,7 @@ def get_player(wallet):
     current_deck = deck_summary_for_domain(player['current_domain'], wallet) if player['current_domain'] else None
     profile = player_profile_row(wallet)
     guild_membership = current_guild_membership(wallet)
+    telegram_link = telegram_wallet_link(wallet)
     return {
         'wallet': player['wallet'],
         'rating': player['rating'],
@@ -15554,7 +15714,13 @@ def get_player(wallet):
         'ranked_losses': player['ranked_losses'],
         'best_domain': player['best_domain'],
         'current_domain': player['current_domain'],
-        'telegram_linked': telegram_wallet_link(wallet) is not None,
+        'telegram_linked': telegram_link is not None,
+        'telegram': {
+            'id': telegram_link['telegram_user_id'],
+            'username': telegram_link['username'],
+            'first_name': telegram_link['first_name'],
+            'linked_at': telegram_link['linked_at'],
+        } if telegram_link else None,
         'telegram_notifications': telegram_notification_settings(wallet),
         'display_name': display_name_for_wallet(wallet),
         'avatar': '',
@@ -17575,6 +17741,27 @@ def api_telegram_link():
     except (ValueError, KeyError) as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'telegram': link, 'player': get_player(wallet)})
+
+
+@app.route('/api/telegram/site-link', methods=['POST'])
+def api_telegram_site_link():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    telegram_payload = payload.get('telegram') or {}
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи TON-кошелёк.')
+    try:
+        telegram_user = validate_telegram_login_data(telegram_payload)
+        upsert_telegram_user(telegram_user, telegram_user['id'])
+        link = link_wallet_to_telegram(wallet, telegram_user['id'])
+        ensure_player(wallet)
+        try:
+            telegram_send_message(link['chat_id'], f'Telegram привязан к кошельку {wallet[:6]}...{wallet[-6:]}. Уведомления активированы.')
+        except Exception:
+            pass
+    except (ValueError, KeyError) as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'telegram': link, 'player': get_player(wallet), 'settings': telegram_notification_settings(wallet)})
 
 
 @app.route('/api/telegram/notifications/<wallet>')
