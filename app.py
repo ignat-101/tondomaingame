@@ -4305,6 +4305,10 @@ PAGE_TEMPLATE = """
       gap: 10px;
     }
 
+    #telegram-miniapp-link-btn {
+      display: none;
+    }
+
     #telegram-login-widget > iframe {
       max-width: 100%;
     }
@@ -4743,6 +4747,10 @@ PAGE_TEMPLATE = """
       }
 
       #ton-connect > div {
+        width: 100%;
+      }
+
+      #telegram-miniapp-link-btn {
         width: 100%;
       }
 
@@ -5367,6 +5375,7 @@ PAGE_TEMPLATE = """
               </div>
               <div class="tiny">Привяжи Telegram прямо на сайте. После этого можно получать уведомления о приглашениях в бой, ежедневной награде и наградах пропуска.</div>
               <div id="telegram-login-widget"></div>
+              <button type="button" class="secondary" id="telegram-miniapp-link-btn">Включить уведомления Telegram в mini app</button>
               <div class="status" id="telegram-link-status"></div>
             </div>
             <div class="tiny" style="margin-top:8px; color: var(--warning);">Чтобы откалибровать экран в TMA, нажми «Проверить наличие доменов».</div>
@@ -5665,7 +5674,8 @@ PAGE_TEMPLATE = """
       battleLaunchInFlight: false,
       lastReplayTapAt: 0,
       interactiveActionInFlight: false,
-      telegramWidgetSignature: ''
+      telegramWidgetSignature: '',
+      telegramMiniLinkInFlight: false
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -5679,6 +5689,7 @@ PAGE_TEMPLATE = """
     const telegramLinkSummary = document.getElementById('telegram-link-summary');
     const telegramLinkStatus = document.getElementById('telegram-link-status');
     const telegramLoginWidget = document.getElementById('telegram-login-widget');
+    const telegramMiniappLinkBtn = document.getElementById('telegram-miniapp-link-btn');
     const walletQuickWallet = document.getElementById('wallet-quick-wallet');
     const walletQuickDomain = document.getElementById('wallet-quick-domain');
     const walletQuickCurrency = document.getElementById('wallet-quick-currency');
@@ -6966,15 +6977,30 @@ PAGE_TEMPLATE = """
 
     function renderTelegramLinkPanel() {
       if (!telegramLinkSummary || !telegramLoginWidget) return;
+      const tma = isTelegramMiniApp();
       telegramLinkSummary.textContent = telegramLinkTitle();
       if (!state.wallet) {
         setStatus(telegramLinkStatus, 'Telegram можно привязать после подключения кошелька.', 'warning');
       } else if (state.playerProfile && state.playerProfile.telegram_linked) {
-        setStatus(telegramLinkStatus, 'Telegram подключён на сайте. Уведомления можно отправлять напрямую.', 'success');
+        setStatus(telegramLinkStatus, 'Telegram привязан. Уведомления по бою и наградам можно отправлять напрямую.', 'success');
       } else {
-        setStatus(telegramLinkStatus, 'Нажми кнопку Telegram ниже, чтобы привязать аккаунт к текущему кошельку.', 'warning');
+        setStatus(telegramLinkStatus, tma
+          ? 'В mini app Telegram можно привязать без отдельного логина. Нажми кнопку ниже, чтобы включить уведомления.'
+          : 'Нажми кнопку Telegram ниже, чтобы привязать аккаунт к текущему кошельку.', 'warning');
       }
-      mountTelegramLoginWidget();
+      if (telegramMiniappLinkBtn) {
+        telegramMiniappLinkBtn.style.display = tma ? 'inline-flex' : 'none';
+        telegramMiniappLinkBtn.disabled = !state.wallet || Boolean(state.playerProfile && state.playerProfile.telegram_linked);
+        telegramMiniappLinkBtn.textContent = state.playerProfile && state.playerProfile.telegram_linked
+          ? 'Telegram уже привязан'
+          : 'Включить уведомления Telegram в mini app';
+      }
+      telegramLoginWidget.style.display = tma ? 'none' : 'flex';
+      if (!tma) {
+        mountTelegramLoginWidget();
+      } else {
+        telegramLoginWidget.innerHTML = '';
+      }
     }
 
     function renderOwnedDecks(decks, currentDomain) {
@@ -9617,9 +9643,72 @@ PAGE_TEMPLATE = """
         setStatus(telegramLinkStatus, error.message, 'error');
       }
     }
+
+    async function requestTelegramWriteAccess() {
+      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      if (!tg || typeof tg.requestWriteAccess !== 'function') {
+        return false;
+      }
+      return await new Promise((resolve) => {
+        try {
+          tg.requestWriteAccess((allowed) => resolve(Boolean(allowed)));
+        } catch (_) {
+          resolve(false);
+        }
+      });
+    }
+
+    async function linkTelegramFromMiniApp(options = {}) {
+      const {requestWrite = false, silent = false} = options;
+      if (!state.wallet || state.telegramMiniLinkInFlight) {
+        return false;
+      }
+      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      if (!tg || !tg.initData) {
+        if (!silent) {
+          setStatus(telegramLinkStatus, 'Это действие доступно только внутри Telegram mini app.', 'error');
+        }
+        return false;
+      }
+      state.telegramMiniLinkInFlight = true;
+      if (!silent) {
+        setStatus(telegramLinkStatus, 'Привязываем Telegram через mini app...', 'warning');
+      }
+      try {
+        if (requestWrite) {
+          const writeAllowed = await requestTelegramWriteAccess();
+          if (!writeAllowed) {
+            throw new Error('Telegram не дал разрешение на отправку сообщений.');
+          }
+        }
+        const data = await api('/api/telegram/link', {
+          method: 'POST',
+          body: { wallet: state.wallet, init_data: tg.initData }
+        });
+        state.playerProfile = data.player || state.playerProfile;
+        renderProfile();
+        if (!silent) {
+          const linked = data.telegram || {};
+          setStatus(
+            telegramLinkStatus,
+            `Telegram привязан в mini app: ${linked.username ? `@${linked.username}` : linked.first_name || 'аккаунт подключён'}.`,
+            'success'
+          );
+        }
+        return true;
+      } catch (error) {
+        if (!silent) {
+          setStatus(telegramLinkStatus, error.message, 'error');
+        }
+        return false;
+      } finally {
+        state.telegramMiniLinkInFlight = false;
+      }
+    }
     window.openWalletConnect = openWalletConnect;
     window.checkDomains = checkDomains;
     window.onTelegramSiteAuth = onTelegramSiteAuth;
+    window.linkTelegramFromMiniApp = linkTelegramFromMiniApp;
 
     async function openPack(source = 'daily', paymentId = null, packType = null) {
       await prepareFunctionalInteraction();
@@ -10363,6 +10452,9 @@ PAGE_TEMPLATE = """
           await loadOwnedDecks();
           await loadGlobalPlayers();
           await loadProfile();
+          if (isTelegramMiniApp() && state.playerProfile && !state.playerProfile.telegram_linked) {
+            await linkTelegramFromMiniApp({silent: true});
+          }
           await loadAchievements();
           await loadDisciplineBuild();
         } else {
@@ -10395,6 +10487,9 @@ PAGE_TEMPLATE = """
 
     bindFunctionalControl(document.getElementById('connect-wallet-btn'), openWalletConnect, 'click', {skipPrepare: true});
     bindFunctionalControl(document.getElementById('check-domains-btn'), checkDomains, 'click', {skipPrepare: true});
+    if (telegramMiniappLinkBtn) {
+      bindFunctionalControl(telegramMiniappLinkBtn, () => linkTelegramFromMiniApp({requestWrite: true}), 'click', {skipPrepare: true});
+    }
     bindFunctionalControl(walletOpenPackBtn, () => switchView('pack'));
     bindFunctionalControl(document.getElementById('back-to-wallet-btn'), () => switchView('profile'));
     bindFunctionalControl(document.getElementById('rebind-domain-btn'), rebindDomain);
@@ -17736,6 +17831,8 @@ def api_telegram_link():
     try:
         telegram_data = validate_telegram_init_data(init_data)
         user = telegram_data.get('user') or {}
+        if user and user.get('id'):
+            upsert_telegram_user(user, user['id'])
         link = link_wallet_to_telegram(wallet, user['id'])
         ensure_player(wallet)
     except (ValueError, KeyError) as exc:
