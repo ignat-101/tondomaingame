@@ -5538,8 +5538,8 @@ PAGE_TEMPLATE = """
             <div class="mode-card" data-mode-card="duel">
               <div class="mode-burst"></div>
               <h3>Дуэль</h3>
-              <p>Полностью такой же обычный бой, но матч стартует только после Telegram-приглашения сопернику. Время ожидания ответа: 30 секунд.</p>
-              <input id="opponent-wallet" placeholder="Ник, кошелёк или 4-значный домен соперника">
+              <p>Обычный бой, но матч стартует после принятия приглашения от соперника. Время на принятия боя 30 секунд.</p>
+              <input id="opponent-wallet" placeholder="Ник или домен соперника">
               <button id="play-duel-btn" disabled>Пригласить в дуэль</button>
             </div>
           </div>
@@ -14855,27 +14855,41 @@ def validate_telegram_login_data(payload):
 def resolve_player_reference(reference):
     ref = (reference or '').strip()
     if not ref:
-        raise ValueError('Укажи кошелёк или .ton домен соперника.')
-    if valid_wallet_address(reference):
-        return reference.strip()
+        raise ValueError('Укажи ник или .ton домен соперника.')
 
     domain = normalize_strict_ton_domain(ref)
-    if not domain:
-        raise ValueError('Поле соперника принимает только полный кошелёк или 4-значный домен вида 1234.ton.')
-
     with closing(get_db()) as conn:
-        row = conn.execute(
-            '''
-            SELECT wallet FROM players
-            WHERE current_domain = ? OR best_domain = ?
-            ORDER BY updated_at DESC
-            LIMIT 1
-            ''',
-            (domain, domain),
-        ).fetchone()
-    if row is None:
+        if domain:
+            row = conn.execute(
+                '''
+                SELECT wallet FROM players
+                WHERE current_domain = ? OR best_domain = ?
+                ORDER BY updated_at DESC
+                LIMIT 1
+                ''',
+                (domain, domain),
+            ).fetchone()
+            if row is not None:
+                return row['wallet']
+        else:
+            nickname = clean_public_text(ref, 24)
+            if not nickname:
+                raise ValueError('Поле соперника принимает только ник или 4-значный домен вида 1234.ton.')
+            row = conn.execute(
+                '''
+                SELECT wallet FROM player_profiles
+                WHERE lower(nickname) = lower(?)
+                ORDER BY updated_at DESC
+                LIMIT 1
+                ''',
+                (nickname,),
+            ).fetchone()
+            if row is not None:
+                return row['wallet']
+
+    if domain:
         raise ValueError('Игрок с таким доменом ещё не найден. Пусть он сначала зайдёт в игру и выберет домен.')
-    return row['wallet']
+    raise ValueError('Игрок с таким ником не найден. Проверь ник или попроси соперника сначала зайти в игру.')
 
 
 def active_users():
