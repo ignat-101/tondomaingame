@@ -7121,15 +7121,10 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 16)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
-          <div class="season-pass-jump">
-            <button type="button" class="secondary season-pass-nav-btn" data-pass-nav="prev">← Назад</button>
-            <div class="season-pass-level-meta">
-              <span class="season-pass-level-badge season-pass-level-label">Уровень 1 / ${track.length}</span>
-              <select class="season-pass-level-select" onchange="window.jumpSeasonPassLevel(this.value)">
-                ${track.map((item) => `<option value="${item.level}">${item.level} / ${track.length}</option>`).join('')}
-              </select>
-            </div>
-            <button type="button" class="secondary season-pass-nav-btn" data-pass-nav="next">Вперёд →</button>
+          <div style="display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
+            <button type="button" id="season-pass-prev-btn" style="min-width:110px; min-height:40px; border-radius:12px; border:1px solid rgba(121,217,255,0.24); background:rgba(10,23,40,0.9); color:#eef6ff; font-weight:800; cursor:pointer;">← Назад</button>
+            <span id="season-pass-level-label" style="display:inline-flex; align-items:center; min-height:40px; padding:0 14px; border-radius:999px; border:1px solid rgba(121,217,255,0.22); background:rgba(10,23,40,0.78); color:#eef6ff; font-size:12px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;">Уровень 1 / ${track.length}</span>
+            <button type="button" id="season-pass-next-btn" style="min-width:110px; min-height:40px; border-radius:12px; border:1px solid rgba(121,217,255,0.24); background:rgba(10,23,40,0.9); color:#eef6ff; font-weight:800; cursor:pointer;">Вперёд →</button>
           </div>
           <div class="season-pass-board" style="margin-top:10px; display:grid; gap:14px;">
             <div>
@@ -7161,10 +7156,9 @@ PAGE_TEMPLATE = """
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
       });
-      const passLevelSelect = achievementsList.querySelector('.season-pass-level-select');
-      const passLevelLabel = achievementsList.querySelector('.season-pass-level-label');
-      const passPrevBtn = achievementsList.querySelector('[data-pass-nav="prev"]');
-      const passNextBtn = achievementsList.querySelector('[data-pass-nav="next"]');
+      const passLevelLabel = document.getElementById('season-pass-level-label');
+      const passPrevBtn = document.getElementById('season-pass-prev-btn');
+      const passNextBtn = document.getElementById('season-pass-next-btn');
       const showPassLevel = (index) => {
         const boundedIndex = Math.max(0, Math.min(track.length - 1, Number(index || 0)));
         ['premium', 'free'].forEach((target) => {
@@ -7176,7 +7170,6 @@ PAGE_TEMPLATE = """
             card.style.display = active ? 'grid' : 'none';
           });
         });
-        if (passLevelSelect) passLevelSelect.value = String(boundedIndex + 1);
         if (passLevelLabel) passLevelLabel.textContent = `Уровень ${boundedIndex + 1} / ${track.length}`;
         if (passPrevBtn) passPrevBtn.disabled = boundedIndex <= 0;
         if (passNextBtn) passNextBtn.disabled = boundedIndex >= track.length - 1;
@@ -7186,18 +7179,13 @@ PAGE_TEMPLATE = """
         const next = Math.max(0, Math.min(track.length - 1, Number(levelValue || 1) - 1));
         showPassLevel(next);
       };
-      if (passLevelSelect) {
-        passLevelSelect.addEventListener('change', (event) => {
-          window.jumpSeasonPassLevel(event.target.value);
-        });
-      }
       if (passPrevBtn) {
         bindFunctionalControl(passPrevBtn, () => showPassLevel((state.seasonPassLevelIndex || 0) - 1));
       }
       if (passNextBtn) {
         bindFunctionalControl(passNextBtn, () => showPassLevel((state.seasonPassLevelIndex || 0) + 1));
       }
-      showPassLevel(Math.max(0, Math.min(track.length - 1, Number(passLevelSelect ? passLevelSelect.value : 1) - 1)));
+      showPassLevel(Math.max(0, Math.min(track.length - 1, Number((state.seasonPassLevelIndex || 0)))));
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
     }
