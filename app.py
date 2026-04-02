@@ -5535,6 +5535,13 @@ PAGE_TEMPLATE = """
               <p>Тестовый 5-раундовый бой против бота с рандомной колодой.</p>
               <button id="play-bot-btn" disabled>Играть с ботом</button>
             </div>
+            <div class="mode-card" data-mode-card="duel">
+              <div class="mode-burst"></div>
+              <h3>Дуэль</h3>
+              <p>Полностью такой же обычный бой, но матч стартует только после Telegram-приглашения сопернику. Время ожидания ответа: 30 секунд.</p>
+              <input id="opponent-wallet" placeholder="Ник, кошелёк или 4-значный домен соперника">
+              <button id="play-duel-btn" disabled>Пригласить в дуэль</button>
+            </div>
           </div>
 
           <div class="result-box" id="battle-result" style="display:none;"></div>
@@ -6742,6 +6749,7 @@ PAGE_TEMPLATE = """
       await prepareFunctionalInteraction();
       document.getElementById('opponent-wallet').value = reference;
       switchView('modes');
+      updateButtons();
     }
 
     function renderActiveUsers(items) {
@@ -7707,6 +7715,11 @@ PAGE_TEMPLATE = """
       document.getElementById('play-ranked-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-casual-btn').disabled = !(connected && hasCards) || searching;
       document.getElementById('play-bot-btn').disabled = !(connected && hasCards) || searching;
+      const duelInput = document.getElementById('opponent-wallet');
+      const duelButton = document.getElementById('play-duel-btn');
+      if (duelButton) {
+        duelButton.disabled = !(connected && hasCards && duelInput && duelInput.value.trim()) || searching;
+      }
       if (playOnecardBtn && oneCardSlot) {
         playOnecardBtn.disabled = !(connected && hasCards && oneCardSlot.value) || searching;
       }
@@ -10044,12 +10057,12 @@ PAGE_TEMPLATE = """
       stopMatchmakingUI('Поиск отменён.');
     }
 
-    async function playMatch(mode) {
+    async function playMatch(mode, options = {}) {
       await prepareFunctionalInteraction();
       bumpUsage(`mode:${mode}`);
       const opponentWallet = document.getElementById('opponent-wallet').value.trim();
-      const timeoutSeconds = Number(document.getElementById('invite-timeout').value || 60);
-      const delivery = (document.getElementById('match-delivery')?.value || 'site').trim();
+      const timeoutSeconds = Number(options.timeoutSeconds || 30);
+      const delivery = (options.delivery || 'telegram').trim();
       animateModeChoice(mode);
       try {
         const data = await api(`/api/match/${mode}`, {
@@ -10082,7 +10095,7 @@ PAGE_TEMPLATE = """
         inviteResult.classList.add('duel-anim');
         inviteResult.innerHTML = `
           <strong>Приглашение ${data.invite.id} отправлено.</strong>
-          <p class="muted">Бот написал сопернику в Telegram. Время на ответ: ${data.invite.timeout_seconds} сек.</p>
+          <p class="muted">Сопернику отправлено приглашение в Telegram. Время на ответ: ${data.invite.timeout_seconds} сек.</p>
         `;
         if (data.player) {
           state.playerProfile = data.player;
@@ -10095,6 +10108,10 @@ PAGE_TEMPLATE = """
         inviteResult.classList.add('duel-anim');
         inviteResult.innerHTML = `<strong class="error">${error.message}</strong>`;
       }
+    }
+
+    async function playTelegramDuel() {
+      await playMatch('duel', {timeoutSeconds: 30, delivery: 'telegram'});
     }
 
     async function playBotMatch(forceLaunch = false) {
@@ -10518,6 +10535,15 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(cancelMatchmakingBtn, cancelMatchmaking);
     bindFunctionalControl(saveBuildBtn, saveDisciplineBuild);
     bindFunctionalControl(document.getElementById('play-bot-btn'), playBotMatch);
+    const playDuelBtn = document.getElementById('play-duel-btn');
+    const opponentWalletInput = document.getElementById('opponent-wallet');
+    if (playDuelBtn) {
+      bindFunctionalControl(playDuelBtn, playTelegramDuel);
+    }
+    if (opponentWalletInput) {
+      opponentWalletInput.addEventListener('input', updateButtons);
+      opponentWalletInput.addEventListener('change', updateButtons);
+    }
     if (playOnecardBtn) {
       bindFunctionalControl(playOnecardBtn, playOneCardMatch);
     }
@@ -12364,10 +12390,10 @@ def weekly_notification_key():
 
 def maybe_send_daily_reward_notification(wallet, rewards=None):
     if not TG_BOT_TOKEN:
-        return False
+        return None
     prefs = ensure_telegram_notification_prefs(wallet)
     if not int(prefs.get('notify_daily_reward', 1) or 0):
-        return False
+        return None
     rewards = rewards or reward_summary(wallet)
     today_key = today_utc_str()
     if not rewards.get('daily_available'):
@@ -12386,22 +12412,19 @@ def maybe_send_daily_reward_notification(wallet, rewards=None):
         conn.commit()
         should_send = cursor.rowcount > 0
     if not should_send:
-        return False
-    return telegram_notify_wallet(
-        wallet,
-        'Ежедневная награда обновилась.\nЗайди в tondomaingame и забери её в профиле.',
-    )
+        return None
+    return 'Ежедневная награда обновилась. Зайди в профиль и забери её.'
 
 
 def maybe_send_win_quest_notification(wallet, rewards=None):
     if not TG_BOT_TOKEN:
-        return False
+        return None
     prefs = ensure_telegram_notification_prefs(wallet)
     if not int(prefs.get('notify_win_quest', 1) or 0):
-        return False
+        return None
     rewards = rewards or reward_summary(wallet)
     if not rewards.get('quest_ready'):
-        return False
+        return None
     target = int(rewards.get('next_quest_target', 0) or 0)
     if target <= 0:
         return False
@@ -12419,19 +12442,16 @@ def maybe_send_win_quest_notification(wallet, rewards=None):
         conn.commit()
         should_send = cursor.rowcount > 0
     if not should_send:
-        return False
-    return telegram_notify_wallet(
-        wallet,
-        'Квест на победы готов.\nВ профиле доступна награда за 3 победы.',
-    )
+        return None
+    return 'Готова награда за квест на победы. В профиле доступен сбор.'
 
 
 def maybe_send_season_pass_notification(wallet, rewards=None):
     if not TG_BOT_TOKEN:
-        return False
+        return None
     prefs = ensure_telegram_notification_prefs(wallet)
     if not int(prefs.get('notify_season_pass', 1) or 0):
-        return False
+        return None
     rewards = rewards or reward_summary(wallet)
     track = rewards.get('season_pass_track') or []
     claimable_levels = [
@@ -12440,7 +12460,7 @@ def maybe_send_season_pass_notification(wallet, rewards=None):
         if item.get('premium_claimable') or item.get('free_claimable')
     ]
     if not claimable_levels:
-        return False
+        return None
     top_level = max(claimable_levels)
     with closing(get_db()) as conn:
         cursor = conn.execute(
@@ -12456,22 +12476,19 @@ def maybe_send_season_pass_notification(wallet, rewards=None):
         conn.commit()
         should_send = cursor.rowcount > 0
     if not should_send:
-        return False
-    return telegram_notify_wallet(
-        wallet,
-        f'В сезонном пропуске доступна награда.\nТекущий уровень: {top_level}. Открой пропуск и забери её.',
-    )
+        return None
+    return f'В сезонном пропуске доступна награда. Текущий уровень: {top_level}.'
 
 
 def maybe_send_guild_reward_notification(wallet):
     if not TG_BOT_TOKEN:
-        return False
+        return None
     prefs = ensure_telegram_notification_prefs(wallet)
     if not int(prefs.get('notify_guild_reward', 1) or 0):
-        return False
+        return None
     membership = current_guild_membership(wallet)
     if not membership:
-        return False
+        return None
     goals = guild_goal_summary(membership['guild_id'])
     week_key = weekly_notification_key()
     if not goals.get('weekly_reward_ready'):
@@ -12490,11 +12507,8 @@ def maybe_send_guild_reward_notification(wallet):
         conn.commit()
         should_send = cursor.rowcount > 0
     if not should_send:
-        return False
-    return telegram_notify_wallet(
-        wallet,
-        f'Клановая недельная награда готова.\nКлан: {membership["name"]}. Зайди в кланы и забери сундук недели.',
-    )
+        return None
+    return f'Готова недельная награда клана «{membership["name"]}».'
 
 
 def dispatch_wallet_telegram_notifications(wallet):
@@ -12502,14 +12516,28 @@ def dispatch_wallet_telegram_notifications(wallet):
         return []
     rewards = reward_summary(wallet)
     sent = []
-    if maybe_send_daily_reward_notification(wallet, rewards=rewards):
+    messages = []
+    daily = maybe_send_daily_reward_notification(wallet, rewards=rewards)
+    if daily:
         sent.append('daily_reward')
-    if maybe_send_win_quest_notification(wallet, rewards=rewards):
+        messages.append(f'• {daily}')
+    quest = maybe_send_win_quest_notification(wallet, rewards=rewards)
+    if quest:
         sent.append('win_quest')
-    if maybe_send_season_pass_notification(wallet, rewards=rewards):
+        messages.append(f'• {quest}')
+    season = maybe_send_season_pass_notification(wallet, rewards=rewards)
+    if season:
         sent.append('season_pass')
-    if maybe_send_guild_reward_notification(wallet):
+        messages.append(f'• {season}')
+    guild = maybe_send_guild_reward_notification(wallet)
+    if guild:
         sent.append('guild_reward')
+        messages.append(f'• {guild}')
+    if messages:
+        telegram_notify_wallet(
+            wallet,
+            'Новые события в tondomaingame:\n' + '\n'.join(messages) + '\n\nОткрой игру, чтобы забрать награды и проверить прогресс.',
+        )
     return sent
 
 
