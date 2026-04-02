@@ -7,6 +7,8 @@ import random
 import re
 import sqlite3
 import sys
+import threading
+import time
 import uuid
 import calendar
 import base64
@@ -83,10 +85,13 @@ SEASON_PASS_RECEIVER_WALLET = os.getenv('SEASON_PASS_RECEIVER_WALLET', PACK_RECE
 ALLOW_GUEST_WITHOUT_DOMAIN = os.getenv('ALLOW_GUEST_WITHOUT_DOMAIN', '0').strip().lower() in {'1', 'true', 'yes', 'on'}
 ENV_FILE_PATH = Path(os.getenv('ENV_FILE_PATH', '.env'))
 PACK_PITY_THRESHOLD = int(os.getenv('PACK_PITY_THRESHOLD', '20'))
+TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS = int(os.getenv('TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS', '300'))
 
 DOMAIN_CACHE = {}
 TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
 TONCONNECT_SCRIPT_CACHE = {'body': None, 'content_type': 'application/javascript; charset=utf-8'}
+TELEGRAM_NOTIFY_THREAD = None
+TELEGRAM_NOTIFY_THREAD_LOCK = threading.Lock()
 
 TONCONNECT_MANIFEST = {
     'url': APP_ROOT or None,
@@ -10498,6 +10503,20 @@ def init_db():
                 linked_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS telegram_notification_prefs (
+                wallet TEXT PRIMARY KEY,
+                notify_duel_invites INTEGER NOT NULL DEFAULT 1,
+                notify_daily_reward INTEGER NOT NULL DEFAULT 1,
+                notify_win_quest INTEGER NOT NULL DEFAULT 1,
+                notify_guild_invites INTEGER NOT NULL DEFAULT 1,
+                notify_guild_reward INTEGER NOT NULL DEFAULT 1,
+                notify_season_pass INTEGER NOT NULL DEFAULT 1,
+                last_daily_notified_on TEXT,
+                last_quest_notified_target INTEGER NOT NULL DEFAULT 0,
+                last_guild_reward_week TEXT,
+                last_season_notified_level INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL
+            );
 
             CREATE TABLE IF NOT EXISTS duel_invites (
                 id TEXT PRIMARY KEY,
@@ -10622,6 +10641,20 @@ def init_db():
                 language TEXT,
                 is_public INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS telegram_notification_prefs (
+                wallet TEXT PRIMARY KEY,
+                notify_duel_invites INTEGER NOT NULL DEFAULT 1,
+                notify_daily_reward INTEGER NOT NULL DEFAULT 1,
+                notify_win_quest INTEGER NOT NULL DEFAULT 1,
+                notify_guild_invites INTEGER NOT NULL DEFAULT 1,
+                notify_guild_reward INTEGER NOT NULL DEFAULT 1,
+                notify_season_pass INTEGER NOT NULL DEFAULT 1,
+                last_daily_notified_on TEXT,
+                last_quest_notified_target INTEGER NOT NULL DEFAULT 0,
+                last_guild_reward_week TEXT,
+                last_season_notified_level INTEGER NOT NULL DEFAULT 0,
                 updated_at TEXT NOT NULL
             );
 
@@ -12105,6 +12138,193 @@ def wallet_domains_for_game(wallet, force_refresh=False, allow_fallback=False):
 
 def today_utc_str():
     return now_utc().date().isoformat()
+
+
+def weekly_notification_key():
+    return week_utc_key()
+
+
+def maybe_send_daily_reward_notification(wallet, rewards=None):
+    if not TG_BOT_TOKEN:
+        return False
+    prefs = ensure_telegram_notification_prefs(wallet)
+    if not int(prefs.get('notify_daily_reward', 1) or 0):
+        return False
+    rewards = rewards or reward_summary(wallet)
+    today_key = today_utc_str()
+    if not rewards.get('daily_available'):
+        return False
+    with closing(get_db()) as conn:
+        cursor = conn.execute(
+            '''
+            UPDATE telegram_notification_prefs
+            SET last_daily_notified_on = ?, updated_at = ?
+            WHERE wallet = ?
+              AND notify_daily_reward = 1
+              AND (last_daily_notified_on IS NULL OR last_daily_notified_on != ?)
+            ''',
+            (today_key, now_iso(), wallet, today_key),
+        )
+        conn.commit()
+        should_send = cursor.rowcount > 0
+    if not should_send:
+        return False
+    return telegram_notify_wallet(
+        wallet,
+        'Ежедневная награда обновилась.\nЗайди в tondomaingame и забери её в профиле.',
+    )
+
+
+def maybe_send_win_quest_notification(wallet, rewards=None):
+    if not TG_BOT_TOKEN:
+        return False
+    prefs = ensure_telegram_notification_prefs(wallet)
+    if not int(prefs.get('notify_win_quest', 1) or 0):
+        return False
+    rewards = rewards or reward_summary(wallet)
+    if not rewards.get('quest_ready'):
+        return False
+    target = int(rewards.get('next_quest_target', 0) or 0)
+    if target <= 0:
+        return False
+    with closing(get_db()) as conn:
+        cursor = conn.execute(
+            '''
+            UPDATE telegram_notification_prefs
+            SET last_quest_notified_target = ?, updated_at = ?
+            WHERE wallet = ?
+              AND notify_win_quest = 1
+              AND COALESCE(last_quest_notified_target, 0) < ?
+            ''',
+            (target, now_iso(), wallet, target),
+        )
+        conn.commit()
+        should_send = cursor.rowcount > 0
+    if not should_send:
+        return False
+    return telegram_notify_wallet(
+        wallet,
+        'Квест на победы готов.\nВ профиле доступна награда за 3 победы.',
+    )
+
+
+def maybe_send_season_pass_notification(wallet, rewards=None):
+    if not TG_BOT_TOKEN:
+        return False
+    prefs = ensure_telegram_notification_prefs(wallet)
+    if not int(prefs.get('notify_season_pass', 1) or 0):
+        return False
+    rewards = rewards or reward_summary(wallet)
+    track = rewards.get('season_pass_track') or []
+    claimable_levels = [
+        int(item.get('level') or 0)
+        for item in track
+        if item.get('premium_claimable') or item.get('free_claimable')
+    ]
+    if not claimable_levels:
+        return False
+    top_level = max(claimable_levels)
+    with closing(get_db()) as conn:
+        cursor = conn.execute(
+            '''
+            UPDATE telegram_notification_prefs
+            SET last_season_notified_level = ?, updated_at = ?
+            WHERE wallet = ?
+              AND notify_season_pass = 1
+              AND COALESCE(last_season_notified_level, 0) < ?
+            ''',
+            (top_level, now_iso(), wallet, top_level),
+        )
+        conn.commit()
+        should_send = cursor.rowcount > 0
+    if not should_send:
+        return False
+    return telegram_notify_wallet(
+        wallet,
+        f'В сезонном пропуске доступна награда.\nТекущий уровень: {top_level}. Открой пропуск и забери её.',
+    )
+
+
+def maybe_send_guild_reward_notification(wallet):
+    if not TG_BOT_TOKEN:
+        return False
+    prefs = ensure_telegram_notification_prefs(wallet)
+    if not int(prefs.get('notify_guild_reward', 1) or 0):
+        return False
+    membership = current_guild_membership(wallet)
+    if not membership:
+        return False
+    goals = guild_goal_summary(membership['guild_id'])
+    week_key = weekly_notification_key()
+    if not goals.get('weekly_reward_ready'):
+        return False
+    with closing(get_db()) as conn:
+        cursor = conn.execute(
+            '''
+            UPDATE telegram_notification_prefs
+            SET last_guild_reward_week = ?, updated_at = ?
+            WHERE wallet = ?
+              AND notify_guild_reward = 1
+              AND (last_guild_reward_week IS NULL OR last_guild_reward_week != ?)
+            ''',
+            (week_key, now_iso(), wallet, week_key),
+        )
+        conn.commit()
+        should_send = cursor.rowcount > 0
+    if not should_send:
+        return False
+    return telegram_notify_wallet(
+        wallet,
+        f'Клановая недельная награда готова.\nКлан: {membership["name"]}. Зайди в кланы и забери сундук недели.',
+    )
+
+
+def dispatch_wallet_telegram_notifications(wallet):
+    if not TG_BOT_TOKEN or not telegram_wallet_link(wallet):
+        return []
+    rewards = reward_summary(wallet)
+    sent = []
+    if maybe_send_daily_reward_notification(wallet, rewards=rewards):
+        sent.append('daily_reward')
+    if maybe_send_win_quest_notification(wallet, rewards=rewards):
+        sent.append('win_quest')
+    if maybe_send_season_pass_notification(wallet, rewards=rewards):
+        sent.append('season_pass')
+    if maybe_send_guild_reward_notification(wallet):
+        sent.append('guild_reward')
+    return sent
+
+
+def telegram_notification_scan_once():
+    for wallet in telegram_notification_wallets():
+        try:
+            dispatch_wallet_telegram_notifications(wallet)
+        except Exception:
+            continue
+
+
+def telegram_notification_loop():
+    while True:
+        try:
+            telegram_notification_scan_once()
+        except Exception:
+            pass
+        time.sleep(max(30, TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS))
+
+
+def ensure_telegram_notification_worker():
+    global TELEGRAM_NOTIFY_THREAD
+    if not TG_BOT_TOKEN:
+        return
+    with TELEGRAM_NOTIFY_THREAD_LOCK:
+        if TELEGRAM_NOTIFY_THREAD and TELEGRAM_NOTIFY_THREAD.is_alive():
+            return
+        TELEGRAM_NOTIFY_THREAD = threading.Thread(
+            target=telegram_notification_loop,
+            name='telegram-notify-loop',
+            daemon=True,
+        )
+        TELEGRAM_NOTIFY_THREAD.start()
 
 
 def can_open_daily_pack(wallet, domain):
@@ -14127,6 +14347,94 @@ def telegram_user_link(telegram_user_id):
     return dict(row) if row else None
 
 
+def ensure_telegram_notification_prefs(wallet):
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM telegram_notification_prefs WHERE wallet = ?', (wallet,)).fetchone()
+        if row is None:
+            conn.execute(
+                '''
+                INSERT INTO telegram_notification_prefs (
+                    wallet,
+                    notify_duel_invites,
+                    notify_daily_reward,
+                    notify_win_quest,
+                    notify_guild_invites,
+                    notify_guild_reward,
+                    notify_season_pass,
+                    last_daily_notified_on,
+                    last_quest_notified_target,
+                    last_guild_reward_week,
+                    last_season_notified_level,
+                    updated_at
+                ) VALUES (?, 1, 1, 1, 1, 1, 1, NULL, 0, NULL, 0, ?)
+                ''',
+                (wallet, now_iso()),
+            )
+            conn.commit()
+            row = conn.execute('SELECT * FROM telegram_notification_prefs WHERE wallet = ?', (wallet,)).fetchone()
+    return dict(row)
+
+
+def telegram_notification_settings(wallet):
+    prefs = ensure_telegram_notification_prefs(wallet)
+    return {
+        'duel_invites': bool(prefs.get('notify_duel_invites', 1)),
+        'daily_reward': bool(prefs.get('notify_daily_reward', 1)),
+        'win_quest': bool(prefs.get('notify_win_quest', 1)),
+        'guild_invites': bool(prefs.get('notify_guild_invites', 1)),
+        'guild_reward': bool(prefs.get('notify_guild_reward', 1)),
+        'season_pass': bool(prefs.get('notify_season_pass', 1)),
+        'last_daily_notified_on': prefs.get('last_daily_notified_on'),
+        'last_quest_notified_target': int(prefs.get('last_quest_notified_target', 0) or 0),
+        'last_guild_reward_week': prefs.get('last_guild_reward_week'),
+        'last_season_notified_level': int(prefs.get('last_season_notified_level', 0) or 0),
+    }
+
+
+def update_telegram_notification_settings(wallet, **fields):
+    ensure_telegram_notification_prefs(wallet)
+    updates = []
+    params = []
+    for key, value in fields.items():
+        updates.append(f'{key} = ?')
+        params.append(value)
+    if not updates:
+        return telegram_notification_settings(wallet)
+    updates.append('updated_at = ?')
+    params.append(now_iso())
+    params.append(wallet)
+    with closing(get_db()) as conn:
+        conn.execute(f'UPDATE telegram_notification_prefs SET {", ".join(updates)} WHERE wallet = ?', params)
+        conn.commit()
+    return telegram_notification_settings(wallet)
+
+
+def telegram_notify_wallet(wallet, text, reply_markup=None):
+    if not TG_BOT_TOKEN or not wallet:
+        return False
+    link = telegram_wallet_link(wallet)
+    if not link or not link.get('chat_id'):
+        return False
+    try:
+        telegram_send_message(link['chat_id'], text, reply_markup=reply_markup)
+        return True
+    except Exception:
+        return False
+
+
+def telegram_notification_wallets():
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT wallet
+            FROM telegram_users
+            WHERE wallet IS NOT NULL AND wallet != ''
+            ORDER BY updated_at DESC
+            '''
+        ).fetchall()
+    return [row['wallet'] for row in rows if row['wallet']]
+
+
 def clean_public_text(value, limit=160):
     text = re.sub(r'\s+', ' ', str(value or '')).strip()
     return text[:limit]
@@ -14233,6 +14541,11 @@ def link_wallet_to_telegram(wallet, telegram_user_id):
             (wallet, now_iso(), now_iso(), telegram_user_id),
         )
         conn.commit()
+    ensure_telegram_notification_prefs(wallet)
+    try:
+        dispatch_wallet_telegram_notifications(wallet)
+    except Exception:
+        pass
     return telegram_user_link(telegram_user_id)
 
 
@@ -15052,6 +15365,7 @@ def invite_to_guild(inviter_wallet, guild_id, invitee_reference):
     ensure_not_blocked(inviter_wallet, invitee_wallet)
     if current_guild_membership(invitee_wallet):
         raise ValueError('Игрок уже состоит в клане.')
+    invite_id = uuid.uuid4().hex[:12]
     with closing(get_db()) as conn:
         existing = conn.execute(
             '''
@@ -15068,9 +15382,16 @@ def invite_to_guild(inviter_wallet, guild_id, invitee_reference):
             INSERT INTO guild_invites (id, guild_id, inviter_wallet, invitee_wallet, status, created_at)
             VALUES (?, ?, ?, ?, 'pending', ?)
             ''',
-            (uuid.uuid4().hex[:12], guild_id, inviter_wallet, invitee_wallet, now_iso()),
+            (invite_id, guild_id, inviter_wallet, invitee_wallet, now_iso()),
         )
         conn.commit()
+    prefs = ensure_telegram_notification_prefs(invitee_wallet)
+    if int(prefs.get('notify_guild_invites', 1) or 0):
+        guild = guild_summary_by_id(guild_id, inviter_wallet)
+        telegram_notify_wallet(
+            invitee_wallet,
+            f'Приглашение в клан.\nКлан: {guild["name"]}\nПригласил: {display_name_for_wallet(inviter_wallet)}\nОткрой профиль → кланы, чтобы принять или отклонить.',
+        )
     return guild_summary_by_id(guild_id, inviter_wallet)
 
 
@@ -15183,6 +15504,7 @@ def social_overview(wallet):
         'suggested_players': social_suggestions(wallet),
         'lobby_messages': lobby_messages(),
         'friend_count': len(friend_list),
+        'telegram_notifications': telegram_notification_settings(wallet),
     }
 
 
@@ -15233,6 +15555,7 @@ def get_player(wallet):
         'best_domain': player['best_domain'],
         'current_domain': player['current_domain'],
         'telegram_linked': telegram_wallet_link(wallet) is not None,
+        'telegram_notifications': telegram_notification_settings(wallet),
         'display_name': display_name_for_wallet(wallet),
         'avatar': '',
         'bio': (profile or {}).get('bio') or '',
@@ -16278,6 +16601,9 @@ def create_duel_invite(mode, inviter_wallet, inviter_domain, invitee_wallet, tim
     invitee_link = telegram_wallet_link(invitee_wallet)
     if invitee_link is None:
         raise ValueError('Соперник не привязал Telegram к своему кошельку.')
+    invitee_prefs = ensure_telegram_notification_prefs(invitee_wallet)
+    if not int(invitee_prefs.get('notify_duel_invites', 1) or 0):
+        raise ValueError('У соперника отключены Telegram-уведомления о приглашениях в бой.')
 
     invite_id = uuid.uuid4().hex[:8].upper()
     expires_at = now_utc().timestamp() + timeout_seconds
@@ -17249,6 +17575,37 @@ def api_telegram_link():
     except (ValueError, KeyError) as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'telegram': link, 'player': get_player(wallet)})
+
+
+@app.route('/api/telegram/notifications/<wallet>')
+def api_telegram_notifications(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    ensure_player(wallet)
+    return jsonify({'wallet': wallet, 'settings': telegram_notification_settings(wallet)})
+
+
+@app.route('/api/telegram/notifications', methods=['POST'])
+def api_telegram_notifications_update():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи кошелёк.')
+    ensure_player(wallet)
+    field_map = {
+        'duel_invites': 'notify_duel_invites',
+        'daily_reward': 'notify_daily_reward',
+        'win_quest': 'notify_win_quest',
+        'guild_invites': 'notify_guild_invites',
+        'guild_reward': 'notify_guild_reward',
+        'season_pass': 'notify_season_pass',
+    }
+    updates = {}
+    for public_key, db_key in field_map.items():
+        if public_key in payload:
+            updates[db_key] = 1 if payload.get(public_key) else 0
+    settings = update_telegram_notification_settings(wallet, **updates)
+    return jsonify({'ok': True, 'wallet': wallet, 'settings': settings})
 
 
 @app.route('/api/leaderboard')
@@ -18453,7 +18810,18 @@ def telegram_setup():
     return jsonify({'ok': True, 'webhook_url': webhook_url, 'telegram': result})
 
 
+@app.route('/telegram/dispatch')
+def telegram_dispatch():
+    if not TG_SETUP_TOKEN:
+        return json_error('TG_SETUP_TOKEN не настроен.', 400)
+    if request.args.get('token') != TG_SETUP_TOKEN:
+        return json_error('Неверный dispatch token.', 403)
+    telegram_notification_scan_once()
+    return jsonify({'ok': True, 'scanned': len(telegram_notification_wallets())})
+
+
 init_db()
+ensure_telegram_notification_worker()
 
 
 if __name__ == '__main__':
