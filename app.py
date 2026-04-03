@@ -3223,6 +3223,295 @@ PAGE_TEMPLATE = """
       background: linear-gradient(180deg, rgba(8, 18, 30, 0.25), rgba(8, 18, 30, 0.5));
     }
 
+    .startup-guide-scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #eaf6ff;
+    }
+
+    .startup-guide-scene-grid {
+      position: absolute;
+      inset: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background:
+        linear-gradient(90deg, rgba(121, 217, 255, 0.08) 1px, transparent 1px) 0 0 / 25% 100%,
+        linear-gradient(0deg, rgba(121, 217, 255, 0.08) 1px, transparent 1px) 0 0 / 100% 50%;
+      pointer-events: none;
+    }
+
+    .startup-guide-panel {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      border: 2px solid rgba(88, 210, 255, 0.78);
+      background: rgba(6, 15, 28, 0.82);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .startup-guide-panel.wallet {
+      position: absolute;
+      left: 68px;
+      top: 28px;
+      width: 140px;
+      height: 146px;
+    }
+
+    .startup-guide-panel.domain {
+      position: absolute;
+      right: 60px;
+      top: 62px;
+      width: 180px;
+      height: 66px;
+      border-radius: 18px;
+    }
+
+    .startup-guide-link-dot,
+    .startup-guide-link-dot::before,
+    .startup-guide-link-dot::after {
+      position: absolute;
+      display: block;
+      border-radius: 999px;
+      background: #58d2ff;
+      box-shadow: 0 0 16px rgba(88, 210, 255, 0.52);
+      content: "";
+    }
+
+    .startup-guide-link-dot {
+      left: calc(50% - 7px);
+      top: calc(50% - 7px);
+      width: 14px;
+      height: 14px;
+    }
+
+    .startup-guide-link-dot::before {
+      width: 18px;
+      height: 4px;
+      left: -74px;
+      top: 5px;
+    }
+
+    .startup-guide-link-dot::after {
+      width: 18px;
+      height: 4px;
+      right: -74px;
+      top: 5px;
+    }
+
+    .startup-guide-caption {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 217, 255, 0.2);
+      background: rgba(8, 18, 32, 0.74);
+      font-size: 14px;
+      font-weight: 600;
+      color: #dff3ff;
+      letter-spacing: 0.01em;
+    }
+
+    .startup-guide-pack-fan {
+      position: relative;
+      width: 360px;
+      height: 150px;
+    }
+
+    .startup-guide-pack-card {
+      position: absolute;
+      top: 8px;
+      width: 116px;
+      height: 136px;
+      border-radius: 18px;
+      border: 2px solid rgba(255, 208, 106, 0.65);
+      background: linear-gradient(180deg, rgba(9, 18, 34, 0.94), rgba(8, 15, 28, 0.92));
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.26);
+    }
+
+    .startup-guide-pack-card.left { left: 28px; opacity: 0.72; }
+    .startup-guide-pack-card.center { left: 122px; z-index: 2; }
+    .startup-guide-pack-card.right { left: 216px; opacity: 0.72; }
+
+    .startup-guide-pack-card::after {
+      content: "";
+      position: absolute;
+      top: 16px;
+      bottom: 16px;
+      left: 50%;
+      width: 2px;
+      transform: translateX(-50%);
+      background: rgba(255, 208, 106, 0.72);
+    }
+
+    .startup-guide-pack-card::before {
+      content: "";
+      position: absolute;
+      inset: 18px 22px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 208, 106, 0.28);
+    }
+
+    .startup-guide-chart {
+      position: relative;
+      width: 420px;
+      height: 136px;
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      gap: 26px;
+      padding: 0 26px 8px;
+      border-bottom: 2px solid rgba(134, 243, 191, 0.28);
+      border-left: 2px solid rgba(134, 243, 191, 0.28);
+    }
+
+    .startup-guide-bar {
+      width: 52px;
+      border-radius: 12px 12px 8px 8px;
+      background: linear-gradient(180deg, rgba(134, 243, 191, 0.96), rgba(98, 196, 156, 0.78));
+      box-shadow: inset 0 -10px 18px rgba(255, 255, 255, 0.12);
+    }
+
+    .startup-guide-bar.h1 { height: 74px; }
+    .startup-guide-bar.h2 { height: 106px; }
+    .startup-guide-bar.h3 { height: 132px; }
+    .startup-guide-bar.h4 { height: 98px; }
+    .startup-guide-bar.h5 { height: 64px; }
+
+    .startup-guide-pill-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 0 22px;
+    }
+
+    .startup-guide-pill {
+      min-width: 126px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background: rgba(7, 17, 31, 0.84);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+      font-size: 18px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .startup-guide-pill small {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(223, 243, 255, 0.74);
+    }
+
+    .startup-guide-ready-board {
+      position: relative;
+      width: 430px;
+      height: 132px;
+    }
+
+    .startup-guide-ready-node {
+      position: absolute;
+      top: 30px;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 2px solid rgba(121, 217, 255, 0.34);
+      background: rgba(7, 17, 31, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .startup-guide-ready-node.left { left: 0; }
+    .startup-guide-ready-node.right { right: 0; }
+
+    .startup-guide-ready-center {
+      position: absolute;
+      left: 50%;
+      top: 20px;
+      transform: translateX(-50%);
+      width: 130px;
+      height: 110px;
+      border-radius: 24px;
+      border: 2px solid rgba(121, 217, 255, 0.34);
+      background: rgba(7, 17, 31, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 14px 26px rgba(0, 0, 0, 0.22);
+    }
+
+    .startup-guide-ready-center strong {
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .startup-guide-rail {
+      position: relative;
+      width: 460px;
+      height: 24px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: rgba(7, 17, 31, 0.76);
+      overflow: hidden;
+    }
+
+    .startup-guide-rail-fill {
+      position: absolute;
+      inset: 4px;
+      width: 58%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(83, 246, 184, 0.92), rgba(69, 215, 255, 0.78));
+    }
+
+    .startup-guide-tile-row {
+      display: flex;
+      gap: 18px;
+      align-items: stretch;
+      justify-content: center;
+      padding: 0 18px;
+      flex-wrap: wrap;
+    }
+
+    .startup-guide-tile {
+      width: 120px;
+      min-height: 88px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background: rgba(7, 17, 31, 0.82);
+      padding: 16px 12px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.25;
+    }
+
+    .startup-guide-tile b {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
     .startup-guide-actions {
       justify-content: flex-end;
       gap: 8px;
@@ -6362,199 +6651,50 @@ PAGE_TEMPLATE = """
     let battleAutostartTimer = null;
     const usageStorageKey = 'tondomaingame_ui_usage_v1';
     const startupGuideStorageKey = 'tondomaingame_startup_guide_v1';
-    function startupGuideGifData(step, stepIndex) {
-      const palette = [
-        { accent: '#58d2ff', accentSoft: 'rgba(88,210,255,0.24)' },
-        { accent: '#ffd06a', accentSoft: 'rgba(255,208,106,0.24)' },
-        { accent: '#86f3bf', accentSoft: 'rgba(134,243,191,0.24)' },
-        { accent: '#ff8ea1', accentSoft: 'rgba(255,142,161,0.24)' },
-        { accent: '#a58bff', accentSoft: 'rgba(165,139,255,0.24)' },
-      ];
-      const tone = palette[Math.max(0, Number(stepIndex || 0)) % palette.length];
-      const scene = Math.max(0, Math.min(7, Number(stepIndex || 0)));
-      const providedLabels = Array.isArray(step && step.gifLabels) ? step.gifLabels.filter(Boolean) : [];
-      const sceneLabels = [
-        ['WALLET', 'DOMAIN', 'TON', 'READY'],
-        ['PACK', 'CARD', 'DROP', 'SCORE'],
-        ['POOL', 'BUILD', 'META', 'BALANCE'],
-        ['ATTACK', 'BLOCK', 'VS', 'WIN'],
-        ['ENERGY', 'CD', 'SKILL', 'CHARGE'],
-        ['PVP', 'DUEL', 'TIMER', 'INVITE'],
-        ['CLAN', 'PASS', 'REWARD', 'QUEST'],
-        ['STYLE', 'ARENA', 'FRAME', 'PROGRESS'],
-      ];
-      const labels = providedLabels.length ? providedLabels.slice(0, 4) : (sceneLabels[scene] || sceneLabels[0]);
-      while (labels.length < 4) labels.push(labels[labels.length - 1] || 'GUIDE');
-      const [labelA, labelB, labelC, labelD] = labels.map((item) => escapeSvg(String(item || 'GUIDE')));
-      const stepLabel = escapeSvg(`Шаг ${scene + 1}`);
-
-      let sceneMarkup = '';
-      if (scene === 0) {
-        sceneMarkup = `
-          <rect x="108" y="70" width="220" height="280" rx="24" fill="rgba(8,18,34,0.94)" stroke="${tone.accent}" stroke-opacity="0.8" stroke-width="3"/>
-          <rect x="540" y="150" width="248" height="84" rx="22" fill="rgba(8,18,34,0.94)" stroke="${tone.accent}" stroke-opacity="0.8" stroke-width="3"/>
-          <text x="218" y="206" font-size="26" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
-          <text x="664" y="206" font-size="24" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelB}</text>
-          <circle cx="330" cy="192" r="10" fill="${tone.accent}">
-            <animate attributeName="cx" values="330;540;330" dur="1.8s" repeatCount="indefinite"/>
-          </circle>
-          <text x="332" y="332" font-size="20" fill="#dff3ff">Подключение и проверка</text>
-        `;
-      } else if (scene === 1) {
-        sceneMarkup = `
-          <rect x="294" y="86" width="312" height="248" rx="20" fill="rgba(7,16,30,0.82)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
-          <rect x="194" y="128" width="150" height="210" rx="16" fill="rgba(10,22,42,0.9)" stroke="${tone.accent}" stroke-opacity="0.6">
-            <animate attributeName="x" values="194;354;194" dur="2.2s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="374" y="118" width="150" height="220" rx="16" fill="rgba(10,22,42,0.9)" stroke="${tone.accent}" stroke-opacity="0.74">
-            <animate attributeName="x" values="374;234;374" dur="2.2s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="554" y="128" width="150" height="210" rx="16" fill="rgba(10,22,42,0.9)" stroke="${tone.accent}" stroke-opacity="0.6">
-            <animate attributeName="x" values="554;414;554" dur="2.2s" repeatCount="indefinite"/>
-          </rect>
-          <text x="450" y="230" font-size="30" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
-          <text x="450" y="332" font-size="20" text-anchor="middle" fill="#dff3ff">Открытие паков</text>
-        `;
-      } else if (scene === 2) {
-        sceneMarkup = `
-          <g stroke="${tone.accent}" stroke-opacity="0.25" stroke-width="2">
-            <line x1="140" y1="88" x2="140" y2="336"/><line x1="760" y1="88" x2="760" y2="336"/><line x1="140" y1="336" x2="760" y2="336"/>
-          </g>
-          <rect x="192" y="260" width="56" height="76" rx="10" fill="${tone.accent}">
-            <animate attributeName="y" values="260;192;260" dur="1.8s" repeatCount="indefinite"/>
-            <animate attributeName="height" values="76;144;76" dur="1.8s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="292" y="214" width="56" height="122" rx="10" fill="${tone.accent}" fill-opacity="0.85">
-            <animate attributeName="y" values="214;166;214" dur="1.8s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="392" y="170" width="56" height="166" rx="10" fill="${tone.accent}" fill-opacity="0.72">
-            <animate attributeName="y" values="170;140;170" dur="1.8s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="492" y="224" width="56" height="112" rx="10" fill="${tone.accent}" fill-opacity="0.85">
-            <animate attributeName="y" values="224;180;224" dur="1.8s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="592" y="246" width="56" height="90" rx="10" fill="${tone.accent}">
-            <animate attributeName="y" values="246;204;246" dur="1.8s" repeatCount="indefinite"/>
-          </rect>
-          <text x="450" y="120" font-size="24" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelB}</text>
-          <text x="450" y="368" font-size="20" text-anchor="middle" fill="#dff3ff">Распределение пула</text>
-        `;
-      } else if (scene === 3) {
-        sceneMarkup = `
-          <g stroke="${tone.accent}" stroke-opacity="0.32" stroke-width="2.2">
-            <line x1="98" y1="88" x2="802" y2="88"/><line x1="98" y1="332" x2="802" y2="332"/><line x1="450" y1="88" x2="450" y2="332"/>
-          </g>
-          <rect x="360" y="92" width="108" height="148" rx="18" fill="rgba(9,20,38,0.9)" stroke="rgba(255,122,134,0.9)" stroke-width="3">
-            <animate attributeName="y" values="92;142;92" dur="1.6s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="360" y="190" width="108" height="148" rx="18" fill="rgba(9,20,38,0.9)" stroke="rgba(83,246,184,0.95)" stroke-width="3">
-            <animate attributeName="y" values="190;140;190" dur="1.6s" repeatCount="indefinite"/>
-          </rect>
-          <text x="414" y="178" font-size="20" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
-          <text x="414" y="274" font-size="20" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelB}</text>
-          <circle cx="450" cy="210" r="38" fill="none" stroke="#ffd06a" stroke-width="4">
-            <animate attributeName="r" values="26;54;26" dur="1.2s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.2s" repeatCount="indefinite"/>
-          </circle>
-        `;
-      } else if (scene === 4) {
-        sceneMarkup = `
-          <rect x="180" y="118" width="170" height="72" rx="18" fill="rgba(7,17,32,0.9)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
-          <rect x="365" y="118" width="170" height="72" rx="18" fill="rgba(7,17,32,0.9)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
-          <rect x="550" y="118" width="170" height="72" rx="18" fill="rgba(7,17,32,0.9)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
-          <text x="265" y="164" font-size="20" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">ENERGY</text>
-          <text x="450" y="164" font-size="32" text-anchor="middle" fill="#e9f6ff">КД 1</text>
-          <text x="635" y="164" font-size="20" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">SKILL</text>
-          <circle cx="450" cy="264" r="44" fill="none" stroke="${tone.accent}" stroke-width="7" stroke-dasharray="230">
-            <animate attributeName="stroke-dashoffset" values="230;0;230" dur="1.6s" repeatCount="indefinite"/>
-          </circle>
-          <text x="450" y="274" font-size="30" text-anchor="middle" fill="#e9f6ff">3</text>
-        `;
-      } else if (scene === 5) {
-        sceneMarkup = `
-          <circle cx="250" cy="210" r="70" fill="rgba(10,22,40,0.9)" stroke="${tone.accent}" stroke-opacity="0.82" stroke-width="4"/>
-          <circle cx="650" cy="210" r="70" fill="rgba(10,22,40,0.9)" stroke="${tone.accent}" stroke-opacity="0.82" stroke-width="4"/>
-          <text x="250" y="224" font-size="24" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
-          <text x="650" y="224" font-size="24" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelB}</text>
-          <rect x="378" y="166" width="144" height="88" rx="18" fill="rgba(7,17,32,0.92)" stroke="${tone.accent}" stroke-opacity="0.84" stroke-width="3"/>
-          <text x="450" y="222" font-size="34" text-anchor="middle" fill="#e8f5ff">30с</text>
-          <circle cx="450" cy="210" r="64" fill="none" stroke="${tone.accent}" stroke-width="4" stroke-dasharray="402">
-            <animate attributeName="stroke-dashoffset" values="402;0;402" dur="2.6s" repeatCount="indefinite"/>
-          </circle>
-        `;
-      } else if (scene === 6) {
-        sceneMarkup = `
-          <rect x="120" y="170" width="660" height="44" rx="18" fill="rgba(7,16,30,0.9)" stroke="${tone.accent}" stroke-opacity="0.56" stroke-width="3"/>
-          <rect x="128" y="178" width="130" height="28" rx="14" fill="${tone.accent}">
-            <animate attributeName="x" values="128;640;128" dur="2.8s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="190" y="88" width="126" height="84" rx="16" fill="rgba(10,22,42,0.92)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
-          <rect x="386" y="88" width="126" height="84" rx="16" fill="rgba(10,22,42,0.92)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
-          <rect x="582" y="88" width="126" height="84" rx="16" fill="rgba(10,22,42,0.92)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
-          <text x="253" y="140" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">CLAN</text>
-          <text x="449" y="140" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">PASS</text>
-          <text x="645" y="140" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">REWARD</text>
-        `;
-      } else {
-        sceneMarkup = `
-          <rect x="162" y="88" width="172" height="246" rx="18" fill="rgba(8,18,34,0.92)" stroke="${tone.accent}" stroke-opacity="0.74" stroke-width="3"/>
-          <rect x="364" y="88" width="172" height="246" rx="18" fill="rgba(8,18,34,0.92)" stroke="${tone.accent}" stroke-opacity="0.74" stroke-width="3"/>
-          <rect x="566" y="88" width="172" height="246" rx="18" fill="rgba(8,18,34,0.92)" stroke="${tone.accent}" stroke-opacity="0.74" stroke-width="3"/>
-          <rect x="180" y="106" width="136" height="210" rx="12" fill="rgba(83,246,184,0.16)">
-            <animate attributeName="fill" values="rgba(83,246,184,0.16);rgba(83,246,184,0.28);rgba(83,246,184,0.16)" dur="2s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="382" y="106" width="136" height="210" rx="12" fill="rgba(255,211,110,0.14)">
-            <animate attributeName="fill" values="rgba(255,211,110,0.14);rgba(255,211,110,0.28);rgba(255,211,110,0.14)" dur="2s" repeatCount="indefinite"/>
-          </rect>
-          <rect x="584" y="106" width="136" height="210" rx="12" fill="rgba(255,122,134,0.14)">
-            <animate attributeName="fill" values="rgba(255,122,134,0.14);rgba(255,122,134,0.28);rgba(255,122,134,0.14)" dur="2s" repeatCount="indefinite"/>
-          </rect>
-          <text x="248" y="228" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelC}</text>
-          <text x="450" y="228" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelD}</text>
-          <text x="652" y="228" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
-        `;
-      }
-
-      const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420">
-          <defs>
-            <linearGradient id="guideBg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#08162a"/>
-              <stop offset="100%" stop-color="#050d1e"/>
-            </linearGradient>
-            <radialGradient id="guideGlow" cx="50%" cy="52%" r="58%">
-              <stop offset="0%" stop-color="${tone.accentSoft}"/>
-              <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
-            </radialGradient>
-          </defs>
-          <rect width="900" height="420" fill="url(#guideBg)"/>
-          <rect width="900" height="420" fill="url(#guideGlow)"/>
-          <rect x="70" y="58" width="760" height="304" rx="22" fill="rgba(8,18,32,0.26)" stroke="${tone.accent}" stroke-opacity="0.26" stroke-width="2"/>
-          ${sceneMarkup}
-          <rect x="84" y="22" width="132" height="34" rx="16" fill="rgba(5,15,29,0.92)" stroke="${tone.accent}" stroke-opacity="0.74" stroke-width="2"/>
-          <text x="150" y="45" font-size="18" text-anchor="middle" fill="#eaf6ff" font-family="Arial, sans-serif">${stepLabel}</text>
-        </svg>
-      `;
-      return svgDataUrl(svg);
-    }
     const startupGuideSteps = [
       {
         title: 'Подключи кошелёк и проверь домены',
         body: 'Нажми «Подключить кошелёк», затем «Проверить наличие доменов». Для боя выбираются 4-значные .ton домены из кошелька.',
-        overlay: '🔌 💼 🌐',
-        gifIcons: ['🔌', '💼', '🌐', '✅']
+        overlayHtml: `
+          <div class="startup-guide-scene">
+            <div class="startup-guide-scene-grid"></div>
+            <div class="startup-guide-panel wallet">Wallet</div>
+            <div class="startup-guide-link-dot"></div>
+            <div class="startup-guide-panel domain">Domain</div>
+            <div class="startup-guide-caption">Подключение кошелька и проверка доменов</div>
+          </div>
+        `
       },
       {
         title: 'Собери колоду через паки',
         body: 'Открой пак и получи 5 карт. Колода хранится по домену. Можно менять активный домен и играть разными сборками.',
-        overlay: '📦 🎴 🎴 🎴',
-        gifIcons: ['📦', '🎴', '🎁', '💠']
+        overlayHtml: `
+          <div class="startup-guide-scene">
+            <div class="startup-guide-scene-grid"></div>
+            <div class="startup-guide-pack-fan">
+              <div class="startup-guide-pack-card left"></div>
+              <div class="startup-guide-pack-card center"></div>
+              <div class="startup-guide-pack-card right"></div>
+            </div>
+            <div class="startup-guide-caption">Открывай паки и собирай колоду под домен</div>
+          </div>
+        `
       },
       {
         title: 'Распредели пул дисциплин',
         body: 'Пул влияет на атаку, защиту, удачу, скорость и магию. Чем точнее распределение под стиль, тем стабильнее результат.',
-        overlay: '⚙️ 📈',
-        gifIcons: ['⚙️', '📈', '🧠', '🎯']
+        overlayHtml: `
+          <div class="startup-guide-scene">
+            <div class="startup-guide-chart">
+              <div class="startup-guide-bar h1"></div>
+              <div class="startup-guide-bar h2"></div>
+              <div class="startup-guide-bar h3"></div>
+              <div class="startup-guide-bar h4"></div>
+              <div class="startup-guide-bar h5"></div>
+            </div>
+            <div class="startup-guide-caption">Распределение пула под стиль игры</div>
+          </div>
+        `
       },
       {
         title: 'Бой идёт по дорожкам раундов',
@@ -6564,37 +6704,71 @@ PAGE_TEMPLATE = """
           <div class="startup-guide-card-demo enemy">⚔️</div>
           <div class="startup-guide-card-demo player">🛡️</div>
           <div class="startup-guide-pulse"></div>
-        `,
-        gifIcons: ['⚔️', '🛡️', '🏁', '🏆']
+          <div class="startup-guide-caption">Карты сходятся на дорожке, затем фиксируется результат раунда</div>
+        `
       },
       {
         title: 'Энергия, КД и активная способность',
         body: 'Натиск стоит 2 энергии, Блок 1, способность 3. Следи за КД и зарядами: тайминг способности часто решает бой.',
-        overlay: '⚡ 3 • КД • ✨',
-        gifIcons: ['⚡', '⏳', '✨', '🎛️']
+        overlayHtml: `
+          <div class="startup-guide-scene">
+            <div class="startup-guide-pill-row">
+              <div class="startup-guide-pill">Энергия 3<small>Натиск 2 • Блок 1</small></div>
+              <div class="startup-guide-pill">КД 1<small>Следи за откатом</small></div>
+              <div class="startup-guide-pill">Способность<small>3 энергии и заряды</small></div>
+            </div>
+            <div class="startup-guide-caption">Способность стоит дороже, поэтому тайминг важен</div>
+          </div>
+        `
       },
       {
         title: 'PvP и Дуэль',
         body: 'В PvP после подбора оба игрока подтверждают готовность (2/2). В дуэли соперник принимает приглашение 30 секунд.',
-        overlay: '🧑‍🤝‍🧑 2/2 • ⏱️30s',
-        gifIcons: ['🧑‍🤝‍🧑', '✅', '⏱️', '📩']
+        overlayHtml: `
+          <div class="startup-guide-scene">
+            <div class="startup-guide-ready-board">
+              <div class="startup-guide-ready-node left">Игрок 1</div>
+              <div class="startup-guide-ready-center"><strong>2/2</strong><span>Готовы</span><small>30 сек</small></div>
+              <div class="startup-guide-ready-node right">Игрок 2</div>
+            </div>
+            <div class="startup-guide-caption">Оба игрока подтверждают бой перед стартом матча</div>
+          </div>
+        `
       },
       {
         title: 'Кланы, сезонный пропуск и награды',
         body: 'Играй клановые активности, забирай награды пропуска вручную, получай осколки/токены и открывай новые паки.',
-        overlay: '🏆 🛡️ 🎟️',
-        gifIcons: ['🛡️', '🏆', '🎟️', '📦']
+        overlayHtml: `
+          <div class="startup-guide-scene">
+            <div class="startup-guide-tile-row">
+              <div class="startup-guide-tile"><b>Кланы</b>Войны и недельные цели</div>
+              <div class="startup-guide-tile"><b>Пропуск</b>Забирай награды вручную</div>
+              <div class="startup-guide-tile"><b>Награды</b>Осколки, токены и паки</div>
+            </div>
+            <div class="startup-guide-caption">
+              <div class="startup-guide-rail"><div class="startup-guide-rail-fill"></div></div>
+            </div>
+          </div>
+        `
       },
       {
         title: 'Косметика и прогресс',
         body: 'Рубашки, арены и баннеры меняют визуал боя. Домены и колоды прокачиваются, но победа зависит от решений в раундах.',
-        overlay: '🎨 🧩 🚀',
-        gifIcons: ['🎨', '🧩', '🚀', '💠']
+        overlayHtml: `
+          <div class="startup-guide-scene">
+            <div class="startup-guide-tile-row">
+              <div class="startup-guide-tile"><b>Рубашка</b>Видна всем игрокам</div>
+              <div class="startup-guide-tile"><b>Арена</b>Меняет фон боя</div>
+              <div class="startup-guide-tile"><b>Баннер</b>Добивает стиль матча</div>
+            </div>
+            <div class="startup-guide-caption">Косметика меняет визуал, а победу решают действия по раундам</div>
+          </div>
+        `
       }
     ];
-    startupGuideSteps.forEach((step, index) => {
-      step.useGif = true;
-      step.gifSrc = startupGuideGifData(step, index);
+    startupGuideSteps.forEach((step) => {
+      step.useGif = false;
+      step.gifSrc = '';
     });
     let startupGuideStepIndex = 0;
     let profileNavTapCount = 0;
