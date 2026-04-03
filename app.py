@@ -179,18 +179,22 @@ COSMETIC_THEME_DEFS = [
 ]
 
 SEASON_PASS_TRACK = [
-    {'level': 1, 'free_reward': {'kind': 'currency', 'label': '💠 5 осколков', 'pack_shards': 5}, 'premium_reward': {'kind': 'currency', 'label': '💠 10 осколков', 'pack_shards': 10}},
+    {'level': 1, 'free_reward': {'kind': 'currency', 'label': '💠 4 осколка', 'pack_shards': 4}, 'premium_reward': {'kind': 'currency', 'label': '💠 8 осколков', 'pack_shards': 8}},
     {'level': 2, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 1 редкий токен', 'rare_tokens': 1}},
-    {'level': 3, 'free_reward': {'kind': 'currency', 'label': '✨ 1 lucky-токен', 'lucky_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '💠 12 осколков', 'pack_shards': 12}},
+    {'level': 3, 'free_reward': {'kind': 'currency', 'label': '🎟️ 1 редкий токен', 'rare_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '💠 10 осколков', 'pack_shards': 10}},
     {'level': 4, 'free_reward': None, 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 5, 'free_reward': {'kind': 'currency', 'label': '💠 7 осколков', 'pack_shards': 7}, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
-    {'level': 6, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '💠 14 осколков', 'pack_shards': 14}},
-    {'level': 7, 'free_reward': {'kind': 'currency', 'label': '🎟️ 1 редкий токен', 'rare_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '✨ 2 lucky-токена', 'lucky_tokens': 2}},
+    {'level': 5, 'free_reward': {'kind': 'currency', 'label': '✨ 1 lucky-токен', 'lucky_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
+    {'level': 6, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '💠 12 осколков', 'pack_shards': 12}},
+    {'level': 7, 'free_reward': {'kind': 'currency', 'label': '💠 5 осколков', 'pack_shards': 5}, 'premium_reward': {'kind': 'currency', 'label': '✨ 1 lucky-токен', 'lucky_tokens': 1}},
     {'level': 8, 'free_reward': None, 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 9, 'free_reward': {'kind': 'currency', 'label': '💠 9 осколков', 'pack_shards': 9}, 'premium_reward': {'kind': 'currency', 'label': '💠 16 осколков', 'pack_shards': 16}},
+    {'level': 9, 'free_reward': {'kind': 'currency', 'label': '🎟️ 1 редкий токен', 'rare_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '💠 14 осколков', 'pack_shards': 14}},
     {'level': 10, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
-    {'level': 11, 'free_reward': {'kind': 'currency', 'label': '✨ 1 lucky-токен', 'lucky_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '💠 18 осколков', 'pack_shards': 18}},
-    {'level': 12, 'free_reward': {'kind': 'cosmetic_pack'}, 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 11, 'free_reward': {'kind': 'currency', 'label': '✨ 1 lucky-токен', 'lucky_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '💠 16 осколков', 'pack_shards': 16}},
+    {'level': 12, 'free_reward': None, 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 13, 'free_reward': {'kind': 'currency', 'label': '💠 6 осколков', 'pack_shards': 6}, 'premium_reward': {'kind': 'currency', 'label': '✨ 2 lucky-токена', 'lucky_tokens': 2}},
+    {'level': 14, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
+    {'level': 15, 'free_reward': {'kind': 'currency', 'label': '💠 8 осколков', 'pack_shards': 8}, 'premium_reward': {'kind': 'currency', 'label': '💠 20 осколков', 'pack_shards': 20}},
+    {'level': 16, 'free_reward': {'kind': 'cosmetic_pack'}, 'premium_reward': {'kind': 'currency', 'label': '✨ 2 lucky-токена', 'lucky_tokens': 2}},
 ]
 
 
@@ -5542,7 +5546,7 @@ PAGE_TEMPLATE = """
         </div>
         <div class="badge-row">
           <div class="badge" id="wallet-badge">Кошелёк не подключен</div>
-          <div class="badge currency-badge" id="currency-badge">Осколки: 0 • Редкие: 0 • Lucky: 0 • Космопаки: 0</div>
+          <div class="badge currency-badge" id="currency-badge">Осколки: 0 • Редкие: 0 • Lucky: 0</div>
         </div>
       </div>
 
@@ -5894,6 +5898,7 @@ PAGE_TEMPLATE = """
       cards: [],
       pendingPackSource: null,
       pendingPackPaymentId: null,
+      pendingRewardPackType: null,
       packOpening: false,
       selectedBattleSlot: null,
       playerProfile: null,
@@ -6085,6 +6090,7 @@ PAGE_TEMPLATE = """
       }
     ];
     let startupGuideStepIndex = 0;
+    let profileNavTapCount = 0;
 
     function shortAddress(value) {
       if (!value) return '-';
@@ -6553,7 +6559,7 @@ PAGE_TEMPLATE = """
       const content = rewards ? `
         <div class="user-item">
           <strong>Награды и сезон</strong>
-          <div class="tiny">Осколки: ${rewards.pack_shards || 0} • Редкие токены: ${rewards.rare_tokens || 0} • Lucky-токены: ${rewards.lucky_tokens || 0} • Космопаки: ${rewards.cosmetic_packs || 0}</div>
+          <div class="tiny">Осколки: ${rewards.pack_shards || 0} • Редкие токены: ${rewards.rare_tokens || 0} • Lucky-токены: ${rewards.lucky_tokens || 0}</div>
           <div class="tiny">Сезон: ур. ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 16} очков • ${rewards.premium_pass_active ? 'премиум активен' : 'free-трек'}</div>
           <div class="tiny">Дейлик: ${rewards.daily_available ? 'готов' : 'получен'} • Квест: ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}</div>
           <div class="tiny">Синергии: ${synergies && synergies.labels && synergies.labels.length ? synergies.labels.join(' • ') : 'нет'}</div>
@@ -7316,8 +7322,8 @@ PAGE_TEMPLATE = """
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
       walletBadge.textContent = state.wallet ? `Подключён: ${shortAddress(state.wallet)}` : 'Кошелёк не подключен';
       currencyBadge.textContent = state.playerProfile && state.playerProfile.rewards
-        ? `Осколки: ${rewards.pack_shards || 0} • Редкие: ${rewards.rare_tokens || 0} • Lucky: ${rewards.lucky_tokens || 0} • Космопаки: ${rewards.cosmetic_packs || 0}`
-        : 'Осколки: 0 • Редкие: 0 • Lucky: 0 • Космопаки: 0';
+        ? `Осколки: ${rewards.pack_shards || 0} • Редкие: ${rewards.rare_tokens || 0} • Lucky: ${rewards.lucky_tokens || 0}`
+        : 'Осколки: 0 • Редкие: 0 • Lucky: 0';
       if (walletQuickCurrency) {
         walletQuickCurrency.innerHTML = `
           <span class="wallet-currency-chip">💠 ${Number(rewards.pack_shards || 0)}</span>
@@ -7350,7 +7356,7 @@ PAGE_TEMPLATE = """
           <div class="tiny">Кошелёк: ${state.wallet ? shortAddress(state.wallet) : '-'}</div>
           <div class="tiny">Активный домен: ${state.selectedDomain ? `${state.selectedDomain}.ton` : '-'}</div>
           <div class="tiny">Рейтинг: ${profileRating.textContent} • Матчей: ${profileGames.textContent}</div>
-          <div class="tiny">Награды: ${state.playerProfile && state.playerProfile.rewards ? `осколки ${state.playerProfile.rewards.pack_shards} • редкие ${state.playerProfile.rewards.rare_tokens} • lucky ${state.playerProfile.rewards.lucky_tokens} • космопаки ${state.playerProfile.rewards.cosmetic_packs || 0}` : '-'}</div>
+          <div class="tiny">Награды: ${state.playerProfile && state.playerProfile.rewards ? `осколки ${state.playerProfile.rewards.pack_shards} • редкие ${state.playerProfile.rewards.rare_tokens} • lucky ${state.playerProfile.rewards.lucky_tokens}` : '-'}</div>
           <div class="tiny">Сезон: ${state.playerProfile && state.playerProfile.rewards ? `ур. ${state.playerProfile.rewards.season_level} • ${state.playerProfile.rewards.season_points}/${state.playerProfile.rewards.season_target}` : '-'}</div>
           <div class="tiny">Синергии: ${state.playerProfile && state.playerProfile.synergies && state.playerProfile.synergies.labels && state.playerProfile.synergies.labels.length ? state.playerProfile.synergies.labels.join(' • ') : 'нет'}</div>
         </div>
@@ -9163,7 +9169,7 @@ PAGE_TEMPLATE = """
         const rewardLine = resultKey === 'win' && rewardParts.length ? `<div class="battle-reward-line">Награда: <strong>${rewardParts.join(' • ')}</strong></div>` : '';
         const battleHeader = rewardSummary ? `
           <div class="showdown-header">
-            <div class="tiny"><strong>Валюта</strong> • осколки ${Number(rewardSummary.pack_shards || 0)} • редкие ${Number(rewardSummary.rare_tokens || 0)} • lucky ${Number(rewardSummary.lucky_tokens || 0)} • космопаки ${Number(rewardSummary.cosmetic_packs || 0)}</div>
+            <div class="tiny"><strong>Валюта</strong> • осколки ${Number(rewardSummary.pack_shards || 0)} • редкие ${Number(rewardSummary.rare_tokens || 0)} • lucky ${Number(rewardSummary.lucky_tokens || 0)}</div>
           </div>
         ` : '';
         const interactivePanel = result.interactive_session_id
@@ -10228,6 +10234,7 @@ PAGE_TEMPLATE = """
       const resolvedPackType = packType || (source === 'paid' ? 'lucky' : 'common');
       const hadPreviousDeck = Array.isArray(state.cards) && state.cards.length === 5;
       const isCosmeticPack = resolvedPackType === 'cosmetic';
+      state.pendingRewardPackType = null;
       state.packOpening = true;
       setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
       foilPack.classList.remove('opening');
@@ -10327,6 +10334,16 @@ PAGE_TEMPLATE = """
 
     async function openRewardPack(packType) {
       if (!state.wallet || !state.selectedDomain) return;
+      if (String(packType || '').toLowerCase() === 'cosmetic') {
+        state.pendingRewardPackType = 'cosmetic';
+        packNote.textContent = 'Нажми на пак, чтобы открыть косметический';
+        packShowcase.classList.remove('opened');
+        foilPack.classList.remove('opening');
+        foilPack.classList.remove('vanishing');
+        setStatus(document.getElementById('pack-status'), 'Косметический пак готов к открытию. Нажми на пак.', 'warning');
+        return;
+      }
+      state.pendingRewardPackType = null;
       await openPack('reward', null, packType);
     }
 
@@ -11013,6 +11030,7 @@ PAGE_TEMPLATE = """
           state.cards = [];
           state.pendingPackSource = null;
           state.pendingPackPaymentId = null;
+          state.pendingRewardPackType = null;
           state.packOpening = false;
           state.selectedBattleSlot = null;
           packCards.innerHTML = '';
@@ -11045,6 +11063,7 @@ PAGE_TEMPLATE = """
           state.canRestorePreviousDeck = false;
           state.pendingPackSource = null;
           state.pendingPackPaymentId = null;
+          state.pendingRewardPackType = null;
           state.packOpening = false;
           state.selectedBattleSlot = null;
           renderDomains([]);
@@ -11097,6 +11116,12 @@ PAGE_TEMPLATE = """
     });
     bindFunctionalControl(foilPack, () => {
       if (state.packOpening) {
+        return;
+      }
+      if (state.pendingRewardPackType) {
+        const rewardType = state.pendingRewardPackType;
+        state.pendingRewardPackType = null;
+        openPack('reward', null, rewardType);
         return;
       }
       if (!document.getElementById('open-pack-btn').disabled) {
@@ -11159,7 +11184,18 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(document.getElementById('mobile-show-deck-btn'), showDeck);
     bindFunctionalControl(document.getElementById('nav-pack'), () => switchView('pack'));
     bindFunctionalControl(document.getElementById('nav-modes'), () => switchView('modes'));
-    bindFunctionalControl(document.getElementById('nav-profile'), () => switchView('profile'));
+    bindFunctionalControl(document.getElementById('nav-profile'), () => {
+      switchView('profile');
+      profileNavTapCount += 1;
+      if (profileNavTapCount >= 10) {
+        profileNavTapCount = 0;
+        try {
+          window.localStorage.removeItem(startupGuideStorageKey);
+        } catch (_) {
+        }
+        showStartupGuideIfNeeded();
+      }
+    });
     bindFunctionalControl(document.getElementById('nav-guilds'), () => switchView('guilds'));
     bindFunctionalControl(document.getElementById('nav-achievements'), () => switchView('achievements'));
     [buildAttack, buildDefense, buildLuck, buildSpeed, buildMagic].forEach((node) => {
