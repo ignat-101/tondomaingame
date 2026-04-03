@@ -156,6 +156,13 @@ PACK_TYPES = {
         'lucky_bonus': True,
         'costs': {'lucky_tokens': 1},
     },
+    'cosmetic': {
+        'label': 'Косметический пак',
+        'count': 1,
+        'weights': {'basic': 100},
+        'lucky_bonus': False,
+        'costs': {'cosmetic_packs': 1},
+    },
 }
 
 COSMETIC_THEME_DEFS = [
@@ -172,14 +179,18 @@ COSMETIC_THEME_DEFS = [
 ]
 
 SEASON_PASS_TRACK = [
-    {'level': 1, 'free_reward': {'kind': 'currency', 'label': '💠 4 осколка', 'pack_shards': 4}, 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 2, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '💠 8 осколков', 'pack_shards': 8}},
-    {'level': 3, 'free_reward': {'kind': 'currency', 'label': '🎟️ 1 редкий токен', 'rare_tokens': 1}, 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 4, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
-    {'level': 5, 'free_reward': {'kind': 'currency', 'label': '✨ 1 lucky-токен', 'lucky_tokens': 1}, 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 6, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '✨ 2 lucky-токена', 'lucky_tokens': 2}},
-    {'level': 7, 'free_reward': {'kind': 'currency', 'label': '💠 6 осколков', 'pack_shards': 6}, 'premium_reward': {'kind': 'cosmetic_pack'}},
-    {'level': 8, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '💠 12 осколков • 🎟️ 1 токен', 'pack_shards': 12, 'rare_tokens': 1}},
+    {'level': 1, 'free_reward': {'kind': 'currency', 'label': '💠 5 осколков', 'pack_shards': 5}, 'premium_reward': {'kind': 'currency', 'label': '💠 10 осколков', 'pack_shards': 10}},
+    {'level': 2, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 1 редкий токен', 'rare_tokens': 1}},
+    {'level': 3, 'free_reward': {'kind': 'currency', 'label': '✨ 1 lucky-токен', 'lucky_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '💠 12 осколков', 'pack_shards': 12}},
+    {'level': 4, 'free_reward': None, 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 5, 'free_reward': {'kind': 'currency', 'label': '💠 7 осколков', 'pack_shards': 7}, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
+    {'level': 6, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '💠 14 осколков', 'pack_shards': 14}},
+    {'level': 7, 'free_reward': {'kind': 'currency', 'label': '🎟️ 1 редкий токен', 'rare_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '✨ 2 lucky-токена', 'lucky_tokens': 2}},
+    {'level': 8, 'free_reward': None, 'premium_reward': {'kind': 'cosmetic_pack'}},
+    {'level': 9, 'free_reward': {'kind': 'currency', 'label': '💠 9 осколков', 'pack_shards': 9}, 'premium_reward': {'kind': 'currency', 'label': '💠 16 осколков', 'pack_shards': 16}},
+    {'level': 10, 'free_reward': None, 'premium_reward': {'kind': 'currency', 'label': '🎟️ 2 редких токена', 'rare_tokens': 2}},
+    {'level': 11, 'free_reward': {'kind': 'currency', 'label': '✨ 1 lucky-токен', 'lucky_tokens': 1}, 'premium_reward': {'kind': 'currency', 'label': '💠 18 осколков', 'pack_shards': 18}},
+    {'level': 12, 'free_reward': {'kind': 'cosmetic_pack'}, 'premium_reward': {'kind': 'cosmetic_pack'}},
 ]
 
 
@@ -210,10 +221,22 @@ def _build_cosmetic_catalog():
         for item in themed_items:
             item['nft_family'] = item['type']
             catalog.append(item)
+    catalog.extend([
+        {'key': 'frame_stock_gray', 'type': 'frame', 'name': 'Stock Gray Frame', 'source': 'stock', 'nft_family': 'frame'},
+        {'key': 'cardback_stock_plain', 'type': 'cardback', 'name': 'Stock Plain Cardback', 'source': 'stock', 'nft_family': 'cardback'},
+        {'key': 'arena_stock_grid', 'type': 'arena', 'name': 'Stock Grid Arena', 'source': 'stock', 'nft_family': 'arena'},
+        {'key': 'guild_banner_stock_plain', 'type': 'guild', 'name': 'Stock Plain Banner', 'source': 'stock', 'nft_family': 'guild'},
+    ])
     return catalog
 
 
 COSMETIC_CATALOG = _build_cosmetic_catalog()
+DEFAULT_STOCK_COSMETICS = [
+    'frame_stock_gray',
+    'cardback_stock_plain',
+    'arena_stock_grid',
+    'guild_banner_stock_plain',
+]
 
 PAGE_TEMPLATE = """
 <!doctype html>
@@ -5519,7 +5542,7 @@ PAGE_TEMPLATE = """
         </div>
         <div class="badge-row">
           <div class="badge" id="wallet-badge">Кошелёк не подключен</div>
-          <div class="badge currency-badge" id="currency-badge">Осколки: 0 • Редкие: 0 • Lucky: 0</div>
+          <div class="badge currency-badge" id="currency-badge">Осколки: 0 • Редкие: 0 • Lucky: 0 • Космопаки: 0</div>
         </div>
       </div>
 
@@ -5648,7 +5671,7 @@ PAGE_TEMPLATE = """
               <button class="secondary reward-pack-btn" data-reward-pack="rare" disabled>Редкий пак за 1 редкий токен</button>
               <button class="secondary reward-pack-btn" data-reward-pack="epic" disabled>Эпический пак за 6 осколков + 1 редкий токен</button>
               <button class="secondary reward-pack-btn" data-reward-pack="lucky" disabled>Счастливый пак за 1 lucky-токен</button>
-              <button class="secondary" type="button" disabled>Косметический пак только из пропуска</button>
+              <button class="secondary reward-pack-btn" data-reward-pack="cosmetic" disabled>Косметический пак из пропуска</button>
             </div>
           </div>
 
@@ -6028,7 +6051,13 @@ PAGE_TEMPLATE = """
       {
         title: 'Бой идёт по дорожкам раундов',
         body: 'Каждый раунд: выбирай Натиск или Блок и жми «Готов». Побеждай раунды на дорожках, чтобы забрать матч.',
-        useGif: true
+        overlayHtml: `
+          <div class="startup-guide-lane"></div>
+          <div class="startup-guide-card-demo enemy">⚔️</div>
+          <div class="startup-guide-card-demo player">🛡️</div>
+          <div class="startup-guide-pulse"></div>
+        `,
+        useGif: false
       },
       {
         title: 'Энергия, КД и активная способность',
@@ -6103,7 +6132,13 @@ PAGE_TEMPLATE = """
         const useGif = Boolean(step.useGif);
         startupGuideGif.style.display = useGif ? 'block' : 'none';
         startupGuideStageOverlay.style.display = useGif ? 'none' : 'flex';
-        startupGuideStageOverlay.textContent = useGif ? '' : (step.overlay || '');
+        if (useGif) {
+          startupGuideStageOverlay.textContent = '';
+        } else if (step.overlayHtml) {
+          startupGuideStageOverlay.innerHTML = step.overlayHtml;
+        } else {
+          startupGuideStageOverlay.textContent = step.overlay || '';
+        }
       }
       if (startupGuidePrevBtn) {
         startupGuidePrevBtn.disabled = startupGuideStepIndex <= 0;
@@ -6423,7 +6458,13 @@ PAGE_TEMPLATE = """
       const entries = Object.entries(costs || {}).filter(([, value]) => Number(value || 0) > 0);
       if (!entries.length) return 'free';
       return entries.map(([key, value]) => {
-        const label = key === 'pack_shards' ? 'осколка' : (key === 'rare_tokens' ? 'редкий токен' : (key === 'lucky_tokens' ? 'lucky-токен' : key));
+        const label = key === 'pack_shards'
+          ? 'осколка'
+          : (key === 'rare_tokens'
+            ? 'редкий токен'
+            : (key === 'lucky_tokens'
+              ? 'lucky-токен'
+              : (key === 'cosmetic_packs' ? 'косметический пак' : key)));
         return `${value} ${label}`;
       }).join(' + ');
     }
@@ -6446,7 +6487,7 @@ PAGE_TEMPLATE = """
         return;
       }
       const seasonTarget = Number(rewards.season_target || (Number(rewards.season_level || 1) * 16));
-      packRewardsSummary.textContent = `Баланс: ${rewards.pack_shards || 0} осколков • ${rewards.rare_tokens || 0} редких токенов • ${rewards.lucky_tokens || 0} lucky-токенов`;
+      packRewardsSummary.textContent = `Баланс: ${rewards.pack_shards || 0} осколков • ${rewards.rare_tokens || 0} редких токенов • ${rewards.lucky_tokens || 0} lucky-токенов • ${rewards.cosmetic_packs || 0} косметических паков`;
       packSeasonSummary.textContent = `Сезон ${rewards.season_level || 1} • ${rewards.season_points || 0}/${seasonTarget} очков • пропуск ${rewards.premium_pass_active ? 'premium' : 'free'} • квест ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}`;
       claimDailyRewardBtn.disabled = !(state.wallet && rewards.daily_available);
       claimQuestRewardBtn.disabled = !(state.wallet && rewards.quest_ready);
@@ -6512,7 +6553,7 @@ PAGE_TEMPLATE = """
       const content = rewards ? `
         <div class="user-item">
           <strong>Награды и сезон</strong>
-          <div class="tiny">Осколки: ${rewards.pack_shards || 0} • Редкие токены: ${rewards.rare_tokens || 0} • Lucky-токены: ${rewards.lucky_tokens || 0}</div>
+          <div class="tiny">Осколки: ${rewards.pack_shards || 0} • Редкие токены: ${rewards.rare_tokens || 0} • Lucky-токены: ${rewards.lucky_tokens || 0} • Космопаки: ${rewards.cosmetic_packs || 0}</div>
           <div class="tiny">Сезон: ур. ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 16} очков • ${rewards.premium_pass_active ? 'премиум активен' : 'free-трек'}</div>
           <div class="tiny">Дейлик: ${rewards.daily_available ? 'готов' : 'получен'} • Квест: ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}</div>
           <div class="tiny">Синергии: ${synergies && synergies.labels && synergies.labels.length ? synergies.labels.join(' • ') : 'нет'}</div>
@@ -7275,8 +7316,8 @@ PAGE_TEMPLATE = """
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
       walletBadge.textContent = state.wallet ? `Подключён: ${shortAddress(state.wallet)}` : 'Кошелёк не подключен';
       currencyBadge.textContent = state.playerProfile && state.playerProfile.rewards
-        ? `Осколки: ${rewards.pack_shards || 0} • Редкие: ${rewards.rare_tokens || 0} • Lucky: ${rewards.lucky_tokens || 0}`
-        : 'Осколки: 0 • Редкие: 0 • Lucky: 0';
+        ? `Осколки: ${rewards.pack_shards || 0} • Редкие: ${rewards.rare_tokens || 0} • Lucky: ${rewards.lucky_tokens || 0} • Космопаки: ${rewards.cosmetic_packs || 0}`
+        : 'Осколки: 0 • Редкие: 0 • Lucky: 0 • Космопаки: 0';
       if (walletQuickCurrency) {
         walletQuickCurrency.innerHTML = `
           <span class="wallet-currency-chip">💠 ${Number(rewards.pack_shards || 0)}</span>
@@ -7309,7 +7350,7 @@ PAGE_TEMPLATE = """
           <div class="tiny">Кошелёк: ${state.wallet ? shortAddress(state.wallet) : '-'}</div>
           <div class="tiny">Активный домен: ${state.selectedDomain ? `${state.selectedDomain}.ton` : '-'}</div>
           <div class="tiny">Рейтинг: ${profileRating.textContent} • Матчей: ${profileGames.textContent}</div>
-          <div class="tiny">Награды: ${state.playerProfile && state.playerProfile.rewards ? `осколки ${state.playerProfile.rewards.pack_shards} • редкие ${state.playerProfile.rewards.rare_tokens} • lucky ${state.playerProfile.rewards.lucky_tokens}` : '-'}</div>
+          <div class="tiny">Награды: ${state.playerProfile && state.playerProfile.rewards ? `осколки ${state.playerProfile.rewards.pack_shards} • редкие ${state.playerProfile.rewards.rare_tokens} • lucky ${state.playerProfile.rewards.lucky_tokens} • космопаки ${state.playerProfile.rewards.cosmetic_packs || 0}` : '-'}</div>
           <div class="tiny">Сезон: ${state.playerProfile && state.playerProfile.rewards ? `ур. ${state.playerProfile.rewards.season_level} • ${state.playerProfile.rewards.season_points}/${state.playerProfile.rewards.season_target}` : '-'}</div>
           <div class="tiny">Синергии: ${state.playerProfile && state.playerProfile.synergies && state.playerProfile.synergies.labels && state.playerProfile.synergies.labels.length ? state.playerProfile.synergies.labels.join(' • ') : 'нет'}</div>
         </div>
@@ -7654,6 +7695,10 @@ PAGE_TEMPLATE = """
     }
 
     function giftCardbackSurface(key) {
+      const safeKey = String(key || '').toLowerCase();
+      if (safeKey.includes('stock_plain')) {
+        return 'linear-gradient(180deg, rgba(36,40,46,0.98), rgba(24,28,34,0.98))';
+      }
       const asset = cosmeticAssetUrl('cardback', key);
       return asset
         ? `url(${asset}) center/cover no-repeat`
@@ -7661,6 +7706,10 @@ PAGE_TEMPLATE = """
     }
 
     function giftArenaSurface(key) {
+      const safeKey = String(key || '').toLowerCase();
+      if (safeKey.includes('stock_grid')) {
+        return 'repeating-linear-gradient(0deg, rgba(34,40,52,0.98) 0 24px, rgba(24,30,42,0.98) 24px 48px), repeating-linear-gradient(90deg, rgba(50,58,72,0.2) 0 2px, transparent 2px 48px)';
+      }
       const asset = cosmeticAssetUrl('arena', key);
       return asset
         ? `url(${asset}) center/cover no-repeat`
@@ -8346,6 +8395,10 @@ PAGE_TEMPLATE = """
       const backAsset = cosmeticAssetUrl('cardback', backKey);
       let border = side === 'player' ? 'rgba(83,246,184,0.34)' : 'rgba(255,122,134,0.3)';
       let glow = side === 'player' ? 'rgba(83,246,184,0.18)' : 'rgba(255,122,134,0.16)';
+      if (frameKey.includes('stock')) {
+        border = 'rgba(126, 137, 156, 0.46)';
+        glow = 'rgba(94, 104, 122, 0.22)';
+      }
       if (frameKey.includes('gold') || frameKey.includes('solar')) border = 'rgba(255,211,110,0.42)';
       if (frameKey.includes('void') || frameKey.includes('obsidian')) border = 'rgba(174,126,255,0.38)';
       if (frameKey.includes('crimson')) border = 'rgba(255,122,134,0.42)';
@@ -9095,6 +9148,13 @@ PAGE_TEMPLATE = """
         const rewardSummary = result.reward_summary || (state.playerProfile && state.playerProfile.rewards) || null;
         const playerCosmetics = result.player_cosmetics || (rewardSummary && rewardSummary.equipped_cosmetics) || {};
         const opponentCosmetics = result.opponent_cosmetics || {};
+        const battleArenaCosmetic = result.battle_arena_cosmetic && result.battle_arena_cosmetic.key
+          ? result.battle_arena_cosmetic
+          : ((playerCosmetics || {}).arena || null);
+        const battleArenaCosmetics = {
+          ...(playerCosmetics || {}),
+          ...(battleArenaCosmetic ? {arena: battleArenaCosmetic} : {}),
+        };
         const rewardGain = result.reward_gain || {};
         const rewardParts = [];
         if (Number(rewardGain.pack_shards || 0) > 0) rewardParts.push(`осколки +${Number(rewardGain.pack_shards || 0)}`);
@@ -9103,7 +9163,7 @@ PAGE_TEMPLATE = """
         const rewardLine = resultKey === 'win' && rewardParts.length ? `<div class="battle-reward-line">Награда: <strong>${rewardParts.join(' • ')}</strong></div>` : '';
         const battleHeader = rewardSummary ? `
           <div class="showdown-header">
-            <div class="tiny"><strong>Валюта</strong> • осколки ${Number(rewardSummary.pack_shards || 0)} • редкие ${Number(rewardSummary.rare_tokens || 0)} • lucky ${Number(rewardSummary.lucky_tokens || 0)}</div>
+            <div class="tiny"><strong>Валюта</strong> • осколки ${Number(rewardSummary.pack_shards || 0)} • редкие ${Number(rewardSummary.rare_tokens || 0)} • lucky ${Number(rewardSummary.lucky_tokens || 0)} • космопаки ${Number(rewardSummary.cosmetic_packs || 0)}</div>
           </div>
         ` : '';
         const interactivePanel = result.interactive_session_id
@@ -9215,7 +9275,7 @@ PAGE_TEMPLATE = """
                   ${opponentArenaDeck}
                 </div>
               </div>
-              <div class="arena-core" style="background:${battleArenaBackground(playerCosmetics)}; ${battleArenaUiStyle(playerCosmetics)};">
+              <div class="arena-core" style="background:${battleArenaBackground(battleArenaCosmetics)}; ${battleArenaUiStyle(battleArenaCosmetics)};">
                 ${arenaRoutes}
                 <div class="arena-choice-hub">
                   <div class="prebattle-stage arena-choice-panel" id="prebattle-stage">
@@ -10167,6 +10227,7 @@ PAGE_TEMPLATE = """
       if (state.packOpening) return;
       const resolvedPackType = packType || (source === 'paid' ? 'lucky' : 'common');
       const hadPreviousDeck = Array.isArray(state.cards) && state.cards.length === 5;
+      const isCosmeticPack = resolvedPackType === 'cosmetic';
       state.packOpening = true;
       setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
       foilPack.classList.remove('opening');
@@ -10180,7 +10241,9 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: {wallet: state.wallet, domain: state.selectedDomain, source, payment_id: paymentId, pack_type: resolvedPackType}
         });
-        state.cards = data.cards;
+        if (!isCosmeticPack) {
+          state.cards = data.cards;
+        }
         state.canRestorePreviousDeck = hadPreviousDeck;
         state.pendingPackSource = null;
         state.pendingPackPaymentId = null;
@@ -10190,12 +10253,36 @@ PAGE_TEMPLATE = """
         await sleep(1300);
         packShowcase.classList.add('opened');
         packNote.textContent = 'Карты уже летят';
-        await renderPack(data.cards, data.total_score);
+        if (isCosmeticPack) {
+          const cosmetic = data.cosmetic_reward || {};
+          packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
+          packCards.innerHTML = `
+            <article class="game-card">
+              <div class="tiny">Cosmetic</div>
+              <h3>${escapeHtml(cosmetic.name || 'Косметический предмет')}</h3>
+              <p>${escapeHtml(cosmetic.type || 'cosmetic')}</p>
+              <div class="team-line"><span>Источник</span><strong>Косметический пак</strong></div>
+              <p>Предмет добавлен в коллекцию и доступен во вкладке «Профиль».</p>
+            </article>
+          `;
+          packCards.classList.add('reveal');
+          packScoreLabel.textContent = `Открыт предмет: ${cosmetic.name || '-'}`;
+        } else {
+          await renderPack(data.cards, data.total_score);
+        }
         packShowcase.classList.remove('cinematic');
-        setStatus(document.getElementById('pack-status'), `Колода готова. ${packTypeMeta(resolvedPackType)?.label || resolvedPackType} дал вклад ${data.total_score}.`, 'success');
+        setStatus(
+          document.getElementById('pack-status'),
+          isCosmeticPack
+            ? `Открыт ${data.cosmetic_reward && data.cosmetic_reward.name ? data.cosmetic_reward.name : 'косметический предмет'}.`
+            : `Колода готова. ${packTypeMeta(resolvedPackType)?.label || resolvedPackType} дал вклад ${data.total_score}.`,
+          'success'
+        );
         updateButtons();
-        showDeck();
-        await loadDisciplineBuild();
+        if (!isCosmeticPack) {
+          showDeck();
+          await loadDisciplineBuild();
+        }
         loadOwnedDecks();
         loadActiveUsers();
         loadGlobalPlayers();
@@ -11516,6 +11603,7 @@ def init_db():
                 pack_shards INTEGER NOT NULL DEFAULT 0,
                 rare_tokens INTEGER NOT NULL DEFAULT 0,
                 lucky_tokens INTEGER NOT NULL DEFAULT 0,
+                cosmetic_packs INTEGER NOT NULL DEFAULT 0,
                 season_points INTEGER NOT NULL DEFAULT 0,
                 season_level INTEGER NOT NULL DEFAULT 1,
                 premium_pass INTEGER NOT NULL DEFAULT 0,
@@ -11670,6 +11758,8 @@ def init_db():
         reward_columns = {row['name'] for row in conn.execute("PRAGMA table_info(player_rewards)").fetchall()}
         if 'premium_pass' not in reward_columns:
             conn.execute('ALTER TABLE player_rewards ADD COLUMN premium_pass INTEGER NOT NULL DEFAULT 0')
+        if 'cosmetic_packs' not in reward_columns:
+            conn.execute('ALTER TABLE player_rewards ADD COLUMN cosmetic_packs INTEGER NOT NULL DEFAULT 0')
         conn.commit()
 
 
@@ -11758,6 +11848,7 @@ def ensure_runtime_tables():
                 pack_shards INTEGER NOT NULL DEFAULT 0,
                 rare_tokens INTEGER NOT NULL DEFAULT 0,
                 lucky_tokens INTEGER NOT NULL DEFAULT 0,
+                cosmetic_packs INTEGER NOT NULL DEFAULT 0,
                 season_points INTEGER NOT NULL DEFAULT 0,
                 season_level INTEGER NOT NULL DEFAULT 1,
                 premium_pass INTEGER NOT NULL DEFAULT 0,
@@ -11826,6 +11917,8 @@ def ensure_runtime_tables():
         reward_columns = {row['name'] for row in conn.execute("PRAGMA table_info(player_rewards)").fetchall()}
         if 'premium_pass' not in reward_columns:
             conn.execute('ALTER TABLE player_rewards ADD COLUMN premium_pass INTEGER NOT NULL DEFAULT 0')
+        if 'cosmetic_packs' not in reward_columns:
+            conn.execute('ALTER TABLE player_rewards ADD COLUMN cosmetic_packs INTEGER NOT NULL DEFAULT 0')
         cosmetic_columns = {row['name'] for row in conn.execute("PRAGMA table_info(player_cosmetics)").fetchall()}
         if 'cosmetic_type' not in cosmetic_columns:
             conn.execute('ALTER TABLE player_cosmetics ADD COLUMN cosmetic_type TEXT')
@@ -12105,14 +12198,15 @@ def ensure_player_rewards(wallet):
             conn.execute(
                 '''
                 INSERT INTO player_rewards (
-                    wallet, pack_shards, rare_tokens, lucky_tokens, season_points,
+                    wallet, pack_shards, rare_tokens, lucky_tokens, cosmetic_packs, season_points,
                     season_level, premium_pass, wins_for_quest, wins_claimed, daily_claimed_on, updated_at
-                ) VALUES (?, 0, 0, 0, 0, 1, 0, 0, 0, NULL, ?)
+                ) VALUES (?, 0, 0, 0, 0, 0, 1, 0, 0, 0, NULL, ?)
                 ''',
                 (wallet, now_iso()),
             )
             conn.commit()
             row = conn.execute('SELECT * FROM player_rewards WHERE wallet = ?', (wallet,)).fetchone()
+    ensure_default_cosmetics(wallet)
     return dict(row)
 
 
@@ -12179,6 +12273,18 @@ def cosmetic_serial_label(cosmetic_type, serial_number):
     if serial_number is None:
         return None
     return f"{cosmetic_serial_prefix(cosmetic_type)}-{int(serial_number):03d}"
+
+
+def ensure_default_cosmetics(wallet):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        existing = {
+            row['cosmetic_key']
+            for row in conn.execute('SELECT cosmetic_key FROM player_cosmetics WHERE wallet = ?', (wallet,)).fetchall()
+        }
+    for key in DEFAULT_STOCK_COSMETICS:
+        if key not in existing:
+            grant_cosmetic(wallet, key, 'stock')
 
 
 def grant_cosmetic(wallet, cosmetic_key, source):
@@ -12340,13 +12446,12 @@ def season_pass_reward_descriptor(wallet, level, reward_tier):
     if not reward:
         return {'level': int(level), 'tier': tier, 'reward': None, 'label': 'Нет награды'}
     if reward.get('kind') == 'cosmetic_pack':
-        reward_meta = season_pass_random_cosmetic_pack_item(wallet, level)
         return {
             'level': int(level),
             'tier': tier,
             'reward': reward,
-            'label': 'Случайная косметика',
-            'reward_meta': reward_meta,
+            'label': 'Косметический пак',
+            'reward_meta': None,
         }
     return {
         'level': int(level),
@@ -12375,9 +12480,16 @@ def claim_season_pass_reward(wallet, level, reward_tier):
         raise ValueError('Награда этого уровня уже собрана.')
     with closing(get_db()) as conn:
         if reward.get('kind') == 'cosmetic_pack':
-            reward_meta = descriptor.get('reward_meta')
-            if reward_meta:
-                grant_cosmetic(wallet, reward_meta['key'], 'season_pass')
+            current = ensure_player_rewards(wallet)
+            cosmetic_packs = int(current.get('cosmetic_packs', 0) or 0) + 1
+            conn.execute(
+                '''
+                UPDATE player_rewards
+                SET cosmetic_packs = ?, updated_at = ?
+                WHERE wallet = ?
+                ''',
+                (cosmetic_packs, now_iso(), wallet),
+            )
         elif reward.get('kind') == 'currency':
             current = ensure_player_rewards(wallet)
             pack_shards = int(current.get('pack_shards', 0) or 0) + int(reward.get('pack_shards', 0) or 0)
@@ -12410,12 +12522,16 @@ def season_pass_track_payload(wallet=None, rewards=None):
     payload = []
     for item in SEASON_PASS_TRACK:
         premium_descriptor = season_pass_reward_descriptor(wallet, item['level'], 'premium') if wallet else {
-            'label': (dict(item.get('premium_reward') or {}).get('label') if dict(item.get('premium_reward') or {}).get('kind') == 'currency' else 'Случайная косметика')
+            'label': (dict(item.get('premium_reward') or {}).get('label') if dict(item.get('premium_reward') or {}).get('kind') == 'currency' else 'Косметический пак')
             if item.get('premium_reward') else None,
             'reward': dict(item.get('premium_reward') or {}),
         }
         free_descriptor = season_pass_reward_descriptor(wallet, item['level'], 'free') if wallet else {
-            'label': dict(item.get('free_reward') or {}).get('label') if item.get('free_reward') else None,
+            'label': (
+                dict(item.get('free_reward') or {}).get('label')
+                if dict(item.get('free_reward') or {}).get('kind') == 'currency'
+                else ('Косметический пак' if item.get('free_reward') else None)
+            ),
             'reward': dict(item.get('free_reward') or {}),
         }
         premium_claimed = int(item['level']) in claimed['premium']
@@ -12443,7 +12559,7 @@ SEASON_PASS_DAILY_POINTS = 1
 SEASON_PASS_GUILD_CLAIM_POINTS = 3
 
 
-def normalize_reward_progress_fields(*, pack_shards, rare_tokens, lucky_tokens, season_points, season_level, wins_for_quest, wins_claimed):
+def normalize_reward_progress_fields(*, pack_shards, rare_tokens, lucky_tokens, season_points, season_level, wins_for_quest, wins_claimed, cosmetic_packs=None):
     season_level = max(1, int(season_level or 1))
     season_points = max(0, int(season_points or 0))
     lucky_tokens = max(0, int(lucky_tokens or 0))
@@ -12455,6 +12571,7 @@ def normalize_reward_progress_fields(*, pack_shards, rare_tokens, lucky_tokens, 
         'pack_shards': max(0, int(pack_shards or 0)),
         'rare_tokens': max(0, int(rare_tokens or 0)),
         'lucky_tokens': lucky_tokens,
+        'cosmetic_packs': max(0, int(cosmetic_packs or 0)),
         'season_points': season_points,
         'season_level': season_level,
         'wins_for_quest': max(0, int(wins_for_quest or 0)),
@@ -12700,6 +12817,7 @@ def spend_pack_currency(wallet, pack_type):
         pack_shards=int(rewards.get('pack_shards', 0)) - int(costs.get('pack_shards', 0)),
         rare_tokens=int(rewards.get('rare_tokens', 0)) - int(costs.get('rare_tokens', 0)),
         lucky_tokens=int(rewards.get('lucky_tokens', 0)) - int(costs.get('lucky_tokens', 0)),
+        cosmetic_packs=int(rewards.get('cosmetic_packs', 0)) - int(costs.get('cosmetic_packs', 0)),
         season_points=rewards.get('season_points', 0),
         season_level=rewards.get('season_level', 1),
         wins_for_quest=rewards.get('wins_for_quest', 0),
@@ -12709,13 +12827,14 @@ def spend_pack_currency(wallet, pack_type):
         conn.execute(
             '''
             UPDATE player_rewards
-            SET pack_shards = ?, rare_tokens = ?, lucky_tokens = ?, updated_at = ?
+            SET pack_shards = ?, rare_tokens = ?, lucky_tokens = ?, cosmetic_packs = ?, updated_at = ?
             WHERE wallet = ?
             ''',
             (
                 normalized['pack_shards'],
                 normalized['rare_tokens'],
                 normalized['lucky_tokens'],
+                normalized['cosmetic_packs'],
                 now_iso(),
                 wallet,
             ),
@@ -17340,6 +17459,21 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
     opp_build = match.get('build_b') if viewer_is_a else match.get('build_a')
     own_featured = match.get('featured_card_a') if viewer_is_a else match.get('featured_card_b')
     opp_featured = match.get('featured_card_b') if viewer_is_a else match.get('featured_card_a')
+    cosmetics_a = equipped_cosmetics(match['wallet_a'])
+    cosmetics_b = equipped_cosmetics(match['wallet_b'])
+    arena_a = (cosmetics_a.get('arena') or {})
+    arena_b = (cosmetics_b.get('arena') or {})
+    player_a = player_a or ensure_player(match['wallet_a'])
+    player_b = player_b or ensure_player(match['wallet_b'])
+    rating_a = int((player_a or {}).get('rating', 1000) or 1000)
+    rating_b = int((player_b or {}).get('rating', 1000) or 1000)
+    chosen_arena = {}
+    if arena_a.get('key') and arena_b.get('key'):
+        chosen_arena = arena_a if rating_a >= rating_b else arena_b
+    elif arena_a.get('key'):
+        chosen_arena = arena_a
+    elif arena_b.get('key'):
+        chosen_arena = arena_b
 
     mode_title = 'Дуэль'
     if invite['mode'] == 'ranked':
@@ -17384,8 +17518,9 @@ def invite_result_payload(invite, match, viewer_wallet, player_a=None, player_b=
             'lucky_tokens': 0,
             'season_points': (5 if invite['mode'] == 'ranked' else 4) if own_result == 'win' else (3 if invite['mode'] == 'ranked' else 2),
         },
-        'player_cosmetics': equipped_cosmetics(own_wallet),
-        'opponent_cosmetics': equipped_cosmetics(opp_wallet),
+        'player_cosmetics': cosmetics_a if viewer_is_a else cosmetics_b,
+        'opponent_cosmetics': cosmetics_b if viewer_is_a else cosmetics_a,
+        'battle_arena_cosmetic': chosen_arena,
     }
     if rating_meta:
         if viewer_is_a:
@@ -19027,6 +19162,8 @@ def api_pack():
         return json_error('Ежедневный пак уже открыт. Попробуй снова завтра или открой платный пак.', 403)
     if source == 'daily' and pack_type != 'common':
         return json_error('Ежедневное открытие работает только для обычного пака.', 400)
+    if pack_type == 'cosmetic' and source != 'reward':
+        return json_error('Косметический пак открывается только из наград.', 400)
 
     if source == 'paid':
         if not payment_id:
@@ -19045,12 +19182,34 @@ def api_pack():
             return json_error(str(exc), 400)
 
     seed = f'{domain}:{wallet}:{source}:{payment_id or now_iso()}'
-    guarantee_legendary = pack_pity_status(wallet, pack_type) >= PACK_PITY_THRESHOLD - 1
-    cards = generate_pack(domain, seed_value=seed, pack_type=pack_type, guarantee_legendary=guarantee_legendary, wallet=wallet)
-    total = deck_score(cards)
+    guarantee_legendary = pack_pity_status(wallet, pack_type) >= PACK_PITY_THRESHOLD - 1 if pack_type != 'cosmetic' else False
+    cosmetic_reward = None
+    if pack_type == 'cosmetic':
+        pool = list(COSMETIC_CATALOG)
+        if not pool:
+            return json_error('Каталог косметики недоступен.', 500)
+        digest = hashlib.sha256(f'{seed}:cosmetic'.encode('utf-8')).hexdigest()
+        selected = pool[int(digest[:8], 16) % len(pool)]
+        grant_cosmetic(wallet, selected['key'], 'cosmetic_pack')
+        cosmetic_reward = {'key': selected['key'], 'name': selected['name'], 'type': selected['type']}
+        cards = [{
+            'domain': domain,
+            'slot': 1,
+            'title': selected['name'],
+            'rarity': 'Cosmetic',
+            'rarity_key': 'cosmetic',
+            'pool_value': 0,
+            'base_power': 0,
+            'ability': f'Открыт предмет: {selected["name"]}',
+            'skill_name': selected['type'],
+        }]
+        total = 0
+    else:
+        cards = generate_pack(domain, seed_value=seed, pack_type=pack_type, guarantee_legendary=guarantee_legendary, wallet=wallet)
+        total = deck_score(cards)
     pack_id = store_pack_open(wallet, domain, source, cards, total, payment_id=payment_id or None)
     ensure_player(wallet, domain, domain)
-    pity_after = update_pack_pity(wallet, pack_type, cards)
+    pity_after = update_pack_pity(wallet, pack_type, cards) if pack_type != 'cosmetic' else 0
     progress = grant_domain_experience(wallet, domain, 12 if source == 'paid' else 6, won=False)
     metadata = get_domain_metadata_payload(domain, wallet=wallet)
     log_domain_telemetry(
@@ -19065,8 +19224,10 @@ def api_pack():
             'pity_after': pity_after,
             'total_score': total,
             'rarities': [card.get('rarity_key') for card in cards],
+            'cosmetic_reward': cosmetic_reward,
         },
     )
+    rewards = reward_summary(wallet)
     return jsonify(
         {
             'wallet': wallet,
@@ -19078,6 +19239,7 @@ def api_pack():
             'pack_type': pack_type,
             'guarantee_legendary': guarantee_legendary,
             'pity_after': pity_after,
+            'cosmetic_reward': cosmetic_reward,
             'domain_metadata': metadata,
             'progress': progress,
             'rewards': rewards,
@@ -19136,7 +19298,7 @@ def api_cards_catalog():
         }
         for skill in CARD_SKILLS
     ]
-    pack_sort_order = {'common': 0, 'rare': 1, 'epic': 2, 'lucky': 3}
+    pack_sort_order = {'common': 0, 'rare': 1, 'epic': 2, 'lucky': 3, 'cosmetic': 4}
     pack_types = sorted([
         {
             'key': key,
