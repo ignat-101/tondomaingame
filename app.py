@@ -2996,6 +2996,35 @@ PAGE_TEMPLATE = """
       padding: 16px;
     }
 
+    .startup-guide-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .startup-guide-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .startup-guide-dots i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(151, 175, 200, 0.36);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .startup-guide-dots i.active {
+      background: rgba(83, 246, 184, 0.9);
+      transform: scale(1.12);
+    }
+
     .startup-guide-stage {
       position: relative;
       height: 210px;
@@ -3014,6 +3043,26 @@ PAGE_TEMPLATE = """
       object-fit: cover;
       border-radius: 16px;
       display: block;
+    }
+
+    .startup-guide-stage-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 16px;
+      font-size: 30px;
+      color: #ecf7ff;
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(180deg, rgba(8, 18, 30, 0.25), rgba(8, 18, 30, 0.5));
+    }
+
+    .startup-guide-actions {
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .startup-guide-lane {
@@ -4673,6 +4722,10 @@ PAGE_TEMPLATE = """
         height: 182px;
       }
 
+      .startup-guide-stage-overlay {
+        font-size: 24px;
+      }
+
       .arena-rail {
         padding: 7px 6px;
       }
@@ -5790,13 +5843,20 @@ PAGE_TEMPLATE = """
 
   <div class="startup-guide" id="startup-guide">
     <div class="startup-guide-card">
-      <div class="startup-guide-stage" aria-hidden="true">
-        <img class="startup-guide-gif" src="/static/tutorial/start-guide.gif?v=20260403" alt="Гайд по бою Ton Domain Game">
+      <div class="startup-guide-meta">
+        <span id="startup-guide-step-label">Шаг 1 / 8</span>
+        <span class="startup-guide-dots" id="startup-guide-dots"></span>
       </div>
-      <strong style="display:block; margin-bottom:6px;">Короткий гайд</strong>
-      <div class="tiny" style="margin-bottom:10px;">1) Выбери домен и колоду. 2) В бою жми «Натиск»/«Блок» и «Готов». 3) Побеждай раунды на дорожках и собирай награды.</div>
-      <div class="actions">
-        <button id="startup-guide-close-btn">Понятно</button>
+      <div class="startup-guide-stage" aria-hidden="true">
+        <img class="startup-guide-gif" id="startup-guide-gif" src="/static/tutorial/start-guide.gif?v=20260403" alt="Гайд по бою Ton Domain Game">
+        <div class="startup-guide-stage-overlay" id="startup-guide-stage-overlay" style="display:none;"></div>
+      </div>
+      <strong style="display:block; margin-bottom:6px;" id="startup-guide-title">Короткий гайд</strong>
+      <div class="tiny" style="margin-bottom:10px;" id="startup-guide-body">1) Выбери домен и колоду. 2) В бою жми «Натиск»/«Блок» и «Готов». 3) Побеждай раунды на дорожках и собирай награды.</div>
+      <div class="actions startup-guide-actions">
+        <button class="secondary" id="startup-guide-prev-btn">Назад</button>
+        <button id="startup-guide-next-btn">Далее</button>
+        <button id="startup-guide-close-btn">Завершить</button>
         <button class="secondary" id="startup-guide-skip-btn">Пропустить</button>
       </div>
     </div>
@@ -5892,8 +5952,16 @@ PAGE_TEMPLATE = """
     const mobileDeckView = document.getElementById('mobile-deck-view');
     const mobileGlobalPlayersList = document.getElementById('mobile-global-players-list');
     const startupGuide = document.getElementById('startup-guide');
+    const startupGuideGif = document.getElementById('startup-guide-gif');
+    const startupGuideStageOverlay = document.getElementById('startup-guide-stage-overlay');
+    const startupGuideStepLabel = document.getElementById('startup-guide-step-label');
+    const startupGuideDots = document.getElementById('startup-guide-dots');
+    const startupGuideTitle = document.getElementById('startup-guide-title');
+    const startupGuideBody = document.getElementById('startup-guide-body');
     const startupGuideCloseBtn = document.getElementById('startup-guide-close-btn');
     const startupGuideSkipBtn = document.getElementById('startup-guide-skip-btn');
+    const startupGuidePrevBtn = document.getElementById('startup-guide-prev-btn');
+    const startupGuideNextBtn = document.getElementById('startup-guide-next-btn');
     const ownedDecksList = document.getElementById('owned-decks-list');
     const walletOwnedDecksList = document.getElementById('wallet-owned-decks-list');
     const globalPlayersList = document.getElementById('global-players-list');
@@ -5938,6 +6006,56 @@ PAGE_TEMPLATE = """
     let battleAutostartTimer = null;
     const usageStorageKey = 'tondomaingame_ui_usage_v1';
     const startupGuideStorageKey = 'tondomaingame_startup_guide_v1';
+    const startupGuideSteps = [
+      {
+        title: 'Подключи кошелёк и проверь домены',
+        body: 'Нажми «Подключить кошелёк», затем «Проверить наличие доменов». Для боя выбираются 4-значные .ton домены из кошелька.',
+        overlay: '🔌 💼 🌐',
+        useGif: false
+      },
+      {
+        title: 'Собери колоду через паки',
+        body: 'Открой пак и получи 5 карт. Колода хранится по домену. Можно менять активный домен и играть разными сборками.',
+        overlay: '📦 🎴 🎴 🎴',
+        useGif: false
+      },
+      {
+        title: 'Распредели пул дисциплин',
+        body: 'Пул влияет на атаку, защиту, удачу, скорость и магию. Чем точнее распределение под стиль, тем стабильнее результат.',
+        overlay: '⚙️ 📈',
+        useGif: false
+      },
+      {
+        title: 'Бой идёт по дорожкам раундов',
+        body: 'Каждый раунд: выбирай Натиск или Блок и жми «Готов». Побеждай раунды на дорожках, чтобы забрать матч.',
+        useGif: true
+      },
+      {
+        title: 'Энергия, КД и активная способность',
+        body: 'Натиск стоит 2 энергии, Блок 1, способность 3. Следи за КД и зарядами: тайминг способности часто решает бой.',
+        overlay: '⚡ 3 • КД • ✨',
+        useGif: false
+      },
+      {
+        title: 'PvP и Дуэль',
+        body: 'В PvP после подбора оба игрока подтверждают готовность (2/2). В дуэли соперник принимает приглашение 30 секунд.',
+        overlay: '🧑‍🤝‍🧑 2/2 • ⏱️30s',
+        useGif: false
+      },
+      {
+        title: 'Кланы, сезонный пропуск и награды',
+        body: 'Играй клановые активности, забирай награды пропуска вручную, получай осколки/токены и открывай новые паки.',
+        overlay: '🏆 🛡️ 🎟️',
+        useGif: false
+      },
+      {
+        title: 'Косметика и прогресс',
+        body: 'Рубашки, арены и баннеры меняют визуал боя. Домены и колоды прокачиваются, но победа зависит от решений в раундах.',
+        overlay: '🎨 🧩 🚀',
+        useGif: false
+      }
+    ];
+    let startupGuideStepIndex = 0;
 
     function shortAddress(value) {
       if (!value) return '-';
@@ -5965,7 +6083,52 @@ PAGE_TEMPLATE = """
 
     function showStartupGuideIfNeeded() {
       if (!startupGuide || !shouldShowStartupGuide()) return;
+      startupGuideStepIndex = 0;
+      renderStartupGuideStep();
       startupGuide.classList.add('visible');
+    }
+
+    function renderStartupGuideStep() {
+      if (!startupGuide) return;
+      const maxIndex = Math.max(0, startupGuideSteps.length - 1);
+      startupGuideStepIndex = Math.max(0, Math.min(maxIndex, Number(startupGuideStepIndex || 0)));
+      const step = startupGuideSteps[startupGuideStepIndex] || startupGuideSteps[0];
+      if (startupGuideTitle) startupGuideTitle.textContent = step.title || '';
+      if (startupGuideBody) startupGuideBody.textContent = step.body || '';
+      if (startupGuideStepLabel) startupGuideStepLabel.textContent = `Шаг ${startupGuideStepIndex + 1} / ${startupGuideSteps.length}`;
+      if (startupGuideDots) {
+        startupGuideDots.innerHTML = startupGuideSteps.map((_, index) => `<i class="${index === startupGuideStepIndex ? 'active' : ''}"></i>`).join('');
+      }
+      if (startupGuideGif && startupGuideStageOverlay) {
+        const useGif = Boolean(step.useGif);
+        startupGuideGif.style.display = useGif ? 'block' : 'none';
+        startupGuideStageOverlay.style.display = useGif ? 'none' : 'flex';
+        startupGuideStageOverlay.textContent = useGif ? '' : (step.overlay || '');
+      }
+      if (startupGuidePrevBtn) {
+        startupGuidePrevBtn.disabled = startupGuideStepIndex <= 0;
+      }
+      if (startupGuideNextBtn) {
+        startupGuideNextBtn.textContent = startupGuideStepIndex >= maxIndex ? 'Готово' : 'Далее';
+      }
+      if (startupGuideCloseBtn) {
+        startupGuideCloseBtn.style.display = startupGuideStepIndex >= maxIndex ? 'inline-flex' : 'none';
+      }
+    }
+
+    function nextStartupGuideStep() {
+      const maxIndex = Math.max(0, startupGuideSteps.length - 1);
+      if (startupGuideStepIndex >= maxIndex) {
+        closeStartupGuide(true);
+        return;
+      }
+      startupGuideStepIndex += 1;
+      renderStartupGuideStep();
+    }
+
+    function prevStartupGuideStep() {
+      startupGuideStepIndex = Math.max(0, startupGuideStepIndex - 1);
+      renderStartupGuideStep();
     }
 
     function isTelegramMiniApp() {
@@ -10821,6 +10984,12 @@ PAGE_TEMPLATE = """
     }
     if (startupGuideSkipBtn) {
       bindFunctionalControl(startupGuideSkipBtn, () => closeStartupGuide(true), 'click', {skipPrepare: true});
+    }
+    if (startupGuideNextBtn) {
+      bindFunctionalControl(startupGuideNextBtn, nextStartupGuideStep, 'click', {skipPrepare: true});
+    }
+    if (startupGuidePrevBtn) {
+      bindFunctionalControl(startupGuidePrevBtn, prevStartupGuideStep, 'click', {skipPrepare: true});
     }
     if (telegramMiniappLinkBtn) {
       bindFunctionalControl(telegramMiniappLinkBtn, () => linkTelegramFromMiniApp({requestWrite: true}), 'click', {skipPrepare: true});
