@@ -180,49 +180,19 @@ COSMETIC_THEME_DEFS = [
     {'slug': 'graphite', 'name': 'Graphite'},
     {'slug': 'obsidian', 'name': 'Obsidian'},
     {'slug': 'ivory_white', 'name': 'Ivory White'},
-    {'slug': 'pearl_white', 'name': 'Pearl White'},
     {'slug': 'arctic_ice', 'name': 'Arctic Ice'},
     {'slug': 'midnight_blue', 'name': 'Midnight Blue'},
     {'slug': 'fire_engine', 'name': 'Fire Engine'},
-    {'slug': 'volcanic_red', 'name': 'Volcanic Red'},
-    {'slug': 'crimson_velvet', 'name': 'Crimson Velvet'},
-    {'slug': 'ruby', 'name': 'Ruby'},
     {'slug': 'deep_cyan', 'name': 'Deep Cyan'},
-    {'slug': 'ocean_teal', 'name': 'Ocean Teal'},
-    {'slug': 'aqua_marine', 'name': 'Aquamarine'},
-    {'slug': 'glacier_blue', 'name': 'Glacier Blue'},
-    {'slug': 'sky_blue', 'name': 'Sky Blue'},
     {'slug': 'cobalt', 'name': 'Cobalt'},
-    {'slug': 'ultramarine', 'name': 'Ultramarine'},
     {'slug': 'khaki_green', 'name': 'Khaki Green'},
     {'slug': 'emerald', 'name': 'Emerald'},
-    {'slug': 'jade', 'name': 'Jade'},
-    {'slug': 'mint', 'name': 'Mint'},
-    {'slug': 'moss', 'name': 'Moss'},
-    {'slug': 'forest_night', 'name': 'Forest Night'},
-    {'slug': 'cyber_green', 'name': 'Cyber Green'},
-    {'slug': 'matrix_black', 'name': 'Matrix Black'},
     {'slug': 'satin_gold', 'name': 'Satin Gold'},
     {'slug': 'old_gold', 'name': 'Old Gold'},
-    {'slug': 'champagne', 'name': 'Champagne'},
     {'slug': 'copper', 'name': 'Copper'},
-    {'slug': 'bronze', 'name': 'Bronze'},
-    {'slug': 'amber_glow', 'name': 'Amber Glow'},
-    {'slug': 'solar_yellow', 'name': 'Solar Yellow'},
-    {'slug': 'sand_dune', 'name': 'Sand Dune'},
     {'slug': 'neon_blue', 'name': 'Neon Blue'},
     {'slug': 'royal_purple', 'name': 'Royal Purple'},
     {'slug': 'amethyst', 'name': 'Amethyst'},
-    {'slug': 'violet', 'name': 'Violet'},
-    {'slug': 'lavender', 'name': 'Lavender'},
-    {'slug': 'lilac', 'name': 'Lilac'},
-    {'slug': 'rose_quartz', 'name': 'Rose Quartz'},
-    {'slug': 'cherry_blossom', 'name': 'Cherry Blossom'},
-    {'slug': 'plasma_pink', 'name': 'Plasma Pink'},
-    {'slug': 'sunset_orange', 'name': 'Sunset Orange'},
-    {'slug': 'moonstone', 'name': 'Moonstone'},
-    {'slug': 'storm_gray', 'name': 'Storm Gray'},
-    {'slug': 'silver_foil', 'name': 'Silver Foil'},
     {'slug': 'aurora', 'name': 'Aurora'},
 ]
 
@@ -237,7 +207,6 @@ COSMETIC_THEME_RARITY = {
     'satin_gold': 'mythic',
     'fire_engine': 'mythic',
     'obsidian': 'mythic',
-    'ultramarine': 'epic',
     'cobalt': 'epic',
     'royal_purple': 'epic',
     'amethyst': 'epic',
@@ -8270,26 +8239,59 @@ PAGE_TEMPLATE = """
       ].join(';');
     }
 
-    function giftCardbackSurface(key) {
-      const safeKey = String(key || '').toLowerCase();
-      if (safeKey.includes('stock_plain')) {
-        return 'linear-gradient(180deg, rgba(36,40,46,0.98), rgba(24,28,34,0.98))';
-      }
-      const asset = cosmeticAssetUrl('cardback', key);
-      return asset
-        ? `url(${asset}) center/cover no-repeat`
-        : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))';
+    function monogramPatternSurface(emoji, theme, mode = 'cardback') {
+      const symbol = String(emoji || '').trim();
+      if (!symbol) return '';
+      const tileSize = mode === 'arena' ? 170 : (mode === 'guild' ? 78 : 62);
+      const fontSize = mode === 'arena' ? 38 : (mode === 'guild' ? 24 : 20);
+      const opacity = mode === 'arena' ? 0.2 : (mode === 'guild' ? 0.34 : 0.3);
+      const fill = (theme && theme.text) ? theme.text : '#f2f8ff';
+      const stroke = (theme && theme.accent) ? theme.accent : '#7ddfff';
+      const svg = `
+        <svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+          <g fill="${fill}" fill-opacity="${opacity}" stroke="${stroke}" stroke-opacity="${Math.max(0.12, opacity * 0.55)}" stroke-width="1.2" paint-order="stroke fill" font-size="${fontSize}" text-anchor="middle" dominant-baseline="middle">
+            <text x="40" y="40">${escapeSvg(symbol)}</text>
+            <text x="120" y="40">${escapeSvg(symbol)}</text>
+            <text x="200" y="40">${escapeSvg(symbol)}</text>
+            <text x="40" y="120">${escapeSvg(symbol)}</text>
+            <text x="120" y="120">${escapeSvg(symbol)}</text>
+            <text x="200" y="120">${escapeSvg(symbol)}</text>
+            <text x="40" y="200">${escapeSvg(symbol)}</text>
+            <text x="120" y="200">${escapeSvg(symbol)}</text>
+            <text x="200" y="200">${escapeSvg(symbol)}</text>
+          </g>
+        </svg>
+      `;
+      return `url(${svgDataUrl(svg)}) center/${tileSize}px ${tileSize}px repeat`;
     }
 
-    function giftArenaSurface(key) {
-      const safeKey = String(key || '').toLowerCase();
-      if (safeKey.includes('stock_grid')) {
-        return 'repeating-linear-gradient(0deg, rgba(34,40,52,0.98) 0 24px, rgba(24,30,42,0.98) 24px 48px), repeating-linear-gradient(90deg, rgba(50,58,72,0.2) 0 2px, transparent 2px 48px)';
-      }
-      const asset = cosmeticAssetUrl('arena', key);
-      return asset
-        ? `url(${asset}) center/cover no-repeat`
-        : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))';
+    function giftCardbackSurface(key, emoji = '') {
+      const theme = cosmeticTheme('cardback', key);
+      const layers = [];
+      const pattern = monogramPatternSurface(emoji, theme, 'cardback');
+      if (pattern) layers.push(pattern);
+      layers.push(`radial-gradient(circle at 50% 6%, ${hexToRgba(theme.accent, 0.2)}, transparent 46%)`);
+      layers.push(`linear-gradient(180deg, ${hexToRgba(theme.base, 0.96)}, ${hexToRgba(theme.secondary, 0.98)})`);
+      return layers.join(', ');
+    }
+
+    function giftArenaSurface(key, emoji = '') {
+      const theme = cosmeticTheme('arena', key);
+      const layers = [];
+      const pattern = monogramPatternSurface(emoji, theme, 'arena');
+      if (pattern) layers.push(pattern);
+      layers.push(`radial-gradient(circle at 50% 45%, ${hexToRgba(theme.accent, 0.14)}, transparent 62%)`);
+      layers.push(`linear-gradient(180deg, ${hexToRgba(theme.secondary, 0.9)}, ${hexToRgba(theme.base, 0.94)})`);
+      return layers.join(', ');
+    }
+
+    function giftGuildSurface(key, emoji = '') {
+      const theme = cosmeticTheme('guild', key);
+      const layers = [];
+      const pattern = monogramPatternSurface(emoji, theme, 'guild');
+      if (pattern) layers.push(pattern);
+      layers.push(`linear-gradient(90deg, ${hexToRgba(theme.base, 0.95)}, ${hexToRgba(theme.secondary, 0.95)})`);
+      return layers.join(', ');
     }
 
     function giftThemePattern(theme) {
@@ -8437,10 +8439,8 @@ PAGE_TEMPLATE = """
       const featuredGuild = (catalogByType.guild || []).find((item) => item.key === (equipped.guild && equipped.guild.key)) || cosmetics.find((item) => item.type === 'guild') || (catalogByType.guild || [])[0] || null;
       const featuredEmoji = (catalogByType.emoji || []).find((item) => item.key === (equipped.emoji && equipped.emoji.key)) || cosmetics.find((item) => item.type === 'emoji') || (catalogByType.emoji || [])[0] || null;
       const compactPreview = document.body.classList.contains('tma-app') || window.innerWidth <= 760;
-      const arenaAsset = cosmeticAssetUrl('arena', featuredArena && featuredArena.key);
+      const featuredEmojiValue = featuredEmoji ? (featuredEmoji.emoji || '') : '';
       const frameAsset = cosmeticAssetUrl('frame', featuredFrame && featuredFrame.key);
-      const backAsset = cosmeticAssetUrl('cardback', featuredBack && featuredBack.key);
-      const guildAsset = cosmeticAssetUrl('guild', featuredGuild && featuredGuild.key);
       const visibleCatalogByType = Object.fromEntries(Object.entries(catalogByType).map(([type, items]) => [
         type,
         state.showAllCosmetics ? items : items.filter((item) => unlockedKeys.has(item.key)),
@@ -8462,11 +8462,10 @@ PAGE_TEMPLATE = """
       profileCosmeticsPanel.innerHTML = `
         <div class="user-item" style="margin-bottom:14px;">
           <strong>Предпросмотр</strong>
-          <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:${compactPreview ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)'}; gap:22px; align-items:center; overflow:hidden; background:${featuredArena ? giftArenaSurface(featuredArena.key) : (arenaAsset ? `url(${arenaAsset}) center/cover no-repeat` : 'radial-gradient(circle at center, rgba(69,215,255,0.12), rgba(8,20,36,0.94))')};">
+          <div style="margin-top:10px; border-radius:18px; padding:18px; display:grid; grid-template-columns:${compactPreview ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)'}; gap:22px; align-items:center; overflow:hidden; background:${giftArenaSurface(featuredArena && featuredArena.key, featuredEmojiValue)};">
             <div style="position:relative; width:190px; height:220px; margin:0 auto;">
-              ${featuredGuild ? `<img src="${guildAsset}" alt="" style="position:absolute; left:50%; top:22px; transform:translateX(-50%); width:110px; height:64px; object-fit:contain; opacity:0.98; z-index:1; pointer-events:none;">` : ''}
-              <div style="position:absolute; left:35px; top:48px; width:120px; height:168px; border-radius:18px; background:${featuredBack ? giftCardbackSurface(featuredBack.key) : (backAsset ? `url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))')}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28); z-index:2;"></div>
-              ${featuredEmoji ? `<div style="position:absolute; left:94px; top:118px; transform:translate(-50%, -50%); font-size:30px; line-height:1; z-index:4; text-shadow:0 6px 16px rgba(0,0,0,0.45);">${escapeHtml(featuredEmoji.emoji || '•')}</div>` : ''}
+              ${featuredGuild ? `<div style="position:absolute; left:50%; top:22px; transform:translateX(-50%); width:110px; height:64px; border-radius:10px; border:1px solid rgba(255,255,255,0.24); background:${giftGuildSurface(featuredGuild.key, featuredEmojiValue)}; opacity:0.98; z-index:1; pointer-events:none;"></div>` : ''}
+              <div style="position:absolute; left:35px; top:48px; width:120px; height:168px; border-radius:18px; background:${giftCardbackSurface(featuredBack && featuredBack.key, featuredEmojiValue)}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28); z-index:2;"></div>
               ${featuredFrame ? `<img src="${frameAsset}" alt="" style="position:absolute; left:27px; top:40px; width:136px; height:184px; object-fit:contain; z-index:3; pointer-events:none;">` : ''}
             </div>
             <div style="display:grid; gap:12px; align-content:center; min-width:0;">
@@ -8487,10 +8486,8 @@ PAGE_TEMPLATE = """
                 const unlocked = unlockedKeys.has(item.key);
                 const equippedNow = equipped[type] && equipped[type].key === item.key;
                 const ownedMeta = inventoryByKey[item.key] || null;
-                const itemArenaAsset = cosmeticAssetUrl('arena', item.key);
                 const itemFrameAsset = cosmeticAssetUrl('frame', item.key);
-                const itemBackAsset = cosmeticAssetUrl('cardback', item.key);
-                const itemGuildAsset = cosmeticAssetUrl('guild', item.key);
+                const itemEmoji = type === 'emoji' ? (item.emoji || '') : featuredEmojiValue;
                 const rarity = String(item.rarity_key || 'basic').toLowerCase();
                 return `
                   <article class="catalog-card skill-card ${rarity}" style="padding:14px; opacity:${unlocked ? '1' : '0.62'};">
@@ -8498,10 +8495,9 @@ PAGE_TEMPLATE = """
                     <strong>${escapeHtml(item.name)}</strong>
                     <div class="tiny">${rarity.toUpperCase()}</div>
                     <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')}</div>
-                      <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' ? giftArenaSurface(item.key) : type === 'cardback' ? giftCardbackSurface(item.key) : type === 'guild' && itemGuildAsset ? `url(${itemGuildAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
+                      <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' ? giftArenaSurface(item.key, itemEmoji) : type === 'cardback' ? giftCardbackSurface(item.key, itemEmoji) : type === 'guild' ? giftGuildSurface(item.key, itemEmoji) : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
                       <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '1px solid rgba(83,246,184,0.32)' : '1px solid rgba(121,217,255,0.18)'};"></div>
                       ${type === 'frame' && itemFrameAsset ? `<img src="${itemFrameAsset}" alt="" style="position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px); object-fit:contain;">` : ''}
-                      ${type === 'guild' && itemGuildAsset ? `<img src="${itemGuildAsset}" alt="" style="position:absolute; inset:16px; width:calc(100% - 32px); height:calc(100% - 32px); object-fit:contain;">` : ''}
                       ${type === 'emoji' ? `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:34px;">${escapeHtml(item.emoji || '•')}</div>` : ''}
                       <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
                     </div>
@@ -8956,7 +8952,6 @@ PAGE_TEMPLATE = """
             <div class="arena-slot-meta">${card.rarity || '-'}</div>
             <div class="arena-slot-meta">Базовая сила: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
             <div class="arena-slot-meta">${card.skill_name || '-'}</div>
-            ${cosmeticEmojiBadge(cosmetics)}
           </div>
         `;
       }).join('');
@@ -8964,12 +8959,8 @@ PAGE_TEMPLATE = """
 
     function battleArenaBackground(cosmetics) {
       const arenaKey = (((cosmetics || {}).arena || {}).key || '');
-      const asset = cosmeticAssetUrl('arena', arenaKey);
-      return arenaKey
-        ? giftArenaSurface(arenaKey)
-        : (asset
-          ? `url(${asset}) center/cover no-repeat`
-          : `radial-gradient(circle at center, rgba(69,215,255,0.14), rgba(8,20,36,0.96) 72%)`);
+      const emoji = cosmeticEmojiSymbol(cosmetics);
+      return giftArenaSurface(arenaKey, emoji);
     }
 
     function battleCardStyle(cosmetics, side = 'player') {
@@ -9005,11 +8996,7 @@ PAGE_TEMPLATE = """
       } else if (backKey.includes('tactical') || backKey.includes('black')) {
         glow = 'rgba(255,186,108,0.18)';
       }
-      const base = backKey
-        ? giftCardbackSurface(backKey)
-        : (backAsset
-          ? `url(${backAsset}) center/cover no-repeat`
-          : 'linear-gradient(180deg, rgba(10,18,30,0.98), rgba(8,16,29,0.98))');
+      const base = giftCardbackSurface(backKey, cosmeticEmojiSymbol(cosmetics));
       const frameLayer = frameAsset ? `, url(${frameAsset}) center/100% 100% no-repeat` : '';
       return `border-color:${border}; background:${base}${frameLayer}; box-shadow:0 0 0 1px ${border}, 0 16px 32px ${glow}, inset 0 0 0 1px rgba(255,255,255,0.03); filter:saturate(1.12) contrast(1.04);`;
     }
@@ -9194,7 +9181,6 @@ PAGE_TEMPLATE = """
       playerClone.style.height = `${clashCardHeight}px`;
       playerClone.style.cssText += `;${battleCardStyle(playerCosmetics, 'player')}`;
       playerClone.style.zIndex = '3';
-      playerClone.insertAdjacentHTML('beforeend', cosmeticEmojiBadge(playerCosmetics));
       playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
       const enemyClone = enemySource.cloneNode(true);
       enemyClone.className = `${enemyClone.className} arena-lane-card enemy ${opponentActionKey}`.trim();
@@ -9208,7 +9194,6 @@ PAGE_TEMPLATE = """
       enemyClone.style.height = `${clashCardHeight}px`;
       enemyClone.style.cssText += `;${battleCardStyle(opponentCosmetics, 'enemy')}`;
       enemyClone.style.zIndex = '2';
-      enemyClone.insertAdjacentHTML('beforeend', cosmeticEmojiBadge(opponentCosmetics));
       enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
       playerSource.style.visibility = 'hidden';
       playerSource.style.opacity = '0';
