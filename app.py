@@ -177,22 +177,22 @@ COSMETIC_THEME_DEFS = [
     {'slug': 'black', 'name': 'Black'},
     {'slug': 'onyx_black', 'name': 'Onyx Black'},
     {'slug': 'gunmetal', 'name': 'Gunmetal'},
-    {'slug': 'graphite', 'name': 'Graphite'},
-    {'slug': 'obsidian', 'name': 'Obsidian'},
     {'slug': 'ivory_white', 'name': 'Ivory White'},
-    {'slug': 'arctic_ice', 'name': 'Arctic Ice'},
+    {'slug': 'platinum', 'name': 'Platinum'},
     {'slug': 'midnight_blue', 'name': 'Midnight Blue'},
+    {'slug': 'rifle_green', 'name': 'Rifle Green'},
     {'slug': 'fire_engine', 'name': 'Fire Engine'},
     {'slug': 'deep_cyan', 'name': 'Deep Cyan'},
-    {'slug': 'cobalt', 'name': 'Cobalt'},
     {'slug': 'khaki_green', 'name': 'Khaki Green'},
     {'slug': 'emerald', 'name': 'Emerald'},
+    {'slug': 'tactical_pine', 'name': 'Tactical Pine'},
+    {'slug': 'ranger_green', 'name': 'Ranger Green'},
+    {'slug': 'moonstone', 'name': 'Moonstone'},
+    {'slug': 'cobalt_blue', 'name': 'Cobalt Blue'},
     {'slug': 'satin_gold', 'name': 'Satin Gold'},
     {'slug': 'old_gold', 'name': 'Old Gold'},
     {'slug': 'copper', 'name': 'Copper'},
     {'slug': 'neon_blue', 'name': 'Neon Blue'},
-    {'slug': 'royal_purple', 'name': 'Royal Purple'},
-    {'slug': 'amethyst', 'name': 'Amethyst'},
     {'slug': 'aurora', 'name': 'Aurora'},
 ]
 
@@ -202,27 +202,41 @@ COSMETIC_THEME_RARITY = {
     'gunmetal': 'mythic',
     'midnight_blue': 'epic',
     'ivory_white': 'epic',
+    'platinum': 'rare',
+    'rifle_green': 'epic',
     'old_gold': 'legendary',
     'neon_blue': 'legendary',
     'satin_gold': 'mythic',
     'fire_engine': 'mythic',
-    'obsidian': 'mythic',
-    'cobalt': 'epic',
-    'royal_purple': 'epic',
-    'amethyst': 'epic',
+    'cobalt_blue': 'epic',
+    'moonstone': 'epic',
     'emerald': 'epic',
+    'tactical_pine': 'mythic',
+    'ranger_green': 'mythic',
+    'copper': 'epic',
 }
 
 COSMETIC_THEME_DROP_WEIGHTS = {
     'black': 8,
     'onyx_black': 10,
     'gunmetal': 11,
-    'midnight_blue': 13,
+    'midnight_blue': 12,
     'ivory_white': 14,
+    'platinum': 17,
+    'rifle_green': 13,
     'old_gold': 9,
     'neon_blue': 10,
     'satin_gold': 11,
     'fire_engine': 11,
+    'deep_cyan': 15,
+    'khaki_green': 16,
+    'emerald': 14,
+    'tactical_pine': 12,
+    'ranger_green': 13,
+    'moonstone': 14,
+    'cobalt_blue': 15,
+    'copper': 14,
+    'aurora': 15,
 }
 
 EMOJI_MONOGRAMS = [
@@ -7923,55 +7937,25 @@ PAGE_TEMPLATE = """
     }
 
     const GIFT_THEMES = {
-      black: { name: 'Black', emoji: '♠️', base: '#090A0D', secondary: '#14171D', accent: '#8A93A3', glow: 'rgba(138,147,163,0.24)', text: '#EEF5FF', motif: 'stripes' },
-      onyx_black: { name: 'Onyx Black', emoji: '🕷️', base: '#07080B', secondary: '#15181D', accent: '#9BA3AF', glow: 'rgba(155,163,175,0.24)', text: '#F2F7FF', motif: 'web' },
-      gunmetal: { name: 'Gunmetal', emoji: '🛠️', base: '#1B222D', secondary: '#263142', accent: '#92A8C8', glow: 'rgba(146,168,200,0.26)', text: '#EEF5FF', motif: 'grid' },
-      graphite: { name: 'Graphite', emoji: '⚙️', base: '#1E222A', secondary: '#2F3643', accent: '#A2B0C6', glow: 'rgba(162,176,198,0.24)', text: '#F2F7FF', motif: 'stripes' },
-      obsidian: { name: 'Obsidian', emoji: '🪨', base: '#14111B', secondary: '#241A2E', accent: '#A98AE5', glow: 'rgba(169,138,229,0.28)', text: '#F5EEFF', motif: 'web' },
+      black: { name: 'Black', emoji: '♠️', base: '#040508', secondary: '#0A0C11', accent: '#6F788A', glow: 'rgba(111,120,138,0.2)', text: '#EEF4FF', motif: 'stripes' },
+      onyx_black: { name: 'Onyx Black', emoji: '🕷️', base: '#06070A', secondary: '#101319', accent: '#9FA8B6', glow: 'rgba(159,168,182,0.24)', text: '#F4F8FF', motif: 'web' },
+      gunmetal: { name: 'Gunmetal', emoji: '🛠️', base: '#1A2432', secondary: '#2A3C56', accent: '#9BB0CC', glow: 'rgba(155,176,204,0.26)', text: '#EEF5FF', motif: 'grid' },
       ivory_white: { name: 'Ivory White', emoji: '🕊️', base: '#F4EFE4', secondary: '#E0D5C1', accent: '#BDAA87', glow: 'rgba(189,170,135,0.26)', text: '#1A1A1A', motif: 'petals' },
-      pearl_white: { name: 'Pearl White', emoji: '🤍', base: '#F5F4F0', secondary: '#E6E3DA', accent: '#B9B3A3', glow: 'rgba(185,179,163,0.25)', text: '#1D1D1D', motif: 'petals' },
-      arctic_ice: { name: 'Arctic Ice', emoji: '❄️', base: '#E7F3FA', secondary: '#D2E6F2', accent: '#8DB8D3', glow: 'rgba(141,184,211,0.25)', text: '#132130', motif: 'waves' },
+      platinum: { name: 'Platinum', emoji: '⚪', base: '#CED2D8', secondary: '#B5BCC7', accent: '#8E97A6', glow: 'rgba(142,151,166,0.24)', text: '#0D1320', motif: 'grid' },
       midnight_blue: { name: 'Midnight Blue', emoji: '🌙', base: '#132342', secondary: '#1D3361', accent: '#7FA8FF', glow: 'rgba(127,168,255,0.26)', text: '#F1F6FF', motif: 'stars' },
+      rifle_green: { name: 'Rifle Green', emoji: '🎯', base: '#414833', secondary: '#58634A', accent: '#B6C58F', glow: 'rgba(182,197,143,0.24)', text: '#F3F9E7', motif: 'leaf' },
       fire_engine: { name: 'Fire Engine', emoji: '🔥', base: '#7F111B', secondary: '#B31A29', accent: '#FF8B83', glow: 'rgba(255,139,131,0.28)', text: '#FFF5F5', motif: 'sparks' },
-      volcanic_red: { name: 'Volcanic Red', emoji: '🌋', base: '#5B0D14', secondary: '#8B1724', accent: '#FF766B', glow: 'rgba(255,118,107,0.28)', text: '#FFF1F0', motif: 'sparks' },
-      crimson_velvet: { name: 'Crimson Velvet', emoji: '🩸', base: '#651724', secondary: '#8A2335', accent: '#E990A8', glow: 'rgba(233,144,168,0.28)', text: '#FFF2F6', motif: 'petals' },
-      ruby: { name: 'Ruby', emoji: '💎', base: '#8A1F3A', secondary: '#B62A4D', accent: '#FF9AB6', glow: 'rgba(255,154,182,0.3)', text: '#FFF4F8', motif: 'gems' },
       deep_cyan: { name: 'Deep Cyan', emoji: '🌊', base: '#0E5560', secondary: '#0F7B88', accent: '#7DEBFF', glow: 'rgba(125,235,255,0.28)', text: '#EDFFFF', motif: 'waves' },
-      ocean_teal: { name: 'Ocean Teal', emoji: '🐬', base: '#0B3F48', secondary: '#0F6471', accent: '#73D9E8', glow: 'rgba(115,217,232,0.28)', text: '#EFFFFF', motif: 'waves' },
-      aqua_marine: { name: 'Aquamarine', emoji: '🧊', base: '#0C4A62', secondary: '#146B8A', accent: '#84E2FF', glow: 'rgba(132,226,255,0.28)', text: '#F0FCFF', motif: 'waves' },
-      glacier_blue: { name: 'Glacier Blue', emoji: '🧿', base: '#20497A', secondary: '#2B63A3', accent: '#9BC5FF', glow: 'rgba(155,197,255,0.27)', text: '#F2F8FF', motif: 'grid' },
-      sky_blue: { name: 'Sky Blue', emoji: '☁️', base: '#2A5D9A', secondary: '#3C7CC4', accent: '#A9D1FF', glow: 'rgba(169,209,255,0.28)', text: '#F5FAFF', motif: 'stars' },
-      cobalt: { name: 'Cobalt', emoji: '🔷', base: '#163D88', secondary: '#2358B3', accent: '#77B4FF', glow: 'rgba(119,180,255,0.28)', text: '#F1F7FF', motif: 'grid' },
-      ultramarine: { name: 'Ultramarine', emoji: '🔹', base: '#0F2D73', secondary: '#1A4399', accent: '#6BA7FF', glow: 'rgba(107,167,255,0.28)', text: '#EDF5FF', motif: 'stars' },
       khaki_green: { name: 'Khaki Green', emoji: '🌿', base: '#465236', secondary: '#67784A', accent: '#C8D89A', glow: 'rgba(200,216,154,0.26)', text: '#F2F8E6', motif: 'leaf' },
       emerald: { name: 'Emerald', emoji: '🍀', base: '#1A5C3F', secondary: '#23835A', accent: '#8BDFB5', glow: 'rgba(139,223,181,0.28)', text: '#F2FFF7', motif: 'leaf' },
-      jade: { name: 'Jade', emoji: '🪴', base: '#1A6A56', secondary: '#278D74', accent: '#95E9CC', glow: 'rgba(149,233,204,0.28)', text: '#F0FFF9', motif: 'leaf' },
-      mint: { name: 'Mint', emoji: '🍃', base: '#2B6F61', secondary: '#3C9A89', accent: '#B0F1E4', glow: 'rgba(176,241,228,0.28)', text: '#F5FFFC', motif: 'leaf' },
-      moss: { name: 'Moss', emoji: '🌱', base: '#3F5F2B', secondary: '#5C7F3E', accent: '#BFD893', glow: 'rgba(191,216,147,0.26)', text: '#F3F9E7', motif: 'leaf' },
-      forest_night: { name: 'Forest Night', emoji: '🌲', base: '#1F3428', secondary: '#2C4E3B', accent: '#8CBDA3', glow: 'rgba(140,189,163,0.25)', text: '#EEFFF5', motif: 'leaf' },
-      cyber_green: { name: 'Cyber Green', emoji: '🧪', base: '#123B2E', secondary: '#1C644D', accent: '#65FFB8', glow: 'rgba(101,255,184,0.28)', text: '#EFFFF8', motif: 'grid' },
-      matrix_black: { name: 'Matrix Black', emoji: '🟩', base: '#090F0C', secondary: '#162118', accent: '#63D282', glow: 'rgba(99,210,130,0.26)', text: '#EFFFF2', motif: 'grid' },
+      tactical_pine: { name: 'Tactical Pine', emoji: '🌲', base: '#1E2E24', secondary: '#2B4637', accent: '#8EB99E', glow: 'rgba(142,185,158,0.25)', text: '#EEFFF5', motif: 'leaf' },
+      ranger_green: { name: 'Ranger Green', emoji: '🪖', base: '#2C3B2A', secondary: '#40533E', accent: '#A6C39F', glow: 'rgba(166,195,159,0.25)', text: '#F0F8EB', motif: 'grid' },
+      moonstone: { name: 'Moonstone', emoji: '🌘', base: '#4E5D70', secondary: '#67798E', accent: '#B7C8DD', glow: 'rgba(183,200,221,0.27)', text: '#F4F8FF', motif: 'stars' },
+      cobalt_blue: { name: 'Cobalt Blue', emoji: '🔷', base: '#163D88', secondary: '#2358B3', accent: '#77B4FF', glow: 'rgba(119,180,255,0.28)', text: '#F1F7FF', motif: 'grid' },
       satin_gold: { name: 'Satin Gold', emoji: '✨', base: '#8B6D1B', secondary: '#BF9830', accent: '#FFE08A', glow: 'rgba(255,224,138,0.3)', text: '#FFF7DE', motif: 'gems' },
       old_gold: { name: 'Old Gold', emoji: '👑', base: '#6C5520', secondary: '#8E7330', accent: '#D5BA63', glow: 'rgba(213,186,99,0.28)', text: '#FFF6DD', motif: 'crown' },
-      champagne: { name: 'Champagne', emoji: '🥂', base: '#8A7A55', secondary: '#A89468', accent: '#E7D8A5', glow: 'rgba(231,216,165,0.28)', text: '#FFF8E6', motif: 'gems' },
       copper: { name: 'Copper', emoji: '🪙', base: '#7A4A2D', secondary: '#A1623E', accent: '#E2AA84', glow: 'rgba(226,170,132,0.28)', text: '#FFF1E8', motif: 'stripes' },
-      bronze: { name: 'Bronze', emoji: '🏺', base: '#6E4A33', secondary: '#8E6043', accent: '#CEA37E', glow: 'rgba(206,163,126,0.27)', text: '#FFF4EB', motif: 'stripes' },
-      amber_glow: { name: 'Amber Glow', emoji: '🟠', base: '#8A531C', secondary: '#BA7429', accent: '#FFC176', glow: 'rgba(255,193,118,0.29)', text: '#FFF5E6', motif: 'gems' },
-      solar_yellow: { name: 'Solar Yellow', emoji: '☀️', base: '#8D6D15', secondary: '#BC9423', accent: '#FFE37D', glow: 'rgba(255,227,125,0.3)', text: '#FFF9E8', motif: 'stars' },
-      sand_dune: { name: 'Sand Dune', emoji: '🏜️', base: '#7E6A46', secondary: '#9B8459', accent: '#D8BF8A', glow: 'rgba(216,191,138,0.27)', text: '#FFF7E8', motif: 'stripes' },
       neon_blue: { name: 'Neon Blue', emoji: '💠', base: '#0E2F7B', secondary: '#1747B7', accent: '#6CD8FF', glow: 'rgba(108,216,255,0.3)', text: '#F1F9FF', motif: 'grid' },
-      royal_purple: { name: 'Royal Purple', emoji: '🟣', base: '#45206F', secondary: '#6333A0', accent: '#C9A2FF', glow: 'rgba(201,162,255,0.29)', text: '#F7F0FF', motif: 'crown' },
-      amethyst: { name: 'Amethyst', emoji: '🔮', base: '#5E2A86', secondary: '#7D3CB0', accent: '#D2A4FF', glow: 'rgba(210,164,255,0.29)', text: '#F9F2FF', motif: 'gems' },
-      violet: { name: 'Violet', emoji: '💜', base: '#4B2D8C', secondary: '#6A45B5', accent: '#B9A4FF', glow: 'rgba(185,164,255,0.28)', text: '#F3F0FF', motif: 'stars' },
-      lavender: { name: 'Lavender', emoji: '🪻', base: '#6A4F9E', secondary: '#8870BA', accent: '#D8C8FF', glow: 'rgba(216,200,255,0.27)', text: '#FAF6FF', motif: 'petals' },
-      lilac: { name: 'Lilac', emoji: '🌸', base: '#7C5B97', secondary: '#9A78B6', accent: '#DEC4EE', glow: 'rgba(222,196,238,0.27)', text: '#FFF6FF', motif: 'petals' },
-      rose_quartz: { name: 'Rose Quartz', emoji: '🌹', base: '#87576F', secondary: '#A7718A', accent: '#F0BED0', glow: 'rgba(240,190,208,0.28)', text: '#FFF3F8', motif: 'petals' },
-      cherry_blossom: { name: 'Cherry Blossom', emoji: '🌺', base: '#A45E7A', secondary: '#C47C99', accent: '#FFC5DA', glow: 'rgba(255,197,218,0.29)', text: '#FFF4F8', motif: 'petals' },
-      plasma_pink: { name: 'Plasma Pink', emoji: '🎀', base: '#9E2E6D', secondary: '#C2438A', accent: '#FF9CD5', glow: 'rgba(255,156,213,0.29)', text: '#FFF2FA', motif: 'sparks' },
-      sunset_orange: { name: 'Sunset Orange', emoji: '🌇', base: '#934626', secondary: '#C56639', accent: '#FFB389', glow: 'rgba(255,179,137,0.28)', text: '#FFF3EC', motif: 'sparks' },
-      moonstone: { name: 'Moonstone', emoji: '🌘', base: '#4E5D70', secondary: '#67798E', accent: '#B7C8DD', glow: 'rgba(183,200,221,0.27)', text: '#F4F8FF', motif: 'stars' },
-      storm_gray: { name: 'Storm Gray', emoji: '🌫️', base: '#374455', secondary: '#495B72', accent: '#A8B7CA', glow: 'rgba(168,183,202,0.26)', text: '#F2F7FF', motif: 'stripes' },
-      silver_foil: { name: 'Silver Foil', emoji: '🪙', base: '#5B6678', secondary: '#748197', accent: '#D2D9E5', glow: 'rgba(210,217,229,0.27)', text: '#F8FBFF', motif: 'grid' },
       aurora: { name: 'Aurora', emoji: '🌈', base: '#1E3A5C', secondary: '#2B5F73', accent: '#8DF2DD', glow: 'rgba(141,242,221,0.29)', text: '#F3FFFC', motif: 'waves' },
     };
     const COSMETIC_ASSET_VERSION = '20260401c';
@@ -8267,6 +8251,13 @@ PAGE_TEMPLATE = """
 
     function giftCardbackSurface(key, emoji = '') {
       const theme = cosmeticTheme('cardback', key);
+      const safeKey = String(key || '').toLowerCase();
+      if (safeKey.includes('stock_plain')) {
+        return [
+          'repeating-linear-gradient(135deg, rgba(154,164,181,0.2) 0 10px, rgba(154,164,181,0) 10px 20px)',
+          'linear-gradient(180deg, rgba(60,68,82,0.98), rgba(38,44,56,0.98))',
+        ].join(', ');
+      }
       const layers = [];
       const pattern = monogramPatternSurface(emoji, theme, 'cardback');
       if (pattern) layers.push(pattern);
@@ -8277,6 +8268,14 @@ PAGE_TEMPLATE = """
 
     function giftArenaSurface(key, emoji = '') {
       const theme = cosmeticTheme('arena', key);
+      const safeKey = String(key || '').toLowerCase();
+      if (safeKey.includes('stock_grid')) {
+        return [
+          'repeating-linear-gradient(0deg, rgba(143,155,175,0.16) 0 1px, rgba(0,0,0,0) 1px 42px)',
+          'repeating-linear-gradient(90deg, rgba(143,155,175,0.16) 0 1px, rgba(0,0,0,0) 1px 42px)',
+          'linear-gradient(180deg, rgba(53,61,75,0.96), rgba(34,40,50,0.98))',
+        ].join(', ');
+      }
       const layers = [];
       const pattern = monogramPatternSurface(emoji, theme, 'arena');
       if (pattern) layers.push(pattern);
@@ -8287,6 +8286,13 @@ PAGE_TEMPLATE = """
 
     function giftGuildSurface(key, emoji = '') {
       const theme = cosmeticTheme('guild', key);
+      const safeKey = String(key || '').toLowerCase();
+      if (safeKey.includes('stock_plain')) {
+        return [
+          'repeating-linear-gradient(90deg, rgba(165,176,196,0.14) 0 1px, rgba(0,0,0,0) 1px 16px)',
+          'linear-gradient(180deg, rgba(56,64,78,0.96), rgba(37,43,55,0.98))',
+        ].join(', ');
+      }
       const layers = [];
       const pattern = monogramPatternSurface(emoji, theme, 'guild');
       if (pattern) layers.push(pattern);
