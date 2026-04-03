@@ -193,7 +193,7 @@ COSMETIC_THEME_DEFS = [
     {'slug': 'old_gold', 'name': 'Old Gold'},
     {'slug': 'copper', 'name': 'Copper'},
     {'slug': 'neon_blue', 'name': 'Neon Blue'},
-    {'slug': 'aurora', 'name': 'Aurora'},
+    {'slug': 'raspberry', 'name': 'Raspberry'},
 ]
 
 COSMETIC_THEME_RARITY = {
@@ -214,6 +214,7 @@ COSMETIC_THEME_RARITY = {
     'tactical_pine': 'mythic',
     'ranger_green': 'mythic',
     'copper': 'epic',
+    'raspberry': 'rare',
 }
 
 COSMETIC_THEME_DROP_WEIGHTS = {
@@ -236,7 +237,7 @@ COSMETIC_THEME_DROP_WEIGHTS = {
     'moonstone': 14,
     'cobalt_blue': 15,
     'copper': 14,
-    'aurora': 15,
+    'raspberry': 15,
 }
 
 EMOJI_MONOGRAMS = [
@@ -252,6 +253,14 @@ EMOJI_MONOGRAMS = [
     {'slug': 'star', 'emoji': '⭐', 'name': 'Star Monogram'},
     {'slug': 'bolt', 'emoji': '⚡', 'name': 'Bolt Monogram'},
     {'slug': 'gem', 'emoji': '💎', 'name': 'Gem Monogram'},
+    {'slug': 'eye', 'emoji': '🧿', 'name': 'Eye Monogram'},
+    {'slug': 'ice', 'emoji': '❄️', 'name': 'Ice Monogram'},
+    {'slug': 'sun', 'emoji': '☀️', 'name': 'Sun Monogram'},
+    {'slug': 'comet', 'emoji': '☄️', 'name': 'Comet Monogram'},
+    {'slug': 'trident', 'emoji': '🔱', 'name': 'Trident Monogram'},
+    {'slug': 'anchor', 'emoji': '⚓', 'name': 'Anchor Monogram'},
+    {'slug': 'club', 'emoji': '♣️', 'name': 'Club Monogram'},
+    {'slug': 'spade', 'emoji': '♠️', 'name': 'Spade Monogram'},
 ]
 
 SEASON_PASS_TRACK = [
@@ -6346,24 +6355,86 @@ PAGE_TEMPLATE = """
     let battleAutostartTimer = null;
     const usageStorageKey = 'tondomaingame_ui_usage_v1';
     const startupGuideStorageKey = 'tondomaingame_startup_guide_v1';
+    function startupGuideGifData(step, stepIndex) {
+      const palette = [
+        { accent: '#58d2ff', accentSoft: 'rgba(88,210,255,0.24)' },
+        { accent: '#ffd06a', accentSoft: 'rgba(255,208,106,0.24)' },
+        { accent: '#86f3bf', accentSoft: 'rgba(134,243,191,0.24)' },
+        { accent: '#ff8ea1', accentSoft: 'rgba(255,142,161,0.24)' },
+        { accent: '#a58bff', accentSoft: 'rgba(165,139,255,0.24)' },
+      ];
+      const tone = palette[Math.max(0, Number(stepIndex || 0)) % palette.length];
+      const providedIcons = Array.isArray(step && step.gifIcons) ? step.gifIcons.filter(Boolean) : [];
+      const icons = providedIcons.length ? providedIcons.slice(0, 4) : ['🎮', '⚔️', '🛡️', '✨'];
+      while (icons.length < 4) icons.push(icons[icons.length - 1] || '✨');
+      const [iconA, iconB, iconC, iconD] = icons.map((item) => escapeSvg(String(item || '✨')));
+      const stepLabel = escapeSvg(`Шаг ${Number(stepIndex || 0) + 1}`);
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#08162a"/>
+              <stop offset="100%" stop-color="#050d1e"/>
+            </linearGradient>
+            <radialGradient id="glow" cx="50%" cy="52%" r="58%">
+              <stop offset="0%" stop-color="${tone.accentSoft}"/>
+              <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+            </radialGradient>
+          </defs>
+          <rect width="900" height="420" fill="url(#bg)"/>
+          <rect width="900" height="420" fill="url(#glow)"/>
+          <g stroke="${tone.accent}" stroke-opacity="0.26" stroke-width="2">
+            <line x1="80" y1="70" x2="820" y2="70"/>
+            <line x1="80" y1="350" x2="820" y2="350"/>
+            <line x1="220" y1="70" x2="220" y2="350"/>
+            <line x1="450" y1="70" x2="450" y2="350"/>
+            <line x1="680" y1="70" x2="680" y2="350"/>
+          </g>
+          <g>
+            <rect x="334" y="86" width="118" height="164" rx="20" fill="rgba(12,26,45,0.86)" stroke="${tone.accent}" stroke-opacity="0.78" stroke-width="3">
+              <animate attributeName="y" values="86;70;86" dur="2.7s" repeatCount="indefinite"/>
+            </rect>
+            <text x="393" y="178" font-size="54" text-anchor="middle" dominant-baseline="middle">${iconA}</text>
+          </g>
+          <g>
+            <rect x="448" y="170" width="118" height="164" rx="20" fill="rgba(12,26,45,0.86)" stroke="${tone.accent}" stroke-opacity="0.78" stroke-width="3">
+              <animate attributeName="y" values="170;188;170" dur="2.7s" repeatCount="indefinite"/>
+            </rect>
+            <text x="507" y="262" font-size="54" text-anchor="middle" dominant-baseline="middle">${iconB}</text>
+          </g>
+          <circle cx="450" cy="210" r="44" fill="none" stroke="${tone.accent}" stroke-opacity="0.86" stroke-width="4">
+            <animate attributeName="r" values="34;64;34" dur="1.8s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.9;0.24;0.9" dur="1.8s" repeatCount="indefinite"/>
+          </circle>
+          <g opacity="0.82">
+            <text x="165" y="118" font-size="34">${iconC}</text>
+            <text x="740" y="300" font-size="34">${iconD}</text>
+            <animateTransform attributeName="transform" type="rotate" from="-5 450 210" to="5 450 210" dur="2.2s" repeatCount="indefinite" additive="sum"/>
+          </g>
+          <rect x="84" y="22" width="132" height="34" rx="16" fill="rgba(5,15,29,0.92)" stroke="${tone.accent}" stroke-opacity="0.74" stroke-width="2"/>
+          <text x="150" y="45" font-size="18" text-anchor="middle" fill="#eaf6ff" font-family="Arial, sans-serif">${stepLabel}</text>
+        </svg>
+      `;
+      return svgDataUrl(svg);
+    }
     const startupGuideSteps = [
       {
         title: 'Подключи кошелёк и проверь домены',
         body: 'Нажми «Подключить кошелёк», затем «Проверить наличие доменов». Для боя выбираются 4-значные .ton домены из кошелька.',
         overlay: '🔌 💼 🌐',
-        useGif: false
+        gifIcons: ['🔌', '💼', '🌐', '✅']
       },
       {
         title: 'Собери колоду через паки',
         body: 'Открой пак и получи 5 карт. Колода хранится по домену. Можно менять активный домен и играть разными сборками.',
         overlay: '📦 🎴 🎴 🎴',
-        useGif: false
+        gifIcons: ['📦', '🎴', '🎁', '💠']
       },
       {
         title: 'Распредели пул дисциплин',
         body: 'Пул влияет на атаку, защиту, удачу, скорость и магию. Чем точнее распределение под стиль, тем стабильнее результат.',
         overlay: '⚙️ 📈',
-        useGif: false
+        gifIcons: ['⚙️', '📈', '🧠', '🎯']
       },
       {
         title: 'Бой идёт по дорожкам раундов',
@@ -6374,33 +6445,37 @@ PAGE_TEMPLATE = """
           <div class="startup-guide-card-demo player">🛡️</div>
           <div class="startup-guide-pulse"></div>
         `,
-        useGif: false
+        gifIcons: ['⚔️', '🛡️', '🏁', '🏆']
       },
       {
         title: 'Энергия, КД и активная способность',
         body: 'Натиск стоит 2 энергии, Блок 1, способность 3. Следи за КД и зарядами: тайминг способности часто решает бой.',
         overlay: '⚡ 3 • КД • ✨',
-        useGif: false
+        gifIcons: ['⚡', '⏳', '✨', '🎛️']
       },
       {
         title: 'PvP и Дуэль',
         body: 'В PvP после подбора оба игрока подтверждают готовность (2/2). В дуэли соперник принимает приглашение 30 секунд.',
         overlay: '🧑‍🤝‍🧑 2/2 • ⏱️30s',
-        useGif: false
+        gifIcons: ['🧑‍🤝‍🧑', '✅', '⏱️', '📩']
       },
       {
         title: 'Кланы, сезонный пропуск и награды',
         body: 'Играй клановые активности, забирай награды пропуска вручную, получай осколки/токены и открывай новые паки.',
         overlay: '🏆 🛡️ 🎟️',
-        useGif: false
+        gifIcons: ['🛡️', '🏆', '🎟️', '📦']
       },
       {
         title: 'Косметика и прогресс',
         body: 'Рубашки, арены и баннеры меняют визуал боя. Домены и колоды прокачиваются, но победа зависит от решений в раундах.',
         overlay: '🎨 🧩 🚀',
-        useGif: false
+        gifIcons: ['🎨', '🧩', '🚀', '💠']
       }
     ];
+    startupGuideSteps.forEach((step, index) => {
+      step.useGif = true;
+      step.gifSrc = startupGuideGifData(step, index);
+    });
     let startupGuideStepIndex = 0;
     let profileNavTapCount = 0;
 
@@ -6451,6 +6526,10 @@ PAGE_TEMPLATE = """
         startupGuideGif.style.display = useGif ? 'block' : 'none';
         startupGuideStageOverlay.style.display = useGif ? 'none' : 'flex';
         if (useGif) {
+          const gifSrc = step.gifSrc || startupGuideGifData(step, startupGuideStepIndex);
+          if (gifSrc && startupGuideGif.getAttribute('src') !== gifSrc) {
+            startupGuideGif.setAttribute('src', gifSrc);
+          }
           startupGuideStageOverlay.textContent = '';
         } else if (step.overlayHtml) {
           startupGuideStageOverlay.innerHTML = step.overlayHtml;
@@ -7937,8 +8016,8 @@ PAGE_TEMPLATE = """
     }
 
     const GIFT_THEMES = {
-      black: { name: 'Black', emoji: '♠️', base: '#040508', secondary: '#0A0C11', accent: '#6F788A', glow: 'rgba(111,120,138,0.2)', text: '#EEF4FF', motif: 'stripes' },
-      onyx_black: { name: 'Onyx Black', emoji: '🕷️', base: '#06070A', secondary: '#101319', accent: '#9FA8B6', glow: 'rgba(159,168,182,0.24)', text: '#F4F8FF', motif: 'web' },
+      black: { name: 'Black', emoji: '♠️', base: '#020202', secondary: '#090909', accent: '#5E616B', glow: 'rgba(94,97,107,0.22)', text: '#F2F2F2', motif: 'stripes' },
+      onyx_black: { name: 'Onyx Black', emoji: '🕷️', base: '#0B0E14', secondary: '#171D27', accent: '#9BB0D2', glow: 'rgba(155,176,210,0.26)', text: '#F2F7FF', motif: 'web' },
       gunmetal: { name: 'Gunmetal', emoji: '🛠️', base: '#1A2432', secondary: '#2A3C56', accent: '#9BB0CC', glow: 'rgba(155,176,204,0.26)', text: '#EEF5FF', motif: 'grid' },
       ivory_white: { name: 'Ivory White', emoji: '🕊️', base: '#F4EFE4', secondary: '#E0D5C1', accent: '#BDAA87', glow: 'rgba(189,170,135,0.26)', text: '#1A1A1A', motif: 'petals' },
       platinum: { name: 'Platinum', emoji: '⚪', base: '#CED2D8', secondary: '#B5BCC7', accent: '#8E97A6', glow: 'rgba(142,151,166,0.24)', text: '#0D1320', motif: 'grid' },
@@ -7956,7 +8035,7 @@ PAGE_TEMPLATE = """
       old_gold: { name: 'Old Gold', emoji: '👑', base: '#6C5520', secondary: '#8E7330', accent: '#D5BA63', glow: 'rgba(213,186,99,0.28)', text: '#FFF6DD', motif: 'crown' },
       copper: { name: 'Copper', emoji: '🪙', base: '#7A4A2D', secondary: '#A1623E', accent: '#E2AA84', glow: 'rgba(226,170,132,0.28)', text: '#FFF1E8', motif: 'stripes' },
       neon_blue: { name: 'Neon Blue', emoji: '💠', base: '#0E2F7B', secondary: '#1747B7', accent: '#6CD8FF', glow: 'rgba(108,216,255,0.3)', text: '#F1F9FF', motif: 'grid' },
-      aurora: { name: 'Aurora', emoji: '🌈', base: '#1E3A5C', secondary: '#2B5F73', accent: '#8DF2DD', glow: 'rgba(141,242,221,0.29)', text: '#F3FFFC', motif: 'waves' },
+      raspberry: { name: 'Raspberry', emoji: '🍇', base: '#5A1A3D', secondary: '#7A2A57', accent: '#F59BD0', glow: 'rgba(245,155,208,0.28)', text: '#FFF2FA', motif: 'sparks' },
     };
     const COSMETIC_ASSET_VERSION = '20260401c';
     function escapeSvg(text) {
@@ -8259,6 +8338,12 @@ PAGE_TEMPLATE = """
         ].join(', ');
       }
       const layers = [];
+      if (safeKey.includes('onyx_black')) {
+        layers.push('radial-gradient(circle at 22% 18%, rgba(162, 186, 224, 0.24), transparent 42%)');
+        layers.push('radial-gradient(circle at 78% 82%, rgba(148, 169, 201, 0.18), transparent 44%)');
+      } else if (safeKey.includes('black')) {
+        layers.push('repeating-linear-gradient(135deg, rgba(162, 169, 182, 0.08) 0 7px, rgba(162, 169, 182, 0) 7px 15px)');
+      }
       const pattern = monogramPatternSurface(emoji, theme, 'cardback');
       if (pattern) layers.push(pattern);
       layers.push(`radial-gradient(circle at 50% 6%, ${hexToRgba(theme.accent, 0.2)}, transparent 46%)`);
@@ -8985,8 +9070,8 @@ PAGE_TEMPLATE = """
       if (frameKey.includes('crimson')) border = 'rgba(255,122,134,0.42)';
       if (backKey.includes('gold') || backKey.includes('script')) {
         glow = 'rgba(255,211,110,0.24)';
-      } else if (backKey.includes('aurora')) {
-        glow = 'rgba(101, 221, 255, 0.22)';
+      } else if (backKey.includes('raspberry')) {
+        glow = 'rgba(245, 155, 208, 0.24)';
       } else if (backKey.includes('chrome')) {
         glow = 'rgba(125, 225, 255, 0.22)';
       } else if (backKey.includes('frost')) {
