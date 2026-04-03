@@ -2971,6 +2971,131 @@ PAGE_TEMPLATE = """
       background: linear-gradient(135deg, rgba(69, 215, 255, 0.2), rgba(83, 246, 184, 0.18));
     }
 
+    .startup-guide {
+      position: fixed;
+      inset: 0;
+      z-index: 6200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(2, 8, 16, 0.82);
+      backdrop-filter: blur(9px);
+    }
+
+    .startup-guide.visible {
+      display: flex;
+    }
+
+    .startup-guide-card {
+      width: min(640px, calc(100vw - 28px));
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: linear-gradient(165deg, rgba(8, 20, 36, 0.96), rgba(10, 18, 33, 0.94));
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .startup-guide-stage {
+      position: relative;
+      height: 210px;
+      border-radius: 16px;
+      border: 1px solid rgba(121, 217, 255, 0.2);
+      background: radial-gradient(circle at center, rgba(69, 215, 255, 0.2), rgba(8, 20, 36, 0.94));
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .startup-guide-gif {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 16px;
+      display: block;
+    }
+
+    .startup-guide-lane {
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0 18%,
+          rgba(121, 217, 255, 0.14) 18% 18.6%,
+          transparent 18.6% 20%
+        );
+    }
+
+    .startup-guide-card-demo {
+      position: absolute;
+      width: 76px;
+      height: 112px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: linear-gradient(180deg, rgba(14, 28, 48, 0.98), rgba(8, 20, 36, 0.96));
+      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      color: #f2fbff;
+      top: calc(50% - 56px);
+      left: calc(50% - 38px);
+    }
+
+    .startup-guide-card-demo.player {
+      border-color: rgba(83, 246, 184, 0.65);
+      box-shadow: 0 12px 24px rgba(83, 246, 184, 0.34);
+      animation: startupGuidePlayer 2.6s ease-in-out infinite;
+    }
+
+    .startup-guide-card-demo.enemy {
+      border-color: rgba(255, 122, 134, 0.62);
+      box-shadow: 0 12px 24px rgba(255, 122, 134, 0.3);
+      animation: startupGuideEnemy 2.6s ease-in-out infinite;
+    }
+
+    .startup-guide-pulse {
+      position: absolute;
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 211, 110, 0.5);
+      top: calc(50% - 66px);
+      left: calc(50% - 66px);
+      animation: startupGuidePulse 2.6s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes startupGuidePlayer {
+      0%, 100% { transform: translate(-118px, 0); }
+      45% { transform: translate(-24px, 0); }
+      62% { transform: translate(-38px, 0); }
+    }
+
+    @keyframes startupGuideEnemy {
+      0%, 100% { transform: translate(118px, 0); }
+      45% { transform: translate(24px, 0); }
+      62% { transform: translate(38px, 0); }
+    }
+
+    @keyframes startupGuidePulse {
+      0%, 38% {
+        opacity: 0;
+        transform: scale(0.88);
+      }
+      52% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.25);
+      }
+    }
+
     .result-flip {
       perspective: 1400px;
       margin-bottom: 14px;
@@ -4535,6 +4660,19 @@ PAGE_TEMPLATE = """
         gap: 8px;
       }
 
+      .startup-guide {
+        padding: 12px;
+      }
+
+      .startup-guide-card {
+        width: calc(100vw - 18px);
+        padding: 12px;
+      }
+
+      .startup-guide-stage {
+        height: 182px;
+      }
+
       .arena-rail {
         padding: 7px 6px;
       }
@@ -5196,10 +5334,14 @@ PAGE_TEMPLATE = """
 
     body.tma-app {
       padding-bottom: calc(116px + env(safe-area-inset-bottom));
+      touch-action: pan-y;
     }
 
     body.tma-app .shell {
       overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
     }
 
@@ -5646,6 +5788,20 @@ PAGE_TEMPLATE = """
     <span class="currency-float-chip">✨ <span id="global-currency-lucky">0</span></span>
   </div>
 
+  <div class="startup-guide" id="startup-guide">
+    <div class="startup-guide-card">
+      <div class="startup-guide-stage" aria-hidden="true">
+        <img class="startup-guide-gif" src="/static/tutorial/start-guide.gif?v=20260403" alt="Гайд по бою Ton Domain Game">
+      </div>
+      <strong style="display:block; margin-bottom:6px;">Короткий гайд</strong>
+      <div class="tiny" style="margin-bottom:10px;">1) Выбери домен и колоду. 2) В бою жми «Натиск»/«Блок» и «Готов». 3) Побеждай раунды на дорожках и собирай награды.</div>
+      <div class="actions">
+        <button id="startup-guide-close-btn">Понятно</button>
+        <button class="secondary" id="startup-guide-skip-btn">Пропустить</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const state = {
       wallet: null,
@@ -5677,6 +5833,7 @@ PAGE_TEMPLATE = """
       canRestorePreviousDeck: false,
       matchmakingMode: null,
       matchmakingPolling: false,
+      matchmakingErrorStreak: 0,
       disciplineBuild: null,
       battleLaunchInFlight: false,
       lastReplayTapAt: 0,
@@ -5734,6 +5891,9 @@ PAGE_TEMPLATE = """
     const mobileLeaderboard = document.getElementById('mobile-leaderboard');
     const mobileDeckView = document.getElementById('mobile-deck-view');
     const mobileGlobalPlayersList = document.getElementById('mobile-global-players-list');
+    const startupGuide = document.getElementById('startup-guide');
+    const startupGuideCloseBtn = document.getElementById('startup-guide-close-btn');
+    const startupGuideSkipBtn = document.getElementById('startup-guide-skip-btn');
     const ownedDecksList = document.getElementById('owned-decks-list');
     const walletOwnedDecksList = document.getElementById('wallet-owned-decks-list');
     const globalPlayersList = document.getElementById('global-players-list');
@@ -5777,10 +5937,35 @@ PAGE_TEMPLATE = """
     let interactiveChoiceExpireTimer = null;
     let battleAutostartTimer = null;
     const usageStorageKey = 'tondomaingame_ui_usage_v1';
+    const startupGuideStorageKey = 'tondomaingame_startup_guide_v1';
 
     function shortAddress(value) {
       if (!value) return '-';
       return `${value.slice(0, 6)}...${value.slice(-6)}`;
+    }
+
+    function shouldShowStartupGuide() {
+      try {
+        return window.localStorage.getItem(startupGuideStorageKey) !== 'seen';
+      } catch (_) {
+        return true;
+      }
+    }
+
+    function closeStartupGuide(markSeen = true) {
+      if (!startupGuide) return;
+      startupGuide.classList.remove('visible');
+      if (markSeen) {
+        try {
+          window.localStorage.setItem(startupGuideStorageKey, 'seen');
+        } catch (_) {
+        }
+      }
+    }
+
+    function showStartupGuideIfNeeded() {
+      if (!startupGuide || !shouldShowStartupGuide()) return;
+      startupGuide.classList.add('visible');
     }
 
     function isTelegramMiniApp() {
@@ -6182,6 +6367,7 @@ PAGE_TEMPLATE = """
       const guilds = state.guildData || {};
       const count =
         Number((social.incoming_requests || []).length || 0) +
+        Number((social.incoming_duel_invites || []).length || 0) +
         Number((guilds.pending_invites || []).length || 0) +
         Number((((guilds.current_guild || {}).pending_requests) || []).length || 0);
       navProfile.innerHTML = count > 0 ? `Профиль <span class="nav-badge">${count}</span>` : 'Профиль';
@@ -6328,7 +6514,7 @@ PAGE_TEMPLATE = """
           <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • рейтинг ${item.rating || 1000}</div>
           <div class="actions" style="margin-top:10px;">
-            <button class="secondary" data-social-action="duel" data-reference="${escapeHtml(item.wallet)}">Вызвать</button>
+            <button class="secondary" data-social-action="duel" data-reference="${item.domain ? `${escapeHtml(item.domain)}.ton` : escapeHtml(item.display_name || '')}">Вызвать</button>
             <button class="secondary" data-social-action="remove-friend" data-reference="${escapeHtml(item.wallet)}">Убрать</button>
             <button class="secondary" data-social-action="block" data-reference="${escapeHtml(item.wallet)}">Блок</button>
           </div>
@@ -6344,13 +6530,34 @@ PAGE_TEMPLATE = """
           </div>
         </div>
       `).join('') || '<div class="user-item muted">Новых заявок нет.</div>';
+      const incomingDuels = (social.incoming_duel_invites || []).map((item) => `
+        <div class="user-item">
+          <strong>Вызов ${escapeHtml(item.id)}</strong>
+          <div class="tiny">От: ${escapeHtml(item.inviter_name || shortAddress(item.inviter_wallet))}</div>
+          <div class="tiny">${escapeHtml(item.inviter_domain)}.ton vs ${escapeHtml(item.invitee_domain)}.ton • ${Number(item.timeout_seconds || 30)} сек</div>
+          <div class="actions" style="margin-top:10px;">
+            <button data-social-action="accept-duel" data-invite-id="${escapeHtml(item.id)}">Принять</button>
+            <button class="secondary" data-social-action="decline-duel" data-invite-id="${escapeHtml(item.id)}">Отклонить</button>
+          </div>
+        </div>
+      `).join('') || '<div class="user-item muted">Входящих дуэлей нет.</div>';
+      const outgoingDuels = (social.outgoing_duel_invites || []).map((item) => `
+        <div class="user-item">
+          <strong>Приглашение ${escapeHtml(item.id)}</strong>
+          <div class="tiny">Кому: ${escapeHtml(item.invitee_name || shortAddress(item.invitee_wallet))}</div>
+          <div class="tiny">${escapeHtml(item.inviter_domain)}.ton vs ${escapeHtml(item.invitee_domain)}.ton • ожидание</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="secondary" data-social-action="open-duel" data-invite-id="${escapeHtml(item.id)}">Проверить статус</button>
+          </div>
+        </div>
+      `).join('') || '<div class="user-item muted">Исходящих дуэлей нет.</div>';
       const suggested = (social.suggested_players || []).slice(0, 6).map((item) => `
         <div class="user-item">
           <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${item.current_domain ? `${escapeHtml(item.current_domain)}.ton` : 'без домена'} • рейтинг ${item.rating || 1000}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary" data-social-action="request-friend" data-reference="${escapeHtml(item.wallet)}">В друзья</button>
-            <button class="secondary" data-social-action="duel" data-reference="${item.current_domain ? `${escapeHtml(item.current_domain)}.ton` : escapeHtml(item.wallet)}">Дуэль</button>
+            <button class="secondary" data-social-action="duel" data-reference="${item.current_domain ? `${escapeHtml(item.current_domain)}.ton` : escapeHtml(item.display_name || '')}">Дуэль</button>
           </div>
         </div>
       `).join('') || '<div class="user-item muted">Рекомендации появятся, когда в игре будет больше активных игроков.</div>';
@@ -6370,6 +6577,7 @@ PAGE_TEMPLATE = """
           <div class="summary-chip-row">
             <span class="summary-chip">Друзья: ${social.friend_count || 0}</span>
             <span class="summary-chip">Входящие: ${(social.incoming_requests || []).length}</span>
+            <span class="summary-chip">Дуэли: ${(social.incoming_duel_invites || []).length}</span>
             <span class="summary-chip">Лобби: ${(social.lobby_messages || []).length}</span>
           </div>
         </div>
@@ -6377,6 +6585,10 @@ PAGE_TEMPLATE = """
         <div class="catalog-grid">${friends}</div>
         <h4 style="margin:18px 0 8px;">Входящие заявки</h4>
         <div class="catalog-grid">${incoming}</div>
+        <h4 style="margin:18px 0 8px;">Входящие дуэли</h4>
+        <div class="catalog-grid">${incomingDuels}</div>
+        <h4 style="margin:18px 0 8px;">Исходящие дуэли</h4>
+        <div class="catalog-grid">${outgoingDuels}</div>
         <h4 style="margin:18px 0 8px;">Кого добавить</h4>
         <div class="catalog-grid">${suggested}</div>
         <h4 style="margin:18px 0 8px;">Лобби чат</h4>
@@ -6460,7 +6672,7 @@ PAGE_TEMPLATE = """
           <strong>${escapeHtml(item.display_name)}</strong>
           <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • ${escapeHtml(item.role)} • рейтинг ${item.rating || 1000}</div>
           <div class="actions" style="margin-top:10px;">
-            <button class="secondary" data-social-action="duel" data-reference="${item.domain ? `${escapeHtml(item.domain)}.ton` : escapeHtml(item.wallet)}">Дуэль</button>
+            <button class="secondary" data-social-action="duel" data-reference="${item.domain ? `${escapeHtml(item.domain)}.ton` : escapeHtml(item.display_name || '')}">Дуэль</button>
             ${current.viewer_role === 'owner' && item.role !== 'owner' ? `<button class="secondary" data-guild-action="toggle-role" data-guild-id="${escapeHtml(current.id)}" data-target-wallet="${escapeHtml(item.wallet)}" data-next-role="${item.role === 'officer' ? 'member' : 'officer'}">${item.role === 'officer' ? 'Снять офицера' : 'Сделать офицером'}</button>` : ''}
           </div>
         </div>
@@ -6586,9 +6798,18 @@ PAGE_TEMPLATE = """
         config.body = JSON.stringify(options.body);
       }
       return fetch(path, config).then(async (response) => {
-        const data = await response.json().catch(() => ({}));
+        const rawText = await response.text().catch(() => '');
+        let data = {};
+        if (rawText) {
+          try {
+            data = JSON.parse(rawText);
+          } catch (_) {
+            data = {};
+          }
+        }
         if (!response.ok) {
-          throw new Error(data.error || data.detail || 'Request failed');
+          const fallback = rawText && rawText.trim() ? rawText.trim() : `HTTP ${response.status}`;
+          throw new Error(data.error || data.detail || data.message || fallback || 'Request failed');
         }
         return data;
       });
@@ -6651,6 +6872,9 @@ PAGE_TEMPLATE = """
     function switchView(name) {
       if (name === 'wallet') {
         name = 'profile';
+      }
+      if (name !== 'modes' && name !== 'battleflow') {
+        resetBattleStage();
       }
       resetHorizontalViewportDrift();
       syncTmaMode();
@@ -7064,7 +7288,7 @@ PAGE_TEMPLATE = """
           <div class="tiny">Рейтинг: ${player.rating} • Матчей: ${player.games_played}</div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary" data-social-action="request-friend" data-reference="${escapeHtml(player.wallet)}">В друзья</button>
-            <button class="secondary" data-social-action="duel" data-reference="${player.current_domain ? `${escapeHtml(player.current_domain)}.ton` : escapeHtml(player.wallet)}">Дуэль</button>
+            <button class="secondary" data-social-action="duel" data-reference="${player.current_domain ? `${escapeHtml(player.current_domain)}.ton` : escapeHtml(player.display_name || '')}">Дуэль</button>
           </div>
         </div>
       `).join('');
@@ -9026,14 +9250,13 @@ PAGE_TEMPLATE = """
                   return;
                 }
                 setTimeout(pollReadyStatus, 900);
-              } catch (error) {
-                startBtn.disabled = false;
-                startBtn.textContent = 'Готов';
-                if (prebattleReadyStatus) {
-                  prebattleReadyStatus.textContent = error.message;
-                }
-              }
-            };
+	              } catch (error) {
+	                if (prebattleReadyStatus) {
+	                  prebattleReadyStatus.textContent = `Проблема связи: ${error.message}. Повторяем...`;
+	                }
+	                setTimeout(pollReadyStatus, 1200);
+	              }
+	            };
 
             api('/api/battle-ready', {
               method: 'POST',
@@ -9062,13 +9285,29 @@ PAGE_TEMPLATE = """
                 return;
               }
               pollReadyStatus();
-            }).catch((error) => {
-              startBtn.disabled = false;
-              startBtn.textContent = 'Готов';
-              if (prebattleReadyStatus) {
-                prebattleReadyStatus.textContent = error.message;
-              }
-            });
+	            }).catch((error) => {
+	              (async () => {
+	                try {
+	                  const poll = await api(`/api/battle-ready/status?wallet=${encodeURIComponent(state.wallet)}&session_id=${encodeURIComponent(sessionId)}`);
+	                  const st = poll.status || {};
+	                  if (prebattleReadyStatus) {
+	                    prebattleReadyStatus.textContent = `Готовы: ${st.ready_count || 1}/2`;
+	                  }
+	                  if (st.ready_self || Number(st.ready_count || 0) > 0) {
+	                    startBtn.disabled = true;
+	                    startBtn.textContent = 'Готов';
+	                    pollReadyStatus();
+	                    return;
+	                  }
+	                } catch (_) {
+	                }
+	                startBtn.disabled = false;
+	                startBtn.textContent = 'Готов';
+	                if (prebattleReadyStatus) {
+	                  prebattleReadyStatus.textContent = error.message;
+	                }
+	              })();
+	            });
           });
         }
         if (skipLiveTutorialBtn) {
@@ -9418,6 +9657,55 @@ PAGE_TEMPLATE = """
       }
       if (action === 'report') {
         await submitUserReport(dataset.reference, dataset.scope || 'general');
+        return;
+      }
+      if (action === 'accept-duel' || action === 'decline-duel') {
+        const data = await api('/api/match-invite/respond', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            invite_id: dataset.inviteId,
+            action: action === 'accept-duel' ? 'accept' : 'decline'
+          }
+        });
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        }
+        state.socialData = data.social || state.socialData;
+        renderSocialPanel();
+        if (data.result) {
+          state.lastResult = data.result;
+          renderBattleResult(data.result);
+          inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
+          inviteResult.innerHTML = '<strong>Дуэль принята.</strong><p class="muted">Нажми «Готов», чтобы стартовать после 2/2.</p>';
+        } else if (action === 'decline-duel') {
+          inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
+          inviteResult.innerHTML = '<strong>Приглашение отклонено.</strong>';
+        }
+        return;
+      }
+      if (action === 'open-duel') {
+        const data = await api(`/api/match-invite/${encodeURIComponent(dataset.inviteId)}?wallet=${encodeURIComponent(state.wallet)}`);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        }
+        if (data.result) {
+          state.lastResult = data.result;
+          renderBattleResult(data.result);
+          inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
+          inviteResult.innerHTML = data.result.requires_ready
+            ? `<strong>Приглашение ${dataset.inviteId} принято.</strong><p class="muted">Ожидание готовности 2/2.</p>`
+            : `<strong>Приглашение ${dataset.inviteId} завершено.</strong>`;
+        } else {
+          inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
+          inviteResult.innerHTML = `<strong>Статус приглашения ${dataset.inviteId}: ${escapeHtml((data.invite && data.invite.status) || 'pending')}</strong>`;
+        }
         return;
       }
       if (action === 'duel') {
@@ -9908,7 +10196,23 @@ PAGE_TEMPLATE = """
       const startedAt = Date.now();
       const maxPollMs = 1000 * 60 * 15;
       const loop = async () => {
-        const data = await api(`/api/match-invite/${inviteId}?wallet=${encodeURIComponent(state.wallet)}`);
+        let data = null;
+        try {
+          data = await api(`/api/match-invite/${inviteId}?wallet=${encodeURIComponent(state.wallet)}`);
+        } catch (error) {
+          const elapsed = Date.now() - startedAt;
+          if (elapsed < maxPollMs) {
+            inviteResult.style.display = 'block';
+            inviteResult.classList.add('duel-anim');
+            inviteResult.innerHTML = `<strong>Проблема связи при проверке дуэли.</strong><p class="muted">Повторяем автоматически: ${escapeHtml(error.message || 'network error')}</p>`;
+            setTimeout(loop, 3200);
+            return;
+          }
+          inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
+          inviteResult.innerHTML = `<strong class="error">Ошибка дуэли: ${escapeHtml(error.message || 'Request failed')}</strong>`;
+          return;
+        }
         if (data.player) {
           state.playerProfile = data.player;
           renderProfile();
@@ -9918,17 +10222,26 @@ PAGE_TEMPLATE = """
         if (data.result) {
           state.lastResult = data.result;
           renderBattleResult(data.result);
+          await loadSocialData();
           loadAchievements();
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
-          inviteResult.innerHTML = `<strong>Приглашение ${inviteId} завершено.</strong><p class="muted">Соперник принял вызов, матч рассчитан на сервере.</p>`;
+          inviteResult.innerHTML = data.result.requires_ready
+            ? `<strong>Приглашение ${inviteId} принято.</strong><p class="muted">Матч готовится в live-режиме. Нажмите «Готов» и дождитесь 2/2.</p>`
+            : `<strong>Приглашение ${inviteId} завершено.</strong>`;
           return;
         }
         if (['declined', 'expired', 'completed'].includes(data.invite.status)) {
+          await loadSocialData();
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
           inviteResult.innerHTML = `<strong>Статус приглашения ${inviteId}: ${data.invite.status}</strong>`;
           return;
+        }
+        if (data.invite.status === 'accepted') {
+          inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
+          inviteResult.innerHTML = `<strong>Приглашение ${inviteId} принято.</strong><p class="muted">Подготавливаем бой...</p>`;
         }
         if (Date.now() - startedAt < maxPollMs) {
           setTimeout(loop, 4000);
@@ -9940,6 +10253,7 @@ PAGE_TEMPLATE = """
     function stopMatchmakingUI(message = '') {
       state.matchmakingPolling = false;
       state.matchmakingMode = null;
+      state.matchmakingErrorStreak = 0;
       if (matchmakingPollTimer) {
         window.clearTimeout(matchmakingPollTimer);
         matchmakingPollTimer = null;
@@ -9956,6 +10270,7 @@ PAGE_TEMPLATE = """
       try {
         const data = await api(`/api/matchmaking/${mode}/status?wallet=${encodeURIComponent(state.wallet)}`);
         if (!state.matchmakingPolling || state.matchmakingMode !== mode) return;
+        state.matchmakingErrorStreak = 0;
         if (data.status === 'searching') {
           const waited = Number(data.waited_seconds || 0);
           if (data.cooldown_seconds) {
@@ -9985,7 +10300,15 @@ PAGE_TEMPLATE = """
         }
         matchmakingPollTimer = window.setTimeout(() => pollMatchmaking(mode), 2500);
       } catch (error) {
-        stopMatchmakingUI(error.message);
+        if (!state.matchmakingPolling || state.matchmakingMode !== mode) return;
+        state.matchmakingErrorStreak = Number(state.matchmakingErrorStreak || 0) + 1;
+        if (state.matchmakingErrorStreak >= 20) {
+          stopMatchmakingUI(`Поиск остановлен: ${error.message}`);
+          return;
+        }
+        const retryMs = Math.min(6500, 1800 + state.matchmakingErrorStreak * 350);
+        matchmakingStatus.textContent = `Проблема связи (${state.matchmakingErrorStreak}). Повторяем через ${Math.round(retryMs / 1000)} сек...`;
+        matchmakingPollTimer = window.setTimeout(() => pollMatchmaking(mode), retryMs);
       }
     }
 
@@ -9997,6 +10320,7 @@ PAGE_TEMPLATE = """
       animateModeChoice(mode);
       state.matchmakingMode = mode;
       state.matchmakingPolling = true;
+      state.matchmakingErrorStreak = 0;
       matchmakingStatus.textContent = 'Запускаем поиск соперника...';
       updateButtons();
       try {
@@ -10492,6 +10816,12 @@ PAGE_TEMPLATE = """
 
     bindFunctionalControl(document.getElementById('connect-wallet-btn'), openWalletConnect, 'click', {skipPrepare: true});
     bindFunctionalControl(document.getElementById('check-domains-btn'), checkDomains, 'click', {skipPrepare: true});
+    if (startupGuideCloseBtn) {
+      bindFunctionalControl(startupGuideCloseBtn, () => closeStartupGuide(true), 'click', {skipPrepare: true});
+    }
+    if (startupGuideSkipBtn) {
+      bindFunctionalControl(startupGuideSkipBtn, () => closeStartupGuide(true), 'click', {skipPrepare: true});
+    }
     if (telegramMiniappLinkBtn) {
       bindFunctionalControl(telegramMiniappLinkBtn, () => linkTelegramFromMiniApp({requestWrite: true}), 'click', {skipPrepare: true});
     }
@@ -10602,26 +10932,14 @@ PAGE_TEMPLATE = """
       tgWebApp.onEvent('viewportChanged', queueTmaModeSync);
       tgWebApp.onEvent('themeChanged', queueTmaModeSync);
     }
-    document.addEventListener('pointerdown', (event) => {
-      interceptDeckDomainAction(event).catch(() => {});
-    }, true);
     document.addEventListener('click', (event) => {
       interceptDeckDomainAction(event).catch(() => {});
-    }, true);
-    document.addEventListener('pointerdown', (event) => {
-      interceptInteractiveBattleAction(event).catch(() => {});
     }, true);
     document.addEventListener('click', (event) => {
       interceptInteractiveBattleAction(event).catch(() => {});
     }, true);
-    document.addEventListener('pointerdown', (event) => {
-      interceptSocialAction(event).catch(() => {});
-    }, true);
     document.addEventListener('click', (event) => {
       interceptSocialAction(event).catch(() => {});
-    }, true);
-    document.addEventListener('pointerdown', (event) => {
-      interceptGuildAction(event).catch(() => {});
     }, true);
     document.addEventListener('click', (event) => {
       interceptGuildAction(event).catch(() => {});
@@ -10655,6 +10973,7 @@ PAGE_TEMPLATE = """
     refreshOneCardSelector();
     switchView('profile');
     updateButtons();
+    window.setTimeout(showStartupGuideIfNeeded, 160);
   </script>
 </body>
 </html>
@@ -10674,9 +10993,32 @@ def parse_iso(value):
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=15)
     conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA journal_mode = WAL')
+    conn.execute('PRAGMA busy_timeout = 15000')
+    conn.execute('PRAGMA synchronous = NORMAL')
+    conn.execute('PRAGMA foreign_keys = ON')
     return conn
+
+
+def is_retryable_sqlite_error(exc):
+    if not isinstance(exc, sqlite3.OperationalError):
+        return False
+    message = str(exc).lower()
+    return 'locked' in message or 'busy' in message
+
+
+def run_with_sqlite_retry(handler, attempts=5, base_delay=0.05):
+    attempts = max(1, int(attempts or 1))
+    for attempt in range(attempts):
+        try:
+            return handler()
+        except sqlite3.OperationalError as exc:
+            if not is_retryable_sqlite_error(exc) or attempt >= attempts - 1:
+                raise
+            time.sleep(base_delay * (attempt + 1))
+    return handler()
 
 
 def init_db():
@@ -14845,7 +15187,18 @@ def resolve_player_reference(reference):
     if not ref:
         raise ValueError('Укажи ник или .ton домен соперника.')
 
+    if valid_wallet_address(ref):
+        with closing(get_db()) as conn:
+            row = conn.execute(
+                'SELECT wallet FROM players WHERE wallet = ? LIMIT 1',
+                (ref,),
+            ).fetchone()
+        if row is not None:
+            return row['wallet']
+        raise ValueError('Игрок с таким кошельком ещё не найден. Пусть он сначала зайдёт в игру.')
+
     domain = normalize_strict_ton_domain(ref)
+    username_ref = clean_public_text(ref.lstrip('@'), 64)
     with closing(get_db()) as conn:
         if domain:
             row = conn.execute(
@@ -14874,10 +15227,22 @@ def resolve_player_reference(reference):
             ).fetchone()
             if row is not None:
                 return row['wallet']
+            if username_ref:
+                row = conn.execute(
+                    '''
+                    SELECT wallet FROM telegram_users
+                    WHERE lower(username) = lower(?) AND wallet IS NOT NULL
+                    ORDER BY updated_at DESC
+                    LIMIT 1
+                    ''',
+                    (username_ref,),
+                ).fetchone()
+                if row is not None:
+                    return row['wallet']
 
     if domain:
         raise ValueError('Игрок с таким доменом ещё не найден. Пусть он сначала зайдёт в игру и выберет домен.')
-    raise ValueError('Игрок с таким ником не найден. Проверь ник или попроси соперника сначала зайти в игру.')
+    raise ValueError('Игрок не найден. Проверь ник/@username/домен или попроси соперника сначала зайти в игру.')
 
 
 def active_users():
@@ -15766,6 +16131,34 @@ def guild_overview_for_wallet(wallet, query=''):
     }
 
 
+def duel_invites_for_wallet(wallet, direction='incoming', status='pending'):
+    if direction not in {'incoming', 'outgoing'}:
+        return []
+    where_field = 'invitee_wallet' if direction == 'incoming' else 'inviter_wallet'
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            f'''
+            SELECT *
+            FROM duel_invites
+            WHERE {where_field} = ? AND status = ?
+            ORDER BY created_at DESC
+            LIMIT 30
+            ''',
+            (wallet, status),
+        ).fetchall()
+    result = []
+    for row in rows:
+        item = dict(row)
+        item['result_json'] = json.loads(item['result_json']) if item.get('result_json') else None
+        item = expire_invite_if_needed(item)
+        if item['status'] != status:
+            continue
+        item['inviter_name'] = display_name_for_wallet(item['inviter_wallet'])
+        item['invitee_name'] = display_name_for_wallet(item['invitee_wallet'])
+        result.append(item)
+    return result
+
+
 def social_overview(wallet):
     ensure_player(wallet)
     profile = player_profile_row(wallet)
@@ -15787,6 +16180,8 @@ def social_overview(wallet):
         'blocked': [public_player_summary(item) for item in blocked_wallets(wallet)],
         'suggested_players': social_suggestions(wallet),
         'lobby_messages': lobby_messages(),
+        'incoming_duel_invites': duel_invites_for_wallet(wallet, 'incoming', 'pending'),
+        'outgoing_duel_invites': duel_invites_for_wallet(wallet, 'outgoing', 'pending'),
         'friend_count': len(friend_list),
         'telegram_notifications': telegram_notification_settings(wallet),
     }
@@ -17044,16 +17439,18 @@ def battle_session_snapshot(row, viewer_wallet):
     is_a = viewer_wallet == row['wallet_a']
     self_ready = bool(row['ready_a']) if is_a else bool(row['ready_b'])
     opp_ready = bool(row['ready_b']) if is_a else bool(row['ready_a'])
+    payload = battle_session_payload(row, viewer_wallet)
+    started = bool(row['started_at']) and bool(payload) and not bool(payload.get('requires_ready'))
     snapshot = {
         'id': row['id'],
         'ready_self': self_ready,
         'ready_opponent': opp_ready,
         'ready_count': int(bool(row['ready_a'])) + int(bool(row['ready_b'])),
-        'started': bool(row['started_at']),
+        'started': started,
         'started_at': row['started_at'],
     }
-    if row['started_at']:
-        snapshot['payload'] = battle_session_payload(row, viewer_wallet)
+    if started:
+        snapshot['payload'] = payload
     return snapshot
 
 
@@ -17111,34 +17508,60 @@ def finalize_battle_session(conn, row):
     return fresh_a, fresh_b
 
 
-def mark_battle_ready(session_id, wallet, selected_slot=None, strategy_key=None):
+def finalize_battle_session_by_id(session_id):
     with closing(get_db()) as conn:
         row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
         if row is None:
             raise ValueError('Боевая сессия не найдена.')
-        if wallet not in {row['wallet_a'], row['wallet_b']}:
-            raise ValueError('Нет доступа к этой сессии.')
-        is_a = wallet == row['wallet_a']
-        payload_key = 'payload_a_json' if is_a else 'payload_b_json'
-        current_payload = json.loads(row[payload_key]) if row[payload_key] else {}
-        if selected_slot:
-            current_payload['selected_slot'] = int(selected_slot)
-        if strategy_key is not None:
-            current_payload['strategy_key'] = normalize_strategy_key(strategy_key)
-        if selected_slot or strategy_key is not None:
-            conn.execute(
-                f'UPDATE battle_sessions SET {payload_key} = ?, updated_at = ? WHERE id = ?',
-                (json.dumps(current_payload, ensure_ascii=False), now_iso(), session_id),
-            )
-        if is_a:
-            conn.execute('UPDATE battle_sessions SET ready_a = 1, updated_at = ? WHERE id = ?', (now_iso(), session_id))
-        else:
-            conn.execute('UPDATE battle_sessions SET ready_b = 1, updated_at = ? WHERE id = ?', (now_iso(), session_id))
-        row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
-        if row and row['started_at'] is None and row['ready_a'] and row['ready_b']:
+        payload_a = json.loads(row['payload_a_json']) if row['payload_a_json'] else {}
+        needs_finalize = bool(row['ready_a']) and bool(row['ready_b']) and bool(payload_a.get('requires_ready', True))
+        if needs_finalize:
             finalize_battle_session(conn, row)
+            conn.commit()
             row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
-        conn.commit()
+    return row
+
+
+def mark_battle_ready(session_id, wallet, selected_slot=None, strategy_key=None):
+    def mark_once():
+        should_finalize_local = False
+        with closing(get_db()) as conn:
+            conn.execute('BEGIN IMMEDIATE')
+            row_local = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
+            if row_local is None:
+                raise ValueError('Боевая сессия не найдена.')
+            if wallet not in {row_local['wallet_a'], row_local['wallet_b']}:
+                raise ValueError('Нет доступа к этой сессии.')
+            is_a = wallet == row_local['wallet_a']
+            payload_key = 'payload_a_json' if is_a else 'payload_b_json'
+            current_payload = json.loads(row_local[payload_key]) if row_local[payload_key] else {}
+            if selected_slot:
+                current_payload['selected_slot'] = int(selected_slot)
+            if strategy_key is not None:
+                current_payload['strategy_key'] = normalize_strategy_key(strategy_key)
+            if selected_slot or strategy_key is not None:
+                conn.execute(
+                    f'UPDATE battle_sessions SET {payload_key} = ?, updated_at = ? WHERE id = ?',
+                    (json.dumps(current_payload, ensure_ascii=False), now_iso(), session_id),
+                )
+            if is_a:
+                conn.execute('UPDATE battle_sessions SET ready_a = 1, updated_at = ? WHERE id = ?', (now_iso(), session_id))
+            else:
+                conn.execute('UPDATE battle_sessions SET ready_b = 1, updated_at = ? WHERE id = ?', (now_iso(), session_id))
+            row_local = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
+            if row_local and row_local['started_at'] is None and row_local['ready_a'] and row_local['ready_b']:
+                claimed = conn.execute(
+                    'UPDATE battle_sessions SET started_at = ?, updated_at = ? WHERE id = ? AND started_at IS NULL',
+                    (now_iso(), now_iso(), session_id),
+                )
+                should_finalize_local = claimed.rowcount == 1
+                row_local = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
+            conn.commit()
+        return row_local, should_finalize_local
+
+    row, should_finalize = run_with_sqlite_retry(mark_once, attempts=5, base_delay=0.05)
+    if should_finalize:
+        row = run_with_sqlite_retry(lambda: finalize_battle_session_by_id(session_id), attempts=5, base_delay=0.08)
     return battle_session_snapshot(row, wallet)
 
 
@@ -17149,6 +17572,16 @@ def get_battle_ready_status(session_id, wallet):
         raise ValueError('Боевая сессия не найдена.')
     if wallet not in {row['wallet_a'], row['wallet_b']}:
         raise ValueError('Нет доступа к этой сессии.')
+    try:
+        payload_a = json.loads(row['payload_a_json']) if row['payload_a_json'] else {}
+    except json.JSONDecodeError:
+        payload_a = {}
+    should_heal = bool(row['ready_a']) and bool(row['ready_b']) and bool(payload_a.get('requires_ready', True))
+    if should_heal:
+        try:
+            row = run_with_sqlite_retry(lambda: finalize_battle_session_by_id(session_id), attempts=3, base_delay=0.08)
+        except sqlite3.OperationalError:
+            pass
     return battle_session_snapshot(row, wallet)
 
 
@@ -17193,7 +17626,7 @@ def upsert_searching_matchmaking(conn, wallet, domain, mode, selected_slot=None)
     return queue_id
 
 
-def settle_matchmaking_pair(conn, mode, wallet, domain, opponent_row, selected_slot=None):
+def settle_matchmaking_pair(mode, wallet, domain, opponent_row, selected_slot=None):
     opponent_wallet = opponent_row['wallet']
     opponent_domain = opponent_row['domain']
     match = head_to_head_result(
@@ -17206,56 +17639,45 @@ def settle_matchmaking_pair(conn, mode, wallet, domain, opponent_row, selected_s
     )
     own_payload = invite_result_payload({'mode': mode}, match, wallet, rating_meta=None)
     opp_payload = invite_result_payload({'mode': mode}, match, opponent_wallet, rating_meta=None)
-    _, own_payload, opp_payload = create_battle_session(conn, wallet, opponent_wallet, own_payload, opp_payload)
-    set_matchmaking_cooldown(conn, wallet, opponent_wallet)
     ts = now_iso()
-
-    conn.execute(
-        '''
-        UPDATE matchmaking_queue
-        SET status = 'matched', opponent_wallet = ?, result_json = ?, updated_at = ?
-        WHERE id = ?
-        ''',
-        (wallet, json.dumps(opp_payload, ensure_ascii=False), ts, opponent_row['id']),
-    )
     queue_id = uuid.uuid4().hex
-    conn.execute(
-        '''
-        INSERT INTO matchmaking_queue (
-            id, mode, wallet, domain, selected_slot, status, opponent_wallet, result_json, created_at, updated_at, consumed_at
-        ) VALUES (?, ?, ?, ?, NULL, 'matched', ?, ?, ?, ?, NULL)
-        ''',
-        (queue_id, mode, wallet, domain, opponent_wallet, json.dumps(own_payload, ensure_ascii=False), ts, ts),
-    )
+    with closing(get_db()) as conn:
+        conn.execute('BEGIN IMMEDIATE')
+        current = conn.execute(
+            'SELECT * FROM matchmaking_queue WHERE id = ?',
+            (opponent_row['id'],),
+        ).fetchone()
+        if (
+            current is None
+            or current['status'] != 'pairing'
+            or current['opponent_wallet'] != wallet
+        ):
+            conn.rollback()
+            return None
+        _, own_payload, opp_payload = create_battle_session(conn, wallet, opponent_wallet, own_payload, opp_payload)
+        set_matchmaking_cooldown(conn, wallet, opponent_wallet)
+        conn.execute(
+            '''
+            UPDATE matchmaking_queue
+            SET status = 'matched', opponent_wallet = ?, result_json = ?, updated_at = ?
+            WHERE id = ? AND status = 'pairing'
+            ''',
+            (wallet, json.dumps(opp_payload, ensure_ascii=False), ts, opponent_row['id']),
+        )
+        conn.execute(
+            '''
+            INSERT INTO matchmaking_queue (
+                id, mode, wallet, domain, selected_slot, status, opponent_wallet, result_json, created_at, updated_at, consumed_at
+            ) VALUES (?, ?, ?, ?, NULL, 'matched', ?, ?, ?, ?, NULL)
+            ''',
+            (queue_id, mode, wallet, domain, opponent_wallet, json.dumps(own_payload, ensure_ascii=False), ts, ts),
+        )
+        conn.commit()
     return queue_id, own_payload, opponent_wallet
 
 
 def finalize_invite(invite):
-    match = head_to_head_result(
-        invite['inviter_wallet'],
-        invite['inviter_domain'],
-        invite['invitee_wallet'],
-        invite['invitee_domain'],
-    )
-    rating_meta = None
-    if invite['mode'] == 'ranked':
-        _, _, rating_a_before, rating_a_after, rating_b_before, rating_b_after = apply_ranked_result_duel(match)
-        rating_meta = {
-            'rating_a_before': rating_a_before,
-            'rating_a_after': rating_a_after,
-            'rating_b_before': rating_b_before,
-            'rating_b_after': rating_b_after,
-        }
-    else:
-        record_non_ranked_game(invite['inviter_wallet'], invite['inviter_domain'])
-        record_non_ranked_game(invite['invitee_wallet'], invite['invitee_domain'])
-        apply_non_ranked_domain_progress(match, mode=invite['mode'])
-    result = {
-        'for_inviter': invite_result_payload(invite, match, invite['inviter_wallet'], rating_meta=rating_meta),
-        'for_invitee': invite_result_payload(invite, match, invite['invitee_wallet'], rating_meta=rating_meta),
-    }
-    save_invite_result(invite['id'], result)
-    return load_invite(invite['id'])
+    return accept_duel_invite(invite['id'], invite['invitee_wallet'])
 
 
 def set_invite_status(invite_id, status):
@@ -17266,6 +17688,115 @@ def set_invite_status(invite_id, status):
         )
         conn.commit()
     return load_invite(invite_id)
+
+
+def accept_duel_invite(invite_id, invitee_wallet):
+    with closing(get_db()) as conn:
+        conn.execute('BEGIN IMMEDIATE')
+        row = conn.execute('SELECT * FROM duel_invites WHERE id = ?', (invite_id,)).fetchone()
+        if row is None:
+            raise ValueError('Приглашение не найдено.')
+        invite = dict(row)
+        if invite['invitee_wallet'] != invitee_wallet:
+            raise ValueError('Это приглашение адресовано не вам.')
+        if invite['status'] == 'pending' and parse_iso(invite['expires_at']) <= now_utc():
+            conn.execute(
+                'UPDATE duel_invites SET status = ?, responded_at = ? WHERE id = ?',
+                ('expired', now_iso(), invite_id),
+            )
+            conn.commit()
+            raise ValueError('Время на принятие приглашения истекло.')
+        if invite['status'] == 'accepted' and invite.get('result_json'):
+            conn.commit()
+            return load_invite(invite_id)
+        if invite['status'] not in {'pending', 'pairing'}:
+            conn.commit()
+            raise ValueError(f'Приглашение уже {invite["status"]}.')
+        if invite['status'] == 'pending':
+            claimed = conn.execute(
+                'UPDATE duel_invites SET status = ?, responded_at = ? WHERE id = ? AND status = ?',
+                ('pairing', None, invite_id, 'pending'),
+            )
+            if claimed.rowcount != 1:
+                conn.commit()
+                raise ValueError('Приглашение уже обновлено, обнови статус и попробуй снова.')
+        conn.commit()
+
+    match = head_to_head_result(
+        invite['inviter_wallet'],
+        invite['inviter_domain'],
+        invite['invitee_wallet'],
+        invite['invitee_domain'],
+    )
+    inviter_payload = invite_result_payload({'mode': invite['mode']}, match, invite['inviter_wallet'])
+    invitee_payload = invite_result_payload({'mode': invite['mode']}, match, invite['invitee_wallet'])
+
+    with closing(get_db()) as conn:
+        conn.execute('BEGIN IMMEDIATE')
+        current = conn.execute('SELECT * FROM duel_invites WHERE id = ?', (invite_id,)).fetchone()
+        if current is None:
+            raise ValueError('Приглашение не найдено.')
+        if current['status'] == 'accepted' and current['result_json']:
+            conn.commit()
+            return load_invite(invite_id)
+        if current['status'] != 'pairing':
+            conn.commit()
+            raise ValueError(f'Приглашение уже {current["status"]}.')
+        _, inviter_payload, invitee_payload = create_battle_session(
+            conn,
+            invite['inviter_wallet'],
+            invite['invitee_wallet'],
+            inviter_payload,
+            invitee_payload,
+        )
+        result_json = {'for_inviter': inviter_payload, 'for_invitee': invitee_payload}
+        conn.execute(
+            'UPDATE duel_invites SET status = ?, responded_at = ?, result_json = ? WHERE id = ?',
+            ('accepted', now_iso(), json.dumps(result_json, ensure_ascii=False), invite_id),
+        )
+        conn.commit()
+    return load_invite(invite_id)
+
+
+def respond_duel_invite(wallet, invite_id, action):
+    action = (action or '').strip().lower()
+    if action not in {'accept', 'decline'}:
+        raise ValueError('Некорректное действие для приглашения.')
+    invite = expire_invite_if_needed(load_invite(invite_id))
+    if invite['invitee_wallet'] != wallet:
+        raise ValueError('Это приглашение адресовано другому игроку.')
+    if action == 'decline':
+        if invite['status'] != 'pending':
+            raise ValueError(f'Приглашение уже {invite["status"]}.')
+        invite = set_invite_status(invite_id, 'declined')
+        inviter_link = telegram_wallet_link(invite['inviter_wallet'])
+        if inviter_link:
+            try:
+                telegram_send_message(inviter_link['chat_id'], f'Соперник отклонил приглашение {invite_id}.')
+            except Exception:
+                pass
+        return invite, None
+    invite = accept_duel_invite(invite_id, wallet)
+    result = invite['result_json']['for_invitee'] if invite.get('result_json') else None
+    inviter_link = telegram_wallet_link(invite['inviter_wallet'])
+    invitee_link = telegram_wallet_link(invite['invitee_wallet'])
+    if inviter_link:
+        try:
+            telegram_send_message(
+                inviter_link['chat_id'],
+                f'Приглашение {invite_id} принято. Открой mini app и нажми «Готов», чтобы запустить матч.',
+            )
+        except Exception:
+            pass
+    if invitee_link:
+        try:
+            telegram_send_message(
+                invitee_link['chat_id'],
+                f'Вы приняли приглашение {invite_id}. Открой mini app и нажми «Готов».',
+            )
+        except Exception:
+            pass
+    return invite, result
 
 
 def room_snapshot(room_id, viewer_wallet=None):
@@ -17449,33 +17980,25 @@ def handle_invite_callback(callback_query):
         return
 
     if action == 'invite_decline':
-        invite = set_invite_status(invite_id, 'declined')
-        inviter_link = telegram_wallet_link(invite['inviter_wallet'])
-        if inviter_link:
-            telegram_send_message(inviter_link['chat_id'], f'Соперник отклонил приглашение {invite_id}.')
+        try:
+            invite, _ = respond_duel_invite(invite['invitee_wallet'], invite_id, 'decline')
+        except ValueError as exc:
+            telegram_answer_callback(callback_id, str(exc), True)
+            return
         if chat_id and invite['telegram_message_id']:
             telegram_clear_inline_keyboard(chat_id, invite['telegram_message_id'])
         telegram_answer_callback(callback_id, 'Приглашение отклонено.')
         return
 
     if action == 'invite_accept':
-        invite = set_invite_status(invite_id, 'accepted')
-        invite = finalize_invite(invite)
-        inviter_link = telegram_wallet_link(invite['inviter_wallet'])
-        invitee_link = telegram_wallet_link(invite['invitee_wallet'])
-        if inviter_link:
-            telegram_send_message(
-                inviter_link['chat_id'],
-                'Соперник принял вызов.\n' + json.dumps(invite['result_json']['for_inviter'], ensure_ascii=False, indent=2),
-            )
-        if invitee_link:
-            telegram_send_message(
-                invitee_link['chat_id'],
-                'Матч завершён.\n' + json.dumps(invite['result_json']['for_invitee'], ensure_ascii=False, indent=2),
-            )
+        try:
+            invite, _ = respond_duel_invite(invite['invitee_wallet'], invite_id, 'accept')
+        except ValueError as exc:
+            telegram_answer_callback(callback_id, str(exc), True)
+            return
         if chat_id and invite['telegram_message_id']:
             telegram_clear_inline_keyboard(chat_id, invite['telegram_message_id'])
-        telegram_answer_callback(callback_id, 'Вызов принят. Матч сыгран.')
+        telegram_answer_callback(callback_id, 'Вызов принят. Открой mini app и нажми «Готов».')
         return
 
     telegram_answer_callback(callback_id, 'Неизвестное действие.', True)
@@ -18621,6 +19144,7 @@ def api_guild_reward_claim():
 
 
 @app.route('/api/matchmaking/<mode>/search', methods=['POST'])
+@limiter.exempt
 def api_matchmaking_search(mode):
     if mode not in {'ranked', 'casual'}:
         return json_error('Неизвестный режим матчмейкинга.', 404)
@@ -18641,8 +19165,9 @@ def api_matchmaking_search(mode):
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
 
-    try:
+    def search_once():
         with closing(get_db()) as conn:
+            conn.execute('BEGIN IMMEDIATE')
             cleanup_matchmaking_queue(conn)
             latest = latest_matchmaking_row(conn, wallet, mode)
             if latest and latest['status'] == 'matched' and latest['result_json'] and not latest['consumed_at']:
@@ -18652,7 +19177,7 @@ def api_matchmaking_search(mode):
                     (now_iso(), now_iso(), latest['id']),
                 )
                 conn.commit()
-                return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
+                return {'status': 'matched', 'result': result}
 
             opponents = conn.execute(
                 '''
@@ -18677,30 +19202,64 @@ def api_matchmaking_search(mode):
                     min_cooldown = cooldown_left
 
             if opponent:
-                conn.commit()
-                queue_id, own_payload, opponent_wallet = settle_matchmaking_pair(conn, mode, wallet, domain, opponent, selected_slot=selected_slot)
-                conn.commit()
-                return jsonify(
-                    {
-                        'status': 'matched',
-                        'queue_id': queue_id,
-                        'opponent_wallet': opponent_wallet,
-                        'result': own_payload,
-                        'player': get_player(wallet),
-                    }
+                ts = now_iso()
+                claimed = conn.execute(
+                    '''
+                    UPDATE matchmaking_queue
+                    SET status = 'pairing', opponent_wallet = ?, updated_at = ?
+                    WHERE id = ? AND status = 'searching'
+                    ''',
+                    (wallet, ts, opponent['id']),
                 )
+                if claimed.rowcount == 1:
+                    conn.commit()
+                    try:
+                        settled = settle_matchmaking_pair(mode, wallet, domain, opponent, selected_slot=selected_slot)
+                    except sqlite3.Error:
+                        conn.execute(
+                            '''
+                            UPDATE matchmaking_queue
+                            SET status = 'searching', opponent_wallet = NULL, updated_at = ?
+                            WHERE id = ? AND status = 'pairing'
+                            ''',
+                            (now_iso(), opponent['id']),
+                        )
+                        conn.commit()
+                        raise
+                    if settled is not None:
+                        queue_id, own_payload, opponent_wallet = settled
+                        return {
+                            'status': 'matched',
+                            'queue_id': queue_id,
+                            'opponent_wallet': opponent_wallet,
+                            'result': own_payload,
+                        }
+                    conn.execute(
+                        '''
+                        UPDATE matchmaking_queue
+                        SET status = 'searching', opponent_wallet = NULL, updated_at = ?
+                        WHERE id = ? AND status = 'pairing'
+                        ''',
+                        (now_iso(), opponent['id']),
+                    )
 
             queue_id = upsert_searching_matchmaking(conn, wallet, domain, mode, selected_slot=selected_slot)
             conn.commit()
-            response = {'status': 'searching', 'queue_id': queue_id, 'player': get_player(wallet)}
+            response = {'status': 'searching', 'queue_id': queue_id}
             if min_cooldown > 0:
                 response['cooldown_seconds'] = min_cooldown
-            return jsonify(response)
+            return response
+
+    try:
+        response = run_with_sqlite_retry(search_once, attempts=6, base_delay=0.06)
+        response['player'] = get_player(wallet)
+        return jsonify(response)
     except sqlite3.Error as exc:
         return json_error(f'Ошибка очереди матчмейкинга: {exc}', 500)
 
 
 @app.route('/api/matchmaking/<mode>/status')
+@limiter.exempt
 def api_matchmaking_status(mode):
     if mode not in {'ranked', 'casual'}:
         return json_error('Неизвестный режим матчмейкинга.', 404)
@@ -18708,12 +19267,11 @@ def api_matchmaking_status(mode):
     wallet = (request.args.get('wallet') or '').strip()
     if not valid_wallet_address(wallet):
         return json_error('Нужно передать свой кошелёк.')
-    try:
+    def status_once():
         with closing(get_db()) as conn:
-            cleanup_matchmaking_queue(conn)
             row = latest_matchmaking_row(conn, wallet, mode)
             if row is None:
-                return jsonify({'status': 'idle'})
+                return {'status': 'idle'}
             if row['status'] == 'searching':
                 waited = int(max(0, now_utc().timestamp() - parse_iso(row['created_at']).timestamp()))
                 opponents = conn.execute(
@@ -18733,21 +19291,29 @@ def api_matchmaking_status(mode):
                 response = {'status': 'searching', 'waited_seconds': waited}
                 if min_cooldown > 0:
                     response['cooldown_seconds'] = min_cooldown
-                return jsonify(response)
+                return response
             if row['status'] == 'matched' and row['result_json']:
                 result = json.loads(row['result_json'])
+                conn.execute('BEGIN IMMEDIATE')
                 conn.execute(
                     "UPDATE matchmaking_queue SET consumed_at = ?, status = 'completed', updated_at = ? WHERE id = ?",
                     (now_iso(), now_iso(), row['id']),
                 )
                 conn.commit()
-                return jsonify({'status': 'matched', 'result': result, 'player': get_player(wallet)})
-            return jsonify({'status': row['status']})
+                return {'status': 'matched', 'result': result}
+            return {'status': row['status']}
+
+    try:
+        response = run_with_sqlite_retry(status_once, attempts=6, base_delay=0.06)
+        if response.get('status') == 'matched':
+            response['player'] = get_player(wallet)
+        return jsonify(response)
     except sqlite3.Error as exc:
         return json_error(f'Ошибка очереди матчмейкинга: {exc}', 500)
 
 
 @app.route('/api/matchmaking/<mode>/cancel', methods=['POST'])
+@limiter.exempt
 def api_matchmaking_cancel(mode):
     if mode not in {'ranked', 'casual'}:
         return json_error('Неизвестный режим матчмейкинга.', 404)
@@ -18756,8 +19322,9 @@ def api_matchmaking_cancel(mode):
     wallet = (payload.get('wallet') or '').strip()
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
-    try:
+    def cancel_once():
         with closing(get_db()) as conn:
+            conn.execute('BEGIN IMMEDIATE')
             conn.execute(
                 '''
                 UPDATE matchmaking_queue
@@ -18767,12 +19334,16 @@ def api_matchmaking_cancel(mode):
                 (now_iso(), wallet, mode),
             )
             conn.commit()
+
+    try:
+        run_with_sqlite_retry(cancel_once, attempts=6, base_delay=0.06)
     except sqlite3.Error as exc:
         return json_error(f'Ошибка отмены поиска: {exc}', 500)
     return jsonify({'ok': True, 'status': 'cancelled'})
 
 
 @app.route('/api/battle-ready', methods=['POST'])
+@limiter.exempt
 def api_battle_ready():
     ensure_runtime_tables()
     payload = request.get_json(silent=True) or {}
@@ -18788,10 +19359,13 @@ def api_battle_ready():
         status = mark_battle_ready(session_id, wallet, selected_slot=selected_slot, strategy_key=strategy_key)
     except ValueError as exc:
         return json_error(str(exc), 400)
+    except sqlite3.Error as exc:
+        return json_error(f'Ошибка боевой сессии: {exc}', 500)
     return jsonify({'ok': True, 'status': status})
 
 
 @app.route('/api/battle-ready/status')
+@limiter.exempt
 def api_battle_ready_status():
     ensure_runtime_tables()
     wallet = (request.args.get('wallet') or '').strip()
@@ -18804,6 +19378,8 @@ def api_battle_ready_status():
         status = get_battle_ready_status(session_id, wallet)
     except ValueError as exc:
         return json_error(str(exc), 400)
+    except sqlite3.Error as exc:
+        return json_error(f'Ошибка статуса боевой сессии: {exc}', 500)
     return jsonify({'status': status})
 
 
@@ -18824,6 +19400,8 @@ def api_match(mode):
         return json_error('Нужно подключить кошелёк.')
     if not domain:
         return json_error('Нужно выбрать домен.')
+    if valid_wallet_address(opponent_reference):
+        return json_error('Для дуэли укажи ник или .ton домен соперника (кошелёк отключён в этом режиме).', 400)
     try:
         opponent_wallet = resolve_player_reference(opponent_reference)
         if opponent_wallet == wallet:
@@ -18970,6 +19548,7 @@ def api_solo_battle_action():
 
 
 @app.route('/api/solo-battle/status')
+@limiter.exempt
 def api_solo_battle_status():
     wallet = (request.args.get('wallet') or '').strip()
     session_id = (request.args.get('session_id') or '').strip()
@@ -18987,14 +19566,21 @@ def api_solo_battle_status():
 
 
 @app.route('/api/match-invite/<invite_id>')
+@limiter.exempt
 def api_match_invite(invite_id):
     wallet = (request.args.get('wallet') or '').strip()
     if not valid_wallet_address(wallet):
         return json_error('Нужно передать свой кошелёк.')
     try:
-        invite = expire_invite_if_needed(load_invite(invite_id))
+        invite = run_with_sqlite_retry(
+            lambda: expire_invite_if_needed(load_invite(invite_id)),
+            attempts=4,
+            base_delay=0.06,
+        )
     except ValueError as exc:
         return json_error(str(exc), 404)
+    except sqlite3.Error as exc:
+        return json_error(f'Ошибка чтения приглашения: {exc}', 500)
 
     if wallet not in {invite['inviter_wallet'], invite['invitee_wallet']}:
         return json_error('Нет доступа к этому приглашению.', 403)
@@ -19004,6 +19590,40 @@ def api_match_invite(invite_id):
         result = invite['result_json']['for_inviter'] if wallet == invite['inviter_wallet'] else invite['result_json']['for_invitee']
 
     return jsonify({'invite': invite, 'result': result, 'player': get_player(wallet)})
+
+
+@app.route('/api/match-invite/respond', methods=['POST'])
+@limiter.exempt
+def api_match_invite_respond():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    invite_id = (payload.get('invite_id') or '').strip().upper()
+    action = (payload.get('action') or '').strip().lower()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not invite_id:
+        return json_error('Не указан invite_id.')
+    if action not in {'accept', 'decline'}:
+        return json_error('Некорректное действие.')
+    try:
+        invite, result = run_with_sqlite_retry(
+            lambda: respond_duel_invite(wallet, invite_id, action),
+            attempts=5,
+            base_delay=0.06,
+        )
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    except sqlite3.Error as exc:
+        return json_error(f'Ошибка обработки приглашения: {exc}', 500)
+    response = {
+        'ok': True,
+        'invite': invite,
+        'player': get_player(wallet),
+        'social': social_overview(wallet),
+    }
+    if result:
+        response['result'] = result
+    return jsonify(response)
 
 
 @app.route('/api/team-room/create', methods=['POST'])
