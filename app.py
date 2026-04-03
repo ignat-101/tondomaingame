@@ -165,17 +165,110 @@ PACK_TYPES = {
     },
 }
 
+COSMETIC_PACK_RARITY_WEIGHTS = {
+    'basic': 32,
+    'rare': 27,
+    'epic': 20,
+    'mythic': 13,
+    'legendary': 8,
+}
+
 COSMETIC_THEME_DEFS = [
     {'slug': 'black', 'name': 'Black'},
     {'slug': 'onyx_black', 'name': 'Onyx Black'},
+    {'slug': 'gunmetal', 'name': 'Gunmetal'},
+    {'slug': 'graphite', 'name': 'Graphite'},
+    {'slug': 'obsidian', 'name': 'Obsidian'},
     {'slug': 'ivory_white', 'name': 'Ivory White'},
+    {'slug': 'pearl_white', 'name': 'Pearl White'},
+    {'slug': 'arctic_ice', 'name': 'Arctic Ice'},
     {'slug': 'midnight_blue', 'name': 'Midnight Blue'},
     {'slug': 'fire_engine', 'name': 'Fire Engine'},
+    {'slug': 'volcanic_red', 'name': 'Volcanic Red'},
+    {'slug': 'crimson_velvet', 'name': 'Crimson Velvet'},
+    {'slug': 'ruby', 'name': 'Ruby'},
     {'slug': 'deep_cyan', 'name': 'Deep Cyan'},
+    {'slug': 'ocean_teal', 'name': 'Ocean Teal'},
+    {'slug': 'aqua_marine', 'name': 'Aquamarine'},
+    {'slug': 'glacier_blue', 'name': 'Glacier Blue'},
+    {'slug': 'sky_blue', 'name': 'Sky Blue'},
+    {'slug': 'cobalt', 'name': 'Cobalt'},
+    {'slug': 'ultramarine', 'name': 'Ultramarine'},
     {'slug': 'khaki_green', 'name': 'Khaki Green'},
+    {'slug': 'emerald', 'name': 'Emerald'},
+    {'slug': 'jade', 'name': 'Jade'},
+    {'slug': 'mint', 'name': 'Mint'},
+    {'slug': 'moss', 'name': 'Moss'},
+    {'slug': 'forest_night', 'name': 'Forest Night'},
+    {'slug': 'cyber_green', 'name': 'Cyber Green'},
+    {'slug': 'matrix_black', 'name': 'Matrix Black'},
     {'slug': 'satin_gold', 'name': 'Satin Gold'},
     {'slug': 'old_gold', 'name': 'Old Gold'},
+    {'slug': 'champagne', 'name': 'Champagne'},
+    {'slug': 'copper', 'name': 'Copper'},
+    {'slug': 'bronze', 'name': 'Bronze'},
+    {'slug': 'amber_glow', 'name': 'Amber Glow'},
+    {'slug': 'solar_yellow', 'name': 'Solar Yellow'},
+    {'slug': 'sand_dune', 'name': 'Sand Dune'},
     {'slug': 'neon_blue', 'name': 'Neon Blue'},
+    {'slug': 'royal_purple', 'name': 'Royal Purple'},
+    {'slug': 'amethyst', 'name': 'Amethyst'},
+    {'slug': 'violet', 'name': 'Violet'},
+    {'slug': 'lavender', 'name': 'Lavender'},
+    {'slug': 'lilac', 'name': 'Lilac'},
+    {'slug': 'rose_quartz', 'name': 'Rose Quartz'},
+    {'slug': 'cherry_blossom', 'name': 'Cherry Blossom'},
+    {'slug': 'plasma_pink', 'name': 'Plasma Pink'},
+    {'slug': 'sunset_orange', 'name': 'Sunset Orange'},
+    {'slug': 'moonstone', 'name': 'Moonstone'},
+    {'slug': 'storm_gray', 'name': 'Storm Gray'},
+    {'slug': 'silver_foil', 'name': 'Silver Foil'},
+    {'slug': 'aurora', 'name': 'Aurora'},
+]
+
+COSMETIC_THEME_RARITY = {
+    'black': 'legendary',
+    'onyx_black': 'mythic',
+    'gunmetal': 'mythic',
+    'midnight_blue': 'epic',
+    'ivory_white': 'epic',
+    'old_gold': 'legendary',
+    'neon_blue': 'legendary',
+    'satin_gold': 'mythic',
+    'fire_engine': 'mythic',
+    'obsidian': 'mythic',
+    'ultramarine': 'epic',
+    'cobalt': 'epic',
+    'royal_purple': 'epic',
+    'amethyst': 'epic',
+    'emerald': 'epic',
+}
+
+COSMETIC_THEME_DROP_WEIGHTS = {
+    'black': 8,
+    'onyx_black': 10,
+    'gunmetal': 11,
+    'midnight_blue': 13,
+    'ivory_white': 14,
+    'old_gold': 9,
+    'neon_blue': 10,
+    'satin_gold': 11,
+    'fire_engine': 11,
+}
+
+EMOJI_MONOGRAMS = [
+    {'slug': 'sparkle', 'emoji': '✨', 'name': 'Sparkle Monogram'},
+    {'slug': 'diamond', 'emoji': '💠', 'name': 'Diamond Monogram'},
+    {'slug': 'crown', 'emoji': '👑', 'name': 'Crown Monogram'},
+    {'slug': 'shield', 'emoji': '🛡️', 'name': 'Shield Monogram'},
+    {'slug': 'swords', 'emoji': '⚔️', 'name': 'Swords Monogram'},
+    {'slug': 'flame', 'emoji': '🔥', 'name': 'Flame Monogram'},
+    {'slug': 'moon', 'emoji': '🌙', 'name': 'Moon Monogram'},
+    {'slug': 'wave', 'emoji': '🌊', 'name': 'Wave Monogram'},
+    {'slug': 'leaf', 'emoji': '🌿', 'name': 'Leaf Monogram'},
+    {'slug': 'star', 'emoji': '⭐', 'name': 'Star Monogram'},
+    {'slug': 'bolt', 'emoji': '⚡', 'name': 'Bolt Monogram'},
+    {'slug': 'gem', 'emoji': '💎', 'name': 'Gem Monogram'},
 ]
 
 SEASON_PASS_TRACK = [
@@ -200,6 +293,19 @@ SEASON_PASS_TRACK = [
 
 def _build_cosmetic_catalog():
     catalog = []
+    type_rarity_boost = {
+        'frame': 0,
+        'cardback': 0,
+        'arena': 1,
+        'guild': 1,
+    }
+    type_drop_multiplier = {
+        'frame': 1.0,
+        'cardback': 1.05,
+        'arena': 0.95,
+        'guild': 1.0,
+    }
+    rarity_ladder = ['basic', 'rare', 'epic', 'mythic', 'legendary']
     premium_map = {
         'black': {'frame': 'season_pass'},
         'onyx_black': {'cardback': 'season_pass'},
@@ -223,13 +329,32 @@ def _build_cosmetic_catalog():
             {'key': f'guild_banner_{slug}', 'type': 'guild', 'name': f'{name} Banner', 'source': theme_sources.get('guild', 'cosmetics')},
         ]
         for item in themed_items:
+            base_rarity = COSMETIC_THEME_RARITY.get(slug, 'rare')
+            base_index = rarity_ladder.index(base_rarity)
+            boosted_index = min(len(rarity_ladder) - 1, base_index + type_rarity_boost.get(item['type'], 0))
+            item['rarity_key'] = rarity_ladder[boosted_index]
+            base_drop_weight = float(COSMETIC_THEME_DROP_WEIGHTS.get(slug, 15))
+            item['drop_weight'] = round(base_drop_weight * type_drop_multiplier.get(item['type'], 1.0), 2)
             item['nft_family'] = item['type']
             catalog.append(item)
+    emoji_rarities = ['basic', 'rare', 'rare', 'epic', 'epic', 'mythic', 'mythic', 'legendary', 'basic', 'rare', 'epic', 'legendary']
+    for index, item in enumerate(EMOJI_MONOGRAMS):
+        catalog.append({
+            'key': f'emoji_{item["slug"]}',
+            'type': 'emoji',
+            'name': item['name'],
+            'emoji': item['emoji'],
+            'source': 'cosmetics',
+            'nft_family': 'emoji',
+            'rarity_key': emoji_rarities[index % len(emoji_rarities)],
+            'drop_weight': 16,
+        })
     catalog.extend([
-        {'key': 'frame_stock_gray', 'type': 'frame', 'name': 'Stock Gray Frame', 'source': 'stock', 'nft_family': 'frame'},
-        {'key': 'cardback_stock_plain', 'type': 'cardback', 'name': 'Stock Plain Cardback', 'source': 'stock', 'nft_family': 'cardback'},
-        {'key': 'arena_stock_grid', 'type': 'arena', 'name': 'Stock Grid Arena', 'source': 'stock', 'nft_family': 'arena'},
-        {'key': 'guild_banner_stock_plain', 'type': 'guild', 'name': 'Stock Plain Banner', 'source': 'stock', 'nft_family': 'guild'},
+        {'key': 'frame_stock_gray', 'type': 'frame', 'name': 'Stock Gray Frame', 'source': 'stock', 'nft_family': 'frame', 'rarity_key': 'basic', 'drop_weight': 22},
+        {'key': 'cardback_stock_plain', 'type': 'cardback', 'name': 'Stock Plain Cardback', 'source': 'stock', 'nft_family': 'cardback', 'rarity_key': 'basic', 'drop_weight': 22},
+        {'key': 'arena_stock_grid', 'type': 'arena', 'name': 'Stock Grid Arena', 'source': 'stock', 'nft_family': 'arena', 'rarity_key': 'basic', 'drop_weight': 20},
+        {'key': 'guild_banner_stock_plain', 'type': 'guild', 'name': 'Stock Plain Banner', 'source': 'stock', 'nft_family': 'guild', 'rarity_key': 'basic', 'drop_weight': 20},
+        {'key': 'emoji_stock_dot', 'type': 'emoji', 'name': 'Stock Dot Monogram', 'emoji': '•', 'source': 'stock', 'nft_family': 'emoji', 'rarity_key': 'basic', 'drop_weight': 18},
     ])
     return catalog
 
@@ -240,6 +365,7 @@ DEFAULT_STOCK_COSMETICS = [
     'cardback_stock_plain',
     'arena_stock_grid',
     'guild_banner_stock_plain',
+    'emoji_stock_dot',
 ]
 
 PAGE_TEMPLATE = """
@@ -1099,6 +1225,25 @@ PAGE_TEMPLATE = """
       color: rgba(213, 235, 255, 0.8);
       font-size: 11px;
       line-height: 1.22;
+    }
+
+    .arena-card-emoji {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      line-height: 1;
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      background: radial-gradient(circle at 40% 32%, rgba(255, 255, 255, 0.22), rgba(9, 18, 30, 0.74));
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+      z-index: 2;
+      pointer-events: none;
     }
 
     .arena-core {
@@ -4354,6 +4499,190 @@ PAGE_TEMPLATE = """
       font-weight: 700;
       text-transform: uppercase;
       font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .cosmetic-roulette {
+      position: relative;
+      width: min(760px, 96vw);
+      margin: 8px auto 0;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.28);
+      background: linear-gradient(180deg, rgba(8, 16, 30, 0.96), rgba(5, 11, 22, 0.98));
+      padding: 14px 12px 12px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
+      overflow: hidden;
+    }
+
+    .cosmetic-roulette::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(8,16,30,0.94), transparent 16%, transparent 84%, rgba(8,16,30,0.94)),
+        radial-gradient(circle at center, rgba(255, 211, 110, 0.06), transparent 55%);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .cosmetic-roulette::before {
+      content: "";
+      position: absolute;
+      left: calc(50% - 1px);
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(255, 211, 110, 0.14), rgba(255, 211, 110, 0.82), rgba(255, 211, 110, 0.14));
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .cosmetic-roulette-window {
+      overflow: hidden;
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: radial-gradient(circle at top, rgba(69, 215, 255, 0.08), rgba(5, 10, 20, 0.98) 66%);
+    }
+
+    .cosmetic-roulette-track {
+      display: inline-flex;
+      gap: 10px;
+      align-items: stretch;
+      padding: 10px;
+      transform: translateX(0);
+      transition: transform 4400ms cubic-bezier(.08,.86,.16,1);
+      will-change: transform;
+    }
+
+    .cosmetic-roulette-track.spinning {
+      filter: saturate(1.12) contrast(1.06);
+    }
+
+    .cosmetic-roulette-card {
+      width: 128px;
+      min-width: 128px;
+      border-radius: 12px;
+      border: 1px solid rgba(121, 217, 255, 0.2);
+      padding: 9px 8px;
+      background: linear-gradient(180deg, rgba(11, 20, 35, 0.95), rgba(7, 14, 25, 0.98));
+      text-align: left;
+      display: grid;
+      gap: 6px;
+      align-content: start;
+      min-height: 134px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cosmetic-roulette-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 2px;
+      background: rgba(255,255,255,0.2);
+      opacity: 0.7;
+    }
+
+    .cosmetic-roulette-card .icon {
+      font-size: 26px;
+      line-height: 1;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 24%, rgba(255,255,255,0.24), rgba(10,20,34,0.74));
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .cosmetic-roulette-card .name {
+      font-size: 12px;
+      line-height: 1.2;
+      color: rgba(236, 246, 255, 0.94);
+      min-height: 30px;
+      max-height: 30px;
+      overflow: hidden;
+    }
+
+    .cosmetic-roulette-card .rarity {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 0 8px;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+
+    .cosmetic-roulette-card .beam {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 4px;
+      opacity: 0.9;
+    }
+
+    .cosmetic-roulette-card.basic { border-color: rgba(180, 180, 180, 0.32); }
+    .cosmetic-roulette-card.rare { border-color: rgba(69, 215, 255, 0.42); }
+    .cosmetic-roulette-card.epic { border-color: rgba(255, 122, 134, 0.48); }
+    .cosmetic-roulette-card.mythic { border-color: rgba(188, 126, 255, 0.56); }
+    .cosmetic-roulette-card.legendary { border-color: rgba(255, 211, 110, 0.58); box-shadow: 0 0 0 1px rgba(255, 211, 110, 0.25), 0 8px 22px rgba(255, 211, 110, 0.18); }
+
+    .cosmetic-roulette-card.basic .rarity { color: #d7dde8; border-color: rgba(215,221,232,0.28); }
+    .cosmetic-roulette-card.rare .rarity { color: #7de9ff; border-color: rgba(125,233,255,0.38); }
+    .cosmetic-roulette-card.epic .rarity { color: #ff96b0; border-color: rgba(255,150,176,0.4); }
+    .cosmetic-roulette-card.mythic .rarity { color: #d2a8ff; border-color: rgba(210,168,255,0.44); }
+    .cosmetic-roulette-card.legendary .rarity { color: #ffe08a; border-color: rgba(255,224,138,0.5); }
+    .cosmetic-roulette-card.basic .beam { background: linear-gradient(90deg, rgba(215,221,232,0), rgba(215,221,232,0.9), rgba(215,221,232,0)); }
+    .cosmetic-roulette-card.rare .beam { background: linear-gradient(90deg, rgba(125,233,255,0), rgba(125,233,255,0.95), rgba(125,233,255,0)); }
+    .cosmetic-roulette-card.epic .beam { background: linear-gradient(90deg, rgba(255,150,176,0), rgba(255,150,176,0.95), rgba(255,150,176,0)); }
+    .cosmetic-roulette-card.mythic .beam { background: linear-gradient(90deg, rgba(210,168,255,0), rgba(210,168,255,0.95), rgba(210,168,255,0)); }
+    .cosmetic-roulette-card.legendary .beam { background: linear-gradient(90deg, rgba(255,224,138,0), rgba(255,224,138,0.98), rgba(255,224,138,0)); }
+
+    .cosmetic-roulette-marker {
+      position: absolute;
+      left: 50%;
+      top: 6px;
+      transform: translateX(-50%);
+      width: 34px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 211, 110, 0.45);
+      color: rgba(255, 230, 159, 0.95);
+      background: rgba(17, 26, 41, 0.88);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .cosmetic-roulette-marker-bottom {
+      position: absolute;
+      left: 50%;
+      bottom: 6px;
+      transform: translateX(-50%) rotate(180deg);
+      width: 34px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 211, 110, 0.45);
+      color: rgba(255, 230, 159, 0.95);
+      background: rgba(17, 26, 41, 0.88);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 6;
+      pointer-events: none;
     }
 
     .pack-sequence-layer {
@@ -7625,16 +7954,56 @@ PAGE_TEMPLATE = """
     }
 
     const GIFT_THEMES = {
-      black: { name: 'Black', emoji: '♠️', base: '#0B0C11', secondary: '#1A1C24', accent: '#6F7583', glow: 'rgba(111,117,131,0.22)', text: '#EDF2FF', motif: 'stripes' },
-      onyx_black: { name: 'Onyx Black', emoji: '🕷️', base: '#08090D', secondary: '#181A1F', accent: '#8D949F', glow: 'rgba(141,148,159,0.24)', text: '#F4F7FF', motif: 'web' },
+      black: { name: 'Black', emoji: '♠️', base: '#090A0D', secondary: '#14171D', accent: '#8A93A3', glow: 'rgba(138,147,163,0.24)', text: '#EEF5FF', motif: 'stripes' },
+      onyx_black: { name: 'Onyx Black', emoji: '🕷️', base: '#07080B', secondary: '#15181D', accent: '#9BA3AF', glow: 'rgba(155,163,175,0.24)', text: '#F2F7FF', motif: 'web' },
+      gunmetal: { name: 'Gunmetal', emoji: '🛠️', base: '#1B222D', secondary: '#263142', accent: '#92A8C8', glow: 'rgba(146,168,200,0.26)', text: '#EEF5FF', motif: 'grid' },
+      graphite: { name: 'Graphite', emoji: '⚙️', base: '#1E222A', secondary: '#2F3643', accent: '#A2B0C6', glow: 'rgba(162,176,198,0.24)', text: '#F2F7FF', motif: 'stripes' },
+      obsidian: { name: 'Obsidian', emoji: '🪨', base: '#14111B', secondary: '#241A2E', accent: '#A98AE5', glow: 'rgba(169,138,229,0.28)', text: '#F5EEFF', motif: 'web' },
       ivory_white: { name: 'Ivory White', emoji: '🕊️', base: '#F4EFE4', secondary: '#E0D5C1', accent: '#BDAA87', glow: 'rgba(189,170,135,0.26)', text: '#1A1A1A', motif: 'petals' },
+      pearl_white: { name: 'Pearl White', emoji: '🤍', base: '#F5F4F0', secondary: '#E6E3DA', accent: '#B9B3A3', glow: 'rgba(185,179,163,0.25)', text: '#1D1D1D', motif: 'petals' },
+      arctic_ice: { name: 'Arctic Ice', emoji: '❄️', base: '#E7F3FA', secondary: '#D2E6F2', accent: '#8DB8D3', glow: 'rgba(141,184,211,0.25)', text: '#132130', motif: 'waves' },
       midnight_blue: { name: 'Midnight Blue', emoji: '🌙', base: '#132342', secondary: '#1D3361', accent: '#7FA8FF', glow: 'rgba(127,168,255,0.26)', text: '#F1F6FF', motif: 'stars' },
       fire_engine: { name: 'Fire Engine', emoji: '🔥', base: '#7F111B', secondary: '#B31A29', accent: '#FF8B83', glow: 'rgba(255,139,131,0.28)', text: '#FFF5F5', motif: 'sparks' },
+      volcanic_red: { name: 'Volcanic Red', emoji: '🌋', base: '#5B0D14', secondary: '#8B1724', accent: '#FF766B', glow: 'rgba(255,118,107,0.28)', text: '#FFF1F0', motif: 'sparks' },
+      crimson_velvet: { name: 'Crimson Velvet', emoji: '🩸', base: '#651724', secondary: '#8A2335', accent: '#E990A8', glow: 'rgba(233,144,168,0.28)', text: '#FFF2F6', motif: 'petals' },
+      ruby: { name: 'Ruby', emoji: '💎', base: '#8A1F3A', secondary: '#B62A4D', accent: '#FF9AB6', glow: 'rgba(255,154,182,0.3)', text: '#FFF4F8', motif: 'gems' },
       deep_cyan: { name: 'Deep Cyan', emoji: '🌊', base: '#0E5560', secondary: '#0F7B88', accent: '#7DEBFF', glow: 'rgba(125,235,255,0.28)', text: '#EDFFFF', motif: 'waves' },
+      ocean_teal: { name: 'Ocean Teal', emoji: '🐬', base: '#0B3F48', secondary: '#0F6471', accent: '#73D9E8', glow: 'rgba(115,217,232,0.28)', text: '#EFFFFF', motif: 'waves' },
+      aqua_marine: { name: 'Aquamarine', emoji: '🧊', base: '#0C4A62', secondary: '#146B8A', accent: '#84E2FF', glow: 'rgba(132,226,255,0.28)', text: '#F0FCFF', motif: 'waves' },
+      glacier_blue: { name: 'Glacier Blue', emoji: '🧿', base: '#20497A', secondary: '#2B63A3', accent: '#9BC5FF', glow: 'rgba(155,197,255,0.27)', text: '#F2F8FF', motif: 'grid' },
+      sky_blue: { name: 'Sky Blue', emoji: '☁️', base: '#2A5D9A', secondary: '#3C7CC4', accent: '#A9D1FF', glow: 'rgba(169,209,255,0.28)', text: '#F5FAFF', motif: 'stars' },
+      cobalt: { name: 'Cobalt', emoji: '🔷', base: '#163D88', secondary: '#2358B3', accent: '#77B4FF', glow: 'rgba(119,180,255,0.28)', text: '#F1F7FF', motif: 'grid' },
+      ultramarine: { name: 'Ultramarine', emoji: '🔹', base: '#0F2D73', secondary: '#1A4399', accent: '#6BA7FF', glow: 'rgba(107,167,255,0.28)', text: '#EDF5FF', motif: 'stars' },
       khaki_green: { name: 'Khaki Green', emoji: '🌿', base: '#465236', secondary: '#67784A', accent: '#C8D89A', glow: 'rgba(200,216,154,0.26)', text: '#F2F8E6', motif: 'leaf' },
+      emerald: { name: 'Emerald', emoji: '🍀', base: '#1A5C3F', secondary: '#23835A', accent: '#8BDFB5', glow: 'rgba(139,223,181,0.28)', text: '#F2FFF7', motif: 'leaf' },
+      jade: { name: 'Jade', emoji: '🪴', base: '#1A6A56', secondary: '#278D74', accent: '#95E9CC', glow: 'rgba(149,233,204,0.28)', text: '#F0FFF9', motif: 'leaf' },
+      mint: { name: 'Mint', emoji: '🍃', base: '#2B6F61', secondary: '#3C9A89', accent: '#B0F1E4', glow: 'rgba(176,241,228,0.28)', text: '#F5FFFC', motif: 'leaf' },
+      moss: { name: 'Moss', emoji: '🌱', base: '#3F5F2B', secondary: '#5C7F3E', accent: '#BFD893', glow: 'rgba(191,216,147,0.26)', text: '#F3F9E7', motif: 'leaf' },
+      forest_night: { name: 'Forest Night', emoji: '🌲', base: '#1F3428', secondary: '#2C4E3B', accent: '#8CBDA3', glow: 'rgba(140,189,163,0.25)', text: '#EEFFF5', motif: 'leaf' },
+      cyber_green: { name: 'Cyber Green', emoji: '🧪', base: '#123B2E', secondary: '#1C644D', accent: '#65FFB8', glow: 'rgba(101,255,184,0.28)', text: '#EFFFF8', motif: 'grid' },
+      matrix_black: { name: 'Matrix Black', emoji: '🟩', base: '#090F0C', secondary: '#162118', accent: '#63D282', glow: 'rgba(99,210,130,0.26)', text: '#EFFFF2', motif: 'grid' },
       satin_gold: { name: 'Satin Gold', emoji: '✨', base: '#8B6D1B', secondary: '#BF9830', accent: '#FFE08A', glow: 'rgba(255,224,138,0.3)', text: '#FFF7DE', motif: 'gems' },
       old_gold: { name: 'Old Gold', emoji: '👑', base: '#6C5520', secondary: '#8E7330', accent: '#D5BA63', glow: 'rgba(213,186,99,0.28)', text: '#FFF6DD', motif: 'crown' },
+      champagne: { name: 'Champagne', emoji: '🥂', base: '#8A7A55', secondary: '#A89468', accent: '#E7D8A5', glow: 'rgba(231,216,165,0.28)', text: '#FFF8E6', motif: 'gems' },
+      copper: { name: 'Copper', emoji: '🪙', base: '#7A4A2D', secondary: '#A1623E', accent: '#E2AA84', glow: 'rgba(226,170,132,0.28)', text: '#FFF1E8', motif: 'stripes' },
+      bronze: { name: 'Bronze', emoji: '🏺', base: '#6E4A33', secondary: '#8E6043', accent: '#CEA37E', glow: 'rgba(206,163,126,0.27)', text: '#FFF4EB', motif: 'stripes' },
+      amber_glow: { name: 'Amber Glow', emoji: '🟠', base: '#8A531C', secondary: '#BA7429', accent: '#FFC176', glow: 'rgba(255,193,118,0.29)', text: '#FFF5E6', motif: 'gems' },
+      solar_yellow: { name: 'Solar Yellow', emoji: '☀️', base: '#8D6D15', secondary: '#BC9423', accent: '#FFE37D', glow: 'rgba(255,227,125,0.3)', text: '#FFF9E8', motif: 'stars' },
+      sand_dune: { name: 'Sand Dune', emoji: '🏜️', base: '#7E6A46', secondary: '#9B8459', accent: '#D8BF8A', glow: 'rgba(216,191,138,0.27)', text: '#FFF7E8', motif: 'stripes' },
       neon_blue: { name: 'Neon Blue', emoji: '💠', base: '#0E2F7B', secondary: '#1747B7', accent: '#6CD8FF', glow: 'rgba(108,216,255,0.3)', text: '#F1F9FF', motif: 'grid' },
+      royal_purple: { name: 'Royal Purple', emoji: '🟣', base: '#45206F', secondary: '#6333A0', accent: '#C9A2FF', glow: 'rgba(201,162,255,0.29)', text: '#F7F0FF', motif: 'crown' },
+      amethyst: { name: 'Amethyst', emoji: '🔮', base: '#5E2A86', secondary: '#7D3CB0', accent: '#D2A4FF', glow: 'rgba(210,164,255,0.29)', text: '#F9F2FF', motif: 'gems' },
+      violet: { name: 'Violet', emoji: '💜', base: '#4B2D8C', secondary: '#6A45B5', accent: '#B9A4FF', glow: 'rgba(185,164,255,0.28)', text: '#F3F0FF', motif: 'stars' },
+      lavender: { name: 'Lavender', emoji: '🪻', base: '#6A4F9E', secondary: '#8870BA', accent: '#D8C8FF', glow: 'rgba(216,200,255,0.27)', text: '#FAF6FF', motif: 'petals' },
+      lilac: { name: 'Lilac', emoji: '🌸', base: '#7C5B97', secondary: '#9A78B6', accent: '#DEC4EE', glow: 'rgba(222,196,238,0.27)', text: '#FFF6FF', motif: 'petals' },
+      rose_quartz: { name: 'Rose Quartz', emoji: '🌹', base: '#87576F', secondary: '#A7718A', accent: '#F0BED0', glow: 'rgba(240,190,208,0.28)', text: '#FFF3F8', motif: 'petals' },
+      cherry_blossom: { name: 'Cherry Blossom', emoji: '🌺', base: '#A45E7A', secondary: '#C47C99', accent: '#FFC5DA', glow: 'rgba(255,197,218,0.29)', text: '#FFF4F8', motif: 'petals' },
+      plasma_pink: { name: 'Plasma Pink', emoji: '🎀', base: '#9E2E6D', secondary: '#C2438A', accent: '#FF9CD5', glow: 'rgba(255,156,213,0.29)', text: '#FFF2FA', motif: 'sparks' },
+      sunset_orange: { name: 'Sunset Orange', emoji: '🌇', base: '#934626', secondary: '#C56639', accent: '#FFB389', glow: 'rgba(255,179,137,0.28)', text: '#FFF3EC', motif: 'sparks' },
+      moonstone: { name: 'Moonstone', emoji: '🌘', base: '#4E5D70', secondary: '#67798E', accent: '#B7C8DD', glow: 'rgba(183,200,221,0.27)', text: '#F4F8FF', motif: 'stars' },
+      storm_gray: { name: 'Storm Gray', emoji: '🌫️', base: '#374455', secondary: '#495B72', accent: '#A8B7CA', glow: 'rgba(168,183,202,0.26)', text: '#F2F7FF', motif: 'stripes' },
+      silver_foil: { name: 'Silver Foil', emoji: '🪙', base: '#5B6678', secondary: '#748197', accent: '#D2D9E5', glow: 'rgba(210,217,229,0.27)', text: '#F8FBFF', motif: 'grid' },
+      aurora: { name: 'Aurora', emoji: '🌈', base: '#1E3A5C', secondary: '#2B5F73', accent: '#8DF2DD', glow: 'rgba(141,242,221,0.29)', text: '#F3FFFC', motif: 'waves' },
     };
     const COSMETIC_ASSET_VERSION = '20260401c';
     function escapeSvg(text) {
@@ -7657,6 +8026,207 @@ PAGE_TEMPLATE = """
 
     function cosmeticTheme(type, key) {
       return GIFT_THEMES[themeSlugFromKey(key)] || GIFT_THEMES.black;
+    }
+
+    const COSMETIC_RARITY_ORDER = ['basic', 'rare', 'epic', 'mythic', 'legendary'];
+    const COSMETIC_RARITY_LABELS = {
+      basic: 'Basic',
+      rare: 'Rare',
+      epic: 'Epic',
+      mythic: 'Mythic',
+      legendary: 'Legendary',
+    };
+    const COSMETIC_RARITY_WEIGHTS = {
+      basic: 32,
+      rare: 27,
+      epic: 20,
+      mythic: 13,
+      legendary: 8,
+    };
+    let rouletteAudioCtx = null;
+
+    function cosmeticRarityKey(item) {
+      const key = String((item || {}).rarity_key || 'basic').toLowerCase();
+      return COSMETIC_RARITY_ORDER.includes(key) ? key : 'basic';
+    }
+
+    function cosmeticRarityLabel(item) {
+      const key = cosmeticRarityKey(item);
+      return COSMETIC_RARITY_LABELS[key] || 'Basic';
+    }
+
+    function cosmeticTypeIcon(item) {
+      const type = String((item || {}).type || '').toLowerCase();
+      if (type === 'emoji') return item.emoji || '•';
+      if (type === 'frame') return '🖼️';
+      if (type === 'cardback') return '🃏';
+      if (type === 'arena') return '🏟️';
+      if (type === 'guild') return '🏳️';
+      return '✨';
+    }
+
+    function cosmeticTypeLabelRu(type) {
+      const key = String(type || '').toLowerCase();
+      if (key === 'frame') return 'Рамка';
+      if (key === 'cardback') return 'Рубашка';
+      if (key === 'arena') return 'Арена';
+      if (key === 'guild') return 'Баннер';
+      if (key === 'emoji') return 'Эмодзи';
+      return 'Косметика';
+    }
+
+    function ensureRouletteAudioContext() {
+      if (rouletteAudioCtx) return rouletteAudioCtx;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      rouletteAudioCtx = new Ctx();
+      return rouletteAudioCtx;
+    }
+
+    async function resumeRouletteAudioContext() {
+      const ctx = ensureRouletteAudioContext();
+      if (!ctx) return null;
+      if (ctx.state === 'suspended') {
+        try {
+          await ctx.resume();
+        } catch (_) {}
+      }
+      return ctx;
+    }
+
+    function playRouletteTickSound(power = 0.55, pitch = 980) {
+      const ctx = ensureRouletteAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(420, now);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(Math.max(240, pitch), now);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(180, pitch * 0.72), now + 0.042);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.01, 0.032 * power), now + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.06);
+    }
+
+    function playRouletteDropSound() {
+      const ctx = ensureRouletteAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const hitOsc = ctx.createOscillator();
+      const hitGain = ctx.createGain();
+      hitOsc.type = 'triangle';
+      hitOsc.frequency.setValueAtTime(182, now);
+      hitOsc.frequency.exponentialRampToValueAtTime(84, now + 0.15);
+      hitGain.gain.setValueAtTime(0.0001, now);
+      hitGain.gain.exponentialRampToValueAtTime(0.09, now + 0.01);
+      hitGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.17);
+      hitOsc.connect(hitGain);
+      hitGain.connect(ctx.destination);
+      hitOsc.start(now);
+      hitOsc.stop(now + 0.2);
+
+      const shineOsc = ctx.createOscillator();
+      const shineGain = ctx.createGain();
+      const shineFilter = ctx.createBiquadFilter();
+      shineFilter.type = 'bandpass';
+      shineFilter.frequency.setValueAtTime(1650, now);
+      shineOsc.type = 'sine';
+      shineOsc.frequency.setValueAtTime(1180, now + 0.01);
+      shineOsc.frequency.exponentialRampToValueAtTime(540, now + 0.24);
+      shineGain.gain.setValueAtTime(0.0001, now + 0.01);
+      shineGain.gain.exponentialRampToValueAtTime(0.055, now + 0.03);
+      shineGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+      shineOsc.connect(shineFilter);
+      shineFilter.connect(shineGain);
+      shineGain.connect(ctx.destination);
+      shineOsc.start(now + 0.01);
+      shineOsc.stop(now + 0.28);
+    }
+
+    async function runRouletteTickSequence(totalDistancePx, stepPx) {
+      const safeStep = Math.max(1, Number(stepPx || 1));
+      const totalTicks = Math.max(18, Math.min(120, Math.floor(totalDistancePx / safeStep) + 6));
+      const phase1Ticks = Math.max(8, Math.floor(totalTicks * 0.55));
+      const phase2Ticks = Math.max(6, Math.floor(totalTicks * 0.35));
+      const phase3Ticks = Math.max(2, totalTicks - phase1Ticks - phase2Ticks);
+      const p1Interval = 2240 / phase1Ticks;
+      const p2Interval = 2090 / phase2Ticks;
+      const p3Interval = 380 / phase3Ticks;
+
+      for (let i = 0; i < phase1Ticks; i += 1) {
+        const t = i / Math.max(1, phase1Ticks - 1);
+        playRouletteTickSound(0.62, 1450 - t * 520);
+        await sleep(p1Interval);
+      }
+      for (let i = 0; i < phase2Ticks; i += 1) {
+        const t = i / Math.max(1, phase2Ticks - 1);
+        playRouletteTickSound(0.56, 910 - t * 370);
+        await sleep(p2Interval);
+      }
+      for (let i = 0; i < phase3Ticks; i += 1) {
+        const t = i / Math.max(1, phase3Ticks - 1);
+        playRouletteTickSound(0.5, 520 - t * 120);
+        await sleep(p3Interval);
+      }
+    }
+
+    function cosmeticEmojiSymbol(cosmetics) {
+      if (!cosmetics || !cosmetics.emoji) return '';
+      return String(cosmetics.emoji.emoji || '•').trim();
+    }
+
+    function cosmeticEmojiBadge(cosmetics) {
+      const emoji = cosmeticEmojiSymbol(cosmetics);
+      if (!emoji) return '';
+      return `<div class="arena-card-emoji">${escapeHtml(emoji)}</div>`;
+    }
+
+    function chooseWeightedCosmeticRarity(availableRarities) {
+      const weights = availableRarities.map((key) => Number(COSMETIC_RARITY_WEIGHTS[key] || 0));
+      const total = weights.reduce((sum, value) => sum + value, 0);
+      if (!total) return availableRarities[Math.floor(Math.random() * availableRarities.length)] || 'basic';
+      let cursor = Math.random() * total;
+      for (let i = 0; i < availableRarities.length; i += 1) {
+        cursor -= weights[i];
+        if (cursor <= 0) return availableRarities[i];
+      }
+      return availableRarities[availableRarities.length - 1] || 'basic';
+    }
+
+    function drawRouletteCosmetic(catalog, forced = null) {
+      if (forced) return forced;
+      if (!Array.isArray(catalog) || !catalog.length) return null;
+      const byRarity = {};
+      catalog.forEach((item) => {
+        const rarity = cosmeticRarityKey(item);
+        if (!byRarity[rarity]) byRarity[rarity] = [];
+        byRarity[rarity].push(item);
+      });
+      const rarities = COSMETIC_RARITY_ORDER.filter((key) => byRarity[key] && byRarity[key].length);
+      if (!rarities.length) return catalog[Math.floor(Math.random() * catalog.length)];
+      const rarity = chooseWeightedCosmeticRarity(rarities);
+      const pool = byRarity[rarity] || catalog;
+      const weighted = pool.map((item) => ({
+        item,
+        weight: Math.max(0.01, Number(item && item.drop_weight ? item.drop_weight : 1)),
+      }));
+      const total = weighted.reduce((sum, entry) => sum + entry.weight, 0);
+      if (!total) return pool[Math.floor(Math.random() * pool.length)] || catalog[0];
+      let cursor = Math.random() * total;
+      for (const entry of weighted) {
+        cursor -= entry.weight;
+        if (cursor <= 0) return entry.item;
+      }
+      return weighted[weighted.length - 1].item;
     }
 
     function hexToRgba(hex, alpha) {
@@ -7865,6 +8435,7 @@ PAGE_TEMPLATE = """
       const featuredFrame = (catalogByType.frame || []).find((item) => item.key === (equipped.frame && equipped.frame.key)) || cosmetics.find((item) => item.type === 'frame') || (catalogByType.frame || [])[0] || null;
       const featuredBack = (catalogByType.cardback || []).find((item) => item.key === (equipped.cardback && equipped.cardback.key)) || cosmetics.find((item) => item.type === 'cardback') || (catalogByType.cardback || [])[0] || null;
       const featuredGuild = (catalogByType.guild || []).find((item) => item.key === (equipped.guild && equipped.guild.key)) || cosmetics.find((item) => item.type === 'guild') || (catalogByType.guild || [])[0] || null;
+      const featuredEmoji = (catalogByType.emoji || []).find((item) => item.key === (equipped.emoji && equipped.emoji.key)) || cosmetics.find((item) => item.type === 'emoji') || (catalogByType.emoji || [])[0] || null;
       const compactPreview = document.body.classList.contains('tma-app') || window.innerWidth <= 760;
       const arenaAsset = cosmeticAssetUrl('arena', featuredArena && featuredArena.key);
       const frameAsset = cosmeticAssetUrl('frame', featuredFrame && featuredFrame.key);
@@ -7879,12 +8450,14 @@ PAGE_TEMPLATE = """
         arena: 'Арены',
         cardback: 'Рубашки',
         guild: 'Клановые баннеры',
+        emoji: 'Emoji-монограммы',
       };
       const previewMetaMarkup = [
         `Арена: ${featuredArena ? escapeHtml(featuredArena.name) : 'стандарт'}`,
         `Рамка: ${featuredFrame ? escapeHtml(featuredFrame.name) : 'стандарт'}`,
         `Рубашка: ${featuredBack ? escapeHtml(featuredBack.name) : 'стандарт'}`,
-        `Баннер: ${featuredGuild ? escapeHtml(featuredGuild.name) : 'стандарт'}`
+        `Баннер: ${featuredGuild ? escapeHtml(featuredGuild.name) : 'стандарт'}`,
+        `Монограмма: ${featuredEmoji ? escapeHtml((featuredEmoji.emoji || '•') + ' ' + featuredEmoji.name) : 'стандарт'}`
       ].map((text) => `<div class="summary-chip">${text}</div>`).join('');
       profileCosmeticsPanel.innerHTML = `
         <div class="user-item" style="margin-bottom:14px;">
@@ -7893,6 +8466,7 @@ PAGE_TEMPLATE = """
             <div style="position:relative; width:190px; height:220px; margin:0 auto;">
               ${featuredGuild ? `<img src="${guildAsset}" alt="" style="position:absolute; left:50%; top:22px; transform:translateX(-50%); width:110px; height:64px; object-fit:contain; opacity:0.98; z-index:1; pointer-events:none;">` : ''}
               <div style="position:absolute; left:35px; top:48px; width:120px; height:168px; border-radius:18px; background:${featuredBack ? giftCardbackSurface(featuredBack.key) : (backAsset ? `url(${backAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(15,24,39,0.95), rgba(8,18,30,0.98))')}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 20px 36px rgba(0,0,0,0.28); z-index:2;"></div>
+              ${featuredEmoji ? `<div style="position:absolute; left:94px; top:118px; transform:translate(-50%, -50%); font-size:30px; line-height:1; z-index:4; text-shadow:0 6px 16px rgba(0,0,0,0.45);">${escapeHtml(featuredEmoji.emoji || '•')}</div>` : ''}
               ${featuredFrame ? `<img src="${frameAsset}" alt="" style="position:absolute; left:27px; top:40px; width:136px; height:184px; object-fit:contain; z-index:3; pointer-events:none;">` : ''}
             </div>
             <div style="display:grid; gap:12px; align-content:center; min-width:0;">
@@ -7917,15 +8491,18 @@ PAGE_TEMPLATE = """
                 const itemFrameAsset = cosmeticAssetUrl('frame', item.key);
                 const itemBackAsset = cosmeticAssetUrl('cardback', item.key);
                 const itemGuildAsset = cosmeticAssetUrl('guild', item.key);
+                const rarity = String(item.rarity_key || 'basic').toLowerCase();
                 return `
-                  <article class="catalog-card skill-card" style="padding:14px; opacity:${unlocked ? '1' : '0.62'};">
+                  <article class="catalog-card skill-card ${rarity}" style="padding:14px; opacity:${unlocked ? '1' : '0.62'};">
                     <div class="catalog-kicker">${escapeHtml(typeLabel[type] || type)}</div>
                     <strong>${escapeHtml(item.name)}</strong>
+                    <div class="tiny">${rarity.toUpperCase()}</div>
                     <div class="tiny" style="margin-top:6px;">${equippedNow ? 'Выбрано' : (unlocked ? 'Открыто' : 'Закрыто')}</div>
                       <div style="margin-top:10px; border-radius:14px; min-height:96px; padding:12px; position:relative; overflow:hidden; background:${type === 'arena' ? giftArenaSurface(item.key) : type === 'cardback' ? giftCardbackSurface(item.key) : type === 'guild' && itemGuildAsset ? `url(${itemGuildAsset}) center/cover no-repeat` : 'linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92))'};">
                       <div style="position:absolute; inset:12px; border-radius:12px; border:${type === 'frame' ? '1px solid rgba(83,246,184,0.32)' : '1px solid rgba(121,217,255,0.18)'};"></div>
                       ${type === 'frame' && itemFrameAsset ? `<img src="${itemFrameAsset}" alt="" style="position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px); object-fit:contain;">` : ''}
                       ${type === 'guild' && itemGuildAsset ? `<img src="${itemGuildAsset}" alt="" style="position:absolute; inset:16px; width:calc(100% - 32px); height:calc(100% - 32px); object-fit:contain;">` : ''}
+                      ${type === 'emoji' ? `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:34px;">${escapeHtml(item.emoji || '•')}</div>` : ''}
                       <div style="position:absolute; left:18px; bottom:16px; font-size:11px; color:rgba(213,235,255,0.86);">${escapeHtml(item.name)}</div>
                     </div>
                     <div class="actions" style="margin-top:10px;">
@@ -8033,7 +8610,7 @@ PAGE_TEMPLATE = """
                 <div class="catalog-kicker">Пак</div>
                 <strong>Косметический пак</strong>
                 <div class="tiny">Содержимое: 1 случайный косметический предмет</div>
-                <div class="tiny">Шансы: все типы и все цвета с одинаковым шансом</div>
+                <div class="tiny">Редкости: Basic 32% • Rare 27% • Epic 20% • Mythic 13% • Legendary 8%</div>
                 <div class="tiny">Источник: только из премиум-пропуска</div>
               </article>
             </div>
@@ -8379,6 +8956,7 @@ PAGE_TEMPLATE = """
             <div class="arena-slot-meta">${card.rarity || '-'}</div>
             <div class="arena-slot-meta">Базовая сила: ${card.pool_value ?? card.base_power ?? card.score ?? 0}</div>
             <div class="arena-slot-meta">${card.skill_name || '-'}</div>
+            ${cosmeticEmojiBadge(cosmetics)}
           </div>
         `;
       }).join('');
@@ -8616,6 +9194,7 @@ PAGE_TEMPLATE = """
       playerClone.style.height = `${clashCardHeight}px`;
       playerClone.style.cssText += `;${battleCardStyle(playerCosmetics, 'player')}`;
       playerClone.style.zIndex = '3';
+      playerClone.insertAdjacentHTML('beforeend', cosmeticEmojiBadge(playerCosmetics));
       playerClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${playerActionKey}">${actionStickerSvg(playerActionKey)}</div>`);
       const enemyClone = enemySource.cloneNode(true);
       enemyClone.className = `${enemyClone.className} arena-lane-card enemy ${opponentActionKey}`.trim();
@@ -8629,6 +9208,7 @@ PAGE_TEMPLATE = """
       enemyClone.style.height = `${clashCardHeight}px`;
       enemyClone.style.cssText += `;${battleCardStyle(opponentCosmetics, 'enemy')}`;
       enemyClone.style.zIndex = '2';
+      enemyClone.insertAdjacentHTML('beforeend', cosmeticEmojiBadge(opponentCosmetics));
       enemyClone.insertAdjacentHTML('beforeend', `<div class="arena-action-sticker ${opponentActionKey}">${actionStickerSvg(opponentActionKey)}</div>`);
       playerSource.style.visibility = 'hidden';
       playerSource.style.opacity = '0';
@@ -10228,6 +10808,103 @@ PAGE_TEMPLATE = """
     window.onTelegramSiteAuth = onTelegramSiteAuth;
     window.linkTelegramFromMiniApp = linkTelegramFromMiniApp;
 
+    async function playCosmeticRouletteReveal(cosmeticReward) {
+      await resumeRouletteAudioContext();
+      const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
+      const catalog = Array.isArray(rewards.cosmetic_catalog) ? rewards.cosmetic_catalog.slice() : [];
+      const fallback = {
+        key: cosmeticReward && cosmeticReward.key ? cosmeticReward.key : 'cosmetic_reward',
+        name: cosmeticReward && cosmeticReward.name ? cosmeticReward.name : 'Косметический предмет',
+        type: cosmeticReward && cosmeticReward.type ? cosmeticReward.type : 'cosmetic',
+        emoji: cosmeticReward && cosmeticReward.emoji ? cosmeticReward.emoji : '',
+        rarity_key: cosmeticReward && cosmeticReward.rarity_key ? cosmeticReward.rarity_key : 'basic',
+      };
+      if (!catalog.find((item) => item.key === fallback.key)) {
+        catalog.push(fallback);
+      }
+      const stripSize = 42;
+      const winnerIndex = 32;
+      const stripItems = [];
+      for (let i = 0; i < stripSize; i += 1) {
+        if (i === winnerIndex) {
+          stripItems.push(fallback);
+        } else {
+          stripItems.push(drawRouletteCosmetic(catalog));
+        }
+      }
+      const cardsMarkup = stripItems.map((item, idx) => {
+        const rarityKey = cosmeticRarityKey(item);
+        return `
+          <article class="cosmetic-roulette-card ${rarityKey}" data-roulette-index="${idx}">
+            <div class="icon">${escapeHtml(cosmeticTypeIcon(item))}</div>
+            <div class="name">${escapeHtml(item.name || 'Косметика')}</div>
+            <div class="rarity">${escapeHtml(cosmeticRarityLabel(item))}</div>
+            <div class="beam"></div>
+          </article>
+        `;
+      }).join('');
+      packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
+      packCards.innerHTML = `
+        <div class="cosmetic-roulette">
+          <div class="cosmetic-roulette-marker">▼</div>
+          <div class="cosmetic-roulette-marker-bottom">▼</div>
+          <div class="cosmetic-roulette-window">
+            <div class="cosmetic-roulette-track" id="cosmetic-roulette-track">
+              ${cardsMarkup}
+            </div>
+          </div>
+        </div>
+      `;
+      const rouletteWindow = packCards.querySelector('.cosmetic-roulette-window');
+      const rouletteTrack = packCards.querySelector('#cosmetic-roulette-track');
+      const firstCard = packCards.querySelector('.cosmetic-roulette-card');
+      if (!rouletteWindow || !rouletteTrack || !firstCard) {
+        return;
+      }
+      const cardRect = firstCard.getBoundingClientRect();
+      const styles = window.getComputedStyle(rouletteTrack);
+      const gap = Number.parseFloat(styles.columnGap || styles.gap || '10') || 10;
+      const cardStep = Math.max(1, cardRect.width + gap);
+      const centerOffset = rouletteWindow.clientWidth / 2 - cardRect.width / 2;
+      const target = Math.max(0, winnerIndex * cardStep - centerOffset);
+      const fastTarget = Math.max(0, target - cardStep * 4);
+      const tickPromise = runRouletteTickSequence(target, cardStep).catch(() => {});
+      rouletteTrack.style.transform = 'translateX(0px)';
+      rouletteTrack.style.transition = 'none';
+      rouletteTrack.classList.add('spinning');
+      await sleep(40);
+      rouletteTrack.style.transition = 'transform 2200ms cubic-bezier(.18,.88,.24,1)';
+      rouletteTrack.style.transform = `translateX(-${fastTarget.toFixed(2)}px)`;
+      await sleep(2240);
+      rouletteTrack.style.transition = 'transform 2050ms cubic-bezier(.06,.96,.12,1)';
+      rouletteTrack.style.transform = `translateX(-${target.toFixed(2)}px)`;
+      await sleep(2090);
+      rouletteTrack.style.transition = 'transform 210ms ease-out';
+      rouletteTrack.style.transform = `translateX(-${(target - 6).toFixed(2)}px)`;
+      await sleep(220);
+      rouletteTrack.style.transition = 'transform 170ms ease-in';
+      rouletteTrack.style.transform = `translateX(-${target.toFixed(2)}px)`;
+      await sleep(180);
+      rouletteTrack.classList.remove('spinning');
+      await tickPromise;
+      playRouletteDropSound();
+      const finalCard = packCards.querySelector(`.cosmetic-roulette-card[data-roulette-index="${winnerIndex}"]`);
+      if (finalCard) {
+        finalCard.style.boxShadow = '0 0 0 1px rgba(255, 211, 110, 0.58), 0 0 24px rgba(255, 211, 110, 0.34)';
+      }
+      await sleep(260);
+      packCards.innerHTML = `
+        <article class="game-card ${cosmeticRarityKey(fallback)}">
+          <div class="tiny">Cosmetic • ${escapeHtml(cosmeticRarityLabel(fallback))}</div>
+          <h3>${escapeHtml(fallback.name || 'Косметический предмет')}</h3>
+          <p>${escapeHtml(cosmeticTypeLabelRu(fallback.type || 'cosmetic'))}</p>
+          <div class="team-line"><span>Источник</span><strong>Косметический пак</strong></div>
+          <p>Предмет добавлен в коллекцию и доступен во вкладке «Профиль».</p>
+        </article>
+      `;
+      packCards.classList.add('reveal');
+    }
+
     async function openPack(source = 'daily', paymentId = null, packType = null) {
       await prepareFunctionalInteraction();
       if (state.packOpening) return;
@@ -10262,17 +10939,7 @@ PAGE_TEMPLATE = """
         packNote.textContent = 'Карты уже летят';
         if (isCosmeticPack) {
           const cosmetic = data.cosmetic_reward || {};
-          packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
-          packCards.innerHTML = `
-            <article class="game-card">
-              <div class="tiny">Cosmetic</div>
-              <h3>${escapeHtml(cosmetic.name || 'Косметический предмет')}</h3>
-              <p>${escapeHtml(cosmetic.type || 'cosmetic')}</p>
-              <div class="team-line"><span>Источник</span><strong>Косметический пак</strong></div>
-              <p>Предмет добавлен в коллекцию и доступен во вкладке «Профиль».</p>
-            </article>
-          `;
-          packCards.classList.add('reveal');
+          await playCosmeticRouletteReveal(cosmetic);
           packScoreLabel.textContent = `Открыт предмет: ${cosmetic.name || '-'}`;
         } else {
           await renderPack(data.cards, data.total_score);
@@ -12377,6 +13044,8 @@ def equipped_cosmetics(wallet):
             'key': meta['key'],
             'name': meta['name'],
             'type': meta['type'],
+            'emoji': meta.get('emoji'),
+            'rarity_key': cosmetic_item_rarity(meta),
             'serial_number': row['serial_number'],
             'serial': cosmetic_serial_label(row['cosmetic_type'] or meta['type'], row['serial_number']),
         })
@@ -12421,6 +13090,8 @@ def cosmetic_inventory(wallet):
             'key': row['cosmetic_key'],
             'name': meta_by_key.get(row['cosmetic_key'], {}).get('name', row['cosmetic_key']),
             'type': meta_by_key.get(row['cosmetic_key'], {}).get('type', 'cosmetic'),
+            'emoji': meta_by_key.get(row['cosmetic_key'], {}).get('emoji'),
+            'rarity_key': cosmetic_item_rarity(meta_by_key.get(row['cosmetic_key'], {})),
             'serial_number': row['serial_number'],
             'serial': cosmetic_serial_label(row['cosmetic_type'] or meta_by_key.get(row['cosmetic_key'], {}).get('type', 'cosmetic'), row['serial_number']),
             'nft_family': meta_by_key.get(row['cosmetic_key'], {}).get('nft_family'),
@@ -12454,6 +13125,32 @@ def season_pass_random_cosmetic_pack_item(wallet, level):
     digest = hashlib.sha256(seed.encode('utf-8')).hexdigest()
     index = int(digest[:8], 16) % len(pool)
     return pool[index]
+
+
+def cosmetic_item_rarity(item):
+    key = str((item or {}).get('rarity_key') or 'basic').strip().lower()
+    if key not in COSMETIC_PACK_RARITY_WEIGHTS:
+        return 'basic'
+    return key
+
+
+def draw_cosmetic_pack_item(seed_text):
+    pool = list(COSMETIC_CATALOG)
+    if not pool:
+        return None
+    rng = random.Random(hashlib.sha256(str(seed_text).encode('utf-8')).hexdigest())
+    by_rarity = {}
+    for item in pool:
+        rarity = cosmetic_item_rarity(item)
+        by_rarity.setdefault(rarity, []).append(item)
+    rarities = [key for key in COSMETIC_PACK_RARITY_WEIGHTS.keys() if by_rarity.get(key)]
+    if not rarities:
+        return pool[rng.randint(0, len(pool) - 1)]
+    rarity_weights = [COSMETIC_PACK_RARITY_WEIGHTS.get(key, 0) for key in rarities]
+    chosen_rarity = rng.choices(rarities, weights=rarity_weights, k=1)[0]
+    candidates = by_rarity.get(chosen_rarity) or pool
+    candidate_weights = [max(0.01, float((item or {}).get('drop_weight', 1.0))) for item in candidates]
+    return rng.choices(candidates, weights=candidate_weights, k=1)[0]
 
 
 def season_pass_claimed_levels(wallet):
@@ -19221,19 +19918,23 @@ def api_pack():
     guarantee_legendary = pack_pity_status(wallet, pack_type) >= PACK_PITY_THRESHOLD - 1 if pack_type != 'cosmetic' else False
     cosmetic_reward = None
     if pack_type == 'cosmetic':
-        pool = list(COSMETIC_CATALOG)
-        if not pool:
+        selected = draw_cosmetic_pack_item(f'{seed}:cosmetic')
+        if not selected:
             return json_error('Каталог косметики недоступен.', 500)
-        digest = hashlib.sha256(f'{seed}:cosmetic'.encode('utf-8')).hexdigest()
-        selected = pool[int(digest[:8], 16) % len(pool)]
         grant_cosmetic(wallet, selected['key'], 'cosmetic_pack')
-        cosmetic_reward = {'key': selected['key'], 'name': selected['name'], 'type': selected['type']}
+        cosmetic_reward = {
+            'key': selected['key'],
+            'name': selected['name'],
+            'type': selected['type'],
+            'emoji': selected.get('emoji'),
+            'rarity_key': cosmetic_item_rarity(selected),
+        }
         cards = [{
             'domain': domain,
             'slot': 1,
             'title': selected['name'],
-            'rarity': 'Cosmetic',
-            'rarity_key': 'cosmetic',
+            'rarity': cosmetic_item_rarity(selected).capitalize(),
+            'rarity_key': cosmetic_item_rarity(selected),
             'pool_value': 0,
             'base_power': 0,
             'ability': f'Открыт предмет: {selected["name"]}',
