@@ -18642,6 +18642,89 @@ def matchmaking_cooldown_left(conn, wallet_a, wallet_b):
     return max(0, left)
 
 
+def mode_title_for(mode):
+    if mode == 'ranked':
+        return 'Рейтинговый матч'
+    if mode == 'casual':
+        return 'Обычный матч'
+    if mode == 'duel':
+        return 'Дуэль'
+    return 'Матч'
+
+
+def build_ready_match_payload(
+    *,
+    mode,
+    viewer_wallet,
+    viewer_domain,
+    opponent_wallet,
+    opponent_domain,
+    player_cards,
+    opponent_cards,
+    player_build_points,
+    opponent_build_points,
+    selected_slot,
+    opponent_selected_slot,
+    strategy_key='balanced',
+    opponent_strategy_key='balanced',
+):
+    viewer_cards = [normalize_card_profile(card) for card in (player_cards or [])]
+    enemy_cards = [normalize_card_profile(card) for card in (opponent_cards or [])]
+    selected_slot = selected_slot or auto_tactical_slot(viewer_cards, player_build_points or {})
+    opponent_selected_slot = opponent_selected_slot or auto_tactical_slot(enemy_cards, opponent_build_points or {})
+    featured_a = find_card_by_slot(viewer_cards, selected_slot)
+    featured_b = find_card_by_slot(enemy_cards, opponent_selected_slot)
+    viewer_player = ensure_player(viewer_wallet, best_domain=viewer_domain, current_domain=viewer_domain)
+    opponent_player = ensure_player(opponent_wallet, best_domain=opponent_domain, current_domain=opponent_domain)
+    cosmetics_viewer = equipped_cosmetics(viewer_wallet)
+    cosmetics_opponent = equipped_cosmetics(opponent_wallet)
+    arena_viewer = (cosmetics_viewer.get('arena') or {})
+    arena_opponent = (cosmetics_opponent.get('arena') or {})
+    chosen_arena = {}
+    if arena_viewer.get('key') and arena_opponent.get('key'):
+        chosen_arena = arena_viewer if int(viewer_player.get('rating', 1000) or 1000) >= int(opponent_player.get('rating', 1000) or 1000) else arena_opponent
+    elif arena_viewer.get('key'):
+        chosen_arena = arena_viewer
+    elif arena_opponent.get('key'):
+        chosen_arena = arena_opponent
+    return {
+        'kind': 'solo',
+        'mode': mode,
+        'mode_title': mode_title_for(mode),
+        'player_wallet': viewer_wallet,
+        'opponent_wallet': opponent_wallet,
+        'player_domain': viewer_domain,
+        'opponent_domain': opponent_domain,
+        'player_score': 0,
+        'opponent_score': 0,
+        'player_deck_power': deck_score(viewer_cards),
+        'opponent_deck_power': deck_score(enemy_cards),
+        'tie_breaker': False,
+        'rounds': [],
+        'player_cards': viewer_cards,
+        'opponent_cards': enemy_cards,
+        'player_featured_card': featured_a,
+        'opponent_featured_card': featured_b,
+        'selected_slot': selected_slot,
+        'action_plan': [],
+        'opponent_action_plan': [],
+        'strategy_key': normalize_strategy_key(strategy_key),
+        'opponent_strategy_key': normalize_strategy_key(opponent_strategy_key),
+        'player_build': player_build_points or {},
+        'player_build_pool': int(sum(int((player_build_points or {}).get(key, 0)) for key in DISCIPLINE_KEYS)),
+        'opponent_build': opponent_build_points or {},
+        'player_domain_metadata': get_domain_metadata_payload(viewer_domain, wallet=viewer_wallet),
+        'opponent_domain_metadata': get_domain_metadata_payload(opponent_domain, wallet=opponent_wallet),
+        'result': 'draw',
+        'result_label': 'Ожидание старта',
+        'reward_summary': reward_summary(viewer_wallet),
+        'reward_gain': {'pack_shards': 0, 'rare_tokens': 0, 'lucky_tokens': 0, 'season_points': 0},
+        'player_cosmetics': cosmetics_viewer,
+        'opponent_cosmetics': cosmetics_opponent,
+        'battle_arena_cosmetic': chosen_arena,
+    }
+
+
 def create_battle_session(conn, wallet_a, wallet_b, payload_a, payload_b):
     session_id = uuid.uuid4().hex
     ts = now_iso()
@@ -18711,31 +18794,45 @@ def finalize_battle_session(conn, row):
     selected_slot_b = payload_b.get('selected_slot')
     strategy_key_a = payload_a.get('strategy_key') or 'balanced'
     strategy_key_b = payload_b.get('strategy_key') or 'balanced'
-    match = head_to_head_result(
-        wallet_a,
-        domain_a,
-        wallet_b,
-        domain_b,
+    cards_a = [normalize_card_profile(card) for card in (payload_a.get('player_cards') or load_active_deck_cards(wallet_a, domain_a) or generate_pack(domain_a))]
+    cards_b = [normalize_card_profile(card) for card in (payload_a.get('opponent_cards') or load_active_deck_cards(wallet_b, domain_b) or generate_pack(domain_b))]
+    build_a = payload_a.get('player_build') if isinstance(payload_a.get('player_build'), dict) else load_deck_build(wallet_a, domain_a, cards_a).get('points', {})
+    build_b = payload_a.get('opponent_build') if isinstance(payload_a.get('opponent_build'), dict) else load_deck_build(wallet_b, domain_b, cards_b).get('points', {})
+    selected_slot_a = selected_slot_a or auto_tactical_slot(cards_a, build_a)
+    selected_slot_b = selected_slot_b or auto_tactical_slot(cards_b, build_b)
+    # После ready запускаем live-сессию с выбором действий в раундах.
+    fresh_a = create_solo_battle(
+        wallet=wallet_a,
+        domain=domain_a,
+        mode=mode,
+        mode_title=mode_title_for(mode),
+        opponent_wallet=wallet_b,
+        opponent_domain=domain_b,
+        player_cards=cards_a,
+        opponent_cards=cards_b,
+        build_a=build_a,
+        build_b=build_b,
         selected_slot_a=selected_slot_a,
         selected_slot_b=selected_slot_b,
         strategy_key_a=strategy_key_a,
         strategy_key_b=strategy_key_b,
     )
-    rating_meta = None
-    if mode == 'ranked':
-        _, _, rating_a_before, rating_a_after, rating_b_before, rating_b_after = apply_ranked_result_duel(match)
-        rating_meta = {
-            'rating_a_before': rating_a_before,
-            'rating_a_after': rating_a_after,
-            'rating_b_before': rating_b_before,
-            'rating_b_after': rating_b_after,
-        }
-    else:
-        record_non_ranked_game(wallet_a, domain_a)
-        record_non_ranked_game(wallet_b, domain_b)
-        apply_non_ranked_domain_progress(match, mode=mode)
-    fresh_a = invite_result_payload({'mode': mode}, match, wallet_a, rating_meta=rating_meta)
-    fresh_b = invite_result_payload({'mode': mode}, match, wallet_b, rating_meta=rating_meta)
+    fresh_b = create_solo_battle(
+        wallet=wallet_b,
+        domain=domain_b,
+        mode=mode,
+        mode_title=mode_title_for(mode),
+        opponent_wallet=wallet_a,
+        opponent_domain=domain_a,
+        player_cards=cards_b,
+        opponent_cards=cards_a,
+        build_a=build_b,
+        build_b=build_a,
+        selected_slot_a=selected_slot_b,
+        selected_slot_b=selected_slot_a,
+        strategy_key_a=strategy_key_b,
+        strategy_key_b=strategy_key_a,
+    )
     fresh_a['battle_session_id'] = row['id']
     fresh_b['battle_session_id'] = row['id']
     fresh_a['requires_ready'] = False
@@ -18874,16 +18971,44 @@ def upsert_searching_matchmaking(conn, wallet, domain, mode, selected_slot=None)
 def settle_matchmaking_pair(mode, wallet, domain, opponent_row, selected_slot=None):
     opponent_wallet = opponent_row['wallet']
     opponent_domain = opponent_row['domain']
-    match = head_to_head_result(
-        wallet,
-        domain,
-        opponent_wallet,
-        opponent_domain,
-        selected_slot_a=selected_slot,
-        selected_slot_b=opponent_row['selected_slot'],
+    cards_a = load_active_deck_cards(wallet, domain) or generate_pack(domain)
+    cards_b = load_active_deck_cards(opponent_wallet, opponent_domain) or generate_pack(opponent_domain)
+    cards_a = [normalize_card_profile(card) for card in cards_a]
+    cards_b = [normalize_card_profile(card) for card in cards_b]
+    build_a = load_deck_build(wallet, domain, cards_a)
+    build_b = load_deck_build(opponent_wallet, opponent_domain, cards_b)
+    selected_slot_a = selected_slot or auto_tactical_slot(cards_a, build_a['points'])
+    selected_slot_b = opponent_row['selected_slot'] or auto_tactical_slot(cards_b, build_b['points'])
+    own_payload = build_ready_match_payload(
+        mode=mode,
+        viewer_wallet=wallet,
+        viewer_domain=domain,
+        opponent_wallet=opponent_wallet,
+        opponent_domain=opponent_domain,
+        player_cards=cards_a,
+        opponent_cards=cards_b,
+        player_build_points=build_a['points'],
+        opponent_build_points=build_b['points'],
+        selected_slot=selected_slot_a,
+        opponent_selected_slot=selected_slot_b,
+        strategy_key='balanced',
+        opponent_strategy_key='balanced',
     )
-    own_payload = invite_result_payload({'mode': mode}, match, wallet, rating_meta=None)
-    opp_payload = invite_result_payload({'mode': mode}, match, opponent_wallet, rating_meta=None)
+    opp_payload = build_ready_match_payload(
+        mode=mode,
+        viewer_wallet=opponent_wallet,
+        viewer_domain=opponent_domain,
+        opponent_wallet=wallet,
+        opponent_domain=domain,
+        player_cards=cards_b,
+        opponent_cards=cards_a,
+        player_build_points=build_b['points'],
+        opponent_build_points=build_a['points'],
+        selected_slot=selected_slot_b,
+        opponent_selected_slot=selected_slot_a,
+        strategy_key='balanced',
+        opponent_strategy_key='balanced',
+    )
     ts = now_iso()
     queue_id = uuid.uuid4().hex
     with closing(get_db()) as conn:
@@ -18967,14 +19092,44 @@ def accept_duel_invite(invite_id, invitee_wallet):
                 raise ValueError('Приглашение уже обновлено, обнови статус и попробуй снова.')
         conn.commit()
 
-    match = head_to_head_result(
-        invite['inviter_wallet'],
-        invite['inviter_domain'],
-        invite['invitee_wallet'],
-        invite['invitee_domain'],
+    inviter_cards = load_active_deck_cards(invite['inviter_wallet'], invite['inviter_domain']) or generate_pack(invite['inviter_domain'])
+    invitee_cards = load_active_deck_cards(invite['invitee_wallet'], invite['invitee_domain']) or generate_pack(invite['invitee_domain'])
+    inviter_cards = [normalize_card_profile(card) for card in inviter_cards]
+    invitee_cards = [normalize_card_profile(card) for card in invitee_cards]
+    inviter_build = load_deck_build(invite['inviter_wallet'], invite['inviter_domain'], inviter_cards)
+    invitee_build = load_deck_build(invite['invitee_wallet'], invite['invitee_domain'], invitee_cards)
+    inviter_slot = auto_tactical_slot(inviter_cards, inviter_build['points'])
+    invitee_slot = auto_tactical_slot(invitee_cards, invitee_build['points'])
+    inviter_payload = build_ready_match_payload(
+        mode=invite['mode'],
+        viewer_wallet=invite['inviter_wallet'],
+        viewer_domain=invite['inviter_domain'],
+        opponent_wallet=invite['invitee_wallet'],
+        opponent_domain=invite['invitee_domain'],
+        player_cards=inviter_cards,
+        opponent_cards=invitee_cards,
+        player_build_points=inviter_build['points'],
+        opponent_build_points=invitee_build['points'],
+        selected_slot=inviter_slot,
+        opponent_selected_slot=invitee_slot,
+        strategy_key='balanced',
+        opponent_strategy_key='balanced',
     )
-    inviter_payload = invite_result_payload({'mode': invite['mode']}, match, invite['inviter_wallet'])
-    invitee_payload = invite_result_payload({'mode': invite['mode']}, match, invite['invitee_wallet'])
+    invitee_payload = build_ready_match_payload(
+        mode=invite['mode'],
+        viewer_wallet=invite['invitee_wallet'],
+        viewer_domain=invite['invitee_domain'],
+        opponent_wallet=invite['inviter_wallet'],
+        opponent_domain=invite['inviter_domain'],
+        player_cards=invitee_cards,
+        opponent_cards=inviter_cards,
+        player_build_points=invitee_build['points'],
+        opponent_build_points=inviter_build['points'],
+        selected_slot=invitee_slot,
+        opponent_selected_slot=inviter_slot,
+        strategy_key='balanced',
+        opponent_strategy_key='balanced',
+    )
 
     with closing(get_db()) as conn:
         conn.execute('BEGIN IMMEDIATE')
@@ -20693,11 +20848,29 @@ def api_match(mode):
             return json_error('У соперника ещё нет выбранного домена для боя.', 400)
 
         if delivery == 'site':
-            match = head_to_head_result(wallet, domain, opponent_wallet, opponent_domain, selected_slot_a=selected_slot)
-            record_non_ranked_game(wallet, domain)
-            record_non_ranked_game(opponent_wallet, opponent_domain)
-            apply_non_ranked_domain_progress(match, mode='duel')
-            result = invite_result_payload({'mode': 'duel'}, match, wallet)
+            player_cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
+            player_cards = [normalize_card_profile(card) for card in player_cards]
+            opponent_cards = load_active_deck_cards(opponent_wallet, opponent_domain) or generate_pack(opponent_domain)
+            opponent_cards = [normalize_card_profile(card) for card in opponent_cards]
+            player_build = load_deck_build(wallet, domain, player_cards)
+            opponent_build = load_deck_build(opponent_wallet, opponent_domain, opponent_cards)
+            selected_slot = selected_slot or auto_tactical_slot(player_cards, player_build['points'])
+            result = create_solo_battle(
+                wallet=wallet,
+                domain=domain,
+                mode='duel',
+                mode_title='Дуэль',
+                opponent_wallet=opponent_wallet,
+                opponent_domain=opponent_domain,
+                player_cards=player_cards,
+                opponent_cards=opponent_cards,
+                build_a=player_build['points'],
+                build_b=opponent_build['points'],
+                selected_slot_a=selected_slot,
+                selected_slot_b=auto_tactical_slot(opponent_cards, opponent_build['points']),
+                strategy_key_a='balanced',
+                strategy_key_b='balanced',
+            )
             return jsonify({'result': result, 'player': get_player(wallet), 'delivery': 'site'})
 
         invite = create_duel_invite('duel', wallet, domain, opponent_wallet, timeout_seconds)
