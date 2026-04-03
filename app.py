@@ -6364,53 +6364,157 @@ PAGE_TEMPLATE = """
         { accent: '#a58bff', accentSoft: 'rgba(165,139,255,0.24)' },
       ];
       const tone = palette[Math.max(0, Number(stepIndex || 0)) % palette.length];
+      const scene = Math.max(0, Math.min(7, Number(stepIndex || 0)));
+      const iconFont = "font-family='Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
       const providedIcons = Array.isArray(step && step.gifIcons) ? step.gifIcons.filter(Boolean) : [];
       const icons = providedIcons.length ? providedIcons.slice(0, 4) : ['🎮', '⚔️', '🛡️', '✨'];
       while (icons.length < 4) icons.push(icons[icons.length - 1] || '✨');
       const [iconA, iconB, iconC, iconD] = icons.map((item) => escapeSvg(String(item || '✨')));
-      const stepLabel = escapeSvg(`Шаг ${Number(stepIndex || 0) + 1}`);
+      const stepLabel = escapeSvg(`Шаг ${scene + 1}`);
+
+      let sceneMarkup = '';
+      if (scene === 0) {
+        sceneMarkup = `
+          <rect x="108" y="70" width="220" height="280" rx="24" fill="rgba(8,18,34,0.94)" stroke="${tone.accent}" stroke-opacity="0.8" stroke-width="3"/>
+          <rect x="540" y="150" width="248" height="84" rx="22" fill="rgba(8,18,34,0.94)" stroke="${tone.accent}" stroke-opacity="0.8" stroke-width="3"/>
+          <text x="218" y="206" font-size="66" text-anchor="middle" ${iconFont}>${iconA}</text>
+          <text x="664" y="206" font-size="52" text-anchor="middle" ${iconFont}>${iconB}</text>
+          <circle cx="330" cy="192" r="10" fill="${tone.accent}">
+            <animate attributeName="cx" values="330;540;330" dur="1.8s" repeatCount="indefinite"/>
+          </circle>
+          <text x="332" y="332" font-size="20" fill="#dff3ff">Подключение и проверка</text>
+        `;
+      } else if (scene === 1) {
+        sceneMarkup = `
+          <rect x="294" y="86" width="312" height="248" rx="20" fill="rgba(7,16,30,0.82)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
+          <rect x="194" y="128" width="150" height="210" rx="16" fill="rgba(10,22,42,0.9)" stroke="${tone.accent}" stroke-opacity="0.6">
+            <animate attributeName="x" values="194;354;194" dur="2.2s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="374" y="118" width="150" height="220" rx="16" fill="rgba(10,22,42,0.9)" stroke="${tone.accent}" stroke-opacity="0.74">
+            <animate attributeName="x" values="374;234;374" dur="2.2s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="554" y="128" width="150" height="210" rx="16" fill="rgba(10,22,42,0.9)" stroke="${tone.accent}" stroke-opacity="0.6">
+            <animate attributeName="x" values="554;414;554" dur="2.2s" repeatCount="indefinite"/>
+          </rect>
+          <text x="450" y="230" font-size="62" text-anchor="middle" ${iconFont}>${iconA}</text>
+          <text x="450" y="332" font-size="20" text-anchor="middle" fill="#dff3ff">Открытие паков</text>
+        `;
+      } else if (scene === 2) {
+        sceneMarkup = `
+          <g stroke="${tone.accent}" stroke-opacity="0.25" stroke-width="2">
+            <line x1="140" y1="88" x2="140" y2="336"/><line x1="760" y1="88" x2="760" y2="336"/><line x1="140" y1="336" x2="760" y2="336"/>
+          </g>
+          <rect x="192" y="260" width="56" height="76" rx="10" fill="${tone.accent}">
+            <animate attributeName="y" values="260;192;260" dur="1.8s" repeatCount="indefinite"/>
+            <animate attributeName="height" values="76;144;76" dur="1.8s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="292" y="214" width="56" height="122" rx="10" fill="${tone.accent}" fill-opacity="0.85">
+            <animate attributeName="y" values="214;166;214" dur="1.8s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="392" y="170" width="56" height="166" rx="10" fill="${tone.accent}" fill-opacity="0.72">
+            <animate attributeName="y" values="170;140;170" dur="1.8s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="492" y="224" width="56" height="112" rx="10" fill="${tone.accent}" fill-opacity="0.85">
+            <animate attributeName="y" values="224;180;224" dur="1.8s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="592" y="246" width="56" height="90" rx="10" fill="${tone.accent}">
+            <animate attributeName="y" values="246;204;246" dur="1.8s" repeatCount="indefinite"/>
+          </rect>
+          <text x="450" y="120" font-size="42" text-anchor="middle" ${iconFont}>${iconB}</text>
+          <text x="450" y="368" font-size="20" text-anchor="middle" fill="#dff3ff">Распределение пула</text>
+        `;
+      } else if (scene === 3) {
+        sceneMarkup = `
+          <g stroke="${tone.accent}" stroke-opacity="0.32" stroke-width="2.2">
+            <line x1="98" y1="88" x2="802" y2="88"/><line x1="98" y1="332" x2="802" y2="332"/><line x1="450" y1="88" x2="450" y2="332"/>
+          </g>
+          <rect x="360" y="92" width="108" height="148" rx="18" fill="rgba(9,20,38,0.9)" stroke="rgba(255,122,134,0.9)" stroke-width="3">
+            <animate attributeName="y" values="92;142;92" dur="1.6s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="360" y="190" width="108" height="148" rx="18" fill="rgba(9,20,38,0.9)" stroke="rgba(83,246,184,0.95)" stroke-width="3">
+            <animate attributeName="y" values="190;140;190" dur="1.6s" repeatCount="indefinite"/>
+          </rect>
+          <text x="414" y="178" font-size="52" text-anchor="middle" ${iconFont}>${iconA}</text>
+          <text x="414" y="274" font-size="52" text-anchor="middle" ${iconFont}>${iconB}</text>
+          <circle cx="450" cy="210" r="38" fill="none" stroke="#ffd06a" stroke-width="4">
+            <animate attributeName="r" values="26;54;26" dur="1.2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.2s" repeatCount="indefinite"/>
+          </circle>
+        `;
+      } else if (scene === 4) {
+        sceneMarkup = `
+          <rect x="180" y="118" width="170" height="72" rx="18" fill="rgba(7,17,32,0.9)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
+          <rect x="365" y="118" width="170" height="72" rx="18" fill="rgba(7,17,32,0.9)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
+          <rect x="550" y="118" width="170" height="72" rx="18" fill="rgba(7,17,32,0.9)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
+          <text x="265" y="164" font-size="34" text-anchor="middle" ${iconFont}>⚡</text>
+          <text x="450" y="164" font-size="32" text-anchor="middle" fill="#e9f6ff">КД 1</text>
+          <text x="635" y="164" font-size="34" text-anchor="middle" ${iconFont}>✨</text>
+          <circle cx="450" cy="264" r="44" fill="none" stroke="${tone.accent}" stroke-width="7" stroke-dasharray="230">
+            <animate attributeName="stroke-dashoffset" values="230;0;230" dur="1.6s" repeatCount="indefinite"/>
+          </circle>
+          <text x="450" y="274" font-size="30" text-anchor="middle" fill="#e9f6ff">3</text>
+        `;
+      } else if (scene === 5) {
+        sceneMarkup = `
+          <circle cx="250" cy="210" r="70" fill="rgba(10,22,40,0.9)" stroke="${tone.accent}" stroke-opacity="0.82" stroke-width="4"/>
+          <circle cx="650" cy="210" r="70" fill="rgba(10,22,40,0.9)" stroke="${tone.accent}" stroke-opacity="0.82" stroke-width="4"/>
+          <text x="250" y="224" font-size="54" text-anchor="middle" ${iconFont}>${iconA}</text>
+          <text x="650" y="224" font-size="54" text-anchor="middle" ${iconFont}>${iconB}</text>
+          <rect x="378" y="166" width="144" height="88" rx="18" fill="rgba(7,17,32,0.92)" stroke="${tone.accent}" stroke-opacity="0.84" stroke-width="3"/>
+          <text x="450" y="222" font-size="34" text-anchor="middle" fill="#e8f5ff">30с</text>
+          <circle cx="450" cy="210" r="64" fill="none" stroke="${tone.accent}" stroke-width="4" stroke-dasharray="402">
+            <animate attributeName="stroke-dashoffset" values="402;0;402" dur="2.6s" repeatCount="indefinite"/>
+          </circle>
+        `;
+      } else if (scene === 6) {
+        sceneMarkup = `
+          <rect x="120" y="170" width="660" height="44" rx="18" fill="rgba(7,16,30,0.9)" stroke="${tone.accent}" stroke-opacity="0.56" stroke-width="3"/>
+          <rect x="128" y="178" width="130" height="28" rx="14" fill="${tone.accent}">
+            <animate attributeName="x" values="128;640;128" dur="2.8s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="190" y="88" width="126" height="84" rx="16" fill="rgba(10,22,42,0.92)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
+          <rect x="386" y="88" width="126" height="84" rx="16" fill="rgba(10,22,42,0.92)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
+          <rect x="582" y="88" width="126" height="84" rx="16" fill="rgba(10,22,42,0.92)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
+          <text x="253" y="140" font-size="40" text-anchor="middle" ${iconFont}>🛡️</text>
+          <text x="449" y="140" font-size="40" text-anchor="middle" ${iconFont}>🏆</text>
+          <text x="645" y="140" font-size="40" text-anchor="middle" ${iconFont}>🎟️</text>
+        `;
+      } else {
+        sceneMarkup = `
+          <rect x="162" y="88" width="172" height="246" rx="18" fill="rgba(8,18,34,0.92)" stroke="${tone.accent}" stroke-opacity="0.74" stroke-width="3"/>
+          <rect x="364" y="88" width="172" height="246" rx="18" fill="rgba(8,18,34,0.92)" stroke="${tone.accent}" stroke-opacity="0.74" stroke-width="3"/>
+          <rect x="566" y="88" width="172" height="246" rx="18" fill="rgba(8,18,34,0.92)" stroke="${tone.accent}" stroke-opacity="0.74" stroke-width="3"/>
+          <rect x="180" y="106" width="136" height="210" rx="12" fill="rgba(83,246,184,0.16)">
+            <animate attributeName="fill" values="rgba(83,246,184,0.16);rgba(83,246,184,0.28);rgba(83,246,184,0.16)" dur="2s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="382" y="106" width="136" height="210" rx="12" fill="rgba(255,211,110,0.14)">
+            <animate attributeName="fill" values="rgba(255,211,110,0.14);rgba(255,211,110,0.28);rgba(255,211,110,0.14)" dur="2s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="584" y="106" width="136" height="210" rx="12" fill="rgba(255,122,134,0.14)">
+            <animate attributeName="fill" values="rgba(255,122,134,0.14);rgba(255,122,134,0.28);rgba(255,122,134,0.14)" dur="2s" repeatCount="indefinite"/>
+          </rect>
+          <text x="248" y="228" font-size="42" text-anchor="middle" ${iconFont}>${iconC}</text>
+          <text x="450" y="228" font-size="42" text-anchor="middle" ${iconFont}>${iconD}</text>
+          <text x="652" y="228" font-size="42" text-anchor="middle" ${iconFont}>${iconA}</text>
+        `;
+      }
+
       const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420">
           <defs>
-            <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="guideBg" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#08162a"/>
               <stop offset="100%" stop-color="#050d1e"/>
             </linearGradient>
-            <radialGradient id="glow" cx="50%" cy="52%" r="58%">
+            <radialGradient id="guideGlow" cx="50%" cy="52%" r="58%">
               <stop offset="0%" stop-color="${tone.accentSoft}"/>
               <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
             </radialGradient>
           </defs>
-          <rect width="900" height="420" fill="url(#bg)"/>
-          <rect width="900" height="420" fill="url(#glow)"/>
-          <g stroke="${tone.accent}" stroke-opacity="0.26" stroke-width="2">
-            <line x1="80" y1="70" x2="820" y2="70"/>
-            <line x1="80" y1="350" x2="820" y2="350"/>
-            <line x1="220" y1="70" x2="220" y2="350"/>
-            <line x1="450" y1="70" x2="450" y2="350"/>
-            <line x1="680" y1="70" x2="680" y2="350"/>
-          </g>
-          <g>
-            <rect x="334" y="86" width="118" height="164" rx="20" fill="rgba(12,26,45,0.86)" stroke="${tone.accent}" stroke-opacity="0.78" stroke-width="3">
-              <animate attributeName="y" values="86;70;86" dur="2.7s" repeatCount="indefinite"/>
-            </rect>
-            <text x="393" y="178" font-size="54" text-anchor="middle" dominant-baseline="middle">${iconA}</text>
-          </g>
-          <g>
-            <rect x="448" y="170" width="118" height="164" rx="20" fill="rgba(12,26,45,0.86)" stroke="${tone.accent}" stroke-opacity="0.78" stroke-width="3">
-              <animate attributeName="y" values="170;188;170" dur="2.7s" repeatCount="indefinite"/>
-            </rect>
-            <text x="507" y="262" font-size="54" text-anchor="middle" dominant-baseline="middle">${iconB}</text>
-          </g>
-          <circle cx="450" cy="210" r="44" fill="none" stroke="${tone.accent}" stroke-opacity="0.86" stroke-width="4">
-            <animate attributeName="r" values="34;64;34" dur="1.8s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="0.9;0.24;0.9" dur="1.8s" repeatCount="indefinite"/>
-          </circle>
-          <g opacity="0.82">
-            <text x="165" y="118" font-size="34">${iconC}</text>
-            <text x="740" y="300" font-size="34">${iconD}</text>
-            <animateTransform attributeName="transform" type="rotate" from="-5 450 210" to="5 450 210" dur="2.2s" repeatCount="indefinite" additive="sum"/>
-          </g>
+          <rect width="900" height="420" fill="url(#guideBg)"/>
+          <rect width="900" height="420" fill="url(#guideGlow)"/>
+          <rect x="70" y="58" width="760" height="304" rx="22" fill="rgba(8,18,32,0.26)" stroke="${tone.accent}" stroke-opacity="0.26" stroke-width="2"/>
+          ${sceneMarkup}
           <rect x="84" y="22" width="132" height="34" rx="16" fill="rgba(5,15,29,0.92)" stroke="${tone.accent}" stroke-opacity="0.74" stroke-width="2"/>
           <text x="150" y="45" font-size="18" text-anchor="middle" fill="#eaf6ff" font-family="Arial, sans-serif">${stepLabel}</text>
         </svg>
@@ -8362,6 +8466,13 @@ PAGE_TEMPLATE = """
         ].join(', ');
       }
       const layers = [];
+      if (safeKey.includes('onyx_black')) {
+        layers.push('radial-gradient(circle at 50% 50%, rgba(142, 176, 228, 0.18), rgba(0,0,0,0) 58%)');
+        layers.push('repeating-radial-gradient(circle at 50% 50%, rgba(136, 164, 208, 0.14) 0 2px, rgba(0,0,0,0) 2px 34px)');
+      } else if (safeKey.includes('black')) {
+        layers.push('repeating-linear-gradient(135deg, rgba(150, 154, 165, 0.12) 0 2px, rgba(0,0,0,0) 2px 24px)');
+        layers.push('radial-gradient(circle at 50% 50%, rgba(120, 126, 138, 0.08), rgba(0,0,0,0) 62%)');
+      }
       const pattern = monogramPatternSurface(emoji, theme, 'arena');
       if (pattern) layers.push(pattern);
       layers.push(`radial-gradient(circle at 50% 45%, ${hexToRgba(theme.accent, 0.14)}, transparent 62%)`);
