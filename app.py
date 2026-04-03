@@ -72,7 +72,7 @@ MIN_INVITE_TIMEOUT_SECONDS = int(os.getenv('MIN_INVITE_TIMEOUT_SECONDS', '30'))
 MAX_INVITE_TIMEOUT_SECONDS = int(os.getenv('MAX_INVITE_TIMEOUT_SECONDS', '600'))
 TELEGRAM_INITDATA_MAX_AGE = int(os.getenv('TELEGRAM_INITDATA_MAX_AGE', '86400'))
 ACTIVE_USER_WINDOW_SECONDS = int(os.getenv('ACTIVE_USER_WINDOW_SECONDS', '900'))
-MATCHMAKING_SEARCH_TTL_SECONDS = int(os.getenv('MATCHMAKING_SEARCH_TTL_SECONDS', '180'))
+MATCHMAKING_SEARCH_TTL_SECONDS = int(os.getenv('MATCHMAKING_SEARCH_TTL_SECONDS', '150'))
 MATCHMAKING_REMATCH_COOLDOWN_SECONDS = int(os.getenv('MATCHMAKING_REMATCH_COOLDOWN_SECONDS', '5'))
 DB_PATH = Path(os.getenv('APP_DB_PATH', 'tondomaingame.db'))
 TEN_K_CONFIG_TTL = int(os.getenv('TEN_K_CONFIG_TTL', '900'))
@@ -20524,6 +20524,7 @@ def api_matchmaking_status(mode):
         return json_error('Нужно передать свой кошелёк.')
     def status_once():
         with closing(get_db()) as conn:
+            cleanup_matchmaking_queue(conn)
             row = latest_matchmaking_row(conn, wallet, mode)
             if row is None:
                 return {'status': 'idle'}
