@@ -6347,6 +6347,13 @@ PAGE_TEMPLATE = """
     const buildMagic = document.getElementById('build-magic');
     const saveBuildBtn = document.getElementById('save-build-btn');
     const buildStatus = document.getElementById('build-status');
+    if (startupGuideGif && startupGuideStageOverlay) {
+      startupGuideGif.addEventListener('error', () => {
+        startupGuideGif.style.display = 'none';
+        startupGuideStageOverlay.style.display = 'flex';
+        startupGuideStageOverlay.textContent = 'Мини-видео временно недоступно';
+      });
+    }
     let tonConnectUI = null;
     let matchmakingPollTimer = null;
     let modeFocusTimer = null;
@@ -6365,11 +6372,20 @@ PAGE_TEMPLATE = """
       ];
       const tone = palette[Math.max(0, Number(stepIndex || 0)) % palette.length];
       const scene = Math.max(0, Math.min(7, Number(stepIndex || 0)));
-      const iconFont = "font-family='Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
-      const providedIcons = Array.isArray(step && step.gifIcons) ? step.gifIcons.filter(Boolean) : [];
-      const icons = providedIcons.length ? providedIcons.slice(0, 4) : ['🎮', '⚔️', '🛡️', '✨'];
-      while (icons.length < 4) icons.push(icons[icons.length - 1] || '✨');
-      const [iconA, iconB, iconC, iconD] = icons.map((item) => escapeSvg(String(item || '✨')));
+      const providedLabels = Array.isArray(step && step.gifLabels) ? step.gifLabels.filter(Boolean) : [];
+      const sceneLabels = [
+        ['WALLET', 'DOMAIN', 'TON', 'READY'],
+        ['PACK', 'CARD', 'DROP', 'SCORE'],
+        ['POOL', 'BUILD', 'META', 'BALANCE'],
+        ['ATTACK', 'BLOCK', 'VS', 'WIN'],
+        ['ENERGY', 'CD', 'SKILL', 'CHARGE'],
+        ['PVP', 'DUEL', 'TIMER', 'INVITE'],
+        ['CLAN', 'PASS', 'REWARD', 'QUEST'],
+        ['STYLE', 'ARENA', 'FRAME', 'PROGRESS'],
+      ];
+      const labels = providedLabels.length ? providedLabels.slice(0, 4) : (sceneLabels[scene] || sceneLabels[0]);
+      while (labels.length < 4) labels.push(labels[labels.length - 1] || 'GUIDE');
+      const [labelA, labelB, labelC, labelD] = labels.map((item) => escapeSvg(String(item || 'GUIDE')));
       const stepLabel = escapeSvg(`Шаг ${scene + 1}`);
 
       let sceneMarkup = '';
@@ -6377,8 +6393,8 @@ PAGE_TEMPLATE = """
         sceneMarkup = `
           <rect x="108" y="70" width="220" height="280" rx="24" fill="rgba(8,18,34,0.94)" stroke="${tone.accent}" stroke-opacity="0.8" stroke-width="3"/>
           <rect x="540" y="150" width="248" height="84" rx="22" fill="rgba(8,18,34,0.94)" stroke="${tone.accent}" stroke-opacity="0.8" stroke-width="3"/>
-          <text x="218" y="206" font-size="66" text-anchor="middle" ${iconFont}>${iconA}</text>
-          <text x="664" y="206" font-size="52" text-anchor="middle" ${iconFont}>${iconB}</text>
+          <text x="218" y="206" font-size="26" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
+          <text x="664" y="206" font-size="24" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelB}</text>
           <circle cx="330" cy="192" r="10" fill="${tone.accent}">
             <animate attributeName="cx" values="330;540;330" dur="1.8s" repeatCount="indefinite"/>
           </circle>
@@ -6396,7 +6412,7 @@ PAGE_TEMPLATE = """
           <rect x="554" y="128" width="150" height="210" rx="16" fill="rgba(10,22,42,0.9)" stroke="${tone.accent}" stroke-opacity="0.6">
             <animate attributeName="x" values="554;414;554" dur="2.2s" repeatCount="indefinite"/>
           </rect>
-          <text x="450" y="230" font-size="62" text-anchor="middle" ${iconFont}>${iconA}</text>
+          <text x="450" y="230" font-size="30" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
           <text x="450" y="332" font-size="20" text-anchor="middle" fill="#dff3ff">Открытие паков</text>
         `;
       } else if (scene === 2) {
@@ -6420,7 +6436,7 @@ PAGE_TEMPLATE = """
           <rect x="592" y="246" width="56" height="90" rx="10" fill="${tone.accent}">
             <animate attributeName="y" values="246;204;246" dur="1.8s" repeatCount="indefinite"/>
           </rect>
-          <text x="450" y="120" font-size="42" text-anchor="middle" ${iconFont}>${iconB}</text>
+          <text x="450" y="120" font-size="24" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelB}</text>
           <text x="450" y="368" font-size="20" text-anchor="middle" fill="#dff3ff">Распределение пула</text>
         `;
       } else if (scene === 3) {
@@ -6434,8 +6450,8 @@ PAGE_TEMPLATE = """
           <rect x="360" y="190" width="108" height="148" rx="18" fill="rgba(9,20,38,0.9)" stroke="rgba(83,246,184,0.95)" stroke-width="3">
             <animate attributeName="y" values="190;140;190" dur="1.6s" repeatCount="indefinite"/>
           </rect>
-          <text x="414" y="178" font-size="52" text-anchor="middle" ${iconFont}>${iconA}</text>
-          <text x="414" y="274" font-size="52" text-anchor="middle" ${iconFont}>${iconB}</text>
+          <text x="414" y="178" font-size="20" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
+          <text x="414" y="274" font-size="20" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelB}</text>
           <circle cx="450" cy="210" r="38" fill="none" stroke="#ffd06a" stroke-width="4">
             <animate attributeName="r" values="26;54;26" dur="1.2s" repeatCount="indefinite"/>
             <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.2s" repeatCount="indefinite"/>
@@ -6446,9 +6462,9 @@ PAGE_TEMPLATE = """
           <rect x="180" y="118" width="170" height="72" rx="18" fill="rgba(7,17,32,0.9)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
           <rect x="365" y="118" width="170" height="72" rx="18" fill="rgba(7,17,32,0.9)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
           <rect x="550" y="118" width="170" height="72" rx="18" fill="rgba(7,17,32,0.9)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
-          <text x="265" y="164" font-size="34" text-anchor="middle" ${iconFont}>⚡</text>
+          <text x="265" y="164" font-size="20" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">ENERGY</text>
           <text x="450" y="164" font-size="32" text-anchor="middle" fill="#e9f6ff">КД 1</text>
-          <text x="635" y="164" font-size="34" text-anchor="middle" ${iconFont}>✨</text>
+          <text x="635" y="164" font-size="20" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">SKILL</text>
           <circle cx="450" cy="264" r="44" fill="none" stroke="${tone.accent}" stroke-width="7" stroke-dasharray="230">
             <animate attributeName="stroke-dashoffset" values="230;0;230" dur="1.6s" repeatCount="indefinite"/>
           </circle>
@@ -6458,8 +6474,8 @@ PAGE_TEMPLATE = """
         sceneMarkup = `
           <circle cx="250" cy="210" r="70" fill="rgba(10,22,40,0.9)" stroke="${tone.accent}" stroke-opacity="0.82" stroke-width="4"/>
           <circle cx="650" cy="210" r="70" fill="rgba(10,22,40,0.9)" stroke="${tone.accent}" stroke-opacity="0.82" stroke-width="4"/>
-          <text x="250" y="224" font-size="54" text-anchor="middle" ${iconFont}>${iconA}</text>
-          <text x="650" y="224" font-size="54" text-anchor="middle" ${iconFont}>${iconB}</text>
+          <text x="250" y="224" font-size="24" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
+          <text x="650" y="224" font-size="24" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelB}</text>
           <rect x="378" y="166" width="144" height="88" rx="18" fill="rgba(7,17,32,0.92)" stroke="${tone.accent}" stroke-opacity="0.84" stroke-width="3"/>
           <text x="450" y="222" font-size="34" text-anchor="middle" fill="#e8f5ff">30с</text>
           <circle cx="450" cy="210" r="64" fill="none" stroke="${tone.accent}" stroke-width="4" stroke-dasharray="402">
@@ -6475,9 +6491,9 @@ PAGE_TEMPLATE = """
           <rect x="190" y="88" width="126" height="84" rx="16" fill="rgba(10,22,42,0.92)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
           <rect x="386" y="88" width="126" height="84" rx="16" fill="rgba(10,22,42,0.92)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
           <rect x="582" y="88" width="126" height="84" rx="16" fill="rgba(10,22,42,0.92)" stroke="${tone.accent}" stroke-opacity="0.72" stroke-width="3"/>
-          <text x="253" y="140" font-size="40" text-anchor="middle" ${iconFont}>🛡️</text>
-          <text x="449" y="140" font-size="40" text-anchor="middle" ${iconFont}>🏆</text>
-          <text x="645" y="140" font-size="40" text-anchor="middle" ${iconFont}>🎟️</text>
+          <text x="253" y="140" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">CLAN</text>
+          <text x="449" y="140" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">PASS</text>
+          <text x="645" y="140" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">REWARD</text>
         `;
       } else {
         sceneMarkup = `
@@ -6493,9 +6509,9 @@ PAGE_TEMPLATE = """
           <rect x="584" y="106" width="136" height="210" rx="12" fill="rgba(255,122,134,0.14)">
             <animate attributeName="fill" values="rgba(255,122,134,0.14);rgba(255,122,134,0.28);rgba(255,122,134,0.14)" dur="2s" repeatCount="indefinite"/>
           </rect>
-          <text x="248" y="228" font-size="42" text-anchor="middle" ${iconFont}>${iconC}</text>
-          <text x="450" y="228" font-size="42" text-anchor="middle" ${iconFont}>${iconD}</text>
-          <text x="652" y="228" font-size="42" text-anchor="middle" ${iconFont}>${iconA}</text>
+          <text x="248" y="228" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelC}</text>
+          <text x="450" y="228" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelD}</text>
+          <text x="652" y="228" font-size="22" text-anchor="middle" fill="#e6f6ff" font-family="Arial, sans-serif">${labelA}</text>
         `;
       }
 
@@ -8152,7 +8168,12 @@ PAGE_TEMPLATE = """
     }
 
     function svgDataUrl(svg) {
-      return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+      const safeSvg = String(svg || '');
+      try {
+        return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(safeSvg)))}`;
+      } catch (_) {
+        return `data:image/svg+xml;utf8,${encodeURIComponent(safeSvg)}`;
+      }
     }
 
     function themeSlugFromKey(key) {
