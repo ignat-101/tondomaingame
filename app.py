@@ -3152,12 +3152,12 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-card {
-      width: min(640px, calc(100vw - 28px));
+      width: min(760px, calc(100vw - 28px));
       border-radius: 22px;
       border: 1px solid var(--line);
       background: linear-gradient(165deg, rgba(8, 20, 36, 0.96), rgba(10, 18, 33, 0.94));
       box-shadow: var(--shadow);
-      padding: 16px;
+      padding: 18px;
     }
 
     .startup-guide-meta {
@@ -3191,7 +3191,7 @@ PAGE_TEMPLATE = """
 
     .startup-guide-stage {
       position: relative;
-      height: 210px;
+      height: 260px;
       border-radius: 16px;
       border: 1px solid rgba(121, 217, 255, 0.2);
       background: radial-gradient(circle at center, rgba(69, 215, 255, 0.2), rgba(8, 20, 36, 0.94));
@@ -3216,11 +3216,30 @@ PAGE_TEMPLATE = """
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 16px;
+      padding: 22px;
       font-size: 30px;
       color: #ecf7ff;
       text-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
       background: linear-gradient(180deg, rgba(8, 18, 30, 0.25), rgba(8, 18, 30, 0.5));
+    }
+
+    .startup-guide-copy {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .startup-guide-copy strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.2;
+      color: #f4fbff;
+    }
+
+    .startup-guide-copy .tiny {
+      margin: 0;
+      line-height: 1.45;
+      color: rgba(223, 243, 255, 0.8);
     }
 
     .startup-guide-scene {
@@ -3231,6 +3250,15 @@ PAGE_TEMPLATE = """
       align-items: center;
       justify-content: center;
       color: #eaf6ff;
+    }
+
+    .startup-guide-scene-column {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
     }
 
     .startup-guide-scene-grid {
@@ -3261,19 +3289,21 @@ PAGE_TEMPLATE = """
 
     .startup-guide-panel.wallet {
       position: absolute;
-      left: 68px;
-      top: 28px;
-      width: 140px;
-      height: 146px;
+      left: 72px;
+      top: 20px;
+      width: 168px;
+      height: 178px;
+      font-size: 24px;
     }
 
     .startup-guide-panel.domain {
       position: absolute;
-      right: 60px;
-      top: 62px;
-      width: 180px;
-      height: 66px;
+      right: 66px;
+      top: 78px;
+      width: 246px;
+      height: 88px;
       border-radius: 18px;
+      font-size: 22px;
     }
 
     .startup-guide-link-dot,
@@ -3306,21 +3336,6 @@ PAGE_TEMPLATE = """
       height: 4px;
       right: -74px;
       top: 5px;
-    }
-
-    .startup-guide-caption {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(121, 217, 255, 0.2);
-      background: rgba(8, 18, 32, 0.74);
-      font-size: 14px;
-      font-weight: 600;
-      color: #dff3ff;
-      letter-spacing: 0.01em;
     }
 
     .startup-guide-pack-fan {
@@ -3394,12 +3409,14 @@ PAGE_TEMPLATE = """
       gap: 14px;
       align-items: center;
       justify-content: center;
-      flex-wrap: wrap;
-      padding: 0 22px;
+      flex-wrap: nowrap;
+      padding: 0 12px;
+      width: 100%;
     }
 
     .startup-guide-pill {
-      min-width: 126px;
+      min-width: 0;
+      width: 31%;
       padding: 16px 18px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.22);
@@ -3420,22 +3437,22 @@ PAGE_TEMPLATE = """
 
     .startup-guide-ready-board {
       position: relative;
-      width: 430px;
-      height: 132px;
+      width: 500px;
+      height: 172px;
     }
 
     .startup-guide-ready-node {
       position: absolute;
-      top: 30px;
-      width: 96px;
-      height: 96px;
+      top: 42px;
+      width: 112px;
+      height: 112px;
       border-radius: 50%;
       border: 2px solid rgba(121, 217, 255, 0.34);
       background: rgba(7, 17, 31, 0.88);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 20px;
       font-weight: 700;
     }
 
@@ -3445,10 +3462,10 @@ PAGE_TEMPLATE = """
     .startup-guide-ready-center {
       position: absolute;
       left: 50%;
-      top: 20px;
+      top: 24px;
       transform: translateX(-50%);
-      width: 130px;
-      height: 110px;
+      width: 156px;
+      height: 124px;
       border-radius: 24px;
       border: 2px solid rgba(121, 217, 255, 0.34);
       background: rgba(7, 17, 31, 0.9);
@@ -3461,8 +3478,20 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-ready-center strong {
-      font-size: 30px;
+      font-size: 38px;
       line-height: 1;
+    }
+
+    .startup-guide-ready-center span {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .startup-guide-ready-center small {
+      font-size: 14px;
+      font-weight: 700;
+      color: rgba(223, 243, 255, 0.72);
     }
 
     .startup-guide-rail {
@@ -3488,17 +3517,18 @@ PAGE_TEMPLATE = """
       gap: 18px;
       align-items: stretch;
       justify-content: center;
-      padding: 0 18px;
-      flex-wrap: wrap;
+      padding: 0 14px;
+      flex-wrap: nowrap;
+      width: 100%;
     }
 
     .startup-guide-tile {
-      width: 120px;
-      min-height: 88px;
+      width: 31%;
+      min-height: 104px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.22);
       background: rgba(7, 17, 31, 0.82);
-      padding: 16px 12px;
+      padding: 16px 14px;
       box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
       font-size: 14px;
       font-weight: 700;
@@ -5356,11 +5386,140 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-stage {
-        height: 182px;
+        height: 210px;
       }
 
       .startup-guide-stage-overlay {
         font-size: 24px;
+        padding: 14px;
+      }
+
+      .startup-guide-copy strong {
+        font-size: 16px;
+      }
+
+      .startup-guide-panel.wallet {
+        left: 24px;
+        top: 18px;
+        width: 118px;
+        height: 142px;
+        font-size: 16px;
+      }
+
+      .startup-guide-panel.domain {
+        right: 24px;
+        top: 54px;
+        width: 160px;
+        height: 62px;
+        font-size: 16px;
+      }
+
+      .startup-guide-link-dot::before {
+        left: -46px;
+      }
+
+      .startup-guide-link-dot::after {
+        right: -46px;
+      }
+
+      .startup-guide-pack-fan {
+        width: 276px;
+        height: 132px;
+      }
+
+      .startup-guide-pack-card {
+        width: 92px;
+        height: 118px;
+      }
+
+      .startup-guide-pack-card.left {
+        left: 8px;
+      }
+
+      .startup-guide-pack-card.center {
+        left: 92px;
+      }
+
+      .startup-guide-pack-card.right {
+        left: 176px;
+      }
+
+      .startup-guide-chart {
+        width: 294px;
+        height: 124px;
+        gap: 14px;
+        padding: 0 14px 8px;
+      }
+
+      .startup-guide-bar {
+        width: 36px;
+      }
+
+      .startup-guide-pill-row {
+        gap: 8px;
+        padding: 0;
+      }
+
+      .startup-guide-pill {
+        padding: 10px 8px;
+        font-size: 14px;
+      }
+
+      .startup-guide-pill small {
+        font-size: 10px;
+      }
+
+      .startup-guide-ready-board {
+        width: 300px;
+        height: 128px;
+      }
+
+      .startup-guide-ready-node {
+        top: 34px;
+        width: 76px;
+        height: 76px;
+        font-size: 14px;
+      }
+
+      .startup-guide-ready-center {
+        top: 18px;
+        width: 108px;
+        height: 92px;
+      }
+
+      .startup-guide-ready-center strong {
+        font-size: 28px;
+      }
+
+      .startup-guide-ready-center span {
+        font-size: 14px;
+      }
+
+      .startup-guide-ready-center small {
+        font-size: 11px;
+      }
+
+      .startup-guide-tile-row {
+        gap: 8px;
+        padding: 0;
+      }
+
+      .startup-guide-tile {
+        min-height: 84px;
+        padding: 10px 8px;
+        font-size: 11px;
+      }
+
+      .startup-guide-tile b {
+        font-size: 15px;
+      }
+
+      .startup-guide-scene-column {
+        gap: 12px;
+      }
+
+      .startup-guide-rail {
+        width: 280px;
       }
 
       .arena-rail {
@@ -6488,8 +6647,10 @@ PAGE_TEMPLATE = """
         <img class="startup-guide-gif" id="startup-guide-gif" src="/static/tutorial/start-guide.gif?v=20260403" alt="Гайд по бою Ton Domain Game">
         <div class="startup-guide-stage-overlay" id="startup-guide-stage-overlay" style="display:none;"></div>
       </div>
-      <strong style="display:block; margin-bottom:6px;" id="startup-guide-title">Короткий гайд</strong>
-      <div class="tiny" style="margin-bottom:10px;" id="startup-guide-body">1) Выбери домен и колоду. 2) В бою жми «Натиск»/«Блок» и «Готов». 3) Побеждай раунды на дорожках и собирай награды.</div>
+      <div class="startup-guide-copy">
+        <strong id="startup-guide-title">Короткий гайд</strong>
+        <div class="tiny" id="startup-guide-body">1) Выбери домен и колоду. 2) В бою жми «Натиск»/«Блок» и «Готов». 3) Побеждай раунды на дорожках и собирай награды.</div>
+      </div>
       <div class="actions startup-guide-actions">
         <button class="secondary" id="startup-guide-prev-btn">Назад</button>
         <button id="startup-guide-next-btn">Далее</button>
@@ -6661,7 +6822,6 @@ PAGE_TEMPLATE = """
             <div class="startup-guide-panel wallet">Wallet</div>
             <div class="startup-guide-link-dot"></div>
             <div class="startup-guide-panel domain">Domain</div>
-            <div class="startup-guide-caption">Подключение кошелька и проверка доменов</div>
           </div>
         `
       },
@@ -6676,7 +6836,6 @@ PAGE_TEMPLATE = """
               <div class="startup-guide-pack-card center"></div>
               <div class="startup-guide-pack-card right"></div>
             </div>
-            <div class="startup-guide-caption">Открывай паки и собирай колоду под домен</div>
           </div>
         `
       },
@@ -6692,7 +6851,6 @@ PAGE_TEMPLATE = """
               <div class="startup-guide-bar h4"></div>
               <div class="startup-guide-bar h5"></div>
             </div>
-            <div class="startup-guide-caption">Распределение пула под стиль игры</div>
           </div>
         `
       },
@@ -6704,7 +6862,6 @@ PAGE_TEMPLATE = """
           <div class="startup-guide-card-demo enemy">⚔️</div>
           <div class="startup-guide-card-demo player">🛡️</div>
           <div class="startup-guide-pulse"></div>
-          <div class="startup-guide-caption">Карты сходятся на дорожке, затем фиксируется результат раунда</div>
         `
       },
       {
@@ -6717,7 +6874,6 @@ PAGE_TEMPLATE = """
               <div class="startup-guide-pill">КД 1<small>Следи за откатом</small></div>
               <div class="startup-guide-pill">Способность<small>3 энергии и заряды</small></div>
             </div>
-            <div class="startup-guide-caption">Способность стоит дороже, поэтому тайминг важен</div>
           </div>
         `
       },
@@ -6731,7 +6887,6 @@ PAGE_TEMPLATE = """
               <div class="startup-guide-ready-center"><strong>2/2</strong><span>Готовы</span><small>30 сек</small></div>
               <div class="startup-guide-ready-node right">Игрок 2</div>
             </div>
-            <div class="startup-guide-caption">Оба игрока подтверждают бой перед стартом матча</div>
           </div>
         `
       },
@@ -6740,12 +6895,12 @@ PAGE_TEMPLATE = """
         body: 'Играй клановые активности, забирай награды пропуска вручную, получай осколки/токены и открывай новые паки.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-tile-row">
-              <div class="startup-guide-tile"><b>Кланы</b>Войны и недельные цели</div>
-              <div class="startup-guide-tile"><b>Пропуск</b>Забирай награды вручную</div>
-              <div class="startup-guide-tile"><b>Награды</b>Осколки, токены и паки</div>
-            </div>
-            <div class="startup-guide-caption">
+            <div class="startup-guide-scene-column">
+              <div class="startup-guide-tile-row">
+                <div class="startup-guide-tile"><b>Кланы</b>Войны и недельные цели</div>
+                <div class="startup-guide-tile"><b>Пропуск</b>Забирай награды вручную</div>
+                <div class="startup-guide-tile"><b>Награды</b>Осколки, токены и паки</div>
+              </div>
               <div class="startup-guide-rail"><div class="startup-guide-rail-fill"></div></div>
             </div>
           </div>
@@ -6756,12 +6911,13 @@ PAGE_TEMPLATE = """
         body: 'Рубашки, арены и баннеры меняют визуал боя. Домены и колоды прокачиваются, но победа зависит от решений в раундах.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-tile-row">
-              <div class="startup-guide-tile"><b>Рубашка</b>Видна всем игрокам</div>
-              <div class="startup-guide-tile"><b>Арена</b>Меняет фон боя</div>
-              <div class="startup-guide-tile"><b>Баннер</b>Добивает стиль матча</div>
+            <div class="startup-guide-scene-column">
+              <div class="startup-guide-tile-row">
+                <div class="startup-guide-tile"><b>Рубашка</b>Видна всем игрокам</div>
+                <div class="startup-guide-tile"><b>Арена</b>Меняет фон боя</div>
+                <div class="startup-guide-tile"><b>Баннер</b>Добивает стиль матча</div>
+              </div>
             </div>
-            <div class="startup-guide-caption">Косметика меняет визуал, а победу решают действия по раундам</div>
           </div>
         `
       }
