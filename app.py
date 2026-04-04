@@ -3603,9 +3603,9 @@ PAGE_TEMPLATE = """
       50% { transform: translateX(-50%) scale(1.03); }
     }
 
-    @keyframes startupGuideRailShift {
-      0% { background-position: 0 0; }
-      100% { background-position: 160% 0; }
+    @keyframes startupGuideRailSize {
+      0%, 100% { width: 58%; }
+      50% { width: 44%; }
     }
 
     @keyframes startupGuideTileLift {
@@ -3755,8 +3755,7 @@ PAGE_TEMPLATE = """
       width: 58%;
       border-radius: 999px;
       background: linear-gradient(90deg, rgba(83, 246, 184, 0.92), rgba(69, 215, 255, 0.78));
-      background-size: 160% 100%;
-      animation: startupGuideRailShift 2.6s linear infinite;
+      animation: startupGuideRailSize 2.8s ease-in-out infinite;
     }
 
     .startup-guide-tile-row {
