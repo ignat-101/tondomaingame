@@ -964,17 +964,23 @@ PAGE_TEMPLATE = """
       transform: translateY(-1px);
     }
 
+    .player-card.profile-preview {
+      min-height: 124px;
+      padding: 14px;
+    }
+
     .player-card-banner {
       position: absolute;
       left: 50%;
-      top: 10px;
+      top: 18px;
       transform: translateX(-50%);
-      width: 112px;
-      height: 44px;
-      border-radius: 12px;
+      width: 132px;
+      height: 28px;
+      border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.22);
-      z-index: 1;
-      opacity: 0.96;
+      z-index: 2;
+      opacity: 0.92;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.22);
       pointer-events: none;
     }
 
@@ -1034,6 +1040,14 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
+    .player-card.profile-preview .player-card-back {
+      width: 64px;
+      height: 88px;
+      left: 14px;
+      bottom: 14px;
+      border-radius: 14px;
+    }
+
     .player-card-frame {
       position: absolute;
       left: 8px;
@@ -1055,6 +1069,13 @@ PAGE_TEMPLATE = """
       min-height: 108px;
     }
 
+    .player-card.profile-preview .player-card-content {
+      margin-left: 78px;
+      margin-top: 38px;
+      min-height: 72px;
+      gap: 6px;
+    }
+
     .player-card-title {
       font-size: 24px;
       line-height: 1;
@@ -1062,10 +1083,19 @@ PAGE_TEMPLATE = """
       margin: 0;
     }
 
+    .player-card.profile-preview .player-card-title {
+      font-size: 18px;
+    }
+
     .player-card-meta {
       color: rgba(224, 238, 255, 0.78);
       font-size: 13px;
       line-height: 1.4;
+    }
+
+    .player-card.profile-preview .player-card-meta {
+      font-size: 12px;
+      line-height: 1.3;
     }
 
     .player-card-cosmetics {
@@ -1097,6 +1127,123 @@ PAGE_TEMPLATE = """
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+    }
+
+    .player-card.profile-preview .player-card-actions {
+      margin-left: 78px;
+      margin-top: 8px;
+      gap: 8px;
+    }
+
+    .public-profile-hero {
+      position: relative;
+      min-height: 252px;
+      border-radius: 24px;
+      overflow: hidden;
+      padding: 22px;
+    }
+
+    .public-profile-banner {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      transform: translateX(-50%);
+      width: 164px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.24);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.22);
+      z-index: 1;
+    }
+
+    .public-profile-domain {
+      position: absolute;
+      left: 22px;
+      top: 22px;
+      z-index: 8;
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(5,12,22,0.84);
+      color: #f5fbff;
+      font-weight: 900;
+    }
+
+    .public-profile-cardback {
+      position: absolute;
+      left: 24px;
+      bottom: 18px;
+      width: 126px;
+      height: 176px;
+      border-radius: 24px;
+      border: 1px solid rgba(121,217,255,0.18);
+      box-shadow: 0 18px 32px rgba(0,0,0,0.28);
+      z-index: 1;
+    }
+
+    .public-profile-frame {
+      position: absolute;
+      left: 14px;
+      bottom: 8px;
+      width: 146px;
+      height: 196px;
+      object-fit: contain;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .public-profile-copy {
+      position: relative;
+      z-index: 4;
+      margin-left: 156px;
+      display: grid;
+      gap: 12px;
+      align-content: center;
+      min-height: 204px;
+    }
+
+    .public-profile-cosmetics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .public-profile-cosmetic {
+      border-radius: 18px;
+      border: 1px solid rgba(121,217,255,0.18);
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      min-height: 118px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .public-profile-cosmetic-preview {
+      position: relative;
+      min-height: 62px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      overflow: hidden;
+    }
+
+    .public-profile-match-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .public-profile-match {
+      border-radius: 16px;
+      border: 1px solid rgba(121,217,255,0.14);
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      display: grid;
+      gap: 6px;
     }
 
     .public-profile-backdrop {
@@ -1137,9 +1284,23 @@ PAGE_TEMPLATE = """
         height: 102px;
       }
 
+      .player-card.profile-preview {
+        min-height: 118px;
+      }
+
+      .player-card.profile-preview .player-card-back {
+        width: 58px;
+        height: 80px;
+      }
+
       .player-card-content,
       .player-card-actions {
         margin-left: 88px;
+      }
+
+      .player-card.profile-preview .player-card-content,
+      .player-card.profile-preview .player-card-actions {
+        margin-left: 72px;
       }
 
       .player-card-title {
@@ -1153,6 +1314,49 @@ PAGE_TEMPLATE = """
       .public-profile-modal {
         padding: 14px;
         border-radius: 22px;
+      }
+
+      .public-profile-hero {
+        min-height: auto;
+        padding: 16px;
+      }
+
+      .public-profile-banner {
+        width: 132px;
+        height: 30px;
+        top: 12px;
+      }
+
+      .public-profile-domain {
+        left: 16px;
+        top: 16px;
+        min-height: 30px;
+        padding: 0 12px;
+        font-size: 12px;
+      }
+
+      .public-profile-cardback {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        width: 82px;
+        height: 114px;
+        margin-top: 56px;
+      }
+
+      .public-profile-frame {
+        left: 8px;
+        bottom: auto;
+        top: 58px;
+        width: 98px;
+        height: 132px;
+      }
+
+      .public-profile-copy {
+        margin-left: 0;
+        margin-top: 8px;
+        padding-top: 6px;
+        min-height: 0;
       }
     }
 
@@ -8345,9 +8549,10 @@ PAGE_TEMPLATE = """
         (player.selected_gift || {}).label ? `Gift: ${(player.selected_gift || {}).label}` : '',
       ].filter(Boolean).slice(0, 4).map((text) => `<span class="player-cosmetic-chip">${escapeHtml(text)}</span>`).join('');
       const actionsHtml = options.actionsHtml || '';
+      const extraClass = options.className ? ` ${options.className}` : '';
       return `
-        <article class="player-card" data-open-profile-wallet="${escapeHtml(player.wallet)}" style="background:${giftArenaSurface(arenaKey, emoji)};">
-          ${guildKey ? `<div class="player-card-banner" style="background:${giftGuildSurface(guildKey, emoji)};"></div>` : ''}
+        <article class="player-card${extraClass}" data-open-profile-wallet="${escapeHtml(player.wallet)}" style="background:${giftArenaSurface(arenaKey, emoji)};">
+          ${guildKey ? `<div class="player-card-banner" style="background:${giftGuildSurface(guildKey, '')};"></div>` : ''}
           <div class="player-card-domain">${escapeHtml(domainLabel)}</div>
           ${playerProfileGiftHtml(player.selected_gift)}
           <div class="player-card-back" style="background:${giftCardbackSurface(backKey, emoji)};">
@@ -8362,6 +8567,22 @@ PAGE_TEMPLATE = """
           ${actionsHtml ? `<div class="player-card-actions">${actionsHtml}</div>` : ''}
         </article>
       `;
+    }
+
+    function formatDateTime(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      try {
+        return new Intl.DateTimeFormat('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(date);
+      } catch (_) {
+        return date.toLocaleString('ru-RU');
+      }
     }
 
     function duelReferenceForPlayer(player) {
@@ -8403,25 +8624,35 @@ PAGE_TEMPLATE = """
       const analytics = profile.analytics || {};
       const actionRates = analytics.action_rates || {};
       const rewardDeck = profile.deck_summary || null;
+      const recentMatches = Array.isArray(profile.recent_matches) ? profile.recent_matches : [];
+      const favoriteDomain = profile.favorite_domain || profile.best_domain || profile.current_domain || '';
+      const cosmeticsCards = [
+        { label: 'Рамка', key: frameKey, type: 'frame', preview: frameAsset ? `<img src="${frameAsset}" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:contain;">` : '<div class="tiny">Не выбрана</div>' },
+        { label: 'Рубашка', key: backKey, type: 'cardback', preview: `<div style="position:absolute; inset:0; background:${giftCardbackSurface(backKey, emoji)};"></div>` },
+        { label: 'Арена', key: arenaKey, type: 'arena', preview: `<div style="position:absolute; inset:0; background:${giftArenaSurface(arenaKey, emoji)};"></div>` },
+        { label: 'Баннер', key: guildKey, type: 'guild', preview: guildKey ? `<div style="position:absolute; inset:0; background:${giftGuildSurface(guildKey, '')};"></div>` : '<div class="tiny">Не выбран</div>' },
+        { label: 'Подарок', key: (profile.selected_gift || {}).key || '', type: 'gift', preview: `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:34px;">${escapeHtml((profile.selected_gift || {}).emoji || '🎁')}</div>` },
+      ];
       publicProfileContent.innerHTML = `
         <div class="actions" style="justify-content:space-between; align-items:center; margin-bottom:14px;">
           <strong style="font-size:24px;">Полный профиль</strong>
           <button type="button" class="secondary" id="public-profile-close-btn">Закрыть</button>
         </div>
         <div class="user-item" style="background:${giftArenaSurface(arenaKey, emoji)};">
-          <div style="position:relative; min-height:248px; border-radius:24px; overflow:hidden; padding:22px;">
-            ${guildKey ? `<div style="position:absolute; left:50%; top:14px; transform:translateX(-50%); width:148px; height:64px; border-radius:14px; border:1px solid rgba(255,255,255,0.24); background:${giftGuildSurface(guildKey, emoji)}; z-index:1;"></div>` : ''}
-            <div style="position:absolute; left:24px; top:24px; z-index:5; display:inline-flex; align-items:center; min-height:34px; padding:0 14px; border-radius:999px; border:1px solid rgba(255,255,255,0.18); background:rgba(5,12,22,0.84); color:#f5fbff; font-weight:900;">${escapeHtml(profile.current_domain ? `${profile.current_domain}.ton` : 'без домена')}</div>
+          <div class="public-profile-hero">
+            ${guildKey ? `<div class="public-profile-banner" style="background:${giftGuildSurface(guildKey, '')};"></div>` : ''}
+            <div class="public-profile-domain">${escapeHtml(profile.current_domain ? `${profile.current_domain}.ton` : 'без домена')}</div>
             ${playerProfileGiftHtml(profile.selected_gift)}
-            <div style="position:absolute; left:24px; bottom:18px; width:126px; height:176px; border-radius:24px; background:${giftCardbackSurface(backKey, emoji)}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 18px 32px rgba(0,0,0,0.28); z-index:1;"></div>
-            ${frameAsset ? `<img src="${frameAsset}" alt="" style="position:absolute; left:14px; bottom:8px; width:146px; height:196px; object-fit:contain; z-index:2; pointer-events:none;">` : ''}
-            <div style="position:relative; z-index:4; margin-left:156px; display:grid; gap:12px; align-content:center; min-height:204px;">
+            <div class="public-profile-cardback" style="background:${giftCardbackSurface(backKey, emoji)};"></div>
+            ${frameAsset ? `<img class="public-profile-frame" src="${frameAsset}" alt="">` : ''}
+            <div class="public-profile-copy">
               <div style="font-size:36px; line-height:1; font-weight:900;">${escapeHtml(profile.display_name || shortAddress(profile.wallet))}</div>
               <div class="summary-chip-row">
                 <span class="summary-chip">${escapeHtml(profile.profile_title || 'Без титула')}</span>
                 <span class="summary-chip">Рейтинг ${Number(profile.rating || 1000)}</span>
                 <span class="summary-chip">Матчей ${Number(profile.games_played || 0)}</span>
                 <span class="summary-chip">Сезон ${Number(profile.season_level || 1)}</span>
+                <span class="summary-chip">Любимый домен: ${escapeHtml(favoriteDomain ? `${favoriteDomain}.ton` : 'не выбран')}</span>
               </div>
               <div class="tiny">${escapeHtml(profile.bio || 'Описание профиля пока пустое.')}</div>
               <div class="summary-chip-row">
@@ -8441,6 +8672,30 @@ PAGE_TEMPLATE = """
         </div>
         ${profile.guild ? `<div class="user-item"><strong>Клан</strong><div class="tiny">${escapeHtml(profile.guild.name)} • роль ${escapeHtml(profile.guild.role)}</div></div>` : ''}
         ${rewardDeck ? `<div class="user-item"><strong>Текущая колода</strong><div class="tiny">Пул: ${Number(rewardDeck.discipline_pool || 0)} • Счёт колоды: ${Number(rewardDeck.total_score || 0)} • Синергии: ${(rewardDeck.synergies && rewardDeck.synergies.labels && rewardDeck.synergies.labels.length) ? escapeHtml(rewardDeck.synergies.labels.join(' • ')) : 'нет'}</div></div>` : ''}
+        <div class="user-item">
+          <strong>Косметика и подарок</strong>
+          <div class="public-profile-cosmetics-grid">
+            ${cosmeticsCards.map((item) => `
+              <article class="public-profile-cosmetic">
+                <strong>${escapeHtml(item.label)}</strong>
+                <div class="public-profile-cosmetic-preview">${item.preview}</div>
+                <div class="tiny">${escapeHtml(item.key || 'не выбрано')}</div>
+              </article>
+            `).join('')}
+          </div>
+        </div>
+        <div class="user-item">
+          <strong>История рейтинговых матчей</strong>
+          <div class="public-profile-match-list">
+            ${recentMatches.length ? recentMatches.map((item) => `
+              <article class="public-profile-match">
+                <div class="team-line"><strong>${escapeHtml((item.domain || '----') + '.ton')}</strong><strong>${escapeHtml(String(item.player_score || 0))}:${escapeHtml(String(item.opponent_score || 0))}</strong></div>
+                <div class="tiny">Против ${escapeHtml((item.opponent_domain || '----') + '.ton')} • ${escapeHtml(item.result || '-')} • рейтинг ${escapeHtml(String(item.rating_before || 0))} → ${escapeHtml(String(item.rating_after || 0))}</div>
+                <div class="tiny">${escapeHtml(formatDateTime(item.created_at))}</div>
+              </article>
+            `).join('') : '<div class="tiny">Рейтинговых матчей пока нет.</div>'}
+          </div>
+        </div>
       `;
       const closeBtn = document.getElementById('public-profile-close-btn');
       if (closeBtn) bindFunctionalControl(closeBtn, closePublicProfile);
@@ -8732,6 +8987,7 @@ PAGE_TEMPLATE = """
           display_name: profile.display_name || profile.nickname || shortAddress(state.wallet),
         },
         {
+          className: 'profile-preview',
           actionsHtml: `
             <div class="summary-chip-row" style="width:100%;">
               ${behaviorCards}
@@ -18299,17 +18555,49 @@ def public_player_summary(wallet):
     return player_card_snapshot(wallet)
 
 
+def recent_ranked_matches_for_wallet(wallet, limit=8):
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            '''
+            SELECT domain, opponent_domain, result, rating_before, rating_after, player_score, opponent_score, created_at
+            FROM ranked_matches
+            WHERE wallet = ?
+            ORDER BY datetime(created_at) DESC, rowid DESC
+            LIMIT ?
+            ''',
+            (wallet, int(limit)),
+        ).fetchall()
+    result = []
+    for row in rows:
+        result.append(
+            {
+                'domain': row['domain'],
+                'opponent_domain': row['opponent_domain'],
+                'result': row['result'],
+                'rating_before': row['rating_before'],
+                'rating_after': row['rating_after'],
+                'player_score': row['player_score'],
+                'opponent_score': row['opponent_score'],
+                'created_at': row['created_at'],
+            }
+        )
+    return result
+
+
 def public_player_profile(wallet, viewer_wallet=None):
     base = player_card_snapshot(wallet)
     player = ensure_player(wallet)
     rewards = reward_summary(wallet)
     guild_membership = current_guild_membership(wallet)
+    favorite_domain = top_stat_key(((base.get('analytics') or {}).get('stats') or {}).get('domains') or {}, player.get('best_domain') or player.get('current_domain') or '')
     return {
         **base,
         'best_domain': player.get('best_domain'),
+        'favorite_domain': favorite_domain,
         'ranked_wins': player.get('ranked_wins') or 0,
         'ranked_losses': player.get('ranked_losses') or 0,
         'deck_summary': deck_summary_for_domain(player.get('current_domain'), wallet) if player.get('current_domain') else None,
+        'recent_matches': recent_ranked_matches_for_wallet(wallet, limit=8),
         'guild': {
             'id': guild_membership['guild_id'],
             'name': guild_membership['name'],
