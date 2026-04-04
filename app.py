@@ -8826,27 +8826,43 @@ PAGE_TEMPLATE = """
         ].join(''),
         '<div class="user-item muted">Новых заявок нет.</div>',
       );
-      const incomingDuels = (social.incoming_duel_invites || []).map((item) => `
-        <div class="user-item">
-          <strong>Вызов ${escapeHtml(item.id)}</strong>
-          <div class="tiny">От: ${escapeHtml(item.inviter_name || shortAddress(item.inviter_wallet))}</div>
-          <div class="tiny">${escapeHtml(item.inviter_domain)}.ton vs ${escapeHtml(item.invitee_domain)}.ton • ${Number(item.timeout_seconds || 30)} сек</div>
-          <div class="actions" style="margin-top:10px;">
-            <button data-social-action="accept-duel" data-invite-id="${escapeHtml(item.id)}">Принять</button>
-            <button class="secondary" data-social-action="decline-duel" data-invite-id="${escapeHtml(item.id)}">Отклонить</button>
-          </div>
-        </div>
-      `).join('') || '<div class="user-item muted">Входящих дуэлей нет.</div>';
-      const outgoingDuels = (social.outgoing_duel_invites || []).map((item) => `
-        <div class="user-item">
-          <strong>Приглашение ${escapeHtml(item.id)}</strong>
-          <div class="tiny">Кому: ${escapeHtml(item.invitee_name || shortAddress(item.invitee_wallet))}</div>
-          <div class="tiny">${escapeHtml(item.inviter_domain)}.ton vs ${escapeHtml(item.invitee_domain)}.ton • ожидание</div>
-          <div class="actions" style="margin-top:10px;">
-            <button class="secondary" data-social-action="open-duel" data-invite-id="${escapeHtml(item.id)}">Проверить статус</button>
-          </div>
-        </div>
-      `).join('') || '<div class="user-item muted">Исходящих дуэлей нет.</div>';
+      const incomingDuels = (social.incoming_duel_invites || []).map((item) => renderCompactPlayerCard({
+        wallet: item.inviter_wallet,
+        display_name: item.inviter_name || shortAddress(item.inviter_wallet),
+        current_domain: item.inviter_domain || '',
+        rating: item.inviter_rating || 1000,
+        games_played: item.inviter_games_played || 0,
+        profile_title: `Вызов • ${Number(item.timeout_seconds || 30)} сек`,
+        bio: `${item.inviter_domain || '---'}.ton vs ${item.invitee_domain || '---'}.ton`,
+        equipped_cosmetics: item.inviter_equipped_cosmetics || {},
+        selected_gift: item.inviter_selected_gift || null,
+        profile_banner_key: item.inviter_profile_banner_key || '',
+        play_style: item.inviter_play_style || '',
+        favorite_ability: item.inviter_favorite_ability || '',
+        favorite_role: item.inviter_favorite_role || '',
+      }, {
+        actionsHtml: [
+          compactActionButton('Принять', {'social-action': 'accept-duel', 'invite-id': item.id}, false),
+          compactActionButton('Отклонить', {'social-action': 'decline-duel', 'invite-id': item.id}),
+        ].join(''),
+      })).join('') || '<div class="user-item muted">Входящих дуэлей нет.</div>';
+      const outgoingDuels = (social.outgoing_duel_invites || []).map((item) => renderCompactPlayerCard({
+        wallet: item.invitee_wallet,
+        display_name: item.invitee_name || shortAddress(item.invitee_wallet),
+        current_domain: item.invitee_domain || '',
+        rating: item.invitee_rating || 1000,
+        games_played: item.invitee_games_played || 0,
+        profile_title: 'Исходящая дуэль',
+        bio: `${item.inviter_domain || '---'}.ton vs ${item.invitee_domain || '---'}.ton`,
+        equipped_cosmetics: item.invitee_equipped_cosmetics || {},
+        selected_gift: item.invitee_selected_gift || null,
+        profile_banner_key: item.invitee_profile_banner_key || '',
+        play_style: item.invitee_play_style || '',
+        favorite_ability: item.invitee_favorite_ability || '',
+        favorite_role: item.invitee_favorite_role || '',
+      }, {
+        actionsHtml: compactActionButton('Проверить статус', {'social-action': 'open-duel', 'invite-id': item.id}),
+      })).join('') || '<div class="user-item muted">Исходящих дуэлей нет.</div>';
       const suggested = renderCompactPlayerGrid(
         (social.suggested_players || []).slice(0, 6),
         (item) => [
