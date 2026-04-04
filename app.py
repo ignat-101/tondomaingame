@@ -946,6 +946,216 @@ PAGE_TEMPLATE = """
       margin-bottom: 6px;
     }
 
+    .player-card {
+      position: relative;
+      border-radius: 22px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      overflow: hidden;
+      min-height: 148px;
+      padding: 16px;
+      background: rgba(9, 18, 31, 0.88);
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+      cursor: pointer;
+      isolation: isolate;
+    }
+
+    .player-card:hover {
+      border-color: rgba(121, 217, 255, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .player-card-banner {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      transform: translateX(-50%);
+      width: 112px;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.22);
+      z-index: 1;
+      opacity: 0.96;
+      pointer-events: none;
+    }
+
+    .player-card-domain {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      z-index: 8;
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(5, 12, 22, 0.84);
+      color: #f5fbff;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      backdrop-filter: blur(10px);
+      max-width: calc(100% - 84px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .player-card-gift {
+      position: absolute;
+      right: 14px;
+      top: 14px;
+      z-index: 8;
+      min-width: 36px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(5, 12, 22, 0.78);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.18);
+      backdrop-filter: blur(8px);
+    }
+
+    .player-card-back {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      width: 88px;
+      height: 118px;
+      border-radius: 18px;
+      border: 1px solid rgba(121,217,255,0.18);
+      box-shadow: 0 16px 28px rgba(0,0,0,0.28);
+      z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .player-card-frame {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      width: calc(100% - 16px);
+      height: calc(100% - 16px);
+      object-fit: contain;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .player-card-content {
+      position: relative;
+      z-index: 4;
+      display: grid;
+      gap: 8px;
+      margin-left: 106px;
+      margin-top: 34px;
+      min-height: 108px;
+    }
+
+    .player-card-title {
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 900;
+      margin: 0;
+    }
+
+    .player-card-meta {
+      color: rgba(224, 238, 255, 0.78);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .player-card-cosmetics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .player-cosmetic-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(5,12,22,0.5);
+      color: rgba(245, 250, 255, 0.9);
+      font-size: 11px;
+      font-weight: 700;
+      backdrop-filter: blur(6px);
+    }
+
+    .player-card-actions {
+      position: relative;
+      z-index: 4;
+      margin-left: 106px;
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .public-profile-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1600;
+      background: rgba(3, 8, 16, 0.76);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .public-profile-backdrop.open {
+      display: flex;
+    }
+
+    .public-profile-modal {
+      width: min(960px, 100%);
+      max-height: min(86vh, 920px);
+      overflow: auto;
+      border-radius: 28px;
+      border: 1px solid rgba(121,217,255,0.18);
+      background: linear-gradient(180deg, rgba(8,18,31,0.98), rgba(7,14,26,0.98));
+      box-shadow: 0 30px 80px rgba(0,0,0,0.38);
+      padding: 20px;
+    }
+
+    @media (max-width: 760px) {
+      .player-card {
+        min-height: 132px;
+        padding: 14px;
+      }
+
+      .player-card-back {
+        width: 74px;
+        height: 102px;
+      }
+
+      .player-card-content,
+      .player-card-actions {
+        margin-left: 88px;
+      }
+
+      .player-card-title {
+        font-size: 20px;
+      }
+
+      .public-profile-backdrop {
+        padding: 10px;
+      }
+
+      .public-profile-modal {
+        padding: 14px;
+        border-radius: 22px;
+      }
+    }
+
     .game-card h3, .mode-card h3, .domain-card h3 {
       margin: 0 0 10px;
     }
@@ -7410,6 +7620,12 @@ PAGE_TEMPLATE = """
     </div>
   </div>
 
+  <div class="public-profile-backdrop" id="public-profile-backdrop">
+    <div class="public-profile-modal" id="public-profile-modal">
+      <div id="public-profile-content"></div>
+    </div>
+  </div>
+
   <script>
     const state = {
       wallet: null,
@@ -7440,6 +7656,7 @@ PAGE_TEMPLATE = """
       packPityThreshold: 20,
       showAllCosmetics: false,
       profileTab: 'overview',
+      publicProfile: null,
       canRestorePreviousDeck: false,
       matchmakingMode: null,
       matchmakingPolling: false,
@@ -7512,6 +7729,8 @@ PAGE_TEMPLATE = """
     const startupGuideSkipBtn = document.getElementById('startup-guide-skip-btn');
     const startupGuidePrevBtn = document.getElementById('startup-guide-prev-btn');
     const startupGuideNextBtn = document.getElementById('startup-guide-next-btn');
+    const publicProfileBackdrop = document.getElementById('public-profile-backdrop');
+    const publicProfileContent = document.getElementById('public-profile-content');
     const ownedDecksList = document.getElementById('owned-decks-list');
     const walletOwnedDecksList = document.getElementById('wallet-owned-decks-list');
     const globalPlayersList = document.getElementById('global-players-list');
@@ -8097,6 +8316,154 @@ PAGE_TEMPLATE = """
       }[key] || 'Не выбрана';
     }
 
+    function playerProfileGiftHtml(gift) {
+      if (!gift) return '';
+      const emoji = String(gift.emoji || '').trim();
+      const image = String(gift.image_url || '').trim();
+      if (image) {
+        return `<span class="player-card-gift" title="${escapeHtml(gift.label || 'Подарок')}"><img src="${escapeHtml(image)}" alt="" style="width:20px; height:20px; object-fit:contain; border-radius:6px;"></span>`;
+      }
+      return `<span class="player-card-gift" title="${escapeHtml(gift.label || 'Подарок')}">${escapeHtml(emoji || '🎁')}</span>`;
+    }
+
+    function renderCompactPlayerCard(player, options = {}) {
+      if (!player) return '';
+      const cosmetics = player.equipped_cosmetics || {};
+      const arenaKey = ((cosmetics.arena || {}).key) || 'arena_stock_grid';
+      const backKey = ((cosmetics.cardback || {}).key) || 'cardback_stock_plain';
+      const frameKey = ((cosmetics.frame || {}).key) || '';
+      const guildKey = player.profile_banner_key || ((cosmetics.guild || {}).key) || '';
+      const emoji = cosmeticEmojiSymbol(cosmetics);
+      const frameAsset = cosmeticAssetUrl('frame', frameKey);
+      const domain = player.current_domain || player.domain || '';
+      const domainLabel = domain ? `${domain}.ton` : 'без домена';
+      const cosmeticsLine = [
+        (cosmetics.frame || {}).name ? `Рамка: ${(cosmetics.frame || {}).name}` : '',
+        (cosmetics.arena || {}).name ? `Арена: ${(cosmetics.arena || {}).name}` : '',
+        (cosmetics.cardback || {}).name ? `Рубашка: ${(cosmetics.cardback || {}).name}` : '',
+        (cosmetics.guild || {}).name ? `Баннер: ${(cosmetics.guild || {}).name}` : '',
+        (player.selected_gift || {}).label ? `Gift: ${(player.selected_gift || {}).label}` : '',
+      ].filter(Boolean).slice(0, 4).map((text) => `<span class="player-cosmetic-chip">${escapeHtml(text)}</span>`).join('');
+      const actionsHtml = options.actionsHtml || '';
+      return `
+        <article class="player-card" data-open-profile-wallet="${escapeHtml(player.wallet)}" style="background:${giftArenaSurface(arenaKey, emoji)};">
+          ${guildKey ? `<div class="player-card-banner" style="background:${giftGuildSurface(guildKey, emoji)};"></div>` : ''}
+          <div class="player-card-domain">${escapeHtml(domainLabel)}</div>
+          ${playerProfileGiftHtml(player.selected_gift)}
+          <div class="player-card-back" style="background:${giftCardbackSurface(backKey, emoji)};">
+            ${frameAsset ? `<img class="player-card-frame" src="${frameAsset}" alt="">` : ''}
+          </div>
+          <div class="player-card-content">
+            <div class="player-card-title">${escapeHtml(player.display_name || shortAddress(player.wallet))}</div>
+            <div class="player-card-meta">${escapeHtml(player.profile_title || 'Без титула')} • рейтинг ${Number(player.rating || 1000)} • матчей ${Number(player.games_played || 0)}</div>
+            <div class="player-card-meta">Стиль: ${escapeHtml(profilePlayStyleMeta(player.play_style || '').label)} • Способность: ${escapeHtml(profileAbilityMeta(player.favorite_ability || '').label)} • Роль: ${escapeHtml(profileRoleMeta(player.favorite_role || ''))}</div>
+            ${cosmeticsLine ? `<div class="player-card-cosmetics">${cosmeticsLine}</div>` : ''}
+          </div>
+          ${actionsHtml ? `<div class="player-card-actions">${actionsHtml}</div>` : ''}
+        </article>
+      `;
+    }
+
+    function duelReferenceForPlayer(player) {
+      const domain = player && (player.current_domain || player.domain);
+      if (domain) return `${domain}.ton`;
+      return (player && (player.display_name || player.wallet)) || '';
+    }
+
+    function compactActionButton(label, dataset = {}, secondary = true) {
+      const attrs = Object.entries(dataset || {}).map(([key, value]) => {
+        if (value === undefined || value === null || value === '') return '';
+        return `data-${key}="${escapeHtml(String(value))}"`;
+      }).filter(Boolean).join(' ');
+      return `<button type="button" class="${secondary ? 'secondary' : ''}" ${attrs}>${escapeHtml(label)}</button>`;
+    }
+
+    function renderCompactPlayerGrid(items, actionBuilder, emptyMarkup) {
+      const list = Array.isArray(items) ? items : [];
+      if (!list.length) return emptyMarkup;
+      return list.map((item) => renderCompactPlayerCard(item, { actionsHtml: actionBuilder ? actionBuilder(item) : '' })).join('');
+    }
+
+    function closePublicProfile() {
+      state.publicProfile = null;
+      if (publicProfileBackdrop) publicProfileBackdrop.classList.remove('open');
+      if (publicProfileContent) publicProfileContent.innerHTML = '';
+    }
+
+    function renderPublicProfileModal() {
+      if (!publicProfileContent || !state.publicProfile) return;
+      const profile = state.publicProfile;
+      const cosmetics = profile.equipped_cosmetics || {};
+      const arenaKey = ((cosmetics.arena || {}).key) || 'arena_stock_grid';
+      const backKey = ((cosmetics.cardback || {}).key) || 'cardback_stock_plain';
+      const frameKey = ((cosmetics.frame || {}).key) || '';
+      const guildKey = profile.profile_banner_key || ((cosmetics.guild || {}).key) || '';
+      const emoji = cosmeticEmojiSymbol(cosmetics);
+      const frameAsset = cosmeticAssetUrl('frame', frameKey);
+      const analytics = profile.analytics || {};
+      const actionRates = analytics.action_rates || {};
+      const rewardDeck = profile.deck_summary || null;
+      publicProfileContent.innerHTML = `
+        <div class="actions" style="justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <strong style="font-size:24px;">Полный профиль</strong>
+          <button type="button" class="secondary" id="public-profile-close-btn">Закрыть</button>
+        </div>
+        <div class="user-item" style="background:${giftArenaSurface(arenaKey, emoji)};">
+          <div style="position:relative; min-height:248px; border-radius:24px; overflow:hidden; padding:22px;">
+            ${guildKey ? `<div style="position:absolute; left:50%; top:14px; transform:translateX(-50%); width:148px; height:64px; border-radius:14px; border:1px solid rgba(255,255,255,0.24); background:${giftGuildSurface(guildKey, emoji)}; z-index:1;"></div>` : ''}
+            <div style="position:absolute; left:24px; top:24px; z-index:5; display:inline-flex; align-items:center; min-height:34px; padding:0 14px; border-radius:999px; border:1px solid rgba(255,255,255,0.18); background:rgba(5,12,22,0.84); color:#f5fbff; font-weight:900;">${escapeHtml(profile.current_domain ? `${profile.current_domain}.ton` : 'без домена')}</div>
+            ${playerProfileGiftHtml(profile.selected_gift)}
+            <div style="position:absolute; left:24px; bottom:18px; width:126px; height:176px; border-radius:24px; background:${giftCardbackSurface(backKey, emoji)}; border:1px solid rgba(121,217,255,0.18); box-shadow:0 18px 32px rgba(0,0,0,0.28); z-index:1;"></div>
+            ${frameAsset ? `<img src="${frameAsset}" alt="" style="position:absolute; left:14px; bottom:8px; width:146px; height:196px; object-fit:contain; z-index:2; pointer-events:none;">` : ''}
+            <div style="position:relative; z-index:4; margin-left:156px; display:grid; gap:12px; align-content:center; min-height:204px;">
+              <div style="font-size:36px; line-height:1; font-weight:900;">${escapeHtml(profile.display_name || shortAddress(profile.wallet))}</div>
+              <div class="summary-chip-row">
+                <span class="summary-chip">${escapeHtml(profile.profile_title || 'Без титула')}</span>
+                <span class="summary-chip">Рейтинг ${Number(profile.rating || 1000)}</span>
+                <span class="summary-chip">Матчей ${Number(profile.games_played || 0)}</span>
+                <span class="summary-chip">Сезон ${Number(profile.season_level || 1)}</span>
+              </div>
+              <div class="tiny">${escapeHtml(profile.bio || 'Описание профиля пока пустое.')}</div>
+              <div class="summary-chip-row">
+                <span class="summary-chip">Стиль: ${escapeHtml(profilePlayStyleMeta(profile.play_style || '').label)}</span>
+                <span class="summary-chip">Любимый ход: ${escapeHtml(profileAbilityMeta(profile.favorite_ability || '').label)}</span>
+                <span class="summary-chip">Стратегия: ${escapeHtml(strategyMeta(profile.favorite_strategy || '').label)}</span>
+                <span class="summary-chip">Роль: ${escapeHtml(profileRoleMeta(profile.favorite_role || ''))}</span>
+              </div>
+              <div class="summary-chip-row">
+                <span class="summary-chip">Натиск ${(Number(actionRates.burst || 0) * 100).toFixed(0)}%</span>
+                <span class="summary-chip">Блок ${(Number(actionRates.guard || 0) * 100).toFixed(0)}%</span>
+                <span class="summary-chip">Способность ${(Number(actionRates.ability || 0) * 100).toFixed(0)}%</span>
+                <span class="summary-chip">Winrate ${(Number(analytics.win_rate || 0) * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        ${profile.guild ? `<div class="user-item"><strong>Клан</strong><div class="tiny">${escapeHtml(profile.guild.name)} • роль ${escapeHtml(profile.guild.role)}</div></div>` : ''}
+        ${rewardDeck ? `<div class="user-item"><strong>Текущая колода</strong><div class="tiny">Пул: ${Number(rewardDeck.discipline_pool || 0)} • Счёт колоды: ${Number(rewardDeck.total_score || 0)} • Синергии: ${(rewardDeck.synergies && rewardDeck.synergies.labels && rewardDeck.synergies.labels.length) ? escapeHtml(rewardDeck.synergies.labels.join(' • ')) : 'нет'}</div></div>` : ''}
+      `;
+      const closeBtn = document.getElementById('public-profile-close-btn');
+      if (closeBtn) bindFunctionalControl(closeBtn, closePublicProfile);
+      if (publicProfileBackdrop) publicProfileBackdrop.classList.add('open');
+    }
+
+    async function openPublicProfile(wallet) {
+      if (!wallet) return;
+      const data = await api(`/api/player/public/${encodeURIComponent(wallet)}${state.wallet ? `?viewer=${encodeURIComponent(state.wallet)}` : ''}`);
+      state.publicProfile = data.player || null;
+      renderPublicProfileModal();
+    }
+
+    async function interceptPublicProfileAction(event) {
+      const trigger = event.target.closest('[data-open-profile-wallet]');
+      if (!trigger) return;
+      if (event.target.closest('button, select, input, textarea, label[for], [role="button"]')) return;
+      const wallet = trigger.dataset.openProfileWallet || '';
+      if (!wallet) return;
+      event.preventDefault();
+      await openPublicProfile(wallet);
+    }
+
     function packTypeMeta(packType) {
       return (state.packTypes || []).find((item) => item.key === packType) || null;
     }
@@ -8334,23 +8701,44 @@ PAGE_TEMPLATE = """
       const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
       const equipped = rewards.equipped_cosmetics || {};
       const guildItems = cosmetics.filter((item) => item.type === 'guild');
+      const availableGifts = Array.isArray(profile.available_profile_gifts) ? profile.available_profile_gifts : [];
       const profileBannerKey = profile.profile_banner_key || ((equipped.guild || {}).key) || '';
-      const profileBanner = guildItems.find((item) => item.key === profileBannerKey) || null;
-      const featuredArena = (equipped.arena || {}).key || 'arena_stock_grid';
-      const featuredFrame = (equipped.frame || {}).key || '';
-      const featuredCardback = (equipped.cardback || {}).key || 'cardback_stock_plain';
-      const featuredEmoji = cosmeticEmojiSymbol(equipped);
-      const frameAsset = cosmeticAssetUrl('frame', featuredFrame);
       const currentDomain = state.selectedDomain || profile.domain || (state.playerProfile && state.playerProfile.current_domain) || '';
-      const avatarLabel = currentDomain ? `${currentDomain}.ton` : (profile.nickname || 'TON');
+      const analytics = profile.analytics || {};
+      const actionRates = analytics.action_rates || {};
+      const behaviorCards = [
+        `Winrate ${(Number(analytics.win_rate || 0) * 100).toFixed(0)}%`,
+        `Натиск ${(Number(actionRates.burst || 0) * 100).toFixed(0)}%`,
+        `Блок ${(Number(actionRates.guard || 0) * 100).toFixed(0)}%`,
+        `Способность ${(Number(actionRates.ability || 0) * 100).toFixed(0)}%`,
+      ].map((item) => `<span class="summary-chip">${escapeHtml(item)}</span>`).join('');
       const currentTab = state.profileTab === 'preferences' ? 'preferences' : 'overview';
       const profileSummaryChips = [
         profile.profile_title ? `Титул: ${profile.profile_title}` : 'Титул не задан',
         currentDomain ? `Домен: ${currentDomain}.ton` : 'Домен не выбран',
-        `Любимая способность: ${profileAbilityMeta(profile.favorite_ability || '').label}`,
+        `Способность: ${profileAbilityMeta(profile.favorite_ability || '').label}`,
         `Стиль: ${profilePlayStyleMeta(profile.play_style || '').label}`,
+        `Стратегия: ${strategyMeta(profile.favorite_strategy || '').label}`,
         `Роль: ${profileRoleMeta(profile.favorite_role || '')}`,
       ].map((item) => `<span class="summary-chip">${escapeHtml(item)}</span>`).join('');
+      const overviewCard = renderCompactPlayerCard(
+        {
+          ...profile,
+          wallet: state.wallet,
+          current_domain: currentDomain || profile.current_domain || profile.domain || '',
+          equipped_cosmetics: equipped,
+          selected_gift: profile.selected_gift || null,
+          profile_banner_key: profileBannerKey,
+          display_name: profile.display_name || profile.nickname || shortAddress(state.wallet),
+        },
+        {
+          actionsHtml: `
+            <div class="summary-chip-row" style="width:100%;">
+              ${behaviorCards}
+            </div>
+          `,
+        },
+      );
       profileIdentityPanel.innerHTML = `
         <div class="user-item">
           <strong>Профиль игрока</strong>
@@ -8359,84 +8747,39 @@ PAGE_TEMPLATE = """
             <button type="button" class="${currentTab === 'preferences' ? '' : 'secondary'} profile-tab-btn" data-profile-tab="preferences">Предпочтения</button>
           </div>
           ${currentTab === 'overview' ? `
-            <div style="margin-top:14px; border-radius:22px; padding:18px; overflow:hidden; background:${giftArenaSurface(featuredArena, featuredEmoji)};">
-              <div style="display:grid; grid-template-columns:minmax(180px, 220px) minmax(0, 1fr); gap:18px; align-items:center;">
-                <div style="position:relative; min-height:230px;">
-                  ${profileBanner ? `<div style="position:absolute; left:50%; top:10px; transform:translateX(-50%); width:124px; height:72px; border-radius:12px; border:1px solid rgba(255,255,255,0.24); background:${giftGuildSurface(profileBanner.key, featuredEmoji)}; box-shadow:0 16px 32px rgba(0,0,0,0.24);"></div>` : ''}
-                  <div style="position:absolute; inset:58px 26px 8px 26px; border-radius:28px; background:${giftCardbackSurface(featuredCardback, featuredEmoji)}; border:1px solid rgba(121,217,255,0.22); box-shadow:0 24px 44px rgba(0,0,0,0.34); display:flex; align-items:center; justify-content:center; padding:18px; text-align:center; font-size:30px; font-weight:900; line-height:1.1; color:rgba(245,251,255,0.96);">
-                    ${escapeHtml(avatarLabel)}
-                  </div>
-                  ${frameAsset ? `<img src="${frameAsset}" alt="" style="position:absolute; inset:50px 18px 0 18px; width:calc(100% - 36px); height:196px; object-fit:contain; pointer-events:none;">` : ''}
-                </div>
-                <div style="display:grid; gap:12px; align-content:center;">
-                  <div class="summary-chip-row">${profileSummaryChips}</div>
-                  <div class="tiny">Аватар профиля строится на активном домене. Баннер профиля выбирается отдельно из открытых клановых баннеров.</div>
-                  <div class="row" style="margin-top:4px;">
-                    <input id="profile-nickname-input" value="${escapeHtml(profile.nickname || '')}" maxlength="24" placeholder="Ник / имя для матчей">
-                    <input id="profile-title-input" value="${escapeHtml(profile.profile_title || '')}" maxlength="40" placeholder="Титул профиля">
-                  </div>
-                  <div class="row">
-                    <input id="profile-bio-input" value="${escapeHtml(profile.bio || '')}" maxlength="160" placeholder="Короткое описание профиля">
-                  </div>
-                  <div class="tiny">Публичный идентификатор: ${escapeHtml(profile.display_name || shortAddress(state.wallet))} • ${currentDomain ? `${escapeHtml(currentDomain)}.ton` : 'домен не выбран'}</div>
-                </div>
+            <div style="margin-top:14px; display:grid; gap:14px;">
+              ${overviewCard}
+              <div class="summary-chip-row">${profileSummaryChips}</div>
+              <div class="tiny">Домен всегда рендерится отдельным верхним слоем. Баннер профиля берётся из клановой косметики, gift можно выбирать отдельно из Telegram / кошелька.</div>
+              <div class="row" style="margin-top:4px;">
+                <input id="profile-nickname-input" value="${escapeHtml(profile.nickname || '')}" maxlength="24" placeholder="Ник / имя для матчей">
+                <input id="profile-title-input" value="${escapeHtml(profile.profile_title || '')}" maxlength="40" placeholder="Титул профиля">
+              </div>
+              <div class="row">
+                <input id="profile-bio-input" value="${escapeHtml(profile.bio || '')}" maxlength="160" placeholder="Короткое описание профиля">
               </div>
             </div>
           ` : ''}
           ${currentTab === 'preferences' ? `
             <div style="margin-top:14px; display:grid; gap:14px;">
-              <div class="row">
-                <select id="profile-favorite-ability-input">
-                  <option value="">Любимая способность</option>
-                  <option value="burst"${profile.favorite_ability === 'burst' ? ' selected' : ''}>Натиск</option>
-                  <option value="guard"${profile.favorite_ability === 'guard' ? ' selected' : ''}>Блок</option>
-                  <option value="ability"${profile.favorite_ability === 'ability' ? ' selected' : ''}>Доменная способность</option>
-                </select>
-                <select id="profile-play-style-input">
-                  <option value="">Стиль игры</option>
-                  <option value="aggressive"${profile.play_style === 'aggressive' ? ' selected' : ''}>Агрессивный</option>
-                  <option value="balanced"${profile.play_style === 'balanced' ? ' selected' : ''}>Сбалансированный</option>
-                  <option value="control"${profile.play_style === 'control' ? ' selected' : ''}>Контроль</option>
-                  <option value="tempo"${profile.play_style === 'tempo' ? ' selected' : ''}>Темп</option>
-                  <option value="fortune"${profile.play_style === 'fortune' ? ' selected' : ''}>Fortune</option>
-                  <option value="trickster"${profile.play_style === 'trickster' ? ' selected' : ''}>Хитрость</option>
-                </select>
-              </div>
-              <div class="row">
-                <select id="profile-favorite-strategy-input">
-                  <option value="">Матч-стратегия</option>
-                  <option value="attack_boost"${profile.favorite_strategy === 'attack_boost' ? ' selected' : ''}>Атакующий буст</option>
-                  <option value="defense_boost"${profile.favorite_strategy === 'defense_boost' ? ' selected' : ''}>Защитный буст</option>
-                  <option value="energy_boost"${profile.favorite_strategy === 'energy_boost' ? ' selected' : ''}>Энергобуст</option>
-                  <option value="aggressive"${profile.favorite_strategy === 'aggressive' ? ' selected' : ''}>Агрессия</option>
-                  <option value="balanced"${profile.favorite_strategy === 'balanced' ? ' selected' : ''}>Баланс</option>
-                  <option value="tricky"${profile.favorite_strategy === 'tricky' ? ' selected' : ''}>Хитрость</option>
-                </select>
-                <select id="profile-favorite-role-input">
-                  <option value="">Любимая роль</option>
-                  <option value="tank"${profile.favorite_role === 'tank' ? ' selected' : ''}>Tank</option>
-                  <option value="damage"${profile.favorite_role === 'damage' ? ' selected' : ''}>Damage</option>
-                  <option value="control"${profile.favorite_role === 'control' ? ' selected' : ''}>Control</option>
-                  <option value="support"${profile.favorite_role === 'support' ? ' selected' : ''}>Support</option>
-                  <option value="trickster"${profile.favorite_role === 'trickster' ? ' selected' : ''}>Trickster</option>
-                  <option value="guardian"${profile.favorite_role === 'guardian' ? ' selected' : ''}>Guardian</option>
-                  <option value="fortune"${profile.favorite_role === 'fortune' ? ' selected' : ''}>Fortune</option>
-                  <option value="combo"${profile.favorite_role === 'combo' ? ' selected' : ''}>Combo</option>
-                  <option value="disruptor"${profile.favorite_role === 'disruptor' ? ' selected' : ''}>Disruptor</option>
-                  <option value="sniper"${profile.favorite_role === 'sniper' ? ' selected' : ''}>Sniper</option>
-                </select>
-              </div>
+              <div class="summary-chip-row">${profileSummaryChips}</div>
+              <div class="summary-chip-row">${behaviorCards}</div>
               <div class="row">
                 <select id="profile-banner-select">
                   <option value="">Профильный баннер из боя</option>
                   ${guildItems.map((item) => `<option value="${escapeHtml(item.key)}"${profileBannerKey === item.key ? ' selected' : ''}>${escapeHtml(item.name)}</option>`).join('')}
                 </select>
+                <select id="profile-gift-select">
+                  <option value="">Подарок профиля</option>
+                  ${availableGifts.map((item) => `<option value="${escapeHtml(item.key)}" data-gift-source="${escapeHtml(item.source || '')}"${(profile.selected_gift && profile.selected_gift.key === item.key) ? ' selected' : ''}>${escapeHtml(item.label)} • ${escapeHtml(item.source === 'telegram' ? 'Telegram' : 'Wallet')}</option>`).join('')}
+                </select>
               </div>
-              <div class="tiny">Профильный баннер ставится отдельно в профиль. Боевой баннер, арена, рамка и рубашка остаются из экипированной косметики.</div>
+              <div class="tiny">Любимая способность, стиль игры, стратегия и роль теперь определяются автоматически по истории матчей игрока. Здесь настраиваются только публичные элементы профиля.</div>
               <div class="summary-chip-row">
                 <span class="summary-chip">${escapeHtml(profileAbilityMeta(profile.favorite_ability || '').description)}</span>
                 <span class="summary-chip">${escapeHtml(profilePlayStyleMeta(profile.play_style || '').description)}</span>
                 <span class="summary-chip">${escapeHtml(strategyMeta(profile.favorite_strategy || 'balanced').description)}</span>
+                <span class="summary-chip">${escapeHtml(profileRoleMeta(profile.favorite_role || ''))}</span>
               </div>
             </div>
           ` : ''}
@@ -8466,27 +8809,23 @@ PAGE_TEMPLATE = """
         renderSocialGuildBadges();
         return;
       }
-      const friends = (social.friends || []).map((item) => `
-        <div class="user-item">
-          <strong>${escapeHtml(item.display_name)}</strong>
-          <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • рейтинг ${item.rating || 1000}</div>
-          <div class="actions" style="margin-top:10px;">
-            <button class="secondary" data-social-action="duel" data-reference="${item.domain ? `${escapeHtml(item.domain)}.ton` : escapeHtml(item.display_name || '')}">Вызвать</button>
-            <button class="secondary" data-social-action="remove-friend" data-reference="${escapeHtml(item.wallet)}">Убрать</button>
-            <button class="secondary" data-social-action="block" data-reference="${escapeHtml(item.wallet)}">Блок</button>
-          </div>
-        </div>
-      `).join('') || '<div class="user-item muted">Друзей пока нет.</div>';
-      const incoming = (social.incoming_requests || []).map((item) => `
-        <div class="user-item">
-          <strong>${escapeHtml(item.display_name)}</strong>
-          <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • заявка в друзья</div>
-          <div class="actions" style="margin-top:10px;">
-            <button data-social-action="accept-friend" data-request-id="${escapeHtml(item.id)}">Принять</button>
-            <button class="secondary" data-social-action="decline-friend" data-request-id="${escapeHtml(item.id)}">Отклонить</button>
-          </div>
-        </div>
-      `).join('') || '<div class="user-item muted">Новых заявок нет.</div>';
+      const friends = renderCompactPlayerGrid(
+        social.friends || [],
+        (item) => [
+          compactActionButton('Дуэль', {'social-action': 'duel', reference: duelReferenceForPlayer(item)}),
+          compactActionButton('Убрать', {'social-action': 'remove-friend', reference: item.wallet}),
+          compactActionButton('Блок', {'social-action': 'block', reference: item.wallet}),
+        ].join(''),
+        '<div class="user-item muted">Друзей пока нет.</div>',
+      );
+      const incoming = renderCompactPlayerGrid(
+        social.incoming_requests || [],
+        (item) => [
+          compactActionButton('Принять', {'social-action': 'accept-friend', 'request-id': item.id}, false),
+          compactActionButton('Отклонить', {'social-action': 'decline-friend', 'request-id': item.id}),
+        ].join(''),
+        '<div class="user-item muted">Новых заявок нет.</div>',
+      );
       const incomingDuels = (social.incoming_duel_invites || []).map((item) => `
         <div class="user-item">
           <strong>Вызов ${escapeHtml(item.id)}</strong>
@@ -8508,16 +8847,14 @@ PAGE_TEMPLATE = """
           </div>
         </div>
       `).join('') || '<div class="user-item muted">Исходящих дуэлей нет.</div>';
-      const suggested = (social.suggested_players || []).slice(0, 6).map((item) => `
-        <div class="user-item">
-          <strong>${escapeHtml(item.display_name)}</strong>
-          <div class="tiny">${item.current_domain ? `${escapeHtml(item.current_domain)}.ton` : 'без домена'} • рейтинг ${item.rating || 1000}</div>
-          <div class="actions" style="margin-top:10px;">
-            <button class="secondary" data-social-action="request-friend" data-reference="${escapeHtml(item.wallet)}">В друзья</button>
-            <button class="secondary" data-social-action="duel" data-reference="${item.current_domain ? `${escapeHtml(item.current_domain)}.ton` : escapeHtml(item.display_name || '')}">Дуэль</button>
-          </div>
-        </div>
-      `).join('') || '<div class="user-item muted">Рекомендации появятся, когда в игре будет больше активных игроков.</div>';
+      const suggested = renderCompactPlayerGrid(
+        (social.suggested_players || []).slice(0, 6),
+        (item) => [
+          compactActionButton('В друзья', {'social-action': 'request-friend', reference: item.wallet}),
+          compactActionButton('Дуэль', {'social-action': 'duel', reference: duelReferenceForPlayer(item)}),
+        ].join(''),
+        '<div class="user-item muted">Рекомендации появятся, когда в игре будет больше активных игроков.</div>',
+      );
       const lobby = (social.lobby_messages || []).map((item) => `
         <div class="user-item">
           <strong>${escapeHtml(item.display_name)}</strong>
@@ -8624,16 +8961,24 @@ PAGE_TEMPLATE = """
         renderSocialGuildBadges();
         return;
       }
-      const members = (current.members || []).map((item) => `
-        <div class="user-item">
-          <strong>${escapeHtml(item.display_name)}</strong>
-          <div class="tiny">${item.domain ? `${escapeHtml(item.domain)}.ton` : 'без домена'} • ${escapeHtml(item.role)} • рейтинг ${item.rating || 1000}</div>
-          <div class="actions" style="margin-top:10px;">
-            <button class="secondary" data-social-action="duel" data-reference="${item.domain ? `${escapeHtml(item.domain)}.ton` : escapeHtml(item.display_name || '')}">Дуэль</button>
-            ${current.viewer_role === 'owner' && item.role !== 'owner' ? `<button class="secondary" data-guild-action="toggle-role" data-guild-id="${escapeHtml(current.id)}" data-target-wallet="${escapeHtml(item.wallet)}" data-next-role="${item.role === 'officer' ? 'member' : 'officer'}">${item.role === 'officer' ? 'Снять офицера' : 'Сделать офицером'}</button>` : ''}
-          </div>
-        </div>
-      `).join('');
+      const members = renderCompactPlayerGrid(
+        current.members || [],
+        (item) => [
+          compactActionButton('Дуэль', {'social-action': 'duel', reference: duelReferenceForPlayer(item)}),
+          (current.viewer_role === 'owner' && item.role !== 'owner')
+            ? compactActionButton(
+                item.role === 'officer' ? 'Снять офицера' : 'Сделать офицером',
+                {
+                  'guild-action': 'toggle-role',
+                  'guild-id': current.id,
+                  'target-wallet': item.wallet,
+                  'next-role': item.role === 'officer' ? 'member' : 'officer',
+                },
+              )
+            : '',
+        ].filter(Boolean).join(''),
+        '<div class="user-item muted">Состав пока пуст.</div>',
+      );
       const chat = (current.chat || []).map((item) => `
         <div class="user-item">
           <strong>${escapeHtml(item.display_name)}</strong>
@@ -8649,16 +8994,14 @@ PAGE_TEMPLATE = """
           <div class="tiny">${escapeHtml(item.message)}</div>
         </div>
       `).join('') || '<div class="user-item muted">Объявлений пока нет.</div>';
-      const requests = (current.pending_requests || []).map((item) => `
-        <div class="user-item">
-          <strong>${escapeHtml(item.display_name)}</strong>
-          <div class="tiny">${escapeHtml(item.message || 'Хочет вступить в клан')}</div>
-          <div class="actions" style="margin-top:10px;">
-            <button data-guild-action="accept-request" data-request-id="${escapeHtml(item.id)}">Принять</button>
-            <button class="secondary" data-guild-action="decline-request" data-request-id="${escapeHtml(item.id)}">Отклонить</button>
-          </div>
-        </div>
-      `).join('');
+      const requests = renderCompactPlayerGrid(
+        current.pending_requests || [],
+        (item) => [
+          compactActionButton('Принять', {'guild-action': 'accept-request', 'request-id': item.id}, false),
+          compactActionButton('Отклонить', {'guild-action': 'decline-request', 'request-id': item.id}),
+        ].join(''),
+        '',
+      );
       const todayHelp = (current.goals && current.goals.today_help) || [];
       const todayActionButtons = [];
       if (todayHelp.some((item) => /побед|матч|бой/i.test(item))) {
@@ -8917,7 +9260,7 @@ PAGE_TEMPLATE = """
         return;
       }
       const markup = items.map((item, index) => `
-        <div class="leaderboard-item">
+        <div class="leaderboard-item" data-open-profile-wallet="${escapeHtml(item.wallet)}" style="cursor:pointer;">
           <div class="team-line"><strong>#${index + 1} ${shortAddress(item.wallet)}</strong><strong>${item.rating}</strong></div>
           <div class="tiny">Матчей: ${item.games_played} • Побед: ${item.ranked_wins} • Лучший домен: ${item.best_domain || '-'}</div>
         </div>
@@ -8939,17 +9282,13 @@ PAGE_TEMPLATE = """
         activeUsersList.innerHTML = '<div class="user-item muted">Активные игроки появятся здесь после входа в игру.</div>';
         return;
       }
-      activeUsersList.innerHTML = items.map((item) => `
-        <div class="user-item">
-          <strong>${escapeHtml(item.display_name)}</strong>
-          <div class="tiny">${item.domain}.ton • рейтинг ${item.rating}</div>
-          <div class="tiny">Прокачка (сред.): атака ${item.average_attack} • защита ${item.average_defense}</div>
-          <div class="actions" style="margin-top:10px;">
-            <button class="secondary" data-social-action="request-friend" data-reference="${escapeHtml(item.wallet)}">В друзья</button>
-            <button class="secondary" data-social-action="duel" data-reference="${escapeHtml(item.domain)}.ton">Дуэль</button>
-          </div>
-        </div>
-      `).join('');
+      activeUsersList.innerHTML = items.map((item) => renderCompactPlayerCard(item, {
+        actionsHtml: [
+          `<div class="tiny" style="width:100%;">Прокачка (сред.): атака ${escapeHtml(String(item.average_attack || 0))} • защита ${escapeHtml(String(item.average_defense || 0))}</div>`,
+          compactActionButton('В друзья', {'social-action': 'request-friend', reference: item.wallet}),
+          compactActionButton('Дуэль', {'social-action': 'duel', reference: duelReferenceForPlayer(item)}),
+        ].join(''),
+      })).join('');
     }
 
     function renderDeck(data) {
@@ -9240,17 +9579,13 @@ PAGE_TEMPLATE = """
         mobileGlobalPlayersList.innerHTML = emptyMarkup;
         return;
       }
-      const markup = state.allPlayers.map((player, index) => `
-        <div class="user-item">
-          <strong>#${index + 1} ${escapeHtml(player.display_name || shortAddress(player.wallet))}</strong>
-          <div class="tiny">Домен: ${player.current_domain ? `${player.current_domain}.ton` : 'не выбран'}</div>
-          <div class="tiny">Рейтинг: ${player.rating} • Матчей: ${player.games_played}</div>
-          <div class="actions" style="margin-top:10px;">
-            <button class="secondary" data-social-action="request-friend" data-reference="${escapeHtml(player.wallet)}">В друзья</button>
-            <button class="secondary" data-social-action="duel" data-reference="${player.current_domain ? `${escapeHtml(player.current_domain)}.ton` : escapeHtml(player.display_name || '')}">Дуэль</button>
-          </div>
-        </div>
-      `).join('');
+      const markup = state.allPlayers.map((player, index) => renderCompactPlayerCard(player, {
+        actionsHtml: [
+          `<div class="tiny" style="width:100%;">#${index + 1} • рейтинг ${escapeHtml(String(player.rating || 1000))} • матчей ${escapeHtml(String(player.games_played || 0))}</div>`,
+          compactActionButton('В друзья', {'social-action': 'request-friend', reference: player.wallet}),
+          compactActionButton('Дуэль', {'social-action': 'duel', reference: duelReferenceForPlayer(player)}),
+        ].join(''),
+      })).join('');
       globalPlayersList.innerHTML = markup;
       mobileGlobalPlayersList.innerHTML = markup;
     }
@@ -11832,11 +12167,11 @@ PAGE_TEMPLATE = """
       const nickname = document.getElementById('profile-nickname-input')?.value ?? (profile.nickname || '');
       const bio = document.getElementById('profile-bio-input')?.value ?? (profile.bio || '');
       const profileTitle = document.getElementById('profile-title-input')?.value ?? (profile.profile_title || '');
-      const favoriteAbility = document.getElementById('profile-favorite-ability-input')?.value ?? (profile.favorite_ability || '');
-      const playStyle = document.getElementById('profile-play-style-input')?.value ?? (profile.play_style || '');
-      const favoriteStrategy = document.getElementById('profile-favorite-strategy-input')?.value ?? (profile.favorite_strategy || '');
-      const favoriteRole = document.getElementById('profile-favorite-role-input')?.value ?? (profile.favorite_role || '');
       const profileBannerKey = document.getElementById('profile-banner-select')?.value ?? (profile.profile_banner_key || '');
+      const profileGiftSelect = document.getElementById('profile-gift-select');
+      const giftOption = profileGiftSelect && profileGiftSelect.selectedOptions && profileGiftSelect.selectedOptions[0] ? profileGiftSelect.selectedOptions[0] : null;
+      const profileGiftKey = profileGiftSelect?.value ?? ((profile.selected_gift || {}).key || '');
+      const profileGiftSource = giftOption?.dataset?.giftSource ?? ((profile.selected_gift || {}).source || '');
       const data = await api('/api/profile', {
         method: 'POST',
         body: {
@@ -11844,11 +12179,9 @@ PAGE_TEMPLATE = """
           nickname,
           bio,
           profile_title: profileTitle,
-          favorite_ability: favoriteAbility,
-          play_style: playStyle,
-          favorite_strategy: favoriteStrategy,
-          favorite_role: favoriteRole,
           profile_banner_key: profileBannerKey,
+          profile_gift_source: profileGiftSource,
+          profile_gift_key: profileGiftKey,
           language: 'ru'
         }
       });
@@ -11857,6 +12190,7 @@ PAGE_TEMPLATE = """
       renderProfile();
       renderIdentityPanel();
       renderSocialPanel();
+      renderGuildPanel();
     }
 
     async function sendLobbyMessage() {
@@ -13367,6 +13701,21 @@ PAGE_TEMPLATE = """
     document.addEventListener('click', (event) => {
       interceptGuildAction(event).catch(() => {});
     }, true);
+    document.addEventListener('click', (event) => {
+      interceptPublicProfileAction(event).catch(() => {});
+    }, true);
+    if (publicProfileBackdrop) {
+      publicProfileBackdrop.addEventListener('click', (event) => {
+        if (event.target === publicProfileBackdrop) {
+          closePublicProfile();
+        }
+      });
+    }
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && state.publicProfile) {
+        closePublicProfile();
+      }
+    });
     ['pointerdown', 'touchstart', 'click', 'change', 'focusin'].forEach((eventName) => {
       document.addEventListener(eventName, syncTmaModeForFunctionalAction, true);
     });
@@ -13832,6 +14181,11 @@ def init_db():
                 visibility TEXT NOT NULL DEFAULT 'public',
                 updated_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS player_behavior_stats (
+                wallet TEXT PRIMARY KEY,
+                stats_json TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS friend_requests (
                 id TEXT PRIMARY KEY,
                 sender_wallet TEXT NOT NULL,
@@ -14075,6 +14429,11 @@ def ensure_runtime_tables():
                 scope TEXT NOT NULL,
                 reason TEXT NOT NULL,
                 created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS player_behavior_stats (
+                wallet TEXT PRIMARY KEY,
+                stats_json TEXT NOT NULL,
+                updated_at TEXT NOT NULL
             );
             '''
         )
@@ -17526,6 +17885,8 @@ def ensure_player_profile_columns(conn):
         'favorite_strategy': "ALTER TABLE player_profiles ADD COLUMN favorite_strategy TEXT",
         'favorite_role': "ALTER TABLE player_profiles ADD COLUMN favorite_role TEXT",
         'profile_banner_key': "ALTER TABLE player_profiles ADD COLUMN profile_banner_key TEXT",
+        'profile_gift_source': "ALTER TABLE player_profiles ADD COLUMN profile_gift_source TEXT",
+        'profile_gift_key': "ALTER TABLE player_profiles ADD COLUMN profile_gift_key TEXT",
         'updated_at': "ALTER TABLE player_profiles ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''",
     }
     for column, statement in additions.items():
@@ -17546,11 +17907,12 @@ def ensure_player_profile(wallet):
                 INSERT INTO player_profiles (
                     wallet, nickname, avatar, bio, language, visibility,
                     profile_title, favorite_ability, play_style, favorite_strategy,
-                    favorite_role, profile_banner_key, updated_at
+                    favorite_role, profile_banner_key, profile_gift_source,
+                    profile_gift_key, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, 'public', ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, 'public', ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''',
-                (wallet, None, '', None, 'ru', None, None, None, None, None, None, ts),
+                (wallet, None, '', None, 'ru', None, None, None, None, None, None, None, None, ts),
             )
             conn.commit()
             row = conn.execute('SELECT * FROM player_profiles WHERE wallet = ?', (wallet,)).fetchone()
@@ -17581,12 +17943,320 @@ def avatar_for_wallet(wallet):
     return ''
 
 
-def public_player_summary(wallet):
+def empty_player_behavior_stats():
+    return {
+        'matches_total': 0,
+        'wins_total': 0,
+        'losses_total': 0,
+        'draws_total': 0,
+        'actions': {'burst': 0, 'guard': 0, 'ability': 0},
+        'strategies': {},
+        'roles': {},
+        'modes': {},
+        'domains': {},
+        'updated_at': now_iso(),
+    }
+
+
+def ensure_player_behavior_row(wallet):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM player_behavior_stats WHERE wallet = ?', (wallet,)).fetchone()
+        if row is None:
+            conn.execute(
+                'INSERT INTO player_behavior_stats (wallet, stats_json, updated_at) VALUES (?, ?, ?)',
+                (wallet, json.dumps(empty_player_behavior_stats(), ensure_ascii=False), now_iso()),
+            )
+            conn.commit()
+            row = conn.execute('SELECT * FROM player_behavior_stats WHERE wallet = ?', (wallet,)).fetchone()
+    return dict(row)
+
+
+def player_behavior_stats(wallet):
+    if not wallet:
+        return empty_player_behavior_stats()
+    row = ensure_player_behavior_row(wallet)
+    try:
+        stats = json.loads(row.get('stats_json') or '{}')
+    except json.JSONDecodeError:
+        stats = {}
+    merged = empty_player_behavior_stats()
+    for key, value in stats.items():
+        if isinstance(merged.get(key), dict) and isinstance(value, dict):
+            merged[key].update(value)
+        else:
+            merged[key] = value
+    merged['updated_at'] = row.get('updated_at') or merged.get('updated_at') or now_iso()
+    return merged
+
+
+def save_player_behavior_stats(wallet, stats):
+    ensure_runtime_tables()
+    payload = empty_player_behavior_stats()
+    for key, value in (stats or {}).items():
+        if isinstance(payload.get(key), dict) and isinstance(value, dict):
+            payload[key].update(value)
+        else:
+            payload[key] = value
+    payload['updated_at'] = now_iso()
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO player_behavior_stats (wallet, stats_json, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(wallet) DO UPDATE SET
+                stats_json = excluded.stats_json,
+                updated_at = excluded.updated_at
+            ''',
+            (wallet, json.dumps(payload, ensure_ascii=False), payload['updated_at']),
+        )
+        conn.commit()
+    return payload
+
+
+def top_stat_key(mapping, fallback=''):
+    items = [(str(key), int(value or 0)) for key, value in (mapping or {}).items() if int(value or 0) > 0]
+    if not items:
+        return fallback
+    items.sort(key=lambda item: (-item[1], item[0]))
+    return items[0][0]
+
+
+def derived_behavior_profile(wallet):
+    stats = player_behavior_stats(wallet)
+    actions = stats.get('actions') or {}
+    strategies = stats.get('strategies') or {}
+    roles = stats.get('roles') or {}
+    matches_total = int(stats.get('matches_total', 0) or 0)
+    favorite_ability = top_stat_key(actions, '')
+    favorite_strategy = top_stat_key(strategies, '')
+    favorite_role = top_stat_key(roles, '')
+
+    burst_count = int(actions.get('burst', 0) or 0)
+    guard_count = int(actions.get('guard', 0) or 0)
+    ability_count = int(actions.get('ability', 0) or 0)
+    total_action_count = max(1, burst_count + guard_count + ability_count)
+    burst_rate = burst_count / total_action_count
+    guard_rate = guard_count / total_action_count
+    ability_rate = ability_count / total_action_count
+
+    if favorite_strategy in {'tricky'}:
+        play_style = 'trickster'
+    elif favorite_strategy in {'energy_boost'} or favorite_role == 'fortune' or ability_rate >= 0.28:
+        play_style = 'fortune'
+    elif burst_rate >= 0.5 or favorite_strategy in {'aggressive', 'attack_boost'}:
+        play_style = 'aggressive'
+    elif guard_rate >= 0.5 or favorite_strategy in {'defense_boost'} or favorite_role in {'guardian', 'tank', 'control'}:
+        play_style = 'control'
+    elif favorite_role in {'combo', 'sniper', 'damage'}:
+        play_style = 'tempo'
+    else:
+        play_style = 'balanced'
+
+    return {
+        'favorite_ability': favorite_ability,
+        'favorite_strategy': favorite_strategy,
+        'favorite_role': favorite_role,
+        'play_style': play_style,
+        'matches_total': matches_total,
+        'win_rate': round((int(stats.get('wins_total', 0) or 0) / max(1, matches_total)), 3),
+        'action_rates': {
+            'burst': round(burst_rate, 3),
+            'guard': round(guard_rate, 3),
+            'ability': round(ability_rate, 3),
+        },
+        'stats': stats,
+    }
+
+
+def record_player_behavior(wallet, domain, rounds, strategy_key, result, mode='casual', side='a'):
+    if not wallet:
+        return empty_player_behavior_stats()
+    stats = player_behavior_stats(wallet)
+    stats['matches_total'] = int(stats.get('matches_total', 0) or 0) + 1
+    result_key = str(result or '').strip().lower()
+    if result_key == 'win':
+        stats['wins_total'] = int(stats.get('wins_total', 0) or 0) + 1
+    elif result_key == 'loss':
+        stats['losses_total'] = int(stats.get('losses_total', 0) or 0) + 1
+    else:
+        stats['draws_total'] = int(stats.get('draws_total', 0) or 0) + 1
+
+    mode_key = str(mode or 'casual').strip().lower() or 'casual'
+    stats.setdefault('modes', {})
+    stats['modes'][mode_key] = int(stats['modes'].get(mode_key, 0) or 0) + 1
+
+    normalized_domain = normalize_domain(domain)
+    if normalized_domain:
+        stats.setdefault('domains', {})
+        stats['domains'][normalized_domain] = int(stats['domains'].get(normalized_domain, 0) or 0) + 1
+
+    side_key = 'a' if side != 'b' else 'b'
+    for round_item in rounds or []:
+        action_value = str(round_item.get(f'action_{side_key}') or '').strip().lower()
+        if action_value in {'burst', 'guard', 'ability'}:
+            stats.setdefault('actions', {})
+            stats['actions'][action_value] = int(stats['actions'].get(action_value, 0) or 0) + 1
+        round_strategy = str(round_item.get(f'strategy_key_{side_key}') or strategy_key or '').strip().lower()
+        if round_strategy:
+            stats.setdefault('strategies', {})
+            stats['strategies'][round_strategy] = int(stats['strategies'].get(round_strategy, 0) or 0) + 1
+
+    metadata = get_domain_metadata_payload(normalized_domain, wallet=wallet) if normalized_domain else None
+    role_key = str((metadata or {}).get('role') or '').strip().lower()
+    if role_key:
+        stats.setdefault('roles', {})
+        stats['roles'][role_key] = int(stats['roles'].get(role_key, 0) or 0) + 1
+
+    return save_player_behavior_stats(wallet, stats)
+
+
+def wallet_profile_gifts(wallet, limit=24):
+    if not valid_wallet_address(wallet):
+        return []
+    headers = {}
+    if TONAPI_KEY:
+        headers['Authorization'] = f'Bearer {TONAPI_KEY}'
+    try:
+        response = HTTP.get(TONAPI_BASE_URL.format(wallet=wallet), headers=headers, timeout=15)
+        response.raise_for_status()
+        payload = response.json()
+    except Exception:
+        return []
+    items = payload.get('nfts') or payload.get('nft_items') or []
+    result = []
+    seen = set()
+    for item in items:
+        if extract_domain_candidates_from_nft(item):
+            continue
+        metadata = item.get('metadata') or {}
+        previews = item.get('previews') or []
+        image_url = metadata.get('image') or metadata.get('image_url') or item.get('image') or ''
+        if not image_url and previews:
+            image_url = previews[0].get('url') or ''
+        name = clean_public_text(
+            metadata.get('name')
+            or item.get('name')
+            or metadata.get('description')
+            or 'Подарок кошелька',
+            64,
+        )
+        nft_address = clean_public_text(item.get('address') or metadata.get('address') or '', 128)
+        gift_key = nft_address or hashlib.sha256(json.dumps(item, ensure_ascii=False, sort_keys=True).encode('utf-8')).hexdigest()[:24]
+        full_key = f'wallet:{gift_key}'
+        if full_key in seen:
+            continue
+        seen.add(full_key)
+        result.append(
+            {
+                'source': 'wallet',
+                'key': full_key,
+                'label': name or 'Подарок кошелька',
+                'subtitle': clean_public_text(metadata.get('collection') or ((item.get('collection') or {}).get('name')), 48) or 'TON NFT',
+                'image_url': image_url,
+                'emoji': clean_public_text(metadata.get('emoji') or '', 8),
+            }
+        )
+        if len(result) >= limit:
+            break
+    return result
+
+
+def telegram_profile_gifts(wallet, limit=24):
+    link = telegram_wallet_link(wallet)
+    if not link or not TG_BOT_TOKEN:
+        return []
+    try:
+        response = telegram_api('getUserGifts', {'user_id': int(link['telegram_user_id']), 'limit': int(limit)})
+    except Exception:
+        return []
+    payload = response.get('result') if isinstance(response, dict) else None
+    items = []
+    if isinstance(payload, dict):
+        items = payload.get('gifts') or payload.get('items') or []
+    elif isinstance(payload, list):
+        items = payload
+    result = []
+    for item in items[:limit]:
+        if not isinstance(item, dict):
+            continue
+        gift = item.get('gift') if isinstance(item.get('gift'), dict) else item
+        gift_id = clean_public_text(gift.get('id') or item.get('id') or '', 64)
+        label = clean_public_text(
+            gift.get('title')
+            or gift.get('name')
+            or item.get('title')
+            or 'Подарок Telegram',
+            64,
+        )
+        if not gift_id and not label:
+            continue
+        result.append(
+            {
+                'source': 'telegram',
+                'key': f"telegram:{gift_id or hashlib.sha256(json.dumps(gift, ensure_ascii=False, sort_keys=True).encode('utf-8')).hexdigest()[:20]}",
+                'label': label or 'Подарок Telegram',
+                'subtitle': clean_public_text(gift.get('model') or item.get('type') or 'Telegram Gift', 48),
+                'image_url': clean_public_text(gift.get('sticker') or gift.get('image_url') or gift.get('photo_url') or item.get('sticker') or '', 512),
+                'emoji': clean_public_text(gift.get('emoji') or item.get('emoji') or '', 8),
+            }
+        )
+    return result
+
+
+def available_profile_gifts(wallet):
+    items = []
+    seen = set()
+    for source_items in (telegram_profile_gifts(wallet), wallet_profile_gifts(wallet)):
+        for item in source_items:
+            key = item.get('key')
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            items.append(item)
+    return items
+
+
+def selected_profile_gift(wallet, profile=None):
+    row = profile or player_profile_row(wallet) or {}
+    source = clean_public_text(row.get('profile_gift_source') or '', 24)
+    key = clean_public_text(row.get('profile_gift_key') or '', 128)
+    if not source or not key:
+        return None
+    full_key = key if ':' in key else f'{source}:{key}'
+    for item in available_profile_gifts(wallet):
+        if item.get('key') == full_key:
+            return item
+    return None
+
+
+def cosmetic_nft_draft(wallet):
+    items = []
+    for item in cosmetic_inventory(wallet):
+        items.append(
+            {
+                'collection_family': item.get('nft_family') or item.get('type'),
+                'serial': item.get('serial'),
+                'serial_number': item.get('serial_number'),
+                'name': item.get('name'),
+                'type': item.get('type'),
+                'rarity_key': item.get('rarity_key'),
+                'emoji': item.get('emoji'),
+                'source': item.get('source'),
+                'draft_ready': bool(item.get('serial_number')),
+            }
+        )
+    return items
+
+
+def player_card_snapshot(wallet):
     player = ensure_player(wallet)
     profile = player_profile_row(wallet)
     rewards = reward_summary(wallet)
+    analytics = derived_behavior_profile(wallet)
     equipped = rewards.get('equipped_cosmetics') or {}
     profile_banner_key = (profile or {}).get('profile_banner_key') or ((equipped.get('guild') or {}).get('key'))
+    selected_gift = selected_profile_gift(wallet, profile=profile)
     return {
         'wallet': wallet,
         'display_name': display_name_for_wallet(wallet),
@@ -17595,14 +18265,44 @@ def public_player_summary(wallet):
         'language': (profile or {}).get('language') or 'ru',
         'current_domain': player.get('current_domain'),
         'profile_title': (profile or {}).get('profile_title') or '',
-        'favorite_ability': (profile or {}).get('favorite_ability') or '',
-        'play_style': (profile or {}).get('play_style') or '',
-        'favorite_strategy': (profile or {}).get('favorite_strategy') or '',
-        'favorite_role': (profile or {}).get('favorite_role') or '',
+        'favorite_ability': analytics.get('favorite_ability') or (profile or {}).get('favorite_ability') or '',
+        'play_style': analytics.get('play_style') or (profile or {}).get('play_style') or '',
+        'favorite_strategy': analytics.get('favorite_strategy') or (profile or {}).get('favorite_strategy') or '',
+        'favorite_role': analytics.get('favorite_role') or (profile or {}).get('favorite_role') or '',
         'profile_banner_key': profile_banner_key,
         'rating': player.get('rating') or 1000,
         'games_played': player.get('games_played') or 0,
         'season_level': rewards.get('season_level') or 1,
+        'equipped_cosmetics': equipped,
+        'selected_gift': selected_gift,
+        'analytics': analytics,
+    }
+
+
+def public_player_summary(wallet):
+    return player_card_snapshot(wallet)
+
+
+def public_player_profile(wallet, viewer_wallet=None):
+    base = player_card_snapshot(wallet)
+    player = ensure_player(wallet)
+    rewards = reward_summary(wallet)
+    guild_membership = current_guild_membership(wallet)
+    return {
+        **base,
+        'best_domain': player.get('best_domain'),
+        'ranked_wins': player.get('ranked_wins') or 0,
+        'ranked_losses': player.get('ranked_losses') or 0,
+        'deck_summary': deck_summary_for_domain(player.get('current_domain'), wallet) if player.get('current_domain') else None,
+        'guild': {
+            'id': guild_membership['guild_id'],
+            'name': guild_membership['name'],
+            'slug': guild_membership['slug'],
+            'role': guild_membership['role'],
+        } if guild_membership else None,
+        'viewer_is_self': viewer_wallet == wallet,
+        'available_profile_gifts': available_profile_gifts(wallet) if viewer_wallet == wallet else [],
+        'nft_draft': cosmetic_nft_draft(wallet) if viewer_wallet == wallet else [],
     }
 
 
@@ -17790,11 +18490,8 @@ def active_users():
         summary = deck_summary_for_domain(row['current_domain'], row['wallet'])
         result.append(
             {
-                'wallet': row['wallet'],
-                'display_name': display_name_for_wallet(row['wallet']),
-                'avatar': avatar_for_wallet(row['wallet']),
+                **public_player_summary(row['wallet']),
                 'domain': row['current_domain'],
-                'rating': row['rating'],
                 'average_attack': summary['average_attack'],
                 'average_defense': summary['average_defense'],
                 'total_score': summary['total_score'],
@@ -17821,17 +18518,16 @@ def friend_rows(owner_wallet):
     result = []
     for row in rows:
         summary = deck_summary_for_domain(row['current_domain'], row['wallet']) if row['current_domain'] else None
-        result.append(
+        item = public_player_summary(row['wallet'])
+        item.update(
             {
-                'wallet': row['wallet'],
-                'display_name': row['username'] or row['first_name'] or short_wallet(row['wallet']),
-                'avatar': avatar_for_wallet(row['wallet']),
+                'display_name': row['username'] or row['first_name'] or item['display_name'],
                 'domain': row['current_domain'],
-                'rating': row['rating'],
                 'average_attack': summary['average_attack'] if summary else None,
                 'average_defense': summary['average_defense'] if summary else None,
             }
         )
+        result.append(item)
     return result
 
 
@@ -17927,10 +18623,8 @@ def friend_request_rows(wallet, direction='incoming'):
         other_wallet = row[wallet_key]
         result.append(
             {
+                **public_player_summary(other_wallet),
                 'id': row['id'],
-                'wallet': other_wallet,
-                'display_name': display_name_for_wallet(other_wallet),
-                'avatar': avatar_for_wallet(other_wallet),
                 'status': row['status'],
                 'created_at': row['created_at'],
                 'domain': ensure_player(other_wallet).get('current_domain'),
@@ -18108,9 +18802,7 @@ def guild_members_rows(guild_id):
         ).fetchall()
     return [
         {
-            'wallet': row['wallet'],
-            'display_name': display_name_for_wallet(row['wallet']),
-            'avatar': avatar_for_wallet(row['wallet']),
+            **public_player_summary(row['wallet']),
             'role': row['role'],
             'joined_at': row['joined_at'],
             'domain': row['current_domain'],
@@ -18219,10 +18911,8 @@ def guild_messages_rows(guild_id, limit=30):
         ).fetchall()
     return [
         {
+            **public_player_summary(row['wallet']),
             'id': row['id'],
-            'wallet': row['wallet'],
-            'display_name': display_name_for_wallet(row['wallet']),
-            'avatar': avatar_for_wallet(row['wallet']),
             'message': row['message'],
             'created_at': row['created_at'],
         }
@@ -18238,9 +18928,8 @@ def guild_announcements_rows(guild_id, limit=8):
         ).fetchall()
     return [
         {
+            **public_player_summary(row['wallet']),
             'id': row['id'],
-            'wallet': row['wallet'],
-            'display_name': display_name_for_wallet(row['wallet']),
             'message': row['message'],
             'created_at': row['created_at'],
         }
@@ -18256,10 +18945,8 @@ def guild_requests_rows(guild_id, status='pending'):
         ).fetchall()
     return [
         {
+            **public_player_summary(row['wallet']),
             'id': row['id'],
-            'wallet': row['wallet'],
-            'display_name': display_name_for_wallet(row['wallet']),
-            'avatar': avatar_for_wallet(row['wallet']),
             'message': row['message'] or '',
             'created_at': row['created_at'],
             'domain': ensure_player(row['wallet']).get('current_domain'),
@@ -18690,6 +19377,7 @@ def social_overview(wallet):
     profile = player_profile_row(wallet)
     friend_list = friend_rows(wallet)
     rewards = reward_summary(wallet)
+    analytics = derived_behavior_profile(wallet)
     equipped = rewards.get('equipped_cosmetics') or {}
     profile_banner_key = (profile or {}).get('profile_banner_key') or ((equipped.get('guild') or {}).get('key'))
     return {
@@ -18703,11 +19391,15 @@ def social_overview(wallet):
             'visibility': (profile or {}).get('visibility') or 'public',
             'domain': ensure_player(wallet).get('current_domain'),
             'profile_title': (profile or {}).get('profile_title') or '',
-            'favorite_ability': (profile or {}).get('favorite_ability') or '',
-            'play_style': (profile or {}).get('play_style') or '',
-            'favorite_strategy': (profile or {}).get('favorite_strategy') or '',
-            'favorite_role': (profile or {}).get('favorite_role') or '',
+            'favorite_ability': analytics.get('favorite_ability') or (profile or {}).get('favorite_ability') or '',
+            'play_style': analytics.get('play_style') or (profile or {}).get('play_style') or '',
+            'favorite_strategy': analytics.get('favorite_strategy') or (profile or {}).get('favorite_strategy') or '',
+            'favorite_role': analytics.get('favorite_role') or (profile or {}).get('favorite_role') or '',
             'profile_banner_key': profile_banner_key,
+            'equipped_cosmetics': equipped,
+            'selected_gift': selected_profile_gift(wallet, profile=profile),
+            'available_profile_gifts': available_profile_gifts(wallet),
+            'analytics': analytics,
         },
         'friends': friend_list,
         'incoming_requests': friend_request_rows(wallet, 'incoming'),
@@ -18762,6 +19454,7 @@ def get_player(wallet):
     guild_membership = current_guild_membership(wallet)
     telegram_link = telegram_wallet_link(wallet)
     rewards = reward_summary(wallet)
+    analytics = derived_behavior_profile(wallet)
     equipped = rewards.get('equipped_cosmetics') or {}
     profile_banner_key = (profile or {}).get('profile_banner_key') or ((equipped.get('guild') or {}).get('key'))
     return {
@@ -18784,11 +19477,15 @@ def get_player(wallet):
         'avatar': '',
         'bio': (profile or {}).get('bio') or '',
         'profile_title': (profile or {}).get('profile_title') or '',
-        'favorite_ability': (profile or {}).get('favorite_ability') or '',
-        'play_style': (profile or {}).get('play_style') or '',
-        'favorite_strategy': (profile or {}).get('favorite_strategy') or '',
-        'favorite_role': (profile or {}).get('favorite_role') or '',
+        'favorite_ability': analytics.get('favorite_ability') or (profile or {}).get('favorite_ability') or '',
+        'play_style': analytics.get('play_style') or (profile or {}).get('play_style') or '',
+        'favorite_strategy': analytics.get('favorite_strategy') or (profile or {}).get('favorite_strategy') or '',
+        'favorite_role': analytics.get('favorite_role') or (profile or {}).get('favorite_role') or '',
         'profile_banner_key': profile_banner_key,
+        'selected_gift': selected_profile_gift(wallet, profile=profile),
+        'available_profile_gifts': available_profile_gifts(wallet),
+        'analytics': analytics,
+        'nft_draft': cosmetic_nft_draft(wallet),
         'deck_summary': current_deck,
         'rewards': rewards,
         'tutorial': tutorial_summary(wallet),
@@ -18843,6 +19540,24 @@ def apply_non_ranked_domain_progress(match, mode='casual'):
                 'match_duration_rounds': len(match.get('rounds', [])),
             },
         )
+    record_player_behavior(
+        match['wallet_a'],
+        match['domain_a'],
+        match.get('rounds', []),
+        match.get('strategy_key_a'),
+        'win' if match.get('winner') == match['wallet_a'] else ('draw' if match.get('winner') is None else 'loss'),
+        mode=mode,
+        side='a',
+    )
+    record_player_behavior(
+        match['wallet_b'],
+        match['domain_b'],
+        match.get('rounds', []),
+        match.get('strategy_key_b'),
+        'win' if match.get('winner') == match['wallet_b'] else ('draw' if match.get('winner') is None else 'loss'),
+        mode=mode,
+        side='b',
+    )
 
 
 def global_player_rows(limit=200):
@@ -18858,9 +19573,8 @@ def global_player_rows(limit=200):
         ).fetchall()
     result = []
     for row in rows:
-        item = dict(row)
-        item['display_name'] = display_name_for_wallet(row['wallet'])
-        item['avatar'] = avatar_for_wallet(row['wallet'])
+        item = public_player_summary(row['wallet'])
+        item.update(dict(row))
         result.append(item)
     return result
 
@@ -19489,6 +20203,15 @@ def apply_solo_battle_action(session_id, wallet, action_key):
                 'match_duration_rounds': len(state.get('rounds', [])),
             },
         )
+        record_player_behavior(
+            state['wallet'],
+            state['domain'],
+            state.get('rounds', []),
+            state.get('strategy_key_a'),
+            'win' if won else 'loss',
+            mode=state.get('mode'),
+            side='a',
+        )
     else:
         state['energy_a'] = 3
         state['energy_b'] = 3
@@ -19624,6 +20347,24 @@ def apply_ranked_result_duel(match):
                 'match_duration_rounds': len(match.get('rounds', [])),
             },
         )
+    record_player_behavior(
+        match['wallet_a'],
+        match['domain_a'],
+        match.get('rounds', []),
+        match.get('strategy_key_a'),
+        result_label(match['wallet_a']),
+        mode='ranked',
+        side='a',
+    )
+    record_player_behavior(
+        match['wallet_b'],
+        match['domain_b'],
+        match.get('rounds', []),
+        match.get('strategy_key_b'),
+        result_label(match['wallet_b']),
+        mode='ranked',
+        side='b',
+    )
 
     return (
         get_player(match['wallet_a']),
@@ -20906,6 +21647,16 @@ def api_player(wallet):
     return jsonify({'player': get_player(wallet)})
 
 
+@app.route('/api/player/public/<wallet>')
+def api_public_player(wallet):
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    viewer_wallet = (request.args.get('viewer') or '').strip()
+    if viewer_wallet and not valid_wallet_address(viewer_wallet):
+        viewer_wallet = None
+    return jsonify({'player': public_player_profile(wallet, viewer_wallet=viewer_wallet)})
+
+
 @app.route('/api/player/register', methods=['POST'])
 def api_player_register():
     payload = request.get_json(silent=True) or {}
@@ -20931,6 +21682,8 @@ def api_profile_update():
     favorite_strategy = clean_public_text(payload.get('favorite_strategy'), 24).lower() or None
     favorite_role = clean_public_text(payload.get('favorite_role'), 24).lower() or None
     profile_banner_key = clean_public_text(payload.get('profile_banner_key'), 64) or None
+    profile_gift_source = clean_public_text(payload.get('profile_gift_source'), 24) or None
+    profile_gift_key = clean_public_text(payload.get('profile_gift_key'), 128) or None
     language = clean_public_text(payload.get('language') or 'ru', 12) or 'ru'
     visibility = clean_public_text(payload.get('visibility') or 'public', 12) or 'public'
     valid_abilities = {'burst', 'guard', 'ability'}
@@ -20953,6 +21706,19 @@ def api_profile_update():
         }
         if profile_banner_key not in owned_guild_keys:
             return json_error('Баннер профиля должен быть открыт в инвентаре.')
+    if profile_gift_source or profile_gift_key:
+        available_gifts = available_profile_gifts(wallet)
+        normalized_key = profile_gift_key or ''
+        if normalized_key and ':' not in normalized_key and profile_gift_source:
+            normalized_key = f'{profile_gift_source}:{normalized_key}'
+        selected = next((item for item in available_gifts if item.get('key') == normalized_key), None)
+        if not selected:
+            return json_error('Выбранный подарок недоступен для профиля.')
+        profile_gift_source = selected.get('source')
+        profile_gift_key = selected.get('key')
+    else:
+        profile_gift_source = None
+        profile_gift_key = None
     with closing(get_db()) as conn:
         ensure_player_profile_columns(conn)
         conn.execute(
@@ -20960,7 +21726,8 @@ def api_profile_update():
             UPDATE player_profiles
             SET nickname = ?, avatar = ?, bio = ?, language = ?, visibility = ?,
                 profile_title = ?, favorite_ability = ?, play_style = ?,
-                favorite_strategy = ?, favorite_role = ?, profile_banner_key = ?, updated_at = ?
+                favorite_strategy = ?, favorite_role = ?, profile_banner_key = ?,
+                profile_gift_source = ?, profile_gift_key = ?, updated_at = ?
             WHERE wallet = ?
             ''',
             (
@@ -20975,6 +21742,8 @@ def api_profile_update():
                 favorite_strategy,
                 favorite_role,
                 profile_banner_key,
+                profile_gift_source,
+                profile_gift_key,
                 now_iso(),
                 wallet,
             ),
