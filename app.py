@@ -3613,6 +3613,73 @@ PAGE_TEMPLATE = """
       50% { transform: translateY(-4px); }
     }
 
+    @media (max-width: 700px) {
+      .startup-guide-flowboard {
+        height: 214px;
+      }
+
+      .startup-guide-wallet-card {
+        left: 14px;
+        top: 16px;
+        width: calc(100% - 28px);
+        height: 82px;
+      }
+
+      .startup-guide-wallet-card .head {
+        font-size: 9px;
+      }
+
+      .startup-guide-wallet-card .name {
+        top: 26px;
+        font-size: 18px;
+      }
+
+      .startup-guide-wallet-card .rows {
+        left: 12px;
+        right: 12px;
+        bottom: 10px;
+        gap: 6px;
+      }
+
+      .startup-guide-wallet-card .rows i {
+        height: 6px;
+      }
+
+      .startup-guide-domain-panel {
+        left: 14px;
+        right: 14px;
+        top: 112px;
+        width: auto;
+        height: 74px;
+      }
+
+      .startup-guide-domain-panel .domain {
+        top: 32px;
+        font-size: 18px;
+      }
+
+      .startup-guide-bridge {
+        left: calc(50% - 2px);
+        right: auto;
+        top: 92px;
+        width: 4px;
+        height: 24px;
+        transform: none;
+        background: linear-gradient(180deg, rgba(88, 210, 255, 0.22), rgba(88, 210, 255, 0.62), rgba(88, 210, 255, 0.22));
+      }
+
+      .startup-guide-bridge::before {
+        left: -8px;
+        top: 4px;
+      }
+
+      .startup-guide-bridge::after {
+        right: -2px;
+        top: auto;
+        bottom: -5px;
+      }
+    }
+
     .startup-guide-chart {
       position: relative;
       width: 420px;
