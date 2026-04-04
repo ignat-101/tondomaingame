@@ -3305,6 +3305,7 @@ PAGE_TEMPLATE = """
       background: linear-gradient(180deg, rgba(9, 21, 37, 0.98), rgba(6, 15, 27, 0.94));
       box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
       overflow: hidden;
+      animation: startupGuideFloatCard 4.6s ease-in-out infinite;
     }
 
     .startup-guide-wallet-card::before {
@@ -3350,7 +3351,9 @@ PAGE_TEMPLATE = """
       display: block;
       height: 10px;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(88, 210, 255, 0.56), rgba(88, 210, 255, 0.12));
+      background: linear-gradient(90deg, rgba(88, 210, 255, 0.18), rgba(88, 210, 255, 0.58), rgba(88, 210, 255, 0.18));
+      background-size: 180% 100%;
+      animation: startupGuideShimmer 3s linear infinite;
     }
 
     .startup-guide-wallet-card .rows i:nth-child(2) { width: 82%; }
@@ -3367,6 +3370,7 @@ PAGE_TEMPLATE = """
       background: linear-gradient(180deg, rgba(8, 18, 32, 0.96), rgba(8, 18, 32, 0.88));
       box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
       overflow: hidden;
+      animation: startupGuideDomainGlow 3.8s ease-in-out infinite;
     }
 
     .startup-guide-domain-panel::before {
@@ -3406,10 +3410,12 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 262px;
       right: 294px;
-      top: 88px;
-      height: 10px;
+      top: 93px;
+      height: 4px;
+      transform: translateY(-50%);
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(88, 210, 255, 0.52), rgba(88, 210, 255, 0.14));
+      background: linear-gradient(90deg, rgba(88, 210, 255, 0.22), rgba(88, 210, 255, 0.62), rgba(88, 210, 255, 0.22));
+      box-shadow: 0 0 18px rgba(88, 210, 255, 0.18);
     }
 
     .startup-guide-bridge::before,
@@ -3420,20 +3426,22 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-bridge::before {
-      left: calc(50% - 14px);
-      top: -9px;
-      width: 28px;
-      height: 28px;
+      left: 12%;
+      top: -8px;
+      width: 20px;
+      height: 20px;
       background: rgba(88, 210, 255, 0.92);
-      box-shadow: 0 0 28px rgba(88, 210, 255, 0.52);
+      box-shadow: 0 0 24px rgba(88, 210, 255, 0.52);
+      animation: startupGuideBridgePulse 2.8s ease-in-out infinite;
     }
 
     .startup-guide-bridge::after {
-      right: -9px;
-      top: -4px;
-      width: 18px;
-      height: 18px;
-      background: rgba(88, 210, 255, 0.36);
+      right: -6px;
+      top: -3px;
+      width: 10px;
+      height: 10px;
+      background: rgba(88, 210, 255, 0.44);
+      box-shadow: 0 0 12px rgba(88, 210, 255, 0.26);
     }
 
     .startup-guide-pack-board {
@@ -3469,6 +3477,7 @@ PAGE_TEMPLATE = """
       border: 2px solid rgba(255, 208, 106, 0.84);
       background: linear-gradient(180deg, rgba(10, 21, 37, 0.98), rgba(8, 16, 28, 0.96));
       box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
+      animation: startupGuidePackMainFloat 3.6s ease-in-out infinite;
     }
 
     .startup-guide-pack-main::before {
@@ -3505,11 +3514,13 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-side.left {
       left: 124px;
       transform: rotate(-6deg);
+      animation: startupGuidePackLeft 3.6s ease-in-out infinite;
     }
 
     .startup-guide-pack-side.right {
       right: 124px;
       transform: rotate(6deg);
+      animation: startupGuidePackRight 3.6s ease-in-out infinite;
     }
 
     .startup-guide-pack-side::before {
@@ -3535,6 +3546,41 @@ PAGE_TEMPLATE = """
       border-radius: 50%;
       background: rgba(255, 208, 106, 0.82);
       box-shadow: 0 0 14px rgba(255, 208, 106, 0.28);
+    }
+
+    @keyframes startupGuideFloatCard {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @keyframes startupGuideDomainGlow {
+      0%, 100% { box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24); }
+      50% { box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24), 0 0 26px rgba(88, 210, 255, 0.14); }
+    }
+
+    @keyframes startupGuideBridgePulse {
+      0%, 100% { left: 8%; opacity: 0.7; }
+      50% { left: calc(100% - 28px); opacity: 1; }
+    }
+
+    @keyframes startupGuideShimmer {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+
+    @keyframes startupGuidePackMainFloat {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-5px); }
+    }
+
+    @keyframes startupGuidePackLeft {
+      0%, 100% { transform: rotate(-6deg) translateY(0); }
+      50% { transform: rotate(-9deg) translateY(3px); }
+    }
+
+    @keyframes startupGuidePackRight {
+      0%, 100% { transform: rotate(6deg) translateY(0); }
+      50% { transform: rotate(9deg) translateY(3px); }
     }
 
     .startup-guide-chart {
@@ -5619,18 +5665,21 @@ PAGE_TEMPLATE = """
         left: 160px;
         right: 158px;
         top: 74px;
-        height: 8px;
+        height: 4px;
       }
 
       .startup-guide-bridge::before {
-        width: 18px;
-        height: 18px;
+        width: 14px;
+        height: 14px;
         top: -5px;
-        left: calc(50% - 9px);
+        left: 8%;
       }
 
       .startup-guide-bridge::after {
-        right: -8px;
+        right: -4px;
+        top: -2px;
+        width: 8px;
+        height: 8px;
       }
 
       .startup-guide-pack-main {
