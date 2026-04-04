@@ -3608,6 +3608,11 @@ PAGE_TEMPLATE = """
       100% { background-position: 160% 0; }
     }
 
+    @keyframes startupGuideRailBreath {
+      0%, 100% { transform: scaleX(1); }
+      50% { transform: scaleX(0.78); }
+    }
+
     @keyframes startupGuideTileLift {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
@@ -3756,7 +3761,8 @@ PAGE_TEMPLATE = """
       border-radius: 999px;
       background: linear-gradient(90deg, rgba(83, 246, 184, 0.92), rgba(69, 215, 255, 0.78));
       background-size: 160% 100%;
-      animation: startupGuideRailShift 2.6s linear infinite;
+      transform-origin: left center;
+      animation: startupGuideRailShift 2.6s linear infinite, startupGuideRailBreath 2.8s ease-in-out infinite;
     }
 
     .startup-guide-tile-row {
