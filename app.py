@@ -4313,7 +4313,8 @@ PAGE_TEMPLATE = """
       .startup-guide-wallet-card .rows {
         left: 12px;
         right: 12px;
-        bottom: 10px;
+        top: 62px;
+        bottom: auto;
         gap: 6px;
       }
 
