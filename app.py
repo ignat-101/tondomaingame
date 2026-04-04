@@ -3563,6 +3563,11 @@ PAGE_TEMPLATE = """
       50% { left: calc(100% - 28px); opacity: 1; }
     }
 
+    @keyframes startupGuideBridgePulseVertical {
+      0%, 100% { top: 4px; opacity: 0.7; }
+      50% { top: calc(100% - 18px); opacity: 1; }
+    }
+
     @keyframes startupGuideShimmer {
       0% { background-position: 100% 0; }
       100% { background-position: -100% 0; }
@@ -5789,6 +5794,7 @@ PAGE_TEMPLATE = """
         height: 14px;
         top: 4px;
         left: -5px;
+        animation: startupGuideBridgePulseVertical 2.8s ease-in-out infinite;
       }
 
       .startup-guide-bridge::after {
