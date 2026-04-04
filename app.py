@@ -3548,6 +3548,263 @@ PAGE_TEMPLATE = """
       box-shadow: 0 0 14px rgba(255, 208, 106, 0.28);
     }
 
+    .startup-guide-connection-board {
+      position: relative;
+      width: min(640px, calc(100% - 44px));
+      min-height: 198px;
+      padding: 26px 30px;
+      border-radius: 28px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(88, 210, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, rgba(10, 22, 40, 0.94), rgba(7, 16, 29, 0.92));
+      display: grid;
+      grid-template-columns: minmax(180px, 230px) minmax(76px, 108px) minmax(220px, 1fr);
+      align-items: center;
+      gap: 18px;
+      overflow: hidden;
+    }
+
+    .startup-guide-connection-board::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(121, 217, 255, 0.06) 1px, transparent 1px) 0 0 / 25% 100%,
+        linear-gradient(0deg, rgba(121, 217, 255, 0.06) 1px, transparent 1px) 0 0 / 100% 50%;
+      pointer-events: none;
+    }
+
+    .startup-guide-connection-node {
+      position: relative;
+      z-index: 1;
+      min-height: 132px;
+      padding: 18px 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(96, 213, 255, 0.36);
+      background: linear-gradient(180deg, rgba(9, 21, 37, 0.98), rgba(6, 15, 27, 0.94));
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.26);
+      display: grid;
+      align-content: center;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .startup-guide-connection-node::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(88, 210, 255, 0.1), transparent 56%);
+      pointer-events: none;
+    }
+
+    .startup-guide-connection-node .kicker {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 28px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(96, 213, 255, 0.18);
+      background: rgba(88, 210, 255, 0.08);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(198, 234, 244, 0.82);
+    }
+
+    .startup-guide-connection-node strong {
+      position: relative;
+      z-index: 1;
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1;
+      color: #f3fbff;
+    }
+
+    .startup-guide-connection-node span {
+      position: relative;
+      z-index: 1;
+      font-size: 14px;
+      line-height: 1.4;
+      color: rgba(198, 224, 242, 0.78);
+    }
+
+    .startup-guide-connection-node.wallet {
+      animation: startupGuideFloatCard 4.6s ease-in-out infinite;
+    }
+
+    .startup-guide-connection-node.domain {
+      animation: startupGuideDomainGlow 3.8s ease-in-out infinite;
+    }
+
+    .startup-guide-connection-line {
+      position: relative;
+      z-index: 1;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(88, 210, 255, 0.18), rgba(88, 210, 255, 0.58), rgba(88, 210, 255, 0.18));
+      box-shadow: 0 0 22px rgba(88, 210, 255, 0.16);
+      overflow: visible;
+    }
+
+    .startup-guide-connection-line::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 20px;
+      height: 20px;
+      transform: translateY(-50%);
+      border-radius: 50%;
+      background: rgba(88, 210, 255, 0.92);
+      box-shadow: 0 0 26px rgba(88, 210, 255, 0.52);
+      animation: startupGuideBridgePulse 2.8s ease-in-out infinite;
+    }
+
+    .startup-guide-connection-line::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      transform: translateY(-50%);
+      border-radius: 50%;
+      background: rgba(88, 210, 255, 0.38);
+      box-shadow: 0 0 12px rgba(88, 210, 255, 0.24);
+    }
+
+    .startup-guide-connection-line i {
+      position: absolute;
+      left: 18%;
+      right: 18%;
+      top: 50%;
+      height: 2px;
+      transform: translateY(-50%);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .startup-guide-pack-reveal {
+      position: relative;
+      width: min(620px, calc(100% - 44px));
+      min-height: 194px;
+      padding: 24px 28px;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 208, 106, 0.18);
+      background:
+        radial-gradient(circle at 50% 46%, rgba(255, 208, 106, 0.1), transparent 42%),
+        linear-gradient(135deg, rgba(10, 22, 40, 0.94), rgba(7, 16, 29, 0.92));
+      overflow: hidden;
+    }
+
+    .startup-guide-pack-reveal::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 208, 106, 0.05) 1px, transparent 1px) 0 0 / 25% 100%,
+        linear-gradient(0deg, rgba(255, 208, 106, 0.05) 1px, transparent 1px) 0 0 / 100% 50%;
+      pointer-events: none;
+    }
+
+    .startup-guide-pack-reveal-card {
+      position: absolute;
+      top: 30px;
+      width: 124px;
+      height: 136px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 208, 106, 0.24);
+      background: linear-gradient(180deg, rgba(9, 20, 35, 0.96), rgba(8, 16, 28, 0.94));
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24);
+      overflow: hidden;
+    }
+
+    .startup-guide-pack-reveal-card::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 208, 106, 0.18);
+      background: linear-gradient(180deg, rgba(255, 208, 106, 0.04), transparent 80%);
+    }
+
+    .startup-guide-pack-reveal-card::after {
+      content: attr(data-tier);
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      min-height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 244, 220, 0.92);
+      border: 1px solid rgba(255, 208, 106, 0.26);
+      background: rgba(255, 208, 106, 0.08);
+    }
+
+    .startup-guide-pack-reveal-card.left {
+      left: 108px;
+      transform: rotate(-10deg);
+      opacity: 0.86;
+      animation: startupGuidePackLeft 3.6s ease-in-out infinite;
+    }
+
+    .startup-guide-pack-reveal-card.center {
+      left: 50%;
+      transform: translateX(-50%);
+      width: 148px;
+      height: 156px;
+      z-index: 2;
+      border-width: 2px;
+      border-color: rgba(255, 208, 106, 0.68);
+      animation: startupGuidePackMainFloat 3.6s ease-in-out infinite;
+    }
+
+    .startup-guide-pack-reveal-card.right {
+      right: 108px;
+      transform: rotate(10deg);
+      opacity: 0.86;
+      animation: startupGuidePackRight 3.6s ease-in-out infinite;
+    }
+
+    .startup-guide-pack-reveal-card .glyph {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.24));
+    }
+
+    .startup-guide-pack-reveal-card.center .glyph {
+      font-size: 58px;
+    }
+
+    .startup-guide-pack-reveal-burst {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 220px;
+      height: 220px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 208, 106, 0.18), rgba(255, 208, 106, 0.02) 58%, transparent 72%);
+      filter: blur(2px);
+      opacity: 0.88;
+      animation: startupGuideCenterPulse 2.8s ease-in-out infinite;
+    }
+
     @keyframes startupGuideFloatCard {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
@@ -5721,9 +5978,116 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-flowboard,
-      .startup-guide-pack-board {
+      .startup-guide-pack-board,
+      .startup-guide-connection-board,
+      .startup-guide-pack-reveal {
         width: calc(100% - 14px);
         height: 214px;
+      }
+
+      .startup-guide-connection-board {
+        min-height: 214px;
+        padding: 14px;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .startup-guide-connection-node {
+        min-height: 82px;
+        padding: 14px 16px;
+        border-radius: 20px;
+      }
+
+      .startup-guide-connection-node .kicker {
+        min-height: 24px;
+        padding: 0 10px;
+        font-size: 10px;
+      }
+
+      .startup-guide-connection-node strong {
+        font-size: 22px;
+      }
+
+      .startup-guide-connection-node span {
+        font-size: 12px;
+      }
+
+      .startup-guide-connection-line {
+        justify-self: center;
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(180deg, rgba(88, 210, 255, 0.18), rgba(88, 210, 255, 0.62), rgba(88, 210, 255, 0.18));
+      }
+
+      .startup-guide-connection-line::before {
+        left: 50%;
+        top: 0;
+        transform: translate(-50%, 0);
+        animation: startupGuideBridgePulseVertical 2.8s ease-in-out infinite;
+      }
+
+      .startup-guide-connection-line::after {
+        left: 50%;
+        right: auto;
+        top: auto;
+        bottom: -2px;
+        transform: translateX(-50%);
+      }
+
+      .startup-guide-connection-line i {
+        left: 50%;
+        right: auto;
+        top: 18%;
+        bottom: 18%;
+        width: 2px;
+        height: auto;
+        transform: translateX(-50%);
+      }
+
+      .startup-guide-pack-reveal {
+        min-height: 214px;
+        padding: 18px 14px;
+      }
+
+      .startup-guide-pack-reveal-card {
+        top: 58px;
+        width: 88px;
+        height: 102px;
+        border-radius: 18px;
+      }
+
+      .startup-guide-pack-reveal-card::after {
+        left: 10px;
+        bottom: 10px;
+        min-height: 20px;
+        padding: 0 8px;
+        font-size: 9px;
+      }
+
+      .startup-guide-pack-reveal-card.left {
+        left: 20px;
+      }
+
+      .startup-guide-pack-reveal-card.center {
+        width: 106px;
+        height: 122px;
+      }
+
+      .startup-guide-pack-reveal-card.right {
+        right: 20px;
+      }
+
+      .startup-guide-pack-reveal-card .glyph {
+        font-size: 34px;
+      }
+
+      .startup-guide-pack-reveal-card.center .glyph {
+        font-size: 42px;
+      }
+
+      .startup-guide-pack-reveal-burst {
+        width: 150px;
+        height: 150px;
       }
 
       .startup-guide-wallet-card {
@@ -7205,16 +7569,17 @@ PAGE_TEMPLATE = """
         body: 'Нажми «Подключить кошелёк», затем «Проверить наличие доменов». Для боя выбираются 4-значные .ton домены из кошелька.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-flowboard">
-              <div class="startup-guide-wallet-card">
-                <div class="head">Кошелёк</div>
-                <div class="name">TON</div>
-                <div class="rows"><i></i><i></i><i></i></div>
+            <div class="startup-guide-connection-board">
+              <div class="startup-guide-connection-node wallet">
+                <div class="kicker">TonConnect</div>
+                <strong>Кошелёк</strong>
+                <span>Подключение и доступ к .ton доменам</span>
               </div>
-              <div class="startup-guide-bridge"></div>
-              <div class="startup-guide-domain-panel">
-                <div class="tag">Найден домен</div>
-                <div class="domain">7288.ton</div>
+              <div class="startup-guide-connection-line"><i></i></div>
+              <div class="startup-guide-connection-node domain">
+                <div class="kicker">Найден домен</div>
+                <strong>7288.ton</strong>
+                <span>Только корневой 4-значный .ton, без субдоменов</span>
               </div>
             </div>
           </div>
@@ -7225,11 +7590,17 @@ PAGE_TEMPLATE = """
         body: 'Открой пак и получи 5 карт. Колода хранится по домену. Можно менять активный домен и играть разными сборками.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-pack-board">
-              <div class="startup-guide-pack-side left"></div>
-              <div class="startup-guide-pack-main"></div>
-              <div class="startup-guide-pack-side right"></div>
-              <div class="startup-guide-pack-pips"><i></i><i></i><i></i><i></i></div>
+            <div class="startup-guide-pack-reveal">
+              <div class="startup-guide-pack-reveal-burst"></div>
+              <div class="startup-guide-pack-reveal-card left" data-tier="basic">
+                <div class="glyph">🃏</div>
+              </div>
+              <div class="startup-guide-pack-reveal-card center" data-tier="rare">
+                <div class="glyph">✨</div>
+              </div>
+              <div class="startup-guide-pack-reveal-card right" data-tier="epic">
+                <div class="glyph">💠</div>
+              </div>
             </div>
           </div>
         `
