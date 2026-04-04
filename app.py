@@ -5718,14 +5718,14 @@ PAGE_TEMPLATE = """
       .startup-guide-flowboard,
       .startup-guide-pack-board {
         width: calc(100% - 14px);
-        height: 162px;
+        height: 214px;
       }
 
       .startup-guide-wallet-card {
         left: 14px;
-        top: 18px;
-        width: 136px;
-        height: 108px;
+        top: 16px;
+        width: calc(100% - 28px);
+        height: 82px;
         border-radius: 18px;
       }
 
@@ -5737,26 +5737,27 @@ PAGE_TEMPLATE = """
 
       .startup-guide-wallet-card .name {
         left: 12px;
-        top: 30px;
+        top: 26px;
         font-size: 17px;
       }
 
       .startup-guide-wallet-card .rows {
         left: 12px;
         right: 12px;
-        bottom: 12px;
-        gap: 7px;
+        bottom: 10px;
+        gap: 6px;
       }
 
       .startup-guide-wallet-card .rows i {
-        height: 7px;
+        height: 6px;
       }
 
       .startup-guide-domain-panel {
+        left: 14px;
         right: 14px;
-        top: 38px;
-        width: 156px;
-        height: 76px;
+        top: 112px;
+        width: auto;
+        height: 74px;
         border-radius: 18px;
       }
 
@@ -5769,27 +5770,31 @@ PAGE_TEMPLATE = """
 
       .startup-guide-domain-panel .domain {
         left: 10px;
-        top: 34px;
+        top: 32px;
         font-size: 18px;
       }
 
       .startup-guide-bridge {
-        left: 160px;
-        right: 158px;
-        top: 74px;
-        height: 4px;
+        left: calc(50% - 2px);
+        right: auto;
+        top: 92px;
+        width: 4px;
+        height: 24px;
+        transform: none;
+        background: linear-gradient(180deg, rgba(88, 210, 255, 0.22), rgba(88, 210, 255, 0.62), rgba(88, 210, 255, 0.22));
       }
 
       .startup-guide-bridge::before {
         width: 14px;
         height: 14px;
-        top: -5px;
-        left: 8%;
+        top: 4px;
+        left: -5px;
       }
 
       .startup-guide-bridge::after {
-        right: -4px;
-        top: -2px;
+        right: -2px;
+        top: auto;
+        bottom: -5px;
         width: 8px;
         height: 8px;
       }
