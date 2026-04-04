@@ -3272,110 +3272,269 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
-    .startup-guide-panel {
+    .startup-guide-flowboard {
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 20px;
-      border: 2px solid rgba(88, 210, 255, 0.78);
-      background: rgba(6, 15, 28, 0.82);
+      width: min(620px, calc(100% - 52px));
+      height: 186px;
+      border-radius: 28px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(88, 210, 255, 0.09), transparent 42%),
+        linear-gradient(135deg, rgba(10, 22, 40, 0.92), rgba(7, 16, 29, 0.9));
+      overflow: hidden;
+    }
+
+    .startup-guide-flowboard::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0 24%, rgba(121, 217, 255, 0.05) 24% 24.3%, transparent 24.3% 100%),
+        linear-gradient(0deg, transparent 0 50%, rgba(121, 217, 255, 0.05) 50% 50.3%, transparent 50.3% 100%);
+      pointer-events: none;
+    }
+
+    .startup-guide-wallet-card {
+      position: absolute;
+      left: 34px;
+      top: 24px;
+      width: 210px;
+      height: 138px;
+      border-radius: 24px;
+      border: 1px solid rgba(96, 213, 255, 0.5);
+      background: linear-gradient(180deg, rgba(9, 21, 37, 0.98), rgba(6, 15, 27, 0.94));
       box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
-      font-size: 18px;
+      overflow: hidden;
+    }
+
+    .startup-guide-wallet-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(88, 210, 255, 0.14), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 34%);
+      pointer-events: none;
+    }
+
+    .startup-guide-wallet-card .head {
+      position: absolute;
+      left: 18px;
+      top: 16px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.16em;
+      color: rgba(160, 220, 245, 0.74);
       text-transform: uppercase;
     }
 
-    .startup-guide-panel.wallet {
+    .startup-guide-wallet-card .name {
       position: absolute;
-      left: 72px;
-      top: 20px;
-      width: 168px;
-      height: 178px;
+      left: 18px;
+      top: 44px;
       font-size: 24px;
+      font-weight: 900;
+      color: #eef8ff;
     }
 
-    .startup-guide-panel.domain {
+    .startup-guide-wallet-card .rows {
       position: absolute;
-      right: 66px;
-      top: 78px;
-      width: 246px;
-      height: 88px;
-      border-radius: 18px;
-      font-size: 22px;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      display: grid;
+      gap: 9px;
     }
 
-    .startup-guide-link-dot,
-    .startup-guide-link-dot::before,
-    .startup-guide-link-dot::after {
-      position: absolute;
+    .startup-guide-wallet-card .rows i {
       display: block;
+      height: 10px;
       border-radius: 999px;
-      background: #58d2ff;
-      box-shadow: 0 0 16px rgba(88, 210, 255, 0.52);
+      background: linear-gradient(90deg, rgba(88, 210, 255, 0.56), rgba(88, 210, 255, 0.12));
+    }
+
+    .startup-guide-wallet-card .rows i:nth-child(2) { width: 82%; }
+    .startup-guide-wallet-card .rows i:nth-child(3) { width: 66%; }
+
+    .startup-guide-domain-panel {
+      position: absolute;
+      right: 36px;
+      top: 40px;
+      width: 260px;
+      height: 104px;
+      border-radius: 24px;
+      border: 1px solid rgba(96, 213, 255, 0.44);
+      background: linear-gradient(180deg, rgba(8, 18, 32, 0.96), rgba(8, 18, 32, 0.88));
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+      overflow: hidden;
+    }
+
+    .startup-guide-domain-panel::before {
       content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(88, 210, 255, 0.06), transparent 55%);
+      pointer-events: none;
     }
 
-    .startup-guide-link-dot {
-      left: calc(50% - 7px);
-      top: calc(50% - 7px);
-      width: 14px;
-      height: 14px;
+    .startup-guide-domain-panel .tag {
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(96, 213, 255, 0.22);
+      background: rgba(88, 210, 255, 0.08);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: rgba(190, 232, 245, 0.76);
+      text-transform: uppercase;
     }
 
-    .startup-guide-link-dot::before {
+    .startup-guide-domain-panel .domain {
+      position: absolute;
+      left: 18px;
+      top: 48px;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      color: #f4fbff;
+    }
+
+    .startup-guide-bridge {
+      position: absolute;
+      left: 262px;
+      right: 294px;
+      top: 88px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(88, 210, 255, 0.52), rgba(88, 210, 255, 0.14));
+    }
+
+    .startup-guide-bridge::before,
+    .startup-guide-bridge::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    .startup-guide-bridge::before {
+      left: calc(50% - 14px);
+      top: -9px;
+      width: 28px;
+      height: 28px;
+      background: rgba(88, 210, 255, 0.92);
+      box-shadow: 0 0 28px rgba(88, 210, 255, 0.52);
+    }
+
+    .startup-guide-bridge::after {
+      right: -9px;
+      top: -4px;
       width: 18px;
-      height: 4px;
-      left: -74px;
-      top: 5px;
+      height: 18px;
+      background: rgba(88, 210, 255, 0.36);
     }
 
-    .startup-guide-link-dot::after {
-      width: 18px;
-      height: 4px;
-      right: -74px;
-      top: 5px;
-    }
-
-    .startup-guide-pack-fan {
+    .startup-guide-pack-board {
       position: relative;
-      width: 360px;
-      height: 150px;
+      width: min(600px, calc(100% - 60px));
+      height: 182px;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 208, 106, 0.18);
+      background:
+        radial-gradient(circle at 50% 48%, rgba(255, 208, 106, 0.08), transparent 40%),
+        linear-gradient(135deg, rgba(10, 22, 40, 0.92), rgba(7, 16, 29, 0.9));
+      overflow: hidden;
     }
 
-    .startup-guide-pack-card {
-      position: absolute;
-      top: 8px;
-      width: 116px;
-      height: 136px;
-      border-radius: 18px;
-      border: 2px solid rgba(255, 208, 106, 0.65);
-      background: linear-gradient(180deg, rgba(9, 18, 34, 0.94), rgba(8, 15, 28, 0.92));
-      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.26);
-    }
-
-    .startup-guide-pack-card.left { left: 28px; opacity: 0.72; }
-    .startup-guide-pack-card.center { left: 122px; z-index: 2; }
-    .startup-guide-pack-card.right { left: 216px; opacity: 0.72; }
-
-    .startup-guide-pack-card::after {
+    .startup-guide-pack-board::before {
       content: "";
       position: absolute;
-      top: 16px;
-      bottom: 16px;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0 24%, rgba(255, 208, 106, 0.05) 24% 24.3%, transparent 24.3% 100%),
+        linear-gradient(0deg, transparent 0 50%, rgba(255, 208, 106, 0.04) 50% 50.3%, transparent 50.3% 100%);
+      pointer-events: none;
+    }
+
+    .startup-guide-pack-main {
+      position: absolute;
       left: 50%;
-      width: 2px;
+      top: 24px;
       transform: translateX(-50%);
-      background: rgba(255, 208, 106, 0.72);
+      width: 160px;
+      height: 134px;
+      border-radius: 26px;
+      border: 2px solid rgba(255, 208, 106, 0.84);
+      background: linear-gradient(180deg, rgba(10, 21, 37, 0.98), rgba(8, 16, 28, 0.96));
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
     }
 
-    .startup-guide-pack-card::before {
+    .startup-guide-pack-main::before {
       content: "";
       position: absolute;
-      inset: 18px 22px;
-      border-radius: 14px;
+      inset: 14px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 208, 106, 0.3);
+      background: linear-gradient(180deg, rgba(255, 208, 106, 0.08), rgba(255, 208, 106, 0.02));
+    }
+
+    .startup-guide-pack-main::after {
+      content: "";
+      position: absolute;
+      top: 18px;
+      bottom: 18px;
+      left: 50%;
+      width: 3px;
+      transform: translateX(-50%);
+      background: rgba(255, 208, 106, 0.82);
+      border-radius: 999px;
+    }
+
+    .startup-guide-pack-side {
+      position: absolute;
+      top: 44px;
+      width: 108px;
+      height: 92px;
+      border-radius: 20px;
       border: 1px solid rgba(255, 208, 106, 0.28);
+      background: rgba(8, 18, 32, 0.72);
+    }
+
+    .startup-guide-pack-side.left {
+      left: 124px;
+      transform: rotate(-6deg);
+    }
+
+    .startup-guide-pack-side.right {
+      right: 124px;
+      transform: rotate(6deg);
+    }
+
+    .startup-guide-pack-side::before {
+      content: "";
+      position: absolute;
+      inset: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 208, 106, 0.16);
+    }
+
+    .startup-guide-pack-pips {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+    }
+
+    .startup-guide-pack-pips i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 208, 106, 0.82);
+      box-shadow: 0 0 14px rgba(255, 208, 106, 0.28);
     }
 
     .startup-guide-chart {
@@ -5398,50 +5557,101 @@ PAGE_TEMPLATE = """
         font-size: 16px;
       }
 
-      .startup-guide-panel.wallet {
-        left: 24px;
+      .startup-guide-flowboard,
+      .startup-guide-pack-board {
+        width: calc(100% - 14px);
+        height: 162px;
+      }
+
+      .startup-guide-wallet-card {
+        left: 14px;
         top: 18px;
+        width: 136px;
+        height: 108px;
+        border-radius: 18px;
+      }
+
+      .startup-guide-wallet-card .head {
+        left: 12px;
+        top: 10px;
+        font-size: 9px;
+      }
+
+      .startup-guide-wallet-card .name {
+        left: 12px;
+        top: 30px;
+        font-size: 17px;
+      }
+
+      .startup-guide-wallet-card .rows {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        gap: 7px;
+      }
+
+      .startup-guide-wallet-card .rows i {
+        height: 7px;
+      }
+
+      .startup-guide-domain-panel {
+        right: 14px;
+        top: 38px;
+        width: 156px;
+        height: 76px;
+        border-radius: 18px;
+      }
+
+      .startup-guide-domain-panel .tag {
+        left: 10px;
+        top: 10px;
+        padding: 4px 8px;
+        font-size: 9px;
+      }
+
+      .startup-guide-domain-panel .domain {
+        left: 10px;
+        top: 34px;
+        font-size: 18px;
+      }
+
+      .startup-guide-bridge {
+        left: 160px;
+        right: 158px;
+        top: 74px;
+        height: 8px;
+      }
+
+      .startup-guide-bridge::before {
+        width: 18px;
+        height: 18px;
+        top: -5px;
+        left: calc(50% - 9px);
+      }
+
+      .startup-guide-bridge::after {
+        right: -8px;
+      }
+
+      .startup-guide-pack-main {
         width: 118px;
-        height: 142px;
-        font-size: 16px;
+        height: 106px;
+        top: 22px;
+        border-radius: 22px;
       }
 
-      .startup-guide-panel.domain {
-        right: 24px;
-        top: 54px;
-        width: 160px;
-        height: 62px;
-        font-size: 16px;
+      .startup-guide-pack-side {
+        top: 42px;
+        width: 82px;
+        height: 70px;
       }
 
-      .startup-guide-link-dot::before {
-        left: -46px;
+      .startup-guide-pack-side.left {
+        left: 38px;
       }
 
-      .startup-guide-link-dot::after {
-        right: -46px;
-      }
-
-      .startup-guide-pack-fan {
-        width: 276px;
-        height: 132px;
-      }
-
-      .startup-guide-pack-card {
-        width: 92px;
-        height: 118px;
-      }
-
-      .startup-guide-pack-card.left {
-        left: 8px;
-      }
-
-      .startup-guide-pack-card.center {
-        left: 92px;
-      }
-
-      .startup-guide-pack-card.right {
-        left: 176px;
+      .startup-guide-pack-side.right {
+        right: 38px;
       }
 
       .startup-guide-chart {
@@ -5520,6 +5730,10 @@ PAGE_TEMPLATE = """
 
       .startup-guide-rail {
         width: 280px;
+      }
+
+      .startup-guide-pack-pips {
+        bottom: 14px;
       }
 
       .arena-rail {
@@ -6818,10 +7032,18 @@ PAGE_TEMPLATE = """
         body: 'Нажми «Подключить кошелёк», затем «Проверить наличие доменов». Для боя выбираются 4-значные .ton домены из кошелька.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-scene-grid"></div>
-            <div class="startup-guide-panel wallet">Wallet</div>
-            <div class="startup-guide-link-dot"></div>
-            <div class="startup-guide-panel domain">Domain</div>
+            <div class="startup-guide-flowboard">
+              <div class="startup-guide-wallet-card">
+                <div class="head">Кошелёк</div>
+                <div class="name">TON</div>
+                <div class="rows"><i></i><i></i><i></i></div>
+              </div>
+              <div class="startup-guide-bridge"></div>
+              <div class="startup-guide-domain-panel">
+                <div class="tag">Найден домен</div>
+                <div class="domain">7288.ton</div>
+              </div>
+            </div>
           </div>
         `
       },
@@ -6830,11 +7052,11 @@ PAGE_TEMPLATE = """
         body: 'Открой пак и получи 5 карт. Колода хранится по домену. Можно менять активный домен и играть разными сборками.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-scene-grid"></div>
-            <div class="startup-guide-pack-fan">
-              <div class="startup-guide-pack-card left"></div>
-              <div class="startup-guide-pack-card center"></div>
-              <div class="startup-guide-pack-card right"></div>
+            <div class="startup-guide-pack-board">
+              <div class="startup-guide-pack-side left"></div>
+              <div class="startup-guide-pack-main"></div>
+              <div class="startup-guide-pack-side right"></div>
+              <div class="startup-guide-pack-pips"><i></i><i></i><i></i><i></i></div>
             </div>
           </div>
         `
