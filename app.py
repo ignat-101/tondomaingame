@@ -8013,11 +8013,17 @@ PAGE_TEMPLATE = """
         body: 'Открой пак и получи 5 карт. Колода хранится по домену. Можно менять активный домен и играть разными сборками.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-pack-board">
-              <div class="startup-guide-pack-side left"></div>
-              <div class="startup-guide-pack-main"></div>
-              <div class="startup-guide-pack-side right"></div>
-              <div class="startup-guide-pack-pips"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="startup-guide-pack-reveal">
+              <div class="startup-guide-pack-reveal-burst"></div>
+              <div class="startup-guide-pack-reveal-card left" data-tier="basic">
+                <div class="glyph">🃏</div>
+              </div>
+              <div class="startup-guide-pack-reveal-card center" data-tier="rare">
+                <div class="glyph">✨</div>
+              </div>
+              <div class="startup-guide-pack-reveal-card right" data-tier="epic">
+                <div class="glyph">💠</div>
+              </div>
             </div>
           </div>
         `
