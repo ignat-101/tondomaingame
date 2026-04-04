@@ -3408,8 +3408,8 @@ PAGE_TEMPLATE = """
 
     .startup-guide-bridge {
       position: absolute;
-      left: 262px;
-      right: 294px;
+      left: 244px;
+      right: 296px;
       top: 93px;
       height: 4px;
       transform: translateY(-50%);
@@ -3583,6 +3583,36 @@ PAGE_TEMPLATE = """
       50% { transform: rotate(9deg) translateY(3px); }
     }
 
+    @keyframes startupGuideBarWave {
+      0%, 100% { transform: scaleY(1); opacity: 0.9; }
+      50% { transform: scaleY(1.08); opacity: 1; }
+    }
+
+    @keyframes startupGuideSoftPulse {
+      0%, 100% { transform: translateY(0); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22); }
+      50% { transform: translateY(-3px); box-shadow: 0 16px 28px rgba(0, 0, 0, 0.24), 0 0 18px rgba(121, 217, 255, 0.08); }
+    }
+
+    @keyframes startupGuideNodePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    @keyframes startupGuideCenterPulse {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.03); }
+    }
+
+    @keyframes startupGuideRailShift {
+      0% { background-position: 0 0; }
+      100% { background-position: 160% 0; }
+    }
+
+    @keyframes startupGuideTileLift {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
     .startup-guide-chart {
       position: relative;
       width: 420px;
@@ -3608,6 +3638,11 @@ PAGE_TEMPLATE = """
     .startup-guide-bar.h3 { height: 132px; }
     .startup-guide-bar.h4 { height: 98px; }
     .startup-guide-bar.h5 { height: 64px; }
+    .startup-guide-bar.h1 { animation: startupGuideBarWave 2.9s ease-in-out infinite; }
+    .startup-guide-bar.h2 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.14s; }
+    .startup-guide-bar.h3 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.28s; }
+    .startup-guide-bar.h4 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.42s; }
+    .startup-guide-bar.h5 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.56s; }
 
     .startup-guide-pill-row {
       display: flex;
@@ -3630,7 +3665,11 @@ PAGE_TEMPLATE = """
       font-size: 18px;
       font-weight: 800;
       text-align: center;
+      animation: startupGuideSoftPulse 3.2s ease-in-out infinite;
     }
+
+    .startup-guide-pill:nth-child(2) { animation-delay: 0.18s; }
+    .startup-guide-pill:nth-child(3) { animation-delay: 0.36s; }
 
     .startup-guide-pill small {
       display: block;
@@ -3661,8 +3700,8 @@ PAGE_TEMPLATE = """
       font-weight: 700;
     }
 
-    .startup-guide-ready-node.left { left: 0; }
-    .startup-guide-ready-node.right { right: 0; }
+    .startup-guide-ready-node.left { left: 0; animation: startupGuideNodePulse 2.6s ease-in-out infinite; }
+    .startup-guide-ready-node.right { right: 0; animation: startupGuideNodePulse 2.6s ease-in-out infinite 0.24s; }
 
     .startup-guide-ready-center {
       position: absolute;
@@ -3680,6 +3719,7 @@ PAGE_TEMPLATE = """
       justify-content: center;
       gap: 6px;
       box-shadow: 0 14px 26px rgba(0, 0, 0, 0.22);
+      animation: startupGuideCenterPulse 2.8s ease-in-out infinite;
     }
 
     .startup-guide-ready-center strong {
@@ -3715,6 +3755,8 @@ PAGE_TEMPLATE = """
       width: 58%;
       border-radius: 999px;
       background: linear-gradient(90deg, rgba(83, 246, 184, 0.92), rgba(69, 215, 255, 0.78));
+      background-size: 160% 100%;
+      animation: startupGuideRailShift 2.6s linear infinite;
     }
 
     .startup-guide-tile-row {
@@ -3739,7 +3781,11 @@ PAGE_TEMPLATE = """
       font-weight: 700;
       text-align: center;
       line-height: 1.25;
+      animation: startupGuideTileLift 4s ease-in-out infinite;
     }
+
+    .startup-guide-tile:nth-child(2) { animation-delay: 0.18s; }
+    .startup-guide-tile:nth-child(3) { animation-delay: 0.36s; }
 
     .startup-guide-tile b {
       display: block;
