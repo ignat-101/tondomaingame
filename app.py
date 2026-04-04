@@ -7972,9 +7972,7 @@ PAGE_TEMPLATE = """
       const frameAsset = cosmeticAssetUrl('frame', featuredFrame);
       const currentDomain = state.selectedDomain || profile.domain || (state.playerProfile && state.playerProfile.current_domain) || '';
       const avatarLabel = currentDomain ? `${currentDomain}.ton` : (profile.nickname || 'TON');
-      const currentTab = state.profileTab || 'overview';
-      const nft = (state.playerProfile && state.playerProfile.nft_launch) || {summary: {}, collections: [], items: []};
-      const nftItems = Array.isArray(nft.items) ? nft.items.slice(0, 6) : [];
+      const currentTab = state.profileTab === 'preferences' ? 'preferences' : 'overview';
       const profileSummaryChips = [
         profile.profile_title ? `Титул: ${profile.profile_title}` : 'Титул не задан',
         currentDomain ? `Домен: ${currentDomain}.ton` : 'Домен не выбран',
@@ -7988,7 +7986,6 @@ PAGE_TEMPLATE = """
           <div class="actions" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
             <button type="button" class="${currentTab === 'overview' ? '' : 'secondary'} profile-tab-btn" data-profile-tab="overview">Обзор</button>
             <button type="button" class="${currentTab === 'preferences' ? '' : 'secondary'} profile-tab-btn" data-profile-tab="preferences">Предпочтения</button>
-            <button type="button" class="${currentTab === 'nft' ? '' : 'secondary'} profile-tab-btn" data-profile-tab="nft">NFT база</button>
           </div>
           ${currentTab === 'overview' ? `
             <div style="margin-top:14px; border-radius:22px; padding:18px; overflow:hidden; background:${giftArenaSurface(featuredArena, featuredEmoji)};">
@@ -8070,37 +8067,6 @@ PAGE_TEMPLATE = """
                 <span class="summary-chip">${escapeHtml(profilePlayStyleMeta(profile.play_style || '').description)}</span>
                 <span class="summary-chip">${escapeHtml(strategyMeta(profile.favorite_strategy || 'balanced').description)}</span>
               </div>
-            </div>
-          ` : ''}
-          ${currentTab === 'nft' ? `
-            <div style="margin-top:14px; display:grid; gap:14px;">
-              <div class="summary-chip-row">
-                <span class="summary-chip">NFT-ready: ${nft.summary && nft.summary.serials_ready ? 'да' : 'нет'}</span>
-                <span class="summary-chip">Коллекций: ${Number((nft.collections || []).length)}</span>
-                <span class="summary-chip">Предметов: ${Number((nft.summary && nft.summary.owned_items) || 0)}</span>
-                <span class="summary-chip">Версия: ${escapeHtml((nft.summary && nft.summary.metadata_version) || 'tdg-ton-v1')}</span>
-              </div>
-              <div class="catalog-grid">
-                ${(nft.collections || []).map((collection) => `
-                  <article class="catalog-card skill-card basic" style="padding:14px;">
-                    <div class="catalog-kicker">${escapeHtml(collection.family)}</div>
-                    <strong>${escapeHtml(collection.name)}</strong>
-                    <div class="tiny">slug: ${escapeHtml(collection.slug)}</div>
-                    <div class="tiny" style="margin-top:6px;">minted: ${Number(collection.minted_count || 0)} • next: ${Number(collection.next_serial || 1)}</div>
-                  </article>
-                `).join('') || '<div class="user-item muted">Открой косметику, чтобы подготовить NFT-реестр.</div>'}
-              </div>
-              <div class="catalog-grid">
-                ${nftItems.map((item) => `
-                  <article class="catalog-card skill-card ${escapeHtml(item.rarity_key || 'basic')}" style="padding:14px;">
-                    <div class="catalog-kicker">${escapeHtml(item.type || 'cosmetic')}</div>
-                    <strong>${escapeHtml(item.name || item.key)}</strong>
-                    <div class="tiny">${escapeHtml(item.serial || 'без серийного номера')}</div>
-                    <div class="tiny" style="margin-top:6px;">family: ${escapeHtml(((item.nft || {}).collection || {}).slug || '-')}</div>
-                  </article>
-                `).join('') || '<div class="user-item muted">NFT-элементы появятся после открытия косметики.</div>'}
-              </div>
-              <div class="tiny">База уже готовит TON-friendly сериалы, семейства коллекций, off-chain metadata и placeholder-поля для коллекции/роялти/owner. Это слой подготовки перед реальным минта-контуром.</div>
             </div>
           ` : ''}
           <div class="actions" style="margin-top:14px;">
@@ -14240,119 +14206,6 @@ def cosmetic_inventory(wallet):
     ]
 
 
-def nft_collection_blueprint(family):
-    family_key = str(family or 'cosmetic').strip().lower()
-    config = {
-        'frame': {
-            'slug': 'tdg-frames',
-            'name': 'TDG Frames',
-            'description': 'Коллекция рамок профиля и карт Ton Domain Game.',
-        },
-        'cardback': {
-            'slug': 'tdg-cardbacks',
-            'name': 'TDG Cardbacks',
-            'description': 'Коллекция рубашек карт Ton Domain Game.',
-        },
-        'arena': {
-            'slug': 'tdg-arenas',
-            'name': 'TDG Arenas',
-            'description': 'Коллекция арен и фонов боя Ton Domain Game.',
-        },
-        'guild': {
-            'slug': 'tdg-banners',
-            'name': 'TDG Guild Banners',
-            'description': 'Коллекция баннеров кланов и профиля Ton Domain Game.',
-        },
-        'emoji': {
-            'slug': 'tdg-monograms',
-            'name': 'TDG Monograms',
-            'description': 'Коллекция эмодзи-монограмм Ton Domain Game.',
-        },
-    }.get(family_key, {
-        'slug': 'tdg-cosmetics',
-        'name': 'TDG Cosmetics',
-        'description': 'Коллекция косметических предметов Ton Domain Game.',
-    })
-    return {
-        'family': family_key,
-        'slug': config['slug'],
-        'name': config['name'],
-        'description': config['description'],
-        'collection_owner_placeholder': '<TON_COLLECTION_OWNER>',
-        'royalty_wallet_placeholder': '<TON_ROYALTY_WALLET>',
-        'metadata_version': 'tdg-ton-v1',
-        'minting_strategy': 'serial-by-family',
-    }
-
-
-def cosmetic_nft_payload(item):
-    family = (item or {}).get('nft_family') or (item or {}).get('type') or 'cosmetic'
-    collection = nft_collection_blueprint(family)
-    serial_number = int((item or {}).get('serial_number') or 0)
-    cosmetic_key = (item or {}).get('key') or ''
-    cosmetic_name = (item or {}).get('name') or cosmetic_key
-    cosmetic_type = (item or {}).get('type') or family
-    emoji = (item or {}).get('emoji') or ''
-    attributes = [
-        {'trait_type': 'Family', 'value': collection['family']},
-        {'trait_type': 'Type', 'value': cosmetic_type},
-        {'trait_type': 'Rarity', 'value': cosmetic_item_rarity(item)},
-        {'trait_type': 'Serial', 'value': serial_number or None},
-        {'trait_type': 'Cosmetic Key', 'value': cosmetic_key},
-    ]
-    if emoji:
-        attributes.append({'trait_type': 'Monogram', 'value': emoji})
-    image_url = cosmeticAssetUrl(cosmetic_type, cosmetic_key)
-    return {
-        'collection': collection,
-        'serial_number': serial_number or None,
-        'item_index': serial_number or None,
-        'item_name': f'{cosmetic_name} #{serial_number}' if serial_number else cosmetic_name,
-        'symbol': f'TDG-{collection["family"].upper()}',
-        'offchain_metadata': {
-            'name': f'{cosmetic_name} #{serial_number}' if serial_number else cosmetic_name,
-            'description': f'{cosmetic_name} — NFT-косметика Ton Domain Game для типа {cosmetic_type}.',
-            'image': image_url,
-            'attributes': [item for item in attributes if item.get('value') not in {None, ''}],
-            'external_url': TG_WEBAPP_URL or '',
-        },
-        'ton_blueprint': {
-            'collection_slug': collection['slug'],
-            'content_uri_placeholder': f'https://metadata.tondomaingame.online/{collection["slug"]}/{serial_number or 0}.json',
-            'item_owner_wallet': '<PLAYER_WALLET_AT_MINT>',
-            'mint_ready': bool(serial_number and cosmetic_key),
-        },
-    }
-
-
-def nft_launch_payload(wallet):
-    inventory = cosmetic_inventory(wallet)
-    by_family = {}
-    for item in inventory:
-        family = (item.get('nft_family') or item.get('type') or 'cosmetic').lower()
-        by_family.setdefault(family, []).append(item)
-    collections = []
-    for family, items in sorted(by_family.items()):
-        blueprint = nft_collection_blueprint(family)
-        collections.append({
-            **blueprint,
-            'minted_count': len(items),
-            'next_serial': max([int(item.get('serial_number') or 0) for item in items] + [0]) + 1,
-        })
-    return {
-        'ready': bool(inventory),
-        'wallet': wallet,
-        'collections': collections,
-        'items': [dict(item, nft=cosmetic_nft_payload(item)) for item in inventory],
-        'summary': {
-            'owned_items': len(inventory),
-            'families': len(collections),
-            'serials_ready': all(bool(item.get('serial_number')) for item in inventory),
-            'metadata_version': 'tdg-ton-v1',
-        },
-    }
-
-
 def season_pass_cosmetic_pool(cosmetic_type):
     return [item for item in COSMETIC_CATALOG if item['type'] == cosmetic_type]
 
@@ -18569,7 +18422,6 @@ def get_player(wallet):
         'rewards': rewards,
         'tutorial': tutorial_summary(wallet),
         'synergies': compute_domain_synergies(wallet),
-        'nft_launch': nft_launch_payload(wallet),
         'guild': {
             'id': guild_membership['guild_id'],
             'name': guild_membership['name'],
@@ -21106,13 +20958,6 @@ def api_social(wallet):
     if not valid_wallet_address(wallet):
         return json_error('Некорректный адрес кошелька.')
     return jsonify({'wallet': wallet, 'social': social_overview(wallet)})
-
-
-@app.route('/api/nft/launch/<wallet>')
-def api_nft_launch(wallet):
-    if not valid_wallet_address(wallet):
-        return json_error('Некорректный адрес кошелька.')
-    return jsonify({'wallet': wallet, 'nft': nft_launch_payload(wallet)})
 
 
 @app.route('/api/friends/request', methods=['POST'])
