@@ -7992,17 +7992,16 @@ PAGE_TEMPLATE = """
         body: 'Нажми «Подключить кошелёк», затем «Проверить наличие доменов». Для боя выбираются 4-значные .ton домены из кошелька.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-connection-board">
-              <div class="startup-guide-connection-node wallet">
-                <div class="kicker">TonConnect</div>
-                <strong>Кошелёк</strong>
-                <span>Подключение и доступ к .ton доменам</span>
+            <div class="startup-guide-flowboard">
+              <div class="startup-guide-wallet-card">
+                <div class="head">TonConnect</div>
+                <div class="name">TON</div>
+                <div class="rows"><i></i><i></i><i></i></div>
               </div>
-              <div class="startup-guide-connection-line"><i></i></div>
-              <div class="startup-guide-connection-node domain">
-                <div class="kicker">Найден домен</div>
-                <strong>7288.ton</strong>
-                <span>Только корневой 4-значный .ton, без субдоменов</span>
+              <div class="startup-guide-bridge"></div>
+              <div class="startup-guide-domain-panel">
+                <div class="tag">Найден домен</div>
+                <div class="domain">7288.ton</div>
               </div>
             </div>
           </div>
@@ -8013,17 +8012,11 @@ PAGE_TEMPLATE = """
         body: 'Открой пак и получи 5 карт. Колода хранится по домену. Можно менять активный домен и играть разными сборками.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-pack-reveal">
-              <div class="startup-guide-pack-reveal-burst"></div>
-              <div class="startup-guide-pack-reveal-card left" data-tier="basic">
-                <div class="glyph">🃏</div>
-              </div>
-              <div class="startup-guide-pack-reveal-card center" data-tier="rare">
-                <div class="glyph">✨</div>
-              </div>
-              <div class="startup-guide-pack-reveal-card right" data-tier="epic">
-                <div class="glyph">💠</div>
-              </div>
+            <div class="startup-guide-pack-board">
+              <div class="startup-guide-pack-side left"></div>
+              <div class="startup-guide-pack-main"></div>
+              <div class="startup-guide-pack-side right"></div>
+              <div class="startup-guide-pack-pips"><i></i><i></i><i></i><i></i><i></i></div>
             </div>
           </div>
         `
@@ -8541,13 +8534,6 @@ PAGE_TEMPLATE = """
       const frameAsset = cosmeticAssetUrl('frame', frameKey);
       const domain = player.current_domain || player.domain || '';
       const domainLabel = domain ? `${domain}.ton` : 'без домена';
-      const cosmeticsLine = [
-        (cosmetics.frame || {}).name ? `Рамка: ${(cosmetics.frame || {}).name}` : '',
-        (cosmetics.arena || {}).name ? `Арена: ${(cosmetics.arena || {}).name}` : '',
-        (cosmetics.cardback || {}).name ? `Рубашка: ${(cosmetics.cardback || {}).name}` : '',
-        (cosmetics.guild || {}).name ? `Баннер: ${(cosmetics.guild || {}).name}` : '',
-        (player.selected_gift || {}).label ? `Gift: ${(player.selected_gift || {}).label}` : '',
-      ].filter(Boolean).slice(0, 4).map((text) => `<span class="player-cosmetic-chip">${escapeHtml(text)}</span>`).join('');
       const actionsHtml = options.actionsHtml || '';
       const extraClass = options.className ? ` ${options.className}` : '';
       return `
@@ -8561,8 +8547,6 @@ PAGE_TEMPLATE = """
           <div class="player-card-content">
             <div class="player-card-title">${escapeHtml(player.display_name || shortAddress(player.wallet))}</div>
             <div class="player-card-meta">${escapeHtml(player.profile_title || 'Без титула')} • рейтинг ${Number(player.rating || 1000)} • матчей ${Number(player.games_played || 0)}</div>
-            <div class="player-card-meta">Стиль: ${escapeHtml(profilePlayStyleMeta(player.play_style || '').label)} • Способность: ${escapeHtml(profileAbilityMeta(player.favorite_ability || '').label)} • Роль: ${escapeHtml(profileRoleMeta(player.favorite_role || ''))}</div>
-            ${cosmeticsLine ? `<div class="player-card-cosmetics">${cosmeticsLine}</div>` : ''}
           </div>
           ${actionsHtml ? `<div class="player-card-actions">${actionsHtml}</div>` : ''}
         </article>
@@ -8988,11 +8972,7 @@ PAGE_TEMPLATE = """
         },
         {
           className: 'profile-preview',
-          actionsHtml: `
-            <div class="summary-chip-row" style="width:100%;">
-              ${behaviorCards}
-            </div>
-          `,
+          actionsHtml: '',
         },
       );
       profileIdentityPanel.innerHTML = `
@@ -9005,8 +8985,6 @@ PAGE_TEMPLATE = """
           ${currentTab === 'overview' ? `
             <div style="margin-top:14px; display:grid; gap:14px;">
               ${overviewCard}
-              <div class="summary-chip-row">${profileSummaryChips}</div>
-              <div class="tiny">Домен всегда рендерится отдельным верхним слоем. Баннер профиля берётся из клановой косметики, gift можно выбирать отдельно из Telegram / кошелька.</div>
               <div class="row" style="margin-top:4px;">
                 <input id="profile-nickname-input" value="${escapeHtml(profile.nickname || '')}" maxlength="24" placeholder="Ник / имя для матчей">
                 <input id="profile-title-input" value="${escapeHtml(profile.profile_title || '')}" maxlength="40" placeholder="Титул профиля">
