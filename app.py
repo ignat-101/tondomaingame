@@ -8460,7 +8460,6 @@ PAGE_TEMPLATE = """
       step.gifSrc = '';
     });
     let startupGuideStepIndex = 0;
-    let profileNavTapCount = 0;
 
     function shortAddress(value) {
       if (!value) return '-';
@@ -14251,19 +14250,9 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(topNavModes, () => switchView('modes'));
     bindFunctionalControl(document.getElementById('nav-profile'), () => {
       switchView('profile');
-      profileNavTapCount += 1;
-      if (profileNavTapCount >= 10) {
-        profileNavTapCount = 0;
-        try {
-          window.localStorage.removeItem(startupGuideStorageKey);
-        } catch (_) {
-        }
-        showStartupGuideIfNeeded();
-      }
     });
     bindFunctionalControl(topNavProfile, () => {
       switchView('profile');
-      profileNavTapCount = 0;
     });
     bindFunctionalControl(document.getElementById('nav-guilds'), () => switchView('guilds'));
     bindFunctionalControl(document.getElementById('nav-achievements'), () => switchView('achievements'));
