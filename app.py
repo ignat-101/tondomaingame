@@ -3928,6 +3928,27 @@ PAGE_TEMPLATE = """
       gap: 18px;
     }
 
+    .startup-guide-note {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      max-width: min(560px, calc(100% - 52px));
+      min-height: 56px;
+      padding: 14px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 211, 110, 0.34);
+      background:
+        radial-gradient(circle at top, rgba(255, 211, 110, 0.16), transparent 65%),
+        rgba(10, 20, 34, 0.88);
+      color: #fff4cf;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.35;
+      text-align: center;
+      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(10px);
+    }
+
     .startup-guide-scene-grid {
       position: absolute;
       inset: 18px;
@@ -6932,6 +6953,14 @@ PAGE_TEMPLATE = """
         gap: 12px;
       }
 
+      .startup-guide-note {
+        max-width: calc(100% - 24px);
+        min-height: 52px;
+        padding: 12px 14px;
+        font-size: 13px;
+        line-height: 1.3;
+      }
+
       .startup-guide-rail {
         width: 280px;
       }
@@ -8445,7 +8474,7 @@ PAGE_TEMPLATE = """
       },
       {
         title: 'Косметика и прогресс',
-        body: 'Рубашки, арены и баннеры меняют визуал боя. Домены и колоды прокачиваются, но победа зависит от решений в раундах. Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.',
+        body: 'Рубашки, арены и баннеры меняют визуал боя. Домены и колоды прокачиваются, но победа зависит от решений в раундах.',
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
@@ -8454,6 +8483,7 @@ PAGE_TEMPLATE = """
                 <div class="startup-guide-tile"><b>Арена</b>Меняет фон боя</div>
                 <div class="startup-guide-tile"><b>Баннер</b>Добивает стиль матча</div>
               </div>
+              <div class="startup-guide-note">Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.</div>
             </div>
           </div>
         `
