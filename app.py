@@ -10279,10 +10279,10 @@ PAGE_TEMPLATE = """
             <div class="catalog-grid" style="margin-top:12px;">
               ${seasonTasks.map((task) => `
                 <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:radial-gradient(circle at top, rgba(83,246,184,0.12), rgba(13,22,37,0.94) 62%);">
-                  <div class="catalog-kicker">Сложное задание дня</div>
+                  <div class="catalog-kicker">${escapeHtml(task.tier_label || 'Задание дня')}</div>
                   <strong>${escapeHtml(task.label)}</strong>
                   <div class="tiny">Прогресс: ${Number(task.progress || 0)}/${Number(task.target || 0)}</div>
-                  <div class="tiny">Крупная награда: +${Number(task.reward_points || 0)} очков пропуска</div>
+                  <div class="tiny">Награда: +${Number(task.reward_points || 0)} очков пропуска</div>
                   <div class="actions" style="margin-top:auto;">
                     <button type="button" class="secondary season-task-claim-btn" data-task-key="${escapeHtml(task.key)}"${task.claimable ? '' : ' disabled'}>${task.claimed ? 'Получено' : (task.claimable ? 'Забрать' : 'Выполняется')}</button>
                   </div>
@@ -15836,9 +15836,15 @@ SEASON_PASS_TUTORIAL_POINTS = 3
 SEASON_PASS_DAILY_POINTS = 1
 SEASON_PASS_GUILD_CLAIM_POINTS = 3
 SEASON_PASS_TASKS = [
-    {'key': 'daily_play_6', 'label': 'Сыграть 6 матчей', 'target': 6, 'reward_points': 10},
-    {'key': 'daily_win_4', 'label': 'Выиграть 4 матча', 'target': 4, 'reward_points': 14},
-    {'key': 'daily_open_3_packs', 'label': 'Открыть 3 пака', 'target': 3, 'reward_points': 12},
+    {'key': 'daily_play_2', 'label': 'Сыграть 2 матча', 'target': 2, 'reward_points': 4, 'tier_label': 'Быстрый старт'},
+    {'key': 'daily_play_5', 'label': 'Сыграть 5 матчей', 'target': 5, 'reward_points': 8, 'tier_label': 'Продвинутый этап'},
+    {'key': 'daily_play_8', 'label': 'Сыграть 8 матчей', 'target': 8, 'reward_points': 12, 'tier_label': 'Испытание дня'},
+    {'key': 'daily_win_1', 'label': 'Выиграть 1 матч', 'target': 1, 'reward_points': 5, 'tier_label': 'Быстрый старт'},
+    {'key': 'daily_win_3', 'label': 'Выиграть 3 матча', 'target': 3, 'reward_points': 10, 'tier_label': 'Продвинутый этап'},
+    {'key': 'daily_win_5', 'label': 'Выиграть 5 матчей', 'target': 5, 'reward_points': 16, 'tier_label': 'Испытание дня'},
+    {'key': 'daily_open_1_pack', 'label': 'Открыть 1 пак', 'target': 1, 'reward_points': 4, 'tier_label': 'Быстрый старт'},
+    {'key': 'daily_open_2_packs', 'label': 'Открыть 2 пака', 'target': 2, 'reward_points': 7, 'tier_label': 'Продвинутый этап'},
+    {'key': 'daily_open_3_packs', 'label': 'Открыть 3 пака', 'target': 3, 'reward_points': 11, 'tier_label': 'Испытание дня'},
 ]
 
 
@@ -15904,8 +15910,14 @@ def season_task_progress(wallet):
     packs_today = int((pack_row['value'] if pack_row else 0) or 0)
     claimed_keys = season_task_claimed_keys(wallet, task_day=day_key)
     metrics = {
-        'daily_play_6': matches_today,
-        'daily_win_4': wins_today,
+        'daily_play_2': matches_today,
+        'daily_play_5': matches_today,
+        'daily_play_8': matches_today,
+        'daily_win_1': wins_today,
+        'daily_win_3': wins_today,
+        'daily_win_5': wins_today,
+        'daily_open_1_pack': packs_today,
+        'daily_open_2_packs': packs_today,
         'daily_open_3_packs': packs_today,
     }
     tasks = []
