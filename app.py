@@ -18282,6 +18282,33 @@ def extract_preview_media_url(value, depth=0):
     return ''
 
 
+def looks_like_telegram_gift_item(*parts):
+    text = ' '.join(clean_public_text(part, 256) for part in parts if part).lower()
+    if not text:
+        return False
+    blocked_markers = (
+        '.ton',
+        'dns',
+        'domain',
+        'sticker',
+        'sticker family',
+        'jetton',
+        'collection item',
+        'username',
+    )
+    if any(marker in text for marker in blocked_markers):
+        return False
+    positive_markers = (
+        'gift',
+        'gifts',
+        'telegram gift',
+        'nft gift',
+        'подар',
+        'tele gift',
+    )
+    return any(marker in text for marker in positive_markers)
+
+
 def safe_slug(value):
     base = re.sub(r'[^a-z0-9]+', '-', clean_public_text(value.lower(), 48)).strip('-')
     return base or f'guild-{uuid.uuid4().hex[:6]}'
@@ -18621,8 +18648,11 @@ def wallet_profile_gifts(wallet, limit=24):
             64,
         )
         collection_name = clean_public_text(metadata.get('collection') or ((item.get('collection') or {}).get('name')), 64)
-        searchable = ' '.join(part for part in [name, collection_name, clean_public_text(metadata.get('description'), 96)] if part).lower()
+        description = clean_public_text(metadata.get('description'), 96)
+        searchable = ' '.join(part for part in [name, collection_name, description] if part).lower()
         if '.ton' in searchable:
+            continue
+        if not looks_like_telegram_gift_item(name, collection_name, description, item.get('type'), metadata.get('content_type')):
             continue
         if not image_url:
             continue
@@ -18674,6 +18704,16 @@ def telegram_profile_gifts(wallet, limit=24):
             or 'Подарок Telegram',
             64,
         )
+        subtitle = clean_public_text(gift.get('model') or item.get('type') or 'Telegram Gift', 48)
+        if not looks_like_telegram_gift_item(
+            label,
+            subtitle,
+            gift.get('description'),
+            item.get('description'),
+            gift.get('type'),
+            item.get('type'),
+        ):
+            continue
         image_url = clean_public_text(
             extract_preview_media_url(gift.get('sticker'))
             or extract_preview_media_url(gift.get('image_url'))
@@ -18694,7 +18734,7 @@ def telegram_profile_gifts(wallet, limit=24):
                 'source': 'telegram',
                 'key': f"telegram:{gift_id or hashlib.sha256(json.dumps(gift, ensure_ascii=False, sort_keys=True).encode('utf-8')).hexdigest()[:20]}",
                 'label': label or 'Подарок Telegram',
-                'subtitle': clean_public_text(gift.get('model') or item.get('type') or 'Telegram Gift', 48),
+                'subtitle': subtitle,
                 'image_url': image_url,
                 'emoji': clean_public_text(gift.get('emoji') or item.get('emoji') or '', 8),
             }
