@@ -579,49 +579,6 @@ PAGE_TEMPLATE = """
       flex: 0 0 auto;
     }
 
-    .hero-mascot {
-      position: relative;
-      flex: 0 0 220px;
-      width: 220px;
-      min-width: 180px;
-      align-self: stretch;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-      border-radius: 26px;
-      border: 1px solid rgba(111, 204, 255, 0.18);
-      background:
-        radial-gradient(circle at 50% 30%, rgba(69, 215, 255, 0.2), transparent 42%),
-        linear-gradient(180deg, rgba(8, 20, 36, 0.94), rgba(4, 12, 24, 0.98));
-      overflow: hidden;
-      box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.08);
-    }
-
-    .hero-mascot::before {
-      content: "";
-      position: absolute;
-      inset: 18px;
-      border-radius: 22px;
-      background:
-        radial-gradient(circle at 50% 24%, rgba(69, 215, 255, 0.18), transparent 45%),
-        radial-gradient(circle at 20% 80%, rgba(83, 246, 184, 0.1), transparent 30%);
-      filter: blur(8px);
-      opacity: 0.9;
-      pointer-events: none;
-    }
-
-    .hero-mascot img {
-      position: relative;
-      z-index: 1;
-      display: block;
-      width: min(100%, 190px);
-      height: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.28));
-      animation: mascotFloat 3.8s ease-in-out infinite;
-    }
-
     @keyframes mascotFloat {
       0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-8px); }
@@ -7136,17 +7093,6 @@ PAGE_TEMPLATE = """
         display: none;
       }
 
-      .hero-mascot {
-        flex-basis: 100%;
-        width: 100%;
-        min-height: 168px;
-        order: 3;
-      }
-
-      .hero-mascot img {
-        width: min(100%, 140px);
-      }
-
       .mascot-widget {
         right: 10px;
         top: calc(8px + env(safe-area-inset-top));
@@ -7723,17 +7669,6 @@ PAGE_TEMPLATE = """
       display: block;
     }
 
-    body.tma-app .hero-mascot {
-      flex-basis: 100%;
-      width: 100%;
-      min-height: 164px;
-      order: 3;
-    }
-
-    body.tma-app .hero-mascot img {
-      width: min(100%, 136px);
-    }
-
     body.tma-app .top-app-nav {
       display: none;
     }
@@ -7854,9 +7789,6 @@ PAGE_TEMPLATE = """
           <p>
             Подключи кошелек для проверки владение доменом для начала игры.
           </p>
-        </div>
-        <div class="hero-mascot">
-          <img src="/static/mascot-ton-bot.png" alt="Ton Domain Game mascot">
         </div>
         <div class="badge-row">
           <div class="badge" id="wallet-badge">Кошелёк не подключен</div>
