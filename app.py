@@ -3761,15 +3761,13 @@ PAGE_TEMPLATE = """
 
     .mobile-nav {
       position: fixed;
-      left: 12px;
+      left: 106px;
       right: 12px;
       bottom: 12px;
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
       width: auto;
-      max-width: 860px;
-      margin: 0 auto;
       padding: 8px;
       border-radius: 18px;
       border: 1px solid var(--line);
