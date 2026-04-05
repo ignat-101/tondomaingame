@@ -3928,6 +3928,43 @@ PAGE_TEMPLATE = """
       gap: 18px;
     }
 
+    .startup-guide-control-row {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      width: 100%;
+      padding: 0 16px;
+    }
+
+    .startup-guide-control-btn {
+      min-height: 38px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 217, 255, 0.24);
+      background: rgba(8, 18, 32, 0.84);
+      color: #dceeff;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+    }
+
+    .startup-guide-control-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(121, 217, 255, 0.42);
+    }
+
+    .startup-guide-control-btn.active {
+      border-color: rgba(83, 246, 184, 0.5);
+      background: rgba(83, 246, 184, 0.16);
+      color: #f3fffb;
+      box-shadow: 0 0 0 1px rgba(83, 246, 184, 0.16) inset;
+    }
+
     .startup-guide-note {
       display: inline-flex;
       align-items: center;
@@ -4047,6 +4084,11 @@ PAGE_TEMPLATE = """
     .startup-guide-wallet-card .rows i:nth-child(2) { width: 82%; }
     .startup-guide-wallet-card .rows i:nth-child(3) { width: 66%; }
 
+    .startup-guide-wallet-card.connected {
+      border-color: rgba(83, 246, 184, 0.58);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28), 0 0 22px rgba(83, 246, 184, 0.16);
+    }
+
     .startup-guide-domain-panel {
       position: absolute;
       right: 36px;
@@ -4092,6 +4134,11 @@ PAGE_TEMPLATE = """
       font-weight: 900;
       letter-spacing: 0.02em;
       color: #f4fbff;
+    }
+
+    .startup-guide-domain-panel.revealed {
+      border-color: rgba(255, 211, 110, 0.44);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24), 0 0 26px rgba(255, 211, 110, 0.12);
     }
 
     .startup-guide-bridge {
@@ -4479,6 +4526,12 @@ PAGE_TEMPLATE = """
       font-size: 58px;
     }
 
+    .startup-guide-pack-reveal-card.active {
+      z-index: 3;
+      border-color: rgba(83, 246, 184, 0.76);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24), 0 0 26px rgba(83, 246, 184, 0.16);
+    }
+
     .startup-guide-pack-reveal-burst {
       position: absolute;
       left: 50%;
@@ -4662,6 +4715,22 @@ PAGE_TEMPLATE = """
     .startup-guide-bar.h4 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.42s; }
     .startup-guide-bar.h5 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.56s; }
 
+    .startup-guide-chart[data-build="aggressive"] .h1 { height: 108px; }
+    .startup-guide-chart[data-build="aggressive"] .h2 { height: 126px; }
+    .startup-guide-chart[data-build="aggressive"] .h3 { height: 94px; }
+    .startup-guide-chart[data-build="aggressive"] .h4 { height: 78px; }
+    .startup-guide-chart[data-build="aggressive"] .h5 { height: 58px; }
+    .startup-guide-chart[data-build="control"] .h1 { height: 58px; }
+    .startup-guide-chart[data-build="control"] .h2 { height: 88px; }
+    .startup-guide-chart[data-build="control"] .h3 { height: 132px; }
+    .startup-guide-chart[data-build="control"] .h4 { height: 116px; }
+    .startup-guide-chart[data-build="control"] .h5 { height: 92px; }
+    .startup-guide-chart[data-build="fortune"] .h1 { height: 68px; }
+    .startup-guide-chart[data-build="fortune"] .h2 { height: 82px; }
+    .startup-guide-chart[data-build="fortune"] .h3 { height: 84px; }
+    .startup-guide-chart[data-build="fortune"] .h4 { height: 118px; }
+    .startup-guide-chart[data-build="fortune"] .h5 { height: 132px; }
+
     .startup-guide-pill-row {
       display: flex;
       gap: 14px;
@@ -4695,6 +4764,12 @@ PAGE_TEMPLATE = """
       font-size: 12px;
       font-weight: 600;
       color: rgba(223, 243, 255, 0.74);
+    }
+
+    .startup-guide-pill.active {
+      border-color: rgba(255, 211, 110, 0.42);
+      background: rgba(255, 211, 110, 0.12);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22), 0 0 20px rgba(255, 211, 110, 0.1);
     }
 
     .startup-guide-ready-board {
@@ -4757,6 +4832,13 @@ PAGE_TEMPLATE = """
       color: rgba(223, 243, 255, 0.72);
     }
 
+    .startup-guide-ready-board[data-ready="1"] .startup-guide-ready-node.left,
+    .startup-guide-ready-board[data-ready="2"] .startup-guide-ready-node.left,
+    .startup-guide-ready-board[data-ready="2"] .startup-guide-ready-node.right {
+      border-color: rgba(83, 246, 184, 0.5);
+      box-shadow: 0 0 18px rgba(83, 246, 184, 0.1);
+    }
+
     .startup-guide-rail {
       position: relative;
       width: 460px;
@@ -4775,6 +4857,10 @@ PAGE_TEMPLATE = """
       background: linear-gradient(90deg, rgba(83, 246, 184, 0.92), rgba(69, 215, 255, 0.78));
       animation: startupGuideRailSize 2.8s ease-in-out infinite;
     }
+
+    .startup-guide-rail-fill[data-progress="clans"] { width: 30%; }
+    .startup-guide-rail-fill[data-progress="pass"] { width: 58%; }
+    .startup-guide-rail-fill[data-progress="rewards"] { width: 84%; }
 
     .startup-guide-tile-row {
       display: flex;
@@ -4808,6 +4894,12 @@ PAGE_TEMPLATE = """
       display: block;
       margin-bottom: 8px;
       font-size: 18px;
+    }
+
+    .startup-guide-tile.active {
+      border-color: rgba(83, 246, 184, 0.48);
+      background: rgba(83, 246, 184, 0.14);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22), 0 0 20px rgba(83, 246, 184, 0.1);
     }
 
     .startup-guide-actions {
@@ -4855,6 +4947,16 @@ PAGE_TEMPLATE = """
       border-color: rgba(255, 122, 134, 0.62);
       box-shadow: 0 12px 24px rgba(255, 122, 134, 0.3);
       animation: startupGuideEnemy 2.6s ease-in-out infinite;
+    }
+
+    .startup-guide-lane[data-action="guard"] .startup-guide-card-demo.player {
+      border-color: rgba(83, 246, 184, 0.72);
+      box-shadow: 0 12px 24px rgba(83, 246, 184, 0.34);
+    }
+
+    .startup-guide-lane[data-action="burst"] .startup-guide-card-demo.player {
+      border-color: rgba(255, 211, 110, 0.72);
+      box-shadow: 0 12px 24px rgba(255, 211, 110, 0.28);
     }
 
     .startup-guide-pulse {
@@ -6953,6 +7055,17 @@ PAGE_TEMPLATE = """
         gap: 12px;
       }
 
+      .startup-guide-control-row {
+        gap: 8px;
+        padding: 0 8px;
+      }
+
+      .startup-guide-control-btn {
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 11px;
+      }
+
       .startup-guide-note {
         max-width: calc(100% - 24px);
         min-height: 52px;
@@ -8381,16 +8494,22 @@ PAGE_TEMPLATE = """
         body: 'Нажми «Подключить кошелёк», затем «Проверить наличие доменов». Для боя выбираются 4-значные .ton домены из кошелька.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-flowboard">
-              <div class="startup-guide-wallet-card">
-                <div class="head">TonConnect</div>
-                <div class="name">TON</div>
-                <div class="rows"><i></i><i></i><i></i></div>
+            <div class="startup-guide-scene-column">
+              <div class="startup-guide-flowboard">
+                <div class="startup-guide-wallet-card">
+                  <div class="head">TonConnect</div>
+                  <div class="name">TON</div>
+                  <div class="rows"><i></i><i></i><i></i></div>
+                </div>
+                <div class="startup-guide-bridge"></div>
+                <div class="startup-guide-domain-panel">
+                  <div class="tag">Найден домен</div>
+                  <div class="domain">7288.ton</div>
+                </div>
               </div>
-              <div class="startup-guide-bridge"></div>
-              <div class="startup-guide-domain-panel">
-                <div class="tag">Найден домен</div>
-                <div class="domain">7288.ton</div>
+              <div class="startup-guide-control-row">
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="wallet" data-guide-value="connect">Подключить</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="wallet" data-guide-value="scan">Проверить домен</button>
               </div>
             </div>
           </div>
@@ -8401,16 +8520,23 @@ PAGE_TEMPLATE = """
         body: 'Открой пак и получи 5 карт. Колода хранится по домену. Можно менять активный домен и играть разными сборками.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-pack-reveal">
-              <div class="startup-guide-pack-reveal-burst"></div>
-              <div class="startup-guide-pack-reveal-card left" data-tier="basic">
-                <div class="glyph">🃏</div>
+            <div class="startup-guide-scene-column">
+              <div class="startup-guide-pack-reveal">
+                <div class="startup-guide-pack-reveal-burst"></div>
+                <div class="startup-guide-pack-reveal-card left" data-tier="basic">
+                  <div class="glyph">🃏</div>
+                </div>
+                <div class="startup-guide-pack-reveal-card center active" data-tier="rare">
+                  <div class="glyph">✨</div>
+                </div>
+                <div class="startup-guide-pack-reveal-card right" data-tier="epic">
+                  <div class="glyph">💠</div>
+                </div>
               </div>
-              <div class="startup-guide-pack-reveal-card center" data-tier="rare">
-                <div class="glyph">✨</div>
-              </div>
-              <div class="startup-guide-pack-reveal-card right" data-tier="epic">
-                <div class="glyph">💠</div>
+              <div class="startup-guide-control-row">
+                <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="basic">Basic</button>
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="pack" data-guide-value="rare">Rare</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="epic">Epic</button>
               </div>
             </div>
           </div>
@@ -8421,12 +8547,20 @@ PAGE_TEMPLATE = """
         body: 'Пул влияет на атаку, защиту, удачу, скорость и магию. Чем точнее распределение под стиль, тем стабильнее результат.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-chart">
-              <div class="startup-guide-bar h1"></div>
-              <div class="startup-guide-bar h2"></div>
-              <div class="startup-guide-bar h3"></div>
-              <div class="startup-guide-bar h4"></div>
-              <div class="startup-guide-bar h5"></div>
+            <div class="startup-guide-scene-column">
+              <div class="startup-guide-chart" data-build="balanced">
+                <div class="startup-guide-bar h1"></div>
+                <div class="startup-guide-bar h2"></div>
+                <div class="startup-guide-bar h3"></div>
+                <div class="startup-guide-bar h4"></div>
+                <div class="startup-guide-bar h5"></div>
+              </div>
+              <div class="startup-guide-control-row">
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="build" data-guide-value="balanced">Баланс</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="build" data-guide-value="aggressive">Агрессия</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="build" data-guide-value="control">Контроль</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="build" data-guide-value="fortune">Удача</button>
+              </div>
             </div>
           </div>
         `
@@ -8435,10 +8569,19 @@ PAGE_TEMPLATE = """
         title: 'Бой идёт по дорожкам раундов',
         body: 'Каждый раунд: выбирай Натиск или Блок и жми «Готов». Побеждай раунды на дорожках, чтобы забрать матч.',
         overlayHtml: `
-          <div class="startup-guide-lane"></div>
-          <div class="startup-guide-card-demo enemy">⚔️</div>
-          <div class="startup-guide-card-demo player">🛡️</div>
-          <div class="startup-guide-pulse"></div>
+          <div class="startup-guide-scene">
+            <div class="startup-guide-scene-column">
+              <div class="startup-guide-lane" data-action="guard">
+                <div class="startup-guide-card-demo enemy">⚔️</div>
+                <div class="startup-guide-card-demo player">🛡️</div>
+                <div class="startup-guide-pulse"></div>
+              </div>
+              <div class="startup-guide-control-row">
+                <button type="button" class="startup-guide-control-btn" data-guide-action="battle" data-guide-value="burst">Натиск</button>
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="battle" data-guide-value="guard">Блок</button>
+              </div>
+            </div>
+          </div>
         `
       },
       {
@@ -8446,10 +8589,17 @@ PAGE_TEMPLATE = """
         body: 'Натиск стоит 2 энергии, Блок 1, способность 3. Следи за КД и зарядами: тайминг способности часто решает бой.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-pill-row">
-              <div class="startup-guide-pill">Энергия 3<small>Натиск 2 • Блок 1</small></div>
-              <div class="startup-guide-pill">КД 1<small>Следи за откатом</small></div>
-              <div class="startup-guide-pill">Способность<small>3 энергии и заряды</small></div>
+            <div class="startup-guide-scene-column">
+              <div class="startup-guide-pill-row">
+                <div class="startup-guide-pill" data-pill="burst">Энергия 3<small>Натиск 2 • Блок 1</small></div>
+                <div class="startup-guide-pill" data-pill="guard">КД 1<small>Следи за откатом</small></div>
+                <div class="startup-guide-pill active" data-pill="ability">Способность<small>3 энергии и заряды</small></div>
+              </div>
+              <div class="startup-guide-control-row">
+                <button type="button" class="startup-guide-control-btn" data-guide-action="resource" data-guide-value="burst">Натиск</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="resource" data-guide-value="guard">Блок</button>
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="resource" data-guide-value="ability">Способность</button>
+              </div>
             </div>
           </div>
         `
@@ -8459,10 +8609,16 @@ PAGE_TEMPLATE = """
         body: 'В PvP после подбора оба игрока подтверждают готовность (2/2). В дуэли соперник принимает приглашение 30 секунд.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-ready-board">
-              <div class="startup-guide-ready-node left">Игрок 1</div>
-              <div class="startup-guide-ready-center"><strong>2/2</strong><span>Готовы</span><small>30 сек</small></div>
-              <div class="startup-guide-ready-node right">Игрок 2</div>
+            <div class="startup-guide-scene-column">
+              <div class="startup-guide-ready-board" data-ready="2">
+                <div class="startup-guide-ready-node left">Игрок 1</div>
+                <div class="startup-guide-ready-center"><strong>2/2</strong><span>Готовы</span><small>30 сек</small></div>
+                <div class="startup-guide-ready-node right">Игрок 2</div>
+              </div>
+              <div class="startup-guide-control-row">
+                <button type="button" class="startup-guide-control-btn" data-guide-action="ready" data-guide-value="1">1/2</button>
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="ready" data-guide-value="2">2/2</button>
+              </div>
             </div>
           </div>
         `
@@ -8474,11 +8630,16 @@ PAGE_TEMPLATE = """
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
               <div class="startup-guide-tile-row">
-                <div class="startup-guide-tile"><b>Кланы</b>Войны и недельные цели</div>
-                <div class="startup-guide-tile"><b>Пропуск</b>Забирай награды вручную</div>
-                <div class="startup-guide-tile"><b>Награды</b>Осколки, токены и паки</div>
+                <div class="startup-guide-tile active" data-tile="clans"><b>Кланы</b>Войны и недельные цели</div>
+                <div class="startup-guide-tile" data-tile="pass"><b>Пропуск</b>Забирай награды вручную</div>
+                <div class="startup-guide-tile" data-tile="rewards"><b>Награды</b>Осколки, токены и паки</div>
               </div>
-              <div class="startup-guide-rail"><div class="startup-guide-rail-fill"></div></div>
+              <div class="startup-guide-rail"><div class="startup-guide-rail-fill" data-progress="clans"></div></div>
+              <div class="startup-guide-control-row">
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="progress" data-guide-value="clans">Кланы</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="progress" data-guide-value="pass">Пропуск</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="progress" data-guide-value="rewards">Награды</button>
+              </div>
             </div>
           </div>
         `
@@ -8490,9 +8651,14 @@ PAGE_TEMPLATE = """
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
               <div class="startup-guide-tile-row">
-                <div class="startup-guide-tile"><b>Рубашка</b>Видна всем игрокам</div>
-                <div class="startup-guide-tile"><b>Арена</b>Меняет фон боя</div>
-                <div class="startup-guide-tile"><b>Баннер</b>Добивает стиль матча</div>
+                <div class="startup-guide-tile active" data-cosmetic="cardback"><b>Рубашка</b>Видна всем игрокам</div>
+                <div class="startup-guide-tile" data-cosmetic="arena"><b>Арена</b>Меняет фон боя</div>
+                <div class="startup-guide-tile" data-cosmetic="banner"><b>Баннер</b>Добивает стиль матча</div>
+              </div>
+              <div class="startup-guide-control-row">
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="cosmetic" data-guide-value="cardback">Рубашка</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="cosmetic" data-guide-value="arena">Арена</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="cosmetic" data-guide-value="banner">Баннер</button>
               </div>
               <div class="startup-guide-note">Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.</div>
             </div>
@@ -8560,6 +8726,7 @@ PAGE_TEMPLATE = """
           startupGuideStageOverlay.textContent = '';
         } else if (step.overlayHtml) {
           startupGuideStageOverlay.innerHTML = step.overlayHtml;
+          wireStartupGuideInteractions(startupGuideStepIndex);
         } else {
           startupGuideStageOverlay.textContent = step.overlay || '';
         }
@@ -8573,6 +8740,138 @@ PAGE_TEMPLATE = """
       if (startupGuideCloseBtn) {
         startupGuideCloseBtn.style.display = startupGuideStepIndex >= maxIndex ? 'inline-flex' : 'none';
       }
+    }
+
+    function setStartupGuideInteractiveBody(text) {
+      if (startupGuideBody) startupGuideBody.textContent = text || '';
+    }
+
+    function setActiveGuideButton(action, value) {
+      if (!startupGuideStageOverlay) return;
+      startupGuideStageOverlay.querySelectorAll(`.startup-guide-control-btn[data-guide-action="${action}"]`).forEach((button) => {
+        button.classList.toggle('active', button.dataset.guideValue === value);
+      });
+    }
+
+    function wireStartupGuideInteractions(stepIndex) {
+      if (!startupGuideStageOverlay) return;
+      const buttons = Array.from(startupGuideStageOverlay.querySelectorAll('.startup-guide-control-btn'));
+      if (!buttons.length) return;
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const action = button.dataset.guideAction || '';
+          const value = button.dataset.guideValue || '';
+          setActiveGuideButton(action, value);
+          switch (`${stepIndex}:${action}`) {
+            case '0:wallet': {
+              const walletCard = startupGuideStageOverlay.querySelector('.startup-guide-wallet-card');
+              const domainPanel = startupGuideStageOverlay.querySelector('.startup-guide-domain-panel');
+              if (value === 'connect') {
+                if (walletCard) walletCard.classList.add('connected');
+                if (domainPanel) domainPanel.classList.remove('revealed');
+                setStartupGuideInteractiveBody('Сначала подключи кошелёк через TonConnect. После этого игра сможет проверить, есть ли у тебя подходящий 4-значный .ton домен.');
+              } else {
+                if (walletCard) walletCard.classList.add('connected');
+                if (domainPanel) domainPanel.classList.add('revealed');
+                setStartupGuideInteractiveBody('После проверки игра находит корневой 4-значный .ton домен и делает его активным для колоды и матчей.');
+              }
+              break;
+            }
+            case '1:pack': {
+              startupGuideStageOverlay.querySelectorAll('.startup-guide-pack-reveal-card').forEach((card) => {
+                card.classList.toggle('active', card.dataset.tier === value);
+              });
+              const copy = {
+                basic: 'Basic карты выпадают чаще и быстро собирают стартовую колоду.',
+                rare: 'Rare карты дают заметный апгрейд и чаще становятся основой первой рабочей сборки.',
+                epic: 'Epic карты редче и сильнее, но бой всё равно решают выборы по раундам.'
+              };
+              setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[1].body);
+              break;
+            }
+            case '2:build': {
+              const chart = startupGuideStageOverlay.querySelector('.startup-guide-chart');
+              if (chart) chart.dataset.build = value;
+              const copy = {
+                balanced: 'Баланс держит ровную сборку без явных провалов: удобный старт для первых матчей.',
+                aggressive: 'Агрессия усиливает ранний нажим и темп, но делает поздние ходы более требовательными.',
+                control: 'Контроль даёт больше устойчивости в длинных матчах и помогает переживать рискованные раунды.',
+                fortune: 'Удача сильнее раскрывает случайные бонусы и эффекты способностей, если ты играешь гибко.'
+              };
+              setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[2].body);
+              break;
+            }
+            case '3:battle': {
+              const lane = startupGuideStageOverlay.querySelector('.startup-guide-lane');
+              if (lane) lane.dataset.action = value;
+              const player = startupGuideStageOverlay.querySelector('.startup-guide-card-demo.player');
+              if (player) player.textContent = value === 'burst' ? '⚔️' : '🛡️';
+              const copy = {
+                burst: 'Натиск нужен, когда хочешь продавить раунд. Он дороже по энергии, но может резко забрать темп.',
+                guard: 'Блок дешевле и полезен для чтения соперника. Им удобно переживать сильные вражеские раунды.'
+              };
+              setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[3].body);
+              break;
+            }
+            case '4:resource': {
+              startupGuideStageOverlay.querySelectorAll('.startup-guide-pill').forEach((pill) => {
+                pill.classList.toggle('active', pill.dataset.pill === value);
+              });
+              const copy = {
+                burst: 'Натиск тратит 2 энергии. Его нельзя прожимать бездумно каждый раунд.',
+                guard: 'Блок стоит 1 энергию и помогает пережить опасный момент, пока способность в откате.',
+                ability: 'Способность стоит 3 энергии и часто ещё ограничена зарядами, поэтому тайминг критичен.'
+              };
+              setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[4].body);
+              break;
+            }
+            case '5:ready': {
+              const board = startupGuideStageOverlay.querySelector('.startup-guide-ready-board');
+              if (board) board.dataset.ready = value;
+              const center = startupGuideStageOverlay.querySelector('.startup-guide-ready-center');
+              if (center) {
+                center.innerHTML = value === '1'
+                  ? '<strong>1/2</strong><span>Ожидание</span><small>ещё 1 игрок</small>'
+                  : '<strong>2/2</strong><span>Готовы</span><small>30 сек</small>';
+              }
+              const copy = {
+                '1': 'Пока готов только один игрок, матч не стартует. Второй должен подтвердить готовность или принять дуэль.',
+                '2': 'Когда оба готовы, игра сразу переводит вас в бой с выбором действий по раундам.'
+              };
+              setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[5].body);
+              break;
+            }
+            case '6:progress': {
+              const fill = startupGuideStageOverlay.querySelector('.startup-guide-rail-fill');
+              if (fill) fill.dataset.progress = value;
+              startupGuideStageOverlay.querySelectorAll('.startup-guide-tile[data-tile]').forEach((tile) => {
+                tile.classList.toggle('active', tile.dataset.tile === value);
+              });
+              const copy = {
+                clans: 'Кланы дают совместные цели, войны и дополнительный темп прогресса через командную активность.',
+                pass: 'Пропуск качается матчами и заданиями. Награды забираются вручную, чтобы ты не пропускал уровни.',
+                rewards: 'Осколки, токены и паки помогают усиливать коллекцию и открывать больше вариантов под домены.'
+              };
+              setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[6].body);
+              break;
+            }
+            case '7:cosmetic': {
+              startupGuideStageOverlay.querySelectorAll('.startup-guide-tile[data-cosmetic]').forEach((tile) => {
+                tile.classList.toggle('active', tile.dataset.cosmetic === value);
+              });
+              const copy = {
+                cardback: 'Рубашка видна другим игрокам и делает профиль узнаваемым прямо в бою.',
+                arena: 'Арена меняет фон и общую атмосферу матча, но не даёт скрытого преимущества.',
+                banner: 'Баннер завершает образ профиля и заметен в карточках игрока и клановых экранах.'
+              };
+              setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[7].body);
+              break;
+            }
+            default:
+              break;
+          }
+        });
+      });
     }
 
     function nextStartupGuideStep() {
