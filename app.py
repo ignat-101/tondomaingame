@@ -1409,8 +1409,8 @@ PAGE_TEMPLATE = """
 
     .public-profile-domain {
       position: absolute;
-      left: 22px;
-      top: 34px;
+      left: 178px;
+      top: 24px;
       z-index: 8;
       display: inline-flex;
       align-items: center;
