@@ -15,7 +15,7 @@ import base64
 from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import requests
 from dotenv import load_dotenv
@@ -8236,12 +8236,23 @@ PAGE_TEMPLATE = """
       lastReplayTapAt: 0,
       interactiveActionInFlight: false,
       telegramWidgetSignature: '',
-      telegramMiniLinkInFlight: false
+      telegramMiniLinkInFlight: false,
+      pendingDuelLaunch: null,
+      pendingDuelLaunchInFlight: false
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
     const telegramWebappUrl = {{ telegram_webapp_url|tojson }};
     const marketplaceLinks = {{ marketplace_links|tojson }};
+    const initialSearchParams = new URLSearchParams(window.location.search || '');
+    const initialDuelInviteId = (initialSearchParams.get('duel_invite') || '').trim().toUpperCase();
+    const initialDuelAction = (initialSearchParams.get('duel_action') || '').trim().toLowerCase();
+    if (initialDuelInviteId) {
+      state.pendingDuelLaunch = {
+        inviteId: initialDuelInviteId,
+        action: initialDuelAction === 'accept' ? 'accept' : '',
+      };
+    }
 
     const walletBadge = document.getElementById('wallet-badge');
     const currencyBadge = document.getElementById('currency-badge');
@@ -8643,6 +8654,74 @@ PAGE_TEMPLATE = """
       document.documentElement.scrollLeft = 0;
       document.body.scrollLeft = 0;
       window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' });
+    }
+
+    function clearPendingDuelLaunchParams() {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('duel_invite');
+        url.searchParams.delete('duel_action');
+        window.history.replaceState({}, document.title, url.toString());
+      } catch (_) {
+      }
+      state.pendingDuelLaunch = null;
+    }
+
+    async function resumePendingDuelLaunch() {
+      if (!state.wallet || !state.pendingDuelLaunch || state.pendingDuelLaunchInFlight) {
+        return;
+      }
+      state.pendingDuelLaunchInFlight = true;
+      const {inviteId, action} = state.pendingDuelLaunch;
+      try {
+        let data = null;
+        if (action === 'accept') {
+          data = await api('/api/match-invite/respond', {
+            method: 'POST',
+            body: {wallet: state.wallet, invite_id: inviteId, action: 'accept'}
+          });
+        } else {
+          data = await api(`/api/match-invite/${encodeURIComponent(inviteId)}?wallet=${encodeURIComponent(state.wallet)}`);
+        }
+        if (data.player) {
+          state.playerProfile = data.player;
+        }
+        if (data.social) {
+          state.socialData = data.social;
+        }
+        if (data.result) {
+          state.lastResult = data.result;
+          switchView('modes');
+          renderBattleResult(data.result);
+          inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
+          inviteResult.innerHTML = data.result.requires_ready
+            ? `<strong>Дуэль ${escapeHtml(inviteId)} открыта.</strong><p class="muted">Нажми «Готов» и дождись 2/2.</p>`
+            : `<strong>Дуэль ${escapeHtml(inviteId)} открыта.</strong>`;
+          clearPendingDuelLaunchParams();
+          updateButtons();
+          return;
+        }
+        const invite = data.invite || null;
+        if (invite && ['accepted', 'pending', 'pairing'].includes(invite.status)) {
+          switchView('modes');
+          inviteResult.style.display = 'block';
+          inviteResult.classList.add('duel-anim');
+          inviteResult.innerHTML = `<strong>Дуэль ${escapeHtml(inviteId)} открыта.</strong><p class="muted">Проверяем статус и подгружаем бой...</p>`;
+          pollInvite(inviteId);
+          clearPendingDuelLaunchParams();
+          updateButtons();
+          return;
+        }
+        clearPendingDuelLaunchParams();
+      } catch (error) {
+        inviteResult.style.display = 'block';
+        inviteResult.classList.add('duel-anim');
+        inviteResult.innerHTML = `<strong class="error">Не удалось открыть дуэль ${escapeHtml(inviteId)}</strong><p class="muted">${escapeHtml(error.message || 'Request failed')}</p>`;
+        clearPendingDuelLaunchParams();
+      } finally {
+        state.pendingDuelLaunchInFlight = false;
+      }
     }
 
     function shouldSyncForFunctionalTarget(target) {
@@ -14180,6 +14259,7 @@ PAGE_TEMPLATE = """
           }
           await loadAchievements();
           await loadDisciplineBuild();
+          await resumePendingDuelLaunch();
         } else {
           stopMatchmakingUI('');
           state.domainsChecked = false;
@@ -21678,10 +21758,38 @@ def expire_invite_if_needed(invite):
     return invite
 
 
-def invite_reply_markup(invite_id):
+def duel_launch_url(invite_id, action=None):
+    base_url = (TG_WEBAPP_URL or '').strip()
+    if not base_url:
+        return None
+    parts = list(urlsplit(base_url))
+    query = dict(parse_qsl(parts[3], keep_blank_values=True))
+    query['duel_invite'] = str(invite_id or '').strip().upper()
+    if action:
+        query['duel_action'] = str(action or '').strip().lower()
+    parts[3] = urlencode(query)
+    return urlunsplit(parts)
+
+
+def duel_open_markup(invite_id, action=None, text='Открыть дуэль'):
+    launch_url = duel_launch_url(invite_id, action=action)
+    if not launch_url:
+        return None
     return {
         'inline_keyboard': [[
-            {'text': 'Принять', 'callback_data': f'invite_accept:{invite_id}'},
+            {'text': text, 'web_app': {'url': launch_url}},
+        ]]
+    }
+
+
+def invite_reply_markup(invite_id):
+    launch_url = duel_launch_url(invite_id, action='accept')
+    accept_button = {'text': 'Принять', 'callback_data': f'invite_accept:{invite_id}'}
+    if launch_url:
+        accept_button = {'text': 'Принять в mini app', 'web_app': {'url': launch_url}}
+    return {
+        'inline_keyboard': [[
+            accept_button,
             {'text': 'Отклонить', 'callback_data': f'invite_decline:{invite_id}'},
         ]]
     }
@@ -22348,7 +22456,8 @@ def respond_duel_invite(wallet, invite_id, action):
         try:
             telegram_send_message(
                 inviter_link['chat_id'],
-                f'Приглашение {invite_id} принято. Открой mini app и нажми «Готов», чтобы запустить матч.',
+                f'Приглашение {invite_id} принято. Открой mini app, чтобы перейти в prebattle и нажать «Готов».',
+                duel_open_markup(invite_id, text='Открыть дуэль'),
             )
         except Exception:
             pass
@@ -22357,6 +22466,7 @@ def respond_duel_invite(wallet, invite_id, action):
             telegram_send_message(
                 invitee_link['chat_id'],
                 f'Вы приняли приглашение {invite_id}. Открой mini app и нажми «Готов».',
+                duel_open_markup(invite_id, text='Открыть дуэль'),
             )
         except Exception:
             pass
