@@ -1026,6 +1026,58 @@ PAGE_TEMPLATE = """
       backdrop-filter: blur(8px);
     }
 
+    .player-card-gift img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .profile-gift-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+      gap: 10px;
+    }
+
+    .profile-gift-option {
+      position: relative;
+      min-height: 82px;
+      border-radius: 18px;
+      border: 1px solid rgba(121,217,255,0.18);
+      background: rgba(7, 16, 29, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .profile-gift-option:hover {
+      transform: translateY(-2px);
+      border-color: rgba(121,217,255,0.42);
+    }
+
+    .profile-gift-option.active {
+      border-color: rgba(88, 210, 255, 0.92);
+      box-shadow: 0 0 0 2px rgba(88, 210, 255, 0.14), 0 12px 22px rgba(0,0,0,0.22);
+    }
+
+    .profile-gift-option img {
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 10px 14px rgba(0,0,0,0.18));
+    }
+
+    .profile-gift-option-empty {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: rgba(213, 235, 255, 0.82);
+    }
+
     .player-card-back {
       position: absolute;
       left: 14px;
@@ -8622,7 +8674,7 @@ PAGE_TEMPLATE = """
         { label: 'Рубашка', key: backKey, type: 'cardback', preview: `<div style="position:absolute; inset:0; background:${giftCardbackSurface(backKey, emoji)};"></div>` },
         { label: 'Арена', key: arenaKey, type: 'arena', preview: `<div style="position:absolute; inset:0; background:${giftArenaSurface(arenaKey, emoji)};"></div>` },
         { label: 'Баннер', key: guildKey, type: 'guild', preview: guildKey ? `<div style="position:absolute; inset:0; background:${giftGuildSurface(guildKey, '')};"></div>` : '<div class="tiny">Не выбран</div>' },
-        { label: 'Подарок', key: (profile.selected_gift || {}).key || '', type: 'gift', preview: `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:34px;">${escapeHtml((profile.selected_gift || {}).emoji || '🎁')}</div>` },
+        { label: 'Подарок', key: (profile.selected_gift || {}).key || '', type: 'gift', preview: (profile.selected_gift && profile.selected_gift.image_url) ? `<img src="${escapeHtml(profile.selected_gift.image_url)}" alt="" style="position:absolute; inset:12px; width:calc(100% - 24px); height:calc(100% - 24px); object-fit:contain;">` : `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:34px;">${escapeHtml((profile.selected_gift || {}).emoji || '🎁')}</div>` },
       ];
       publicProfileContent.innerHTML = `
         <div class="actions" style="justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -8948,8 +9000,6 @@ PAGE_TEMPLATE = """
       const equipped = rewards.equipped_cosmetics || {};
       const guildItems = cosmetics.filter((item) => item.type === 'guild');
       const availableGifts = Array.isArray(profile.available_profile_gifts) ? profile.available_profile_gifts : [];
-      const telegramGifts = availableGifts.filter((item) => item.source === 'telegram');
-      const walletGifts = availableGifts.filter((item) => item.source === 'wallet');
       const profileBannerKey = profile.profile_banner_key || ((equipped.guild || {}).key) || '';
       const currentDomain = state.selectedDomain || profile.domain || (state.playerProfile && state.playerProfile.current_domain) || '';
       const analytics = profile.analytics || {};
@@ -9012,15 +9062,27 @@ PAGE_TEMPLATE = """
                   <option value="">Профильный баннер из боя</option>
                   ${guildItems.map((item) => `<option value="${escapeHtml(item.key)}"${profileBannerKey === item.key ? ' selected' : ''}>${escapeHtml(item.name)}</option>`).join('')}
                 </select>
-                <select id="profile-gift-select">
-                  <option value="">Подарок профиля</option>
-                  ${telegramGifts.length ? `<optgroup label="Telegram">
-                    ${telegramGifts.map((item) => `<option value="${escapeHtml(item.key)}" data-gift-source="${escapeHtml(item.source || '')}"${(profile.selected_gift && profile.selected_gift.key === item.key) ? ' selected' : ''}>${escapeHtml(item.label)}</option>`).join('')}
-                  </optgroup>` : ''}
-                  ${walletGifts.length ? `<optgroup label="Кошелёк">
-                    ${walletGifts.map((item) => `<option value="${escapeHtml(item.key)}" data-gift-source="${escapeHtml(item.source || '')}"${(profile.selected_gift && profile.selected_gift.key === item.key) ? ' selected' : ''}>${escapeHtml(item.label)}</option>`).join('')}
-                  </optgroup>` : ''}
-                </select>
+              </div>
+              <input type="hidden" id="profile-gift-key" value="${escapeHtml((profile.selected_gift || {}).key || '')}">
+              <input type="hidden" id="profile-gift-source" value="${escapeHtml((profile.selected_gift || {}).source || '')}">
+              <div style="display:grid; gap:8px;">
+                <div class="tiny">Подарок профиля</div>
+                <div class="profile-gift-grid" id="profile-gift-grid">
+                  <button type="button" class="profile-gift-option${!(profile.selected_gift && profile.selected_gift.key) ? ' active' : ''}" data-gift-key="" data-gift-source="" title="Без подарка">
+                    <span class="profile-gift-option-empty">Без подарка</span>
+                  </button>
+                  ${availableGifts.map((item) => `
+                    <button
+                      type="button"
+                      class="profile-gift-option${(profile.selected_gift && profile.selected_gift.key === item.key) ? ' active' : ''}"
+                      data-gift-key="${escapeHtml(item.key)}"
+                      data-gift-source="${escapeHtml(item.source || '')}"
+                      title="${escapeHtml(item.label || 'Подарок')}"
+                    >
+                      <img src="${escapeHtml(item.image_url || '')}" alt="${escapeHtml(item.label || 'Подарок')}">
+                    </button>
+                  `).join('')}
+                </div>
               </div>
               <div class="tiny">Любимая способность, стиль игры, стратегия и роль теперь определяются автоматически по истории матчей игрока. Здесь настраиваются только публичные элементы профиля.</div>
               <div class="summary-chip-row">
@@ -9041,6 +9103,16 @@ PAGE_TEMPLATE = """
         btn.addEventListener('click', () => {
           state.profileTab = btn.dataset.profileTab || 'overview';
           renderIdentityPanel();
+        });
+      });
+      profileIdentityPanel.querySelectorAll('.profile-gift-option').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          profileIdentityPanel.querySelectorAll('.profile-gift-option').forEach((node) => node.classList.remove('active'));
+          btn.classList.add('active');
+          const giftKeyInput = document.getElementById('profile-gift-key');
+          const giftSourceInput = document.getElementById('profile-gift-source');
+          if (giftKeyInput) giftKeyInput.value = btn.dataset.giftKey || '';
+          if (giftSourceInput) giftSourceInput.value = btn.dataset.giftSource || '';
         });
       });
       const saveBtn = document.getElementById('save-profile-btn');
@@ -12432,10 +12504,8 @@ PAGE_TEMPLATE = """
       const bio = document.getElementById('profile-bio-input')?.value ?? (profile.bio || '');
       const profileTitle = document.getElementById('profile-title-input')?.value ?? (profile.profile_title || '');
       const profileBannerKey = document.getElementById('profile-banner-select')?.value ?? (profile.profile_banner_key || '');
-      const profileGiftSelect = document.getElementById('profile-gift-select');
-      const giftOption = profileGiftSelect && profileGiftSelect.selectedOptions && profileGiftSelect.selectedOptions[0] ? profileGiftSelect.selectedOptions[0] : null;
-      const profileGiftKey = profileGiftSelect?.value ?? ((profile.selected_gift || {}).key || '');
-      const profileGiftSource = giftOption?.dataset?.giftSource ?? ((profile.selected_gift || {}).source || '');
+      const profileGiftKey = document.getElementById('profile-gift-key')?.value ?? ((profile.selected_gift || {}).key || '');
+      const profileGiftSource = document.getElementById('profile-gift-source')?.value ?? ((profile.selected_gift || {}).source || '');
       const data = await api('/api/profile', {
         method: 'POST',
         body: {
@@ -18499,6 +18569,7 @@ def wallet_profile_gifts(wallet, limit=24):
         image_url = metadata.get('image') or metadata.get('image_url') or item.get('image') or ''
         if not image_url and previews:
             image_url = previews[0].get('url') or ''
+        image_url = clean_public_text(image_url, 512)
         name = clean_public_text(
             metadata.get('name')
             or item.get('name')
@@ -18506,6 +18577,12 @@ def wallet_profile_gifts(wallet, limit=24):
             or 'Подарок кошелька',
             64,
         )
+        collection_name = clean_public_text(metadata.get('collection') or ((item.get('collection') or {}).get('name')), 64)
+        searchable = ' '.join(part for part in [name, collection_name, clean_public_text(metadata.get('description'), 96)] if part).lower()
+        if '.ton' in searchable:
+            continue
+        if not image_url:
+            continue
         nft_address = clean_public_text(item.get('address') or metadata.get('address') or '', 128)
         gift_key = nft_address or hashlib.sha256(json.dumps(item, ensure_ascii=False, sort_keys=True).encode('utf-8')).hexdigest()[:24]
         full_key = f'wallet:{gift_key}'
@@ -18517,7 +18594,7 @@ def wallet_profile_gifts(wallet, limit=24):
                 'source': 'wallet',
                 'key': full_key,
                 'label': name or 'Подарок кошелька',
-                'subtitle': clean_public_text(metadata.get('collection') or ((item.get('collection') or {}).get('name')), 48) or 'TON NFT',
+                'subtitle': collection_name or 'TON NFT',
                 'image_url': image_url,
                 'emoji': clean_public_text(metadata.get('emoji') or '', 8),
             }
@@ -18554,7 +18631,36 @@ def telegram_profile_gifts(wallet, limit=24):
             or 'Подарок Telegram',
             64,
         )
+        image_url = clean_public_text(
+            gift.get('sticker')
+            or gift.get('image_url')
+            or gift.get('photo_url')
+            or gift.get('animation_url')
+            or item.get('sticker')
+            or item.get('image_url')
+            or item.get('photo_url')
+            or '',
+            512,
+        )
+        if isinstance(gift.get('sticker'), dict):
+            image_url = clean_public_text(
+                gift['sticker'].get('url')
+                or gift['sticker'].get('thumbnail_url')
+                or gift['sticker'].get('image_url')
+                or image_url,
+                512,
+            )
+        if isinstance(item.get('sticker'), dict):
+            image_url = clean_public_text(
+                item['sticker'].get('url')
+                or item['sticker'].get('thumbnail_url')
+                or item['sticker'].get('image_url')
+                or image_url,
+                512,
+            )
         if not gift_id and not label:
+            continue
+        if not image_url:
             continue
         result.append(
             {
@@ -18562,7 +18668,7 @@ def telegram_profile_gifts(wallet, limit=24):
                 'key': f"telegram:{gift_id or hashlib.sha256(json.dumps(gift, ensure_ascii=False, sort_keys=True).encode('utf-8')).hexdigest()[:20]}",
                 'label': label or 'Подарок Telegram',
                 'subtitle': clean_public_text(gift.get('model') or item.get('type') or 'Telegram Gift', 48),
-                'image_url': clean_public_text(gift.get('sticker') or gift.get('image_url') or gift.get('photo_url') or item.get('sticker') or '', 512),
+                'image_url': image_url,
                 'emoji': clean_public_text(gift.get('emoji') or item.get('emoji') or '', 8),
             }
         )
