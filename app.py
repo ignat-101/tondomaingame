@@ -1409,7 +1409,7 @@ PAGE_TEMPLATE = """
 
     .public-profile-domain {
       position: absolute;
-      left: 178px;
+      left: 24px;
       top: 24px;
       z-index: 8;
       display: inline-flex;
@@ -1421,6 +1421,10 @@ PAGE_TEMPLATE = """
       background: rgba(5,12,22,0.84);
       color: #f5fbff;
       font-weight: 900;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .public-profile-cardback {
