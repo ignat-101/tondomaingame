@@ -3329,6 +3329,60 @@ PAGE_TEMPLATE = """
       padding: 8px 4px;
     }
 
+    .prebattle-build-quick {
+      width: min(100%, 520px);
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: linear-gradient(180deg, rgba(8, 22, 40, 0.76), rgba(8, 18, 32, 0.9));
+    }
+
+    .prebattle-build-quick.hidden {
+      display: none;
+    }
+
+    .prebattle-build-chart {
+      width: 100%;
+      max-width: 420px;
+      height: 128px;
+      margin: 0 auto;
+    }
+
+    .prebattle-build-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+    }
+
+    .prebattle-build-btn {
+      min-height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background: rgba(8, 22, 40, 0.88);
+      color: #eef6ff;
+      font-weight: 800;
+    }
+
+    .prebattle-build-btn.active {
+      border-color: rgba(83, 246, 184, 0.48);
+      background: linear-gradient(135deg, rgba(83, 246, 184, 0.24), rgba(8, 22, 40, 0.94));
+      box-shadow: 0 0 0 1px rgba(83, 246, 184, 0.12);
+    }
+
+    .prebattle-build-advanced {
+      display: grid;
+      gap: 10px;
+      width: min(100%, 520px);
+    }
+
+    .prebattle-build-advanced.hidden {
+      display: none;
+    }
+
     .prebattle-stage.accept-pop,
     .showdown-main.accept-pop {
       animation: acceptGamePop 720ms cubic-bezier(.16,.84,.2,1);
@@ -8533,6 +8587,7 @@ PAGE_TEMPLATE = """
       profileTab: 'overview',
       publicProfile: null,
       canRestorePreviousDeck: false,
+      startupGuideBuildPreset: 'balanced',
       matchmakingMode: null,
       matchmakingPolling: false,
       matchmakingErrorStreak: 0,
@@ -8713,32 +8768,17 @@ PAGE_TEMPLATE = """
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
-              <div class="startup-guide-pack-showcase">
-                <div class="startup-guide-pack-card common active" data-pack-key="common">
-                  <div class="glyph">🃏</div>
-                  <div class="title">Обычный</div>
-                  <div class="count">3 карты</div>
-                </div>
-                <div class="startup-guide-pack-card rare" data-pack-key="rare">
-                  <div class="glyph">✨</div>
-                  <div class="title">Редкий</div>
-                  <div class="count">4 карты</div>
-                </div>
-                <div class="startup-guide-pack-card epic" data-pack-key="epic">
-                  <div class="glyph">💠</div>
-                  <div class="title">Эпический</div>
-                  <div class="count">5 карт</div>
-                </div>
-                <div class="startup-guide-pack-card lucky" data-pack-key="lucky">
-                  <div class="glyph">🍀</div>
-                  <div class="title">Счастливый</div>
-                  <div class="count">4 карты</div>
-                </div>
+              <div class="startup-guide-pack-reveal">
+                <div class="startup-guide-pack-reveal-burst"></div>
+                <div class="startup-guide-pack-reveal-card left common" data-pack-key="common" data-tier="Обычный"><div class="glyph">🃏</div></div>
+                <div class="startup-guide-pack-reveal-card mid-left rare" data-pack-key="rare" data-tier="Редкий"><div class="glyph">✨</div></div>
+                <div class="startup-guide-pack-reveal-card center epic active" data-pack-key="epic" data-tier="Эпический"><div class="glyph">💠</div></div>
+                <div class="startup-guide-pack-reveal-card right lucky" data-pack-key="lucky" data-tier="Счастливый"><div class="glyph">🍀</div></div>
               </div>
               <div class="startup-guide-control-row">
-                <button type="button" class="startup-guide-control-btn active" data-guide-action="pack" data-guide-value="common">Обычный</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="common">Обычный</button>
                 <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="rare">Редкий</button>
-                <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="epic">Эпический</button>
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="pack" data-guide-value="epic">Эпический</button>
                 <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="lucky">Счастливый</button>
               </div>
             </div>
@@ -8801,7 +8841,7 @@ PAGE_TEMPLATE = """
                   <div class="startup-guide-pill" data-pill="guard">КД 1<small>Следи за откатом</small></div>
                   <div class="startup-guide-pill active" data-pill="ability">Способность<small>3 энергии и заряды</small></div>
                 </div>
-                <div class="startup-guide-note">Смотри на ману и откат перед каждым ходом: если прожать способность не вовремя, можно отдать раунд.</div>
+                <div class="startup-guide-note">Смотри на ману и откат перед каждым ходом: если прожать способность не вовремя, можно проиграть раунд.</div>
               </div>
               <div class="startup-guide-control-row">
                 <button type="button" class="startup-guide-control-btn" data-guide-action="resource" data-guide-value="burst">Натиск</button>
@@ -8854,7 +8894,7 @@ PAGE_TEMPLATE = """
       },
       {
         title: 'Косметика и прогресс',
-        body: 'После этого шага тебе будет предложен пробный бой. В нём игра подскажет, что нажимать в каждом раунде и почему это выгодно.',
+        body: 'Рубашка, арена и баннер меняют только внешний вид. Они видны другим игрокам, но не дают скрытого преимущества в бою.',
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
@@ -8868,7 +8908,19 @@ PAGE_TEMPLATE = """
                 <button type="button" class="startup-guide-control-btn" data-guide-action="cosmetic" data-guide-value="arena">Арена</button>
                 <button type="button" class="startup-guide-control-btn" data-guide-action="cosmetic" data-guide-value="banner">Баннер</button>
               </div>
-              <div class="startup-guide-note">Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.</div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: 'Важная информация',
+        body: 'Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде.',
+        overlayHtml: `
+          <div class="startup-guide-scene">
+            <div class="startup-guide-scene-column">
+              <div class="startup-guide-note" style="max-width:min(760px, calc(100% - 20px)); font-size:clamp(22px, 2.6vw, 34px); line-height:1.25; text-align:center;">
+                Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде. Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.
+              </div>
             </div>
           </div>
         `
@@ -8930,6 +8982,35 @@ PAGE_TEMPLATE = """
         return 'Кошелёк уже подключён. Теперь нажми «Проверить наличие доменов», чтобы игра выбрала 4-значный .ton домен и открыла путь к пробной игре.';
       }
       return 'Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде. Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.';
+    }
+
+    function tutorialBuildPresetMeta(value) {
+      return {
+        balanced: {
+          label: 'Баланс',
+          strategyKey: 'balanced',
+          description: 'Ровная стартовая сборка без провалов. Самый безопасный выбор для первой игры.'
+        },
+        aggressive: {
+          label: 'Агрессия',
+          strategyKey: 'attack_boost',
+          description: 'Больше давления в ранних раундах. Хорошо, если хочешь быстрее разбираться с темпом боя.'
+        },
+        control: {
+          label: 'Контроль',
+          strategyKey: 'defense_boost',
+          description: 'Проще переживать сильные вражеские заходы и играть от чтения соперника.'
+        },
+        fortune: {
+          label: 'Удача',
+          strategyKey: 'energy_boost',
+          description: 'Быстрее выходит в способность и лучше раскрывает ресурсные ходы.'
+        }
+      }[value] || {
+        label: 'Баланс',
+        strategyKey: 'balanced',
+        description: 'Ровная стартовая сборка без провалов. Самый безопасный выбор для первой игры.'
+      };
     }
 
     function renderStartupGuideStep() {
@@ -9029,7 +9110,10 @@ PAGE_TEMPLATE = """
               break;
             }
             case '1:pack': {
-              startupGuideStageOverlay.querySelectorAll('.startup-guide-pack-card').forEach((card) => {
+              state.selectedPackType = value || 'common';
+              if (typeof renderPackTypePicker === 'function') renderPackTypePicker();
+              if (typeof updatePackShowcase === 'function') updatePackShowcase();
+              startupGuideStageOverlay.querySelectorAll('.startup-guide-pack-reveal-card').forEach((card) => {
                 card.classList.toggle('active', (card.dataset.packKey || '') === value);
               });
               const copy = {
@@ -9042,15 +9126,11 @@ PAGE_TEMPLATE = """
               break;
             }
             case '2:build': {
+              state.startupGuideBuildPreset = value || 'balanced';
               const chart = startupGuideStageOverlay.querySelector('.startup-guide-chart');
               if (chart) chart.dataset.build = value;
-              const copy = {
-                balanced: 'Баланс держит ровную сборку без явных провалов: удобный старт для первых матчей.',
-                aggressive: 'Агрессия усиливает ранний нажим и темп, но делает поздние ходы более требовательными.',
-                control: 'Контроль даёт больше устойчивости в длинных матчах и помогает переживать рискованные раунды.',
-                fortune: 'Удача сильнее раскрывает случайные бонусы и эффекты способностей, если ты играешь гибко.'
-              };
-              setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[2].body);
+              const meta = tutorialBuildPresetMeta(value);
+              setStartupGuideInteractiveBody(`${meta.label}: ${meta.description} Этот выбор будет подставлен в пробную игру и в быстрый режим настройки перед обычным боем.`);
               break;
             }
             case '3:battle': {
@@ -9117,10 +9197,6 @@ PAGE_TEMPLATE = """
                 banner: 'Баннер завершает образ профиля и заметен в карточках игрока и клановых экранах.'
               };
               setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[7].body);
-              const note = startupGuideStageOverlay.querySelector('.startup-guide-note');
-              if (note) {
-                note.textContent = startupGuideFinalNoteText();
-              }
               break;
             }
             default:
@@ -12973,12 +13049,30 @@ PAGE_TEMPLATE = """
                       </select>
                     </div>
                     <div class="row" style="margin-top:10px;">
-                      <select id="prebattle-strategy">
-                        ${['attack_boost', 'defense_boost', 'energy_boost', 'balanced'].map((key) => {
-                          const meta = strategyMeta(key);
-                          return `<option value="${key}" ${String(result.strategy_key || 'balanced') === key ? 'selected' : ''}>${meta.label}</option>`;
-                        }).join('')}
-                      </select>
+                      <div class="prebattle-build-quick" id="prebattle-build-quick">
+                        <div class="startup-guide-chart prebattle-build-chart" id="prebattle-build-chart" data-build="${String(result.strategy_key || 'balanced') === 'attack_boost' ? 'aggressive' : String(result.strategy_key || 'balanced') === 'defense_boost' ? 'control' : String(result.strategy_key || 'balanced') === 'energy_boost' ? 'fortune' : 'balanced'}">
+                          <div class="startup-guide-bar h1"></div>
+                          <div class="startup-guide-bar h2"></div>
+                          <div class="startup-guide-bar h3"></div>
+                          <div class="startup-guide-bar h4"></div>
+                          <div class="startup-guide-bar h5"></div>
+                        </div>
+                        <div class="prebattle-build-actions" id="prebattle-build-actions">
+                          <button type="button" class="prebattle-build-btn ${String(result.strategy_key || 'balanced') === 'balanced' ? 'active' : ''}" data-build-preset="balanced">Баланс</button>
+                          <button type="button" class="prebattle-build-btn ${String(result.strategy_key || 'balanced') === 'attack_boost' ? 'active' : ''}" data-build-preset="aggressive">Агрессия</button>
+                          <button type="button" class="prebattle-build-btn ${String(result.strategy_key || 'balanced') === 'defense_boost' ? 'active' : ''}" data-build-preset="control">Контроль</button>
+                          <button type="button" class="prebattle-build-btn ${String(result.strategy_key || 'balanced') === 'energy_boost' ? 'active' : ''}" data-build-preset="fortune">Удача</button>
+                        </div>
+                        <button type="button" class="secondary" id="prebattle-advanced-toggle">Расширенный режим</button>
+                      </div>
+                      <div class="prebattle-build-advanced hidden" id="prebattle-build-advanced">
+                        <select id="prebattle-strategy">
+                          ${['attack_boost', 'defense_boost', 'energy_boost', 'balanced'].map((key) => {
+                            const meta = strategyMeta(key);
+                            return `<option value="${key}" ${String(result.strategy_key || 'balanced') === key ? 'selected' : ''}>${meta.label}</option>`;
+                          }).join('')}
+                        </select>
+                      </div>
                     </div>
                     <div class="tiny" id="prebattle-strategy-help" style="text-align:center;"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
                     <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'}</div>
@@ -13029,11 +13123,30 @@ PAGE_TEMPLATE = """
         const prebattleStrategyHelp = battleResult.querySelector('#prebattle-strategy-help');
         const prebattleActionHelp = battleResult.querySelector('#prebattle-action-help');
         const prebattleStage = battleResult.querySelector('#prebattle-stage');
+        const prebattleBuildChart = battleResult.querySelector('#prebattle-build-chart');
+        const prebattleBuildAdvanced = battleResult.querySelector('#prebattle-build-advanced');
+        const prebattleAdvancedToggle = battleResult.querySelector('#prebattle-advanced-toggle');
         const showdownMain = battleResult.querySelector('.showdown-main');
         const interactiveBattlePanel = battleResult.querySelector('#interactive-battle-panel');
         const interactiveBattleStatus = battleResult.querySelector('#interactive-battle-status');
         const interactiveTimer = battleResult.querySelector('#interactive-timer');
         const skipLiveTutorialBtn = battleResult.querySelector('#skip-live-tutorial-btn');
+        const applyPrebattlePreset = (preset) => {
+          const meta = tutorialBuildPresetMeta(preset || 'balanced');
+          if (prebattleBuildChart) {
+            prebattleBuildChart.dataset.build = preset || 'balanced';
+          }
+          battleResult.querySelectorAll('.prebattle-build-btn[data-build-preset]').forEach((button) => {
+            button.classList.toggle('active', (button.dataset.buildPreset || '') === (preset || 'balanced'));
+          });
+          if (prebattleStrategy) {
+            prebattleStrategy.value = meta.strategyKey;
+          }
+          if (prebattleStrategyHelp) {
+            prebattleStrategyHelp.innerHTML = `<strong>${meta.label}:</strong> ${meta.description}`;
+          }
+        };
+
         const wireInteractiveBattle = () => {
           const rows = Array.from(battleResult.querySelectorAll('.discipline-row'));
           rows.forEach((row) => row.classList.add('visible'));
@@ -13082,6 +13195,30 @@ PAGE_TEMPLATE = """
             if (prebattleStrategyHelp) {
               prebattleStrategyHelp.innerHTML = `<strong>${meta.label}:</strong> ${meta.description}`;
             }
+            const preset = prebattleStrategy.value === 'attack_boost'
+              ? 'aggressive'
+              : prebattleStrategy.value === 'defense_boost'
+                ? 'control'
+                : prebattleStrategy.value === 'energy_boost'
+                  ? 'fortune'
+                  : 'balanced';
+            if (prebattleBuildChart) {
+              prebattleBuildChart.dataset.build = preset;
+            }
+            battleResult.querySelectorAll('.prebattle-build-btn[data-build-preset]').forEach((button) => {
+              button.classList.toggle('active', (button.dataset.buildPreset || '') === preset);
+            });
+          });
+        }
+        battleResult.querySelectorAll('.prebattle-build-btn[data-build-preset]').forEach((button) => {
+          button.addEventListener('click', () => {
+            applyPrebattlePreset(button.dataset.buildPreset || 'balanced');
+          });
+        });
+        if (prebattleAdvancedToggle && prebattleBuildAdvanced) {
+          prebattleAdvancedToggle.addEventListener('click', () => {
+            const hidden = prebattleBuildAdvanced.classList.toggle('hidden');
+            prebattleAdvancedToggle.textContent = hidden ? 'Расширенный режим' : 'Скрыть расширенный режим';
           });
         }
         if (startBtn) {
@@ -14497,13 +14634,15 @@ PAGE_TEMPLATE = """
       await prepareFunctionalInteraction();
       if (!state.wallet || !state.selectedDomain) return;
       showMatchIntro('Запуск боевого туториала');
+      const tutorialBuildMeta = tutorialBuildPresetMeta(state.startupGuideBuildPreset || 'balanced');
       try {
         const data = await api('/api/tutorial/start', {
           method: 'POST',
           body: {
             wallet: state.wallet,
             domain: state.selectedDomain,
-            selected_slot: Number(battleCardSlot.value || state.selectedBattleSlot || 0)
+            selected_slot: Number(battleCardSlot.value || state.selectedBattleSlot || 0),
+            strategy_key: tutorialBuildMeta.strategyKey
           }
         });
         state.lastResult = data.result;
@@ -23814,6 +23953,7 @@ def api_tutorial_start():
     wallet = (payload.get('wallet') or '').strip()
     domain = normalize_domain(payload.get('domain'))
     selected_slot = int(payload.get('selected_slot') or 0) or None
+    strategy_key = normalize_strategy_key(payload.get('strategy_key') or 'balanced')
     if not valid_wallet_address(wallet):
         return json_error('Нужно подключить кошелёк.')
     if not domain:
@@ -23853,7 +23993,7 @@ def api_tutorial_start():
         build_b=default_discipline_build(max(1100, int(player_build['pool'] * 0.62))),
         selected_slot_a=tutorial_slot,
         selected_slot_b=weakest_tactical_slot(bot_cards),
-        strategy_key_a='balanced',
+        strategy_key_a=strategy_key,
         strategy_key_b='balanced',
         tutorial=tutorial_meta,
     )
