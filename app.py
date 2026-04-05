@@ -455,6 +455,99 @@ PAGE_TEMPLATE = """
       padding: 28px 18px 132px;
     }
 
+    .top-app-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px 18px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      border-radius: 26px;
+      background: rgba(250, 252, 255, 0.92);
+      color: #6e7380;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
+      backdrop-filter: blur(16px);
+    }
+
+    .top-app-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      color: #151b28;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .top-app-brand-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      border: 1px solid rgba(28, 39, 58, 0.1);
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(237,242,248,0.9));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
+    }
+
+    .top-app-brand-badge img {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      transform: translateY(2px);
+    }
+
+    .top-app-brand span {
+      white-space: nowrap;
+    }
+
+    .top-app-nav-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .top-app-nav-link {
+      border: 0;
+      background: transparent;
+      color: #8c909b;
+      font-size: clamp(18px, 2.4vw, 28px);
+      font-weight: 500;
+      line-height: 1;
+      padding: 10px 6px;
+      min-height: auto;
+      border-radius: 0;
+      box-shadow: none;
+      position: relative;
+    }
+
+    .top-app-nav-link:hover:not(:disabled) {
+      transform: none;
+      color: #434b59;
+      background: transparent;
+    }
+
+    .top-app-nav-link.active {
+      color: #171d29;
+    }
+
+    .top-app-nav-link.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -8px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(69, 215, 255, 0.94), rgba(83, 246, 184, 0.94));
+    }
+
     .hero {
       display: grid;
       gap: 18px;
@@ -537,7 +630,7 @@ PAGE_TEMPLATE = """
     .mascot-widget {
       position: fixed;
       right: 18px;
-      bottom: calc(100px + env(safe-area-inset-bottom));
+      top: calc(16px + env(safe-area-inset-top));
       z-index: 60;
       display: grid;
       gap: 10px;
@@ -7039,6 +7132,10 @@ PAGE_TEMPLATE = """
         padding: 14px;
       }
 
+      .top-app-nav {
+        display: none;
+      }
+
       .hero-mascot {
         flex-basis: 100%;
         width: 100%;
@@ -7052,7 +7149,7 @@ PAGE_TEMPLATE = """
 
       .mascot-widget {
         right: 10px;
-        bottom: calc(82px + env(safe-area-inset-bottom));
+        top: calc(8px + env(safe-area-inset-top));
       }
 
       .mascot-fab {
@@ -7637,9 +7734,13 @@ PAGE_TEMPLATE = """
       width: min(100%, 136px);
     }
 
+    body.tma-app .top-app-nav {
+      display: none;
+    }
+
     body.tma-app .mascot-widget {
       right: 10px;
-      bottom: calc(82px + env(safe-area-inset-bottom));
+      top: calc(8px + env(safe-area-inset-top));
     }
 
     body.tma-app .mascot-fab {
@@ -7730,6 +7831,21 @@ PAGE_TEMPLATE = """
 </head>
 <body>
   <div class="shell">
+    <div class="top-app-nav">
+      <div class="top-app-brand">
+        <div class="top-app-brand-badge">
+          <img src="/static/mascot-ton-bot.png" alt="">
+        </div>
+        <span>tondomain game</span>
+      </div>
+      <div class="top-app-nav-actions">
+        <button type="button" class="top-app-nav-link active" id="top-nav-profile">Profile</button>
+        <button type="button" class="top-app-nav-link" id="top-nav-pack">Cards</button>
+        <button type="button" class="top-app-nav-link" id="top-nav-modes">Game</button>
+        <button type="button" class="top-app-nav-link" id="top-nav-guilds">Clans</button>
+        <button type="button" class="top-app-nav-link" id="top-nav-achievements">Pass</button>
+      </div>
+    </div>
     <section class="hero">
       <div class="hero-top">
         <div>
@@ -8230,6 +8346,11 @@ PAGE_TEMPLATE = """
     const publicProfileContent = document.getElementById('public-profile-content');
     const ownedDecksList = document.getElementById('owned-decks-list');
     const walletOwnedDecksList = document.getElementById('wallet-owned-decks-list');
+    const topNavProfile = document.getElementById('top-nav-profile');
+    const topNavPack = document.getElementById('top-nav-pack');
+    const topNavModes = document.getElementById('top-nav-modes');
+    const topNavGuilds = document.getElementById('top-nav-guilds');
+    const topNavAchievements = document.getElementById('top-nav-achievements');
     const globalPlayersList = document.getElementById('global-players-list');
     const packShowcase = document.getElementById('pack-showcase');
     const foilPack = document.getElementById('foil-pack');
@@ -9721,6 +9842,9 @@ PAGE_TEMPLATE = """
       });
       document.querySelectorAll('.mobile-nav button').forEach((button) => {
         button.classList.toggle('active', button.id === `nav-${name}`);
+      });
+      document.querySelectorAll('.top-app-nav-link').forEach((button) => {
+        button.classList.toggle('active', button.id === `top-nav-${name}`);
       });
       if (name === 'modes') {
         const preferredMode = refreshModeUsageUI();
@@ -14192,6 +14316,8 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(document.getElementById('mobile-show-deck-btn'), showDeck);
     bindFunctionalControl(document.getElementById('nav-pack'), () => switchView('pack'));
     bindFunctionalControl(document.getElementById('nav-modes'), () => switchView('modes'));
+    bindFunctionalControl(topNavPack, () => switchView('pack'));
+    bindFunctionalControl(topNavModes, () => switchView('modes'));
     bindFunctionalControl(document.getElementById('nav-profile'), () => {
       switchView('profile');
       profileNavTapCount += 1;
@@ -14204,8 +14330,14 @@ PAGE_TEMPLATE = """
         showStartupGuideIfNeeded();
       }
     });
+    bindFunctionalControl(topNavProfile, () => {
+      switchView('profile');
+      profileNavTapCount = 0;
+    });
     bindFunctionalControl(document.getElementById('nav-guilds'), () => switchView('guilds'));
     bindFunctionalControl(document.getElementById('nav-achievements'), () => switchView('achievements'));
+    bindFunctionalControl(topNavGuilds, () => switchView('guilds'));
+    bindFunctionalControl(topNavAchievements, () => switchView('achievements'));
     if (mascotFab) {
       bindFunctionalControl(mascotFab, () => {
         if (mascotPopoverCopy) mascotPopoverCopy.textContent = mascotHintText();
