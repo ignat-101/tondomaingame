@@ -2947,6 +2947,15 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
+    .arena-domain-label {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 4px;
+      color: #eef8ff;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
     .arena-score-pips {
       display: flex;
       flex-wrap: wrap;
@@ -6957,7 +6966,7 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-stage {
-        height: 210px;
+        height: 198px;
       }
 
       .startup-guide-stage-overlay {
@@ -6974,11 +6983,11 @@ PAGE_TEMPLATE = """
       .startup-guide-connection-board,
       .startup-guide-pack-reveal {
         width: calc(100% - 14px);
-        height: 214px;
+        height: 198px;
       }
 
       .startup-guide-connection-board {
-        min-height: 214px;
+        min-height: 198px;
         padding: 14px;
         grid-template-columns: 1fr;
         gap: 10px;
@@ -7093,29 +7102,29 @@ PAGE_TEMPLATE = """
 
       .startup-guide-wallet-card {
         left: 14px;
-        top: 16px;
+        top: 12px;
         width: calc(100% - 28px);
-        height: 82px;
+        height: 74px;
         border-radius: 18px;
       }
 
       .startup-guide-wallet-card .head {
         left: 12px;
-        top: 10px;
+        top: 8px;
         font-size: 9px;
       }
 
       .startup-guide-wallet-card .name {
         left: 12px;
-        top: 26px;
-        font-size: 17px;
+        top: 22px;
+        font-size: 16px;
       }
 
       .startup-guide-wallet-card .rows {
         left: 12px;
         right: 12px;
-        bottom: 10px;
-        gap: 6px;
+        bottom: 8px;
+        gap: 5px;
       }
 
       .startup-guide-wallet-card .rows i {
@@ -7125,31 +7134,31 @@ PAGE_TEMPLATE = """
       .startup-guide-domain-panel {
         left: 14px;
         right: 14px;
-        top: 112px;
+        top: 96px;
         width: auto;
-        height: 74px;
+        height: 66px;
         border-radius: 18px;
       }
 
       .startup-guide-domain-panel .tag {
         left: 10px;
-        top: 10px;
+        top: 8px;
         padding: 4px 8px;
         font-size: 9px;
       }
 
       .startup-guide-domain-panel .domain {
         left: 10px;
-        top: 32px;
+        top: 28px;
         font-size: 18px;
       }
 
       .startup-guide-bridge {
         left: calc(50% - 2px);
         right: auto;
-        top: 92px;
+        top: 78px;
         width: 4px;
-        height: 24px;
+        height: 16px;
         transform: none;
         background: linear-gradient(180deg, rgba(88, 210, 255, 0.22), rgba(88, 210, 255, 0.62), rgba(88, 210, 255, 0.22));
       }
@@ -7157,7 +7166,7 @@ PAGE_TEMPLATE = """
       .startup-guide-bridge::before {
         width: 14px;
         height: 14px;
-        top: 4px;
+        top: 1px;
         left: -5px;
         animation: startupGuideBridgePulseVertical 2.8s ease-in-out infinite;
       }
@@ -7165,7 +7174,7 @@ PAGE_TEMPLATE = """
       .startup-guide-bridge::after {
         right: -2px;
         top: auto;
-        bottom: -5px;
+        bottom: -4px;
         width: 8px;
         height: 8px;
       }
@@ -13101,7 +13110,7 @@ PAGE_TEMPLATE = """
           <section class="showdown-main arena-board">
             <div class="arena-shell">
               <div class="arena-rail enemy">
-                <div class="tiny"><strong>Колода соперника</strong> • ${opponentLabel}</div>
+                <div class="tiny"><strong>Колода соперника</strong> • <span class="arena-domain-label">${opponentLabel}</span></div>
                 <div class="arena-deck-grid">
                   ${opponentArenaDeck}
                 </div>
@@ -13174,7 +13183,7 @@ PAGE_TEMPLATE = """
                 </div>
               </div>
               <div class="arena-rail player">
-                <div class="tiny"><strong>Колода пользователя</strong> • ${result.player_domain}.ton</div>
+                <div class="tiny"><strong>Колода пользователя</strong> • <span class="arena-domain-label">${result.player_domain}.ton</span></div>
                 <div class="arena-deck-grid">
                   ${playerArenaDeck}
                 </div>
