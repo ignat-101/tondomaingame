@@ -1185,7 +1185,7 @@ PAGE_TEMPLATE = """
     .player-card-domain {
       position: absolute;
       left: 16px;
-      top: 16px;
+      top: 24px;
       z-index: 8;
       display: inline-flex;
       align-items: center;
@@ -1321,7 +1321,7 @@ PAGE_TEMPLATE = """
 
     .player-card.profile-preview .player-card-content {
       margin-left: 78px;
-      margin-top: 38px;
+      margin-top: 46px;
       min-height: 72px;
       gap: 6px;
     }
@@ -1409,7 +1409,7 @@ PAGE_TEMPLATE = """
     .public-profile-domain {
       position: absolute;
       left: 22px;
-      top: 22px;
+      top: 34px;
       z-index: 8;
       display: inline-flex;
       align-items: center;
@@ -1579,7 +1579,7 @@ PAGE_TEMPLATE = """
 
       .public-profile-domain {
         left: 16px;
-        top: 16px;
+        top: 26px;
         min-height: 30px;
         padding: 0 12px;
         font-size: 12px;
