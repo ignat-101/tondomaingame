@@ -450,9 +450,10 @@ PAGE_TEMPLATE = """
     a { color: var(--accent); }
 
     .shell {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 28px 18px 132px;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 20px 24px 132px;
     }
 
     .top-app-nav {
