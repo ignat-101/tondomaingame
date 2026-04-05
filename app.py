@@ -1408,9 +1408,7 @@ PAGE_TEMPLATE = """
     }
 
     .public-profile-domain {
-      position: absolute;
-      left: 24px;
-      top: 24px;
+      position: relative;
       z-index: 8;
       display: inline-flex;
       align-items: center;
@@ -1421,10 +1419,12 @@ PAGE_TEMPLATE = """
       background: rgba(5,12,22,0.84);
       color: #f5fbff;
       font-weight: 900;
-      max-width: 180px;
+      width: fit-content;
+      max-width: min(220px, 100%);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      margin-bottom: 4px;
     }
 
     .public-profile-cardback {
@@ -1583,11 +1583,10 @@ PAGE_TEMPLATE = """
       }
 
       .public-profile-domain {
-        left: 16px;
-        top: 12px;
         min-height: 30px;
         padding: 0 12px;
         font-size: 12px;
+        max-width: min(200px, 100%);
       }
 
       .public-profile-cardback {
@@ -4494,6 +4493,13 @@ PAGE_TEMPLATE = """
       animation: startupGuidePackLeft 3.6s ease-in-out infinite;
     }
 
+    .startup-guide-pack-reveal-card.mid-left {
+      left: 214px;
+      transform: rotate(-4deg);
+      opacity: 0.94;
+      animation: startupGuidePackLeft 3.6s ease-in-out infinite 0.08s;
+    }
+
     .startup-guide-pack-reveal-card.center {
       left: 50%;
       transform: translateX(-50%);
@@ -4510,6 +4516,13 @@ PAGE_TEMPLATE = """
       transform: rotate(10deg);
       opacity: 0.86;
       animation: startupGuidePackRight 3.6s ease-in-out infinite;
+    }
+
+    .startup-guide-pack-reveal-card.mid-right {
+      right: 214px;
+      transform: rotate(4deg);
+      opacity: 0.94;
+      animation: startupGuidePackRight 3.6s ease-in-out infinite 0.08s;
     }
 
     .startup-guide-pack-reveal-card .glyph {
@@ -4738,7 +4751,8 @@ PAGE_TEMPLATE = """
       justify-content: center;
       flex-wrap: nowrap;
       padding: 0 12px;
-      width: 100%;
+      width: min(620px, calc(100% - 20px));
+      max-width: 100%;
     }
 
     .startup-guide-pill {
@@ -4906,6 +4920,18 @@ PAGE_TEMPLATE = """
       justify-content: flex-end;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .startup-guide-lane-board {
+      position: relative;
+      width: min(620px, calc(100% - 44px));
+      height: 188px;
+      border-radius: 28px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(88, 210, 255, 0.07), transparent 42%),
+        linear-gradient(135deg, rgba(10, 22, 40, 0.94), rgba(7, 16, 29, 0.92));
+      overflow: hidden;
     }
 
     .startup-guide-lane {
@@ -6859,6 +6885,10 @@ PAGE_TEMPLATE = """
         left: 20px;
       }
 
+      .startup-guide-pack-reveal-card.mid-left {
+        left: 86px;
+      }
+
       .startup-guide-pack-reveal-card.center {
         width: 106px;
         height: 122px;
@@ -6866,6 +6896,10 @@ PAGE_TEMPLATE = """
 
       .startup-guide-pack-reveal-card.right {
         right: 20px;
+      }
+
+      .startup-guide-pack-reveal-card.mid-right {
+        right: 86px;
       }
 
       .startup-guide-pack-reveal-card .glyph {
@@ -6995,6 +7029,7 @@ PAGE_TEMPLATE = """
       .startup-guide-pill-row {
         gap: 8px;
         padding: 0;
+        width: calc(100% - 10px);
       }
 
       .startup-guide-pill {
@@ -7076,6 +7111,11 @@ PAGE_TEMPLATE = """
 
       .startup-guide-rail {
         width: 280px;
+      }
+
+      .startup-guide-lane-board {
+        width: calc(100% - 14px);
+        height: 156px;
       }
 
       .startup-guide-pack-pips {
@@ -9375,10 +9415,10 @@ PAGE_TEMPLATE = """
         <div class="user-item" style="background:${giftArenaSurface(arenaKey, emoji)};">
           <div class="public-profile-hero">
             ${guildKey ? `<div class="public-profile-banner" style="background:${giftGuildSurface(guildKey, '')};"></div>` : ''}
-            <div class="public-profile-domain">${escapeHtml(profile.current_domain ? `${profile.current_domain}.ton` : 'без домена')}</div>
             <div class="public-profile-cardback" style="background:${giftCardbackSurface(backKey, emoji)};"></div>
             ${frameAsset ? `<img class="public-profile-frame" src="${frameAsset}" alt="">` : ''}
             <div class="public-profile-copy">
+              <div class="public-profile-domain">${escapeHtml(profile.current_domain ? `${profile.current_domain}.ton` : 'без домена')}</div>
               <div style="font-size:36px; line-height:1; font-weight:900;">${escapeHtml(profile.display_name || shortAddress(profile.wallet))}</div>
               <div class="summary-chip-row">
                 <span class="summary-chip">${escapeHtml(profile.profile_title || 'Без титула')}</span>
