@@ -8572,16 +8572,6 @@ PAGE_TEMPLATE = """
       }[key] || 'Не выбрана';
     }
 
-    function playerProfileGiftHtml(gift) {
-      if (!gift) return '';
-      const emoji = String(gift.emoji || '').trim();
-      const image = String(gift.image_url || '').trim();
-      if (image) {
-        return `<span class="player-card-gift" title="${escapeHtml(gift.label || 'Подарок')}"><img src="${escapeHtml(image)}" alt="" style="width:20px; height:20px; object-fit:contain; border-radius:6px;"></span>`;
-      }
-      return `<span class="player-card-gift" title="${escapeHtml(gift.label || 'Подарок')}">${escapeHtml(emoji || '🎁')}</span>`;
-    }
-
     function renderCompactPlayerCard(player, options = {}) {
       if (!player) return '';
       const cosmetics = player.equipped_cosmetics || {};
@@ -8599,7 +8589,6 @@ PAGE_TEMPLATE = """
         <article class="player-card${extraClass}" data-open-profile-wallet="${escapeHtml(player.wallet)}" style="background:${giftArenaSurface(arenaKey, emoji)};">
           ${guildKey ? `<div class="player-card-banner" style="background:${giftGuildSurface(guildKey, '')};"></div>` : ''}
           <div class="player-card-domain">${escapeHtml(domainLabel)}</div>
-          ${playerProfileGiftHtml(player.selected_gift)}
           <div class="player-card-back" style="background:${giftCardbackSurface(backKey, emoji)};">
             ${frameAsset ? `<img class="player-card-frame" src="${frameAsset}" alt="">` : ''}
           </div>
@@ -8674,7 +8663,6 @@ PAGE_TEMPLATE = """
         { label: 'Рубашка', key: backKey, type: 'cardback', preview: `<div style="position:absolute; inset:0; background:${giftCardbackSurface(backKey, emoji)};"></div>` },
         { label: 'Арена', key: arenaKey, type: 'arena', preview: `<div style="position:absolute; inset:0; background:${giftArenaSurface(arenaKey, emoji)};"></div>` },
         { label: 'Баннер', key: guildKey, type: 'guild', preview: guildKey ? `<div style="position:absolute; inset:0; background:${giftGuildSurface(guildKey, '')};"></div>` : '<div class="tiny">Не выбран</div>' },
-        { label: 'Подарок', key: (profile.selected_gift || {}).key || '', type: 'gift', preview: (profile.selected_gift && profile.selected_gift.image_url) ? `<img src="${escapeHtml(profile.selected_gift.image_url)}" alt="" style="position:absolute; inset:12px; width:calc(100% - 24px); height:calc(100% - 24px); object-fit:contain;">` : `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:34px;">${escapeHtml((profile.selected_gift || {}).emoji || '🎁')}</div>` },
       ];
       publicProfileContent.innerHTML = `
         <div class="actions" style="justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -8685,7 +8673,6 @@ PAGE_TEMPLATE = """
           <div class="public-profile-hero">
             ${guildKey ? `<div class="public-profile-banner" style="background:${giftGuildSurface(guildKey, '')};"></div>` : ''}
             <div class="public-profile-domain">${escapeHtml(profile.current_domain ? `${profile.current_domain}.ton` : 'без домена')}</div>
-            ${playerProfileGiftHtml(profile.selected_gift)}
             <div class="public-profile-cardback" style="background:${giftCardbackSurface(backKey, emoji)};"></div>
             ${frameAsset ? `<img class="public-profile-frame" src="${frameAsset}" alt="">` : ''}
             <div class="public-profile-copy">
@@ -8716,7 +8703,7 @@ PAGE_TEMPLATE = """
         ${profile.guild ? `<div class="user-item"><strong>Клан</strong><div class="tiny">${escapeHtml(profile.guild.name)} • роль ${escapeHtml(profile.guild.role)}</div></div>` : ''}
         ${rewardDeck ? `<div class="user-item"><strong>Текущая колода</strong><div class="tiny">Пул: ${Number(rewardDeck.discipline_pool || 0)} • Счёт колоды: ${Number(rewardDeck.total_score || 0)} • Синергии: ${(rewardDeck.synergies && rewardDeck.synergies.labels && rewardDeck.synergies.labels.length) ? escapeHtml(rewardDeck.synergies.labels.join(' • ')) : 'нет'}</div></div>` : ''}
         <div class="user-item">
-          <strong>Косметика и подарок</strong>
+          <strong>Косметика</strong>
           <div class="public-profile-cosmetics-grid">
             ${cosmeticsCards.map((item) => `
               <article class="public-profile-cosmetic">
@@ -8999,7 +8986,6 @@ PAGE_TEMPLATE = """
       const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
       const equipped = rewards.equipped_cosmetics || {};
       const guildItems = cosmetics.filter((item) => item.type === 'guild');
-      const availableGifts = Array.isArray(profile.available_profile_gifts) ? profile.available_profile_gifts : [];
       const profileBannerKey = profile.profile_banner_key || ((equipped.guild || {}).key) || '';
       const currentDomain = state.selectedDomain || profile.domain || (state.playerProfile && state.playerProfile.current_domain) || '';
       const analytics = profile.analytics || {};
@@ -9063,27 +9049,6 @@ PAGE_TEMPLATE = """
                   ${guildItems.map((item) => `<option value="${escapeHtml(item.key)}"${profileBannerKey === item.key ? ' selected' : ''}>${escapeHtml(item.name)}</option>`).join('')}
                 </select>
               </div>
-              <input type="hidden" id="profile-gift-key" value="${escapeHtml((profile.selected_gift || {}).key || '')}">
-              <input type="hidden" id="profile-gift-source" value="${escapeHtml((profile.selected_gift || {}).source || '')}">
-              <div style="display:grid; gap:8px;">
-                <div class="tiny">Подарок профиля</div>
-                <div class="profile-gift-grid" id="profile-gift-grid">
-                  <button type="button" class="profile-gift-option${!(profile.selected_gift && profile.selected_gift.key) ? ' active' : ''}" data-gift-key="" data-gift-source="" title="Без подарка">
-                    <span class="profile-gift-option-empty">Без подарка</span>
-                  </button>
-                  ${availableGifts.map((item) => `
-                    <button
-                      type="button"
-                      class="profile-gift-option${(profile.selected_gift && profile.selected_gift.key === item.key) ? ' active' : ''}"
-                      data-gift-key="${escapeHtml(item.key)}"
-                      data-gift-source="${escapeHtml(item.source || '')}"
-                      title="${escapeHtml(item.label || 'Подарок')}"
-                    >
-                      <img src="${escapeHtml(item.image_url || '')}" alt="${escapeHtml(item.label || 'Подарок')}" onerror="this.closest('.profile-gift-option')?.remove();">
-                    </button>
-                  `).join('')}
-                </div>
-              </div>
               <div class="tiny">Любимая способность, стиль игры, стратегия и роль теперь определяются автоматически по истории матчей игрока. Здесь настраиваются только публичные элементы профиля.</div>
               <div class="summary-chip-row">
                 <span class="summary-chip">${escapeHtml(profileAbilityMeta(profile.favorite_ability || '').description)}</span>
@@ -9103,16 +9068,6 @@ PAGE_TEMPLATE = """
         btn.addEventListener('click', () => {
           state.profileTab = btn.dataset.profileTab || 'overview';
           renderIdentityPanel();
-        });
-      });
-      profileIdentityPanel.querySelectorAll('.profile-gift-option').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          profileIdentityPanel.querySelectorAll('.profile-gift-option').forEach((node) => node.classList.remove('active'));
-          btn.classList.add('active');
-          const giftKeyInput = document.getElementById('profile-gift-key');
-          const giftSourceInput = document.getElementById('profile-gift-source');
-          if (giftKeyInput) giftKeyInput.value = btn.dataset.giftKey || '';
-          if (giftSourceInput) giftSourceInput.value = btn.dataset.giftSource || '';
         });
       });
       const saveBtn = document.getElementById('save-profile-btn');
@@ -12504,8 +12459,6 @@ PAGE_TEMPLATE = """
       const bio = document.getElementById('profile-bio-input')?.value ?? (profile.bio || '');
       const profileTitle = document.getElementById('profile-title-input')?.value ?? (profile.profile_title || '');
       const profileBannerKey = document.getElementById('profile-banner-select')?.value ?? (profile.profile_banner_key || '');
-      const profileGiftKey = document.getElementById('profile-gift-key')?.value ?? ((profile.selected_gift || {}).key || '');
-      const profileGiftSource = document.getElementById('profile-gift-source')?.value ?? ((profile.selected_gift || {}).source || '');
       const data = await api('/api/profile', {
         method: 'POST',
         body: {
@@ -12514,8 +12467,6 @@ PAGE_TEMPLATE = """
           bio,
           profile_title: profileTitle,
           profile_banner_key: profileBannerKey,
-          profile_gift_source: profileGiftSource,
-          profile_gift_key: profileGiftKey,
           language: 'ru'
         }
       });
