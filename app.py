@@ -4559,6 +4559,119 @@ PAGE_TEMPLATE = """
       animation: startupGuideCenterPulse 2.8s ease-in-out infinite;
     }
 
+    .startup-guide-pack-showcase {
+      position: relative;
+      width: min(640px, calc(100% - 44px));
+      min-height: 212px;
+      padding: 24px 24px 22px;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 208, 106, 0.18);
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255, 208, 106, 0.1), transparent 40%),
+        linear-gradient(135deg, rgba(10, 22, 40, 0.94), rgba(7, 16, 29, 0.92));
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .startup-guide-pack-showcase::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 208, 106, 0.05) 1px, transparent 1px) 0 0 / 25% 100%,
+        linear-gradient(0deg, rgba(255, 208, 106, 0.05) 1px, transparent 1px) 0 0 / 100% 50%;
+      pointer-events: none;
+    }
+
+    .startup-guide-pack-card {
+      position: relative;
+      z-index: 1;
+      min-height: 156px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 208, 106, 0.24);
+      background: linear-gradient(180deg, rgba(9, 20, 35, 0.96), rgba(8, 16, 28, 0.94));
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px 10px 14px;
+      text-align: center;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .startup-guide-pack-card::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 208, 106, 0.18);
+      background: linear-gradient(180deg, rgba(255, 208, 106, 0.04), transparent 80%);
+      pointer-events: none;
+    }
+
+    .startup-guide-pack-card.active {
+      transform: translateY(-6px);
+      border-color: rgba(83, 246, 184, 0.76);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24), 0 0 26px rgba(83, 246, 184, 0.16);
+    }
+
+    .startup-guide-pack-card.common {
+      border-color: rgba(121, 217, 255, 0.34);
+    }
+
+    .startup-guide-pack-card.rare {
+      border-color: rgba(83, 246, 184, 0.42);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24), 0 0 18px rgba(83, 246, 184, 0.08);
+    }
+
+    .startup-guide-pack-card.epic {
+      border-color: rgba(255, 122, 134, 0.42);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24), 0 0 18px rgba(255, 122, 134, 0.08);
+    }
+
+    .startup-guide-pack-card.lucky {
+      border-color: rgba(255, 211, 110, 0.54);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24), 0 0 20px rgba(255, 211, 110, 0.1);
+    }
+
+    .startup-guide-pack-card .glyph {
+      position: relative;
+      z-index: 1;
+      font-size: 42px;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.24));
+    }
+
+    .startup-guide-pack-card .title {
+      position: relative;
+      z-index: 1;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      color: #f6fbff;
+    }
+
+    .startup-guide-pack-card .count {
+      position: relative;
+      z-index: 1;
+      min-height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 244, 220, 0.92);
+      border: 1px solid rgba(255, 208, 106, 0.24);
+      background: rgba(255, 208, 106, 0.08);
+    }
+
     @keyframes startupGuideFloatCard {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
@@ -4753,6 +4866,13 @@ PAGE_TEMPLATE = """
       padding: 0 12px;
       width: min(620px, calc(100% - 20px));
       max-width: 100%;
+    }
+
+    .startup-guide-resource-stage {
+      width: min(620px, calc(100% - 20px));
+      display: grid;
+      gap: 14px;
+      justify-items: center;
     }
 
     .startup-guide-pill {
@@ -7015,6 +7135,33 @@ PAGE_TEMPLATE = """
         right: 38px;
       }
 
+      .startup-guide-pack-showcase {
+        width: calc(100% - 14px);
+        min-height: 190px;
+        padding: 18px 10px 16px;
+        gap: 8px;
+      }
+
+      .startup-guide-pack-card {
+        min-height: 118px;
+        padding: 12px 6px 10px;
+        border-radius: 18px;
+      }
+
+      .startup-guide-pack-card .glyph {
+        font-size: 28px;
+      }
+
+      .startup-guide-pack-card .title {
+        font-size: 10px;
+      }
+
+      .startup-guide-pack-card .count {
+        min-height: 20px;
+        padding: 0 7px;
+        font-size: 8px;
+      }
+
       .startup-guide-chart {
         width: 294px;
         height: 124px;
@@ -7030,6 +7177,11 @@ PAGE_TEMPLATE = """
         gap: 8px;
         padding: 0;
         width: calc(100% - 10px);
+      }
+
+      .startup-guide-resource-stage {
+        width: calc(100% - 10px);
+        gap: 10px;
       }
 
       .startup-guide-pill {
@@ -8557,26 +8709,37 @@ PAGE_TEMPLATE = """
       },
       {
         title: 'Собери колоду через паки',
-        body: 'Открой пак и получи 5 карт. Колода хранится по домену. Можно менять активный домен и играть разными сборками.',
+        body: 'В игре 4 пака: обычный, редкий, эпический и счастливый. Они дают разное число карт и разную редкость, но все работают на одну колоду домена.',
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
-              <div class="startup-guide-pack-reveal">
-                <div class="startup-guide-pack-reveal-burst"></div>
-                <div class="startup-guide-pack-reveal-card left" data-tier="basic">
+              <div class="startup-guide-pack-showcase">
+                <div class="startup-guide-pack-card common active" data-pack-key="common">
                   <div class="glyph">🃏</div>
+                  <div class="title">Обычный</div>
+                  <div class="count">3 карты</div>
                 </div>
-                <div class="startup-guide-pack-reveal-card center active" data-tier="rare">
+                <div class="startup-guide-pack-card rare" data-pack-key="rare">
                   <div class="glyph">✨</div>
+                  <div class="title">Редкий</div>
+                  <div class="count">4 карты</div>
                 </div>
-                <div class="startup-guide-pack-reveal-card right" data-tier="epic">
+                <div class="startup-guide-pack-card epic" data-pack-key="epic">
                   <div class="glyph">💠</div>
+                  <div class="title">Эпический</div>
+                  <div class="count">5 карт</div>
+                </div>
+                <div class="startup-guide-pack-card lucky" data-pack-key="lucky">
+                  <div class="glyph">🍀</div>
+                  <div class="title">Счастливый</div>
+                  <div class="count">4 карты</div>
                 </div>
               </div>
               <div class="startup-guide-control-row">
-                <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="basic">Basic</button>
-                <button type="button" class="startup-guide-control-btn active" data-guide-action="pack" data-guide-value="rare">Rare</button>
-                <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="epic">Epic</button>
+                <button type="button" class="startup-guide-control-btn active" data-guide-action="pack" data-guide-value="common">Обычный</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="rare">Редкий</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="epic">Эпический</button>
+                <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="lucky">Счастливый</button>
               </div>
             </div>
           </div>
@@ -8611,10 +8774,12 @@ PAGE_TEMPLATE = """
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
-              <div class="startup-guide-lane" data-action="guard">
-                <div class="startup-guide-card-demo enemy">⚔️</div>
-                <div class="startup-guide-card-demo player">🛡️</div>
-                <div class="startup-guide-pulse"></div>
+              <div class="startup-guide-lane-board">
+                <div class="startup-guide-lane" data-action="guard">
+                  <div class="startup-guide-card-demo enemy">⚔️</div>
+                  <div class="startup-guide-card-demo player">🛡️</div>
+                  <div class="startup-guide-pulse"></div>
+                </div>
               </div>
               <div class="startup-guide-control-row">
                 <button type="button" class="startup-guide-control-btn" data-guide-action="battle" data-guide-value="burst">Натиск</button>
@@ -8630,10 +8795,13 @@ PAGE_TEMPLATE = """
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
-              <div class="startup-guide-pill-row">
-                <div class="startup-guide-pill" data-pill="burst">Энергия 3<small>Натиск 2 • Блок 1</small></div>
-                <div class="startup-guide-pill" data-pill="guard">КД 1<small>Следи за откатом</small></div>
-                <div class="startup-guide-pill active" data-pill="ability">Способность<small>3 энергии и заряды</small></div>
+              <div class="startup-guide-resource-stage">
+                <div class="startup-guide-pill-row">
+                  <div class="startup-guide-pill" data-pill="burst">Энергия 3<small>Натиск 2 • Блок 1</small></div>
+                  <div class="startup-guide-pill" data-pill="guard">КД 1<small>Следи за откатом</small></div>
+                  <div class="startup-guide-pill active" data-pill="ability">Способность<small>3 энергии и заряды</small></div>
+                </div>
+                <div class="startup-guide-note">Смотри на ману и откат перед каждым ходом: если прожать способность не вовремя, можно отдать раунд.</div>
               </div>
               <div class="startup-guide-control-row">
                 <button type="button" class="startup-guide-control-btn" data-guide-action="resource" data-guide-value="burst">Натиск</button>
@@ -8686,7 +8854,7 @@ PAGE_TEMPLATE = """
       },
       {
         title: 'Косметика и прогресс',
-        body: 'Рубашки, арены и баннеры меняют визуал боя. Домены и колоды прокачиваются, но победа зависит от решений в раундах.',
+        body: 'После этого шага тебе будет предложен пробный бой. В нём игра подскажет, что нажимать в каждом раунде и почему это выгодно.',
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
@@ -8743,6 +8911,27 @@ PAGE_TEMPLATE = """
       startupGuide.classList.add('visible');
     }
 
+    function startupGuideReadyForTrial() {
+      return Boolean(state.wallet && state.selectedDomain);
+    }
+
+    function startupGuideFinishLabel() {
+      if (startupGuideReadyForTrial()) {
+        return 'Пробная игра';
+      }
+      return 'К настройке';
+    }
+
+    function startupGuideFinalNoteText() {
+      if (!state.wallet) {
+        return 'Сначала подключи кошелёк на шаге 1. После этого нажми «Проверить наличие доменов», чтобы подобрать домен и запустить первый бой.';
+      }
+      if (!state.selectedDomain) {
+        return 'Кошелёк уже подключён. Теперь нажми «Проверить наличие доменов», чтобы игра выбрала 4-значный .ton домен и открыла путь к пробной игре.';
+      }
+      return 'Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде. Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.';
+    }
+
     function renderStartupGuideStep() {
       if (!startupGuide) return;
       const maxIndex = Math.max(0, startupGuideSteps.length - 1);
@@ -8767,6 +8956,18 @@ PAGE_TEMPLATE = """
         } else if (step.overlayHtml) {
           startupGuideStageOverlay.innerHTML = step.overlayHtml;
           wireStartupGuideInteractions(startupGuideStepIndex);
+          if (startupGuideStepIndex === 0) {
+            const walletCard = startupGuideStageOverlay.querySelector('.startup-guide-wallet-card');
+            const domainPanel = startupGuideStageOverlay.querySelector('.startup-guide-domain-panel');
+            if (walletCard && state.wallet) walletCard.classList.add('connected');
+            if (domainPanel && state.selectedDomain) domainPanel.classList.add('revealed');
+          }
+          if (startupGuideStepIndex === maxIndex) {
+            const note = startupGuideStageOverlay.querySelector('.startup-guide-note');
+            if (note) {
+              note.textContent = startupGuideFinalNoteText();
+            }
+          }
         } else {
           startupGuideStageOverlay.textContent = step.overlay || '';
         }
@@ -8775,7 +8976,7 @@ PAGE_TEMPLATE = """
         startupGuidePrevBtn.disabled = startupGuideStepIndex <= 0;
       }
       if (startupGuideNextBtn) {
-        startupGuideNextBtn.textContent = startupGuideStepIndex >= maxIndex ? 'Готово' : 'Далее';
+        startupGuideNextBtn.textContent = startupGuideStepIndex >= maxIndex ? startupGuideFinishLabel() : 'Далее';
       }
       if (startupGuideCloseBtn) {
         startupGuideCloseBtn.style.display = startupGuideStepIndex >= maxIndex ? 'inline-flex' : 'none';
@@ -8809,22 +9010,33 @@ PAGE_TEMPLATE = """
               if (value === 'connect') {
                 if (walletCard) walletCard.classList.add('connected');
                 if (domainPanel) domainPanel.classList.remove('revealed');
+                if (!state.wallet && typeof window.openWalletConnect === 'function') {
+                  window.openWalletConnect();
+                }
                 setStartupGuideInteractiveBody('Сначала подключи кошелёк через TonConnect. После этого игра сможет проверить, есть ли у тебя подходящий 4-значный .ton домен.');
               } else {
+                if (!state.wallet) {
+                  setStartupGuideInteractiveBody('Сначала нажми «Подключить». Без кошелька игра не сможет проверить домены и подготовить первый матч.');
+                  break;
+                }
                 if (walletCard) walletCard.classList.add('connected');
                 if (domainPanel) domainPanel.classList.add('revealed');
-                setStartupGuideInteractiveBody('После проверки игра находит корневой 4-значный .ton домен и делает его активным для колоды и матчей.');
+                if (typeof window.checkDomains === 'function') {
+                  window.checkDomains();
+                }
+                setStartupGuideInteractiveBody('После проверки игра находит корневой 4-значный .ton домен, делает его активным и готовит колоду для первого матча.');
               }
               break;
             }
             case '1:pack': {
-              startupGuideStageOverlay.querySelectorAll('.startup-guide-pack-reveal-card').forEach((card) => {
-                card.classList.toggle('active', card.dataset.tier === value);
+              startupGuideStageOverlay.querySelectorAll('.startup-guide-pack-card').forEach((card) => {
+                card.classList.toggle('active', (card.dataset.packKey || '') === value);
               });
               const copy = {
-                basic: 'Basic карты выпадают чаще и быстро собирают стартовую колоду.',
-                rare: 'Rare карты дают заметный апгрейд и чаще становятся основой первой рабочей сборки.',
-                epic: 'Epic карты редче и сильнее, но бой всё равно решают выборы по раундам.'
+                common: 'Обычный пак даёт 3 карты и быстрее всего собирает первый рабочий набор.',
+                rare: 'Редкий пак даёт 4 карты и заметно чаще приносит сильные апгрейды для колоды.',
+                epic: 'Эпический пак даёт 5 карт и повышает шанс на очень сильные варианты для сборки.',
+                lucky: 'Счастливый пак даёт 4 карты, но сильнее давит в сторону топовых редкостей и редких выпадений.'
               };
               setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[1].body);
               break;
@@ -8905,6 +9117,10 @@ PAGE_TEMPLATE = """
                 banner: 'Баннер завершает образ профиля и заметен в карточках игрока и клановых экранах.'
               };
               setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[7].body);
+              const note = startupGuideStageOverlay.querySelector('.startup-guide-note');
+              if (note) {
+                note.textContent = startupGuideFinalNoteText();
+              }
               break;
             }
             default:
@@ -8914,10 +9130,18 @@ PAGE_TEMPLATE = """
       });
     }
 
-    function nextStartupGuideStep() {
+    async function nextStartupGuideStep() {
       const maxIndex = Math.max(0, startupGuideSteps.length - 1);
       if (startupGuideStepIndex >= maxIndex) {
+        if (startupGuideReadyForTrial()) {
+          closeStartupGuide(true);
+          switchView('modes');
+          await new Promise((resolve) => window.setTimeout(resolve, 80));
+          await startTutorialBattle();
+          return;
+        }
         closeStartupGuide(true);
+        switchView('profile');
         return;
       }
       startupGuideStepIndex += 1;
@@ -9649,10 +9873,10 @@ PAGE_TEMPLATE = """
       tutorialPanel.innerHTML = `
         <div class="user-item">
           <strong>Интерактивный туториал боя</strong>
-          <div class="tiny">Покажет порядок колоды, тактическую карту и разницу действий прямо в бою. Первый матч настроен так, чтобы при следовании подсказкам ты почти наверняка выиграл.</div>
+          <div class="tiny">Сначала покажет базовые системы игры, затем сразу отправит в пробный бой. В пробном бою игра подскажет, что нажимать в каждом раунде и почему это выгодно.</div>
           <div class="tiny">Статус: ${tutorial.skipped ? 'пропущен' : (tutorial.started ? 'начат' : 'не начат')} • попыток: ${tutorial.attempts || 0}</div>
           <div class="actions" style="margin-top:10px;">
-            <button id="start-tutorial-btn"${!(state.wallet && state.selectedDomain && state.cards.length) ? ' disabled' : ''}>${tutorial.started ? 'Пройти заново' : 'Начать туториал'}</button>
+            <button id="start-tutorial-btn"${!(state.wallet && state.selectedDomain) ? ' disabled' : ''}>${tutorial.started ? 'Пройти заново' : 'Начать туториал'}</button>
             <button class="secondary" id="skip-tutorial-btn">Пропустить</button>
           </div>
         </div>
@@ -12734,9 +12958,9 @@ PAGE_TEMPLATE = """
                     <div class="tiny" id="prebattle-ready-status">Колоды готовы. Нажми "Готов".</div>
                     ${tutorialMeta && tutorialMeta.active ? `
                       <div class="tutorial-prebattle-guide" style="margin-top:10px;">
-                        <div class="tiny"><strong>Порядок колоды:</strong> снизу твои карты, сверху карты бота. Туториал ведёт по раундам слева направо.</div>
-                        <div class="tiny"><strong>Тактическая карта:</strong> выбери слот и запомни его. В 3-м раунде подсказка поведёт именно к ней.</div>
-                        <div class="tiny"><strong>Ресурсы:</strong> Блок стоит 1, Натиск 2, Способность 3 маны.</div>
+                        <div class="tiny"><strong>Что делать сейчас:</strong> нажми «Готов», и игра поведёт тебя по трём обучающим раундам.</div>
+                        <div class="tiny"><strong>Порядок ходов:</strong> 1) Блок, 2) Натиск, 3) Способность.</div>
+                        <div class="tiny"><strong>Как читать поле:</strong> снизу твои карты, сверху карты бота. Подсказка и рекомендованный ход будут обновляться перед каждым раундом.</div>
                       </div>
                     ` : ''}
                     <div class="row" style="margin-top:10px;">
@@ -21476,17 +21700,17 @@ def tutorial_config_for_domain(domain_meta, selected_slot):
         'tips': [
             {
                 'title': 'Шаг 1. Удержи первый удар',
-                'body': 'Снизу твоя колода. Сверху колода бота. Сейчас бот откроет Натиском, поэтому жми Блок.',
+                'body': 'Снизу твоя колода. Сверху колода бота. В первом раунде бот откроет Натиском, поэтому жми Блок: так ты дёшево переживёшь давление и не отдашь старт.',
                 'focus': 'action',
             },
             {
                 'title': 'Шаг 2. Дожми перевес',
-                'body': 'Порядок колоды уже работает на тебя. Во втором раунде жми Натиск и забирай темп.',
+                'body': 'Во втором раунде переходи в Натиск. После защитного первого хода это лучший момент забрать темп и выйти вперёд по счёту.',
                 'focus': 'order',
             },
             {
                 'title': 'Шаг 3. Используй тактическую карту',
-                'body': f'Твоя тактическая карта в слоте {selected_slot or 1}. Заверши бой через {active_name}.',
+                'body': f'На третьем раунде у тебя уже хватает ресурсов на {active_name}. Твоя тактическая карта в слоте {selected_slot or 1}: заверши матч способностью.',
                 'focus': 'featured',
             },
         ],
