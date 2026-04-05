@@ -586,13 +586,13 @@ PAGE_TEMPLATE = """
 
     .mascot-widget {
       position: fixed;
-      right: 18px;
-      top: calc(16px + env(safe-area-inset-top));
+      left: 18px;
+      bottom: calc(18px + env(safe-area-inset-bottom));
       z-index: 60;
       display: grid;
       gap: 10px;
       align-items: end;
-      justify-items: end;
+      justify-items: start;
       pointer-events: none;
     }
 
@@ -639,6 +639,7 @@ PAGE_TEMPLATE = """
       box-shadow: 0 28px 50px rgba(0, 0, 0, 0.34);
       opacity: 0;
       transform: translateY(8px) scale(0.98);
+      transform-origin: bottom left;
       transition: opacity 180ms ease, transform 180ms ease;
       pointer-events: none;
     }
@@ -7051,11 +7052,11 @@ PAGE_TEMPLATE = """
       }
       .mobile-nav {
         position: fixed;
-        left: 8px;
+        left: 82px;
         right: 8px;
         bottom: calc(8px + env(safe-area-inset-bottom));
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 8px;
         padding: 8px;
         border-radius: 18px;
@@ -7094,8 +7095,8 @@ PAGE_TEMPLATE = """
       }
 
       .mascot-widget {
-        right: 10px;
-        top: calc(8px + env(safe-area-inset-top));
+        left: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
       }
 
       .mascot-fab {
@@ -7674,8 +7675,8 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .mascot-widget {
-      right: 10px;
-      top: calc(8px + env(safe-area-inset-top));
+      left: 8px;
+      bottom: calc(8px + env(safe-area-inset-bottom));
     }
 
     body.tma-app .mascot-fab {
@@ -7728,11 +7729,11 @@ PAGE_TEMPLATE = """
 
     body.tma-app .mobile-nav {
       position: fixed;
-      left: 8px;
+      left: 82px;
       right: 8px;
       bottom: calc(8px + env(safe-area-inset-bottom));
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       padding: 8px;
       border-radius: 18px;
@@ -8101,7 +8102,6 @@ PAGE_TEMPLATE = """
   </div>
 
   <nav class="mobile-nav">
-    <button id="nav-profile">Профиль</button>
     <button id="nav-pack">Карты</button>
     <button id="nav-modes">Игра</button>
     <button id="nav-guilds">Кланы</button>
