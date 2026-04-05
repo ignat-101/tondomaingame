@@ -1569,18 +1569,18 @@ PAGE_TEMPLATE = """
 
       .public-profile-hero {
         min-height: auto;
-        padding: 16px;
+        padding: 54px 16px 16px;
       }
 
       .public-profile-banner {
         width: 132px;
         height: 30px;
-        top: 12px;
+        top: 14px;
       }
 
       .public-profile-domain {
         left: 16px;
-        top: 26px;
+        top: 12px;
         min-height: 30px;
         padding: 0 12px;
         font-size: 12px;
@@ -1592,7 +1592,7 @@ PAGE_TEMPLATE = """
         bottom: auto;
         width: 82px;
         height: 114px;
-        margin-top: 56px;
+        margin-top: 24px;
       }
 
       .public-profile-frame {
