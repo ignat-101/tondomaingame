@@ -8948,6 +8948,8 @@ PAGE_TEMPLATE = """
       const equipped = rewards.equipped_cosmetics || {};
       const guildItems = cosmetics.filter((item) => item.type === 'guild');
       const availableGifts = Array.isArray(profile.available_profile_gifts) ? profile.available_profile_gifts : [];
+      const telegramGifts = availableGifts.filter((item) => item.source === 'telegram');
+      const walletGifts = availableGifts.filter((item) => item.source === 'wallet');
       const profileBannerKey = profile.profile_banner_key || ((equipped.guild || {}).key) || '';
       const currentDomain = state.selectedDomain || profile.domain || (state.playerProfile && state.playerProfile.current_domain) || '';
       const analytics = profile.analytics || {};
@@ -9012,7 +9014,12 @@ PAGE_TEMPLATE = """
                 </select>
                 <select id="profile-gift-select">
                   <option value="">Подарок профиля</option>
-                  ${availableGifts.map((item) => `<option value="${escapeHtml(item.key)}" data-gift-source="${escapeHtml(item.source || '')}"${(profile.selected_gift && profile.selected_gift.key === item.key) ? ' selected' : ''}>${escapeHtml(item.label)} • ${escapeHtml(item.source === 'telegram' ? 'Telegram' : 'Wallet')}</option>`).join('')}
+                  ${telegramGifts.length ? `<optgroup label="Telegram">
+                    ${telegramGifts.map((item) => `<option value="${escapeHtml(item.key)}" data-gift-source="${escapeHtml(item.source || '')}"${(profile.selected_gift && profile.selected_gift.key === item.key) ? ' selected' : ''}>${escapeHtml(item.label)}</option>`).join('')}
+                  </optgroup>` : ''}
+                  ${walletGifts.length ? `<optgroup label="Кошелёк">
+                    ${walletGifts.map((item) => `<option value="${escapeHtml(item.key)}" data-gift-source="${escapeHtml(item.source || '')}"${(profile.selected_gift && profile.selected_gift.key === item.key) ? ' selected' : ''}>${escapeHtml(item.label)}</option>`).join('')}
+                  </optgroup>` : ''}
                 </select>
               </div>
               <div class="tiny">Любимая способность, стиль игры, стратегия и роль теперь определяются автоматически по истории матчей игрока. Здесь настраиваются только публичные элементы профиля.</div>
@@ -20196,9 +20203,6 @@ def build_solo_live_payload(state):
         'interactive_ability_state': state.get('ability_state_a') or {},
         'player_synergies': state.get('synergy_a') or {},
         'opponent_synergies': state.get('synergy_b') or {},
-        'bot_difficulty': state.get('bot_difficulty') or ({
-            'level': int(state.get('bot_difficulty_level', 0) or 0),
-        } if state.get('mode') == 'bot' else None),
         'result': result_code,
         'result_label': result_label,
         'interactive_live': not bool(state.get('complete')),
@@ -20610,7 +20614,7 @@ def apply_solo_battle_action(session_id, wallet, action_key):
             side='a',
         )
         if state.get('mode') == 'bot':
-            state['bot_difficulty'] = update_player_bot_progress(
+            update_player_bot_progress(
                 state['wallet'],
                 'win' if won else ('draw' if state.get('winner') is None else 'loss'),
             )
