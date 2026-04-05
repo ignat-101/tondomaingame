@@ -17342,10 +17342,11 @@ def choose_bot_round_action(planned_action, energy, ability_state, metadata, pha
     if not actions:
         return 'guard'
     role = str((metadata or {}).get('role') or '')
+    difficulty_level = max(0, min(4, int((metadata or {}).get('_bot_difficulty_level', 0) or 0)))
     rng = random.Random(hashlib.sha256(f'bot-live:{rng_seed}:{round_index}:{phase}:{previous_outcome}:{planned_action}'.encode()).hexdigest())
     weights = {action: 1 for action in actions}
     if planned_action in actions:
-        weights[planned_action] += 3
+        weights[planned_action] += 3 + difficulty_level
     if 'guard' in actions and phase in {'control', 'setup'}:
         weights['guard'] += 2
     if 'burst' in actions and phase in {'pressure', 'risk', 'finisher'}:
@@ -17353,6 +17354,10 @@ def choose_bot_round_action(planned_action, energy, ability_state, metadata, pha
     if previous_outcome == 'loss' and 'burst' in actions:
         weights['burst'] += 2
     if previous_outcome == 'win' and 'guard' in actions:
+        weights['guard'] += 1
+    if difficulty_level >= 2 and 'burst' in actions and phase in {'pressure', 'finisher'}:
+        weights['burst'] += difficulty_level - 1
+    if difficulty_level >= 3 and 'guard' in actions and previous_outcome == 'loss':
         weights['guard'] += 1
     if allow_ability and 'ability' in actions:
         ability_weight = 0
@@ -17362,6 +17367,7 @@ def choose_bot_round_action(planned_action, energy, ability_state, metadata, pha
             ability_weight += 1
         if previous_outcome == 'loss':
             ability_weight += 1
+        ability_weight += min(2, difficulty_level)
         if ability_weight > 0:
             weights['ability'] += ability_weight
     total_weight = sum(max(0, int(value)) for value in weights.values())
@@ -17832,17 +17838,34 @@ def random_bot_cards(seed_value, count=5):
     return cards
 
 
-def bot_cards_slightly_weaker_than_player(player_cards, seed_value):
+def bot_cards_slightly_weaker_than_player(player_cards, seed_value, difficulty_level=0):
     rng = random.Random(hashlib.sha256(f'bot-weaker:{seed_value}'.encode()).hexdigest())
     cards = []
     normalized_cards = [normalize_card_profile(card) for card in (player_cards or [])]
     if not normalized_cards:
         return random_bot_cards(seed_value, count=5)
 
+    level = max(0, min(4, int(difficulty_level or 0)))
+    scale_ranges = {
+        0: (0.80, 0.92),
+        1: (0.86, 0.98),
+        2: (0.92, 1.03),
+        3: (0.98, 1.08),
+        4: (1.02, 1.12),
+    }
+    bias_ranges = {
+        0: (-6.0, 4.0),
+        1: (-4.0, 5.0),
+        2: (-3.0, 6.0),
+        3: (-2.0, 7.0),
+        4: (0.0, 8.0),
+    }
+    min_scale, max_scale = scale_ranges[level]
+    min_bias, max_bias = bias_ranges[level]
+
     for slot, source in enumerate(normalized_cards[:5], start=1):
-        # Keep bot playable, but leave room for player decisions to matter more.
-        scale = rng.uniform(0.80, 0.92)
-        score = max(1, int(round(source.get('pool_value', source.get('score', 100)) * scale + rng.uniform(-6.0, 4.0))))
+        scale = rng.uniform(min_scale, max_scale)
+        score = max(1, int(round(source.get('pool_value', source.get('score', 100)) * scale + rng.uniform(min_bias, max_bias))))
         rarity_key = str(source.get('rarity_key') or 'basic').lower()
         if rarity_key not in RARITY_LABELS:
             rarity_key = 'basic'
@@ -17865,6 +17888,20 @@ def bot_cards_slightly_weaker_than_player(player_cards, seed_value):
             }
         )
     return cards
+
+
+def bot_selected_slot(cards, difficulty_level):
+    normalized = [normalize_card_profile(card) for card in (cards or [])]
+    if not normalized:
+        return 1
+    level = max(0, min(4, int(difficulty_level or 0)))
+    if level <= 1:
+        return weakest_tactical_slot(normalized)
+    strongest = max(normalized, key=lambda card: (int(card.get('pool_value', 0)), int(card.get('slot', 0) or 0)))
+    if level >= 3:
+        return int(strongest.get('slot', 1) or 1)
+    mid_sorted = sorted(normalized, key=lambda card: (int(card.get('pool_value', 0)), int(card.get('slot', 0) or 0)))
+    return int(mid_sorted[-2].get('slot', 1) or 1) if len(mid_sorted) >= 2 else int(strongest.get('slot', 1) or 1)
 
 
 def weakest_tactical_slot(cards):
@@ -18211,6 +18248,15 @@ def empty_player_behavior_stats():
         'roles': {},
         'modes': {},
         'domains': {},
+        'bot': {
+            'matches_total': 0,
+            'wins_total': 0,
+            'losses_total': 0,
+            'draws_total': 0,
+            'current_win_streak': 0,
+            'max_win_streak': 0,
+            'difficulty_level': 0,
+        },
         'updated_at': now_iso(),
     }
 
@@ -18366,6 +18412,61 @@ def record_player_behavior(wallet, domain, rounds, strategy_key, result, mode='c
         stats['roles'][role_key] = int(stats['roles'].get(role_key, 0) or 0) + 1
 
     return save_player_behavior_stats(wallet, stats)
+
+
+def bot_difficulty_level_for_streak(streak):
+    streak = max(0, int(streak or 0))
+    if streak >= 10:
+        return 4
+    if streak >= 7:
+        return 3
+    if streak >= 4:
+        return 2
+    if streak >= 2:
+        return 1
+    return 0
+
+
+def player_bot_progress(wallet):
+    stats = player_behavior_stats(wallet)
+    bot_stats = dict(stats.get('bot') or {})
+    streak = int(bot_stats.get('current_win_streak', 0) or 0)
+    level = int(bot_stats.get('difficulty_level', bot_difficulty_level_for_streak(streak)) or 0)
+    return {
+        'matches_total': int(bot_stats.get('matches_total', 0) or 0),
+        'wins_total': int(bot_stats.get('wins_total', 0) or 0),
+        'losses_total': int(bot_stats.get('losses_total', 0) or 0),
+        'draws_total': int(bot_stats.get('draws_total', 0) or 0),
+        'current_win_streak': streak,
+        'max_win_streak': int(bot_stats.get('max_win_streak', 0) or 0),
+        'difficulty_level': max(0, min(4, level)),
+    }
+
+
+def update_player_bot_progress(wallet, result):
+    if not wallet:
+        return player_bot_progress(wallet)
+    stats = player_behavior_stats(wallet)
+    bot_stats = dict(stats.get('bot') or {})
+    bot_stats['matches_total'] = int(bot_stats.get('matches_total', 0) or 0) + 1
+    result_key = str(result or '').strip().lower()
+    if result_key == 'win':
+        bot_stats['wins_total'] = int(bot_stats.get('wins_total', 0) or 0) + 1
+        bot_stats['current_win_streak'] = int(bot_stats.get('current_win_streak', 0) or 0) + 1
+        bot_stats['max_win_streak'] = max(
+            int(bot_stats.get('max_win_streak', 0) or 0),
+            int(bot_stats.get('current_win_streak', 0) or 0),
+        )
+    elif result_key == 'loss':
+        bot_stats['losses_total'] = int(bot_stats.get('losses_total', 0) or 0) + 1
+        bot_stats['current_win_streak'] = 0
+    else:
+        bot_stats['draws_total'] = int(bot_stats.get('draws_total', 0) or 0) + 1
+        bot_stats['current_win_streak'] = 0
+    bot_stats['difficulty_level'] = bot_difficulty_level_for_streak(bot_stats.get('current_win_streak', 0))
+    stats['bot'] = bot_stats
+    save_player_behavior_stats(wallet, stats)
+    return player_bot_progress(wallet)
 
 
 def wallet_profile_gifts(wallet, limit=24):
@@ -20095,6 +20196,9 @@ def build_solo_live_payload(state):
         'interactive_ability_state': state.get('ability_state_a') or {},
         'player_synergies': state.get('synergy_a') or {},
         'opponent_synergies': state.get('synergy_b') or {},
+        'bot_difficulty': state.get('bot_difficulty') or ({
+            'level': int(state.get('bot_difficulty_level', 0) or 0),
+        } if state.get('mode') == 'bot' else None),
         'result': result_code,
         'result_label': result_label,
         'interactive_live': not bool(state.get('complete')),
@@ -20109,7 +20213,7 @@ def build_solo_live_payload(state):
     }
 
 
-def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, opponent_domain, player_cards, opponent_cards, build_a, build_b, selected_slot_a, selected_slot_b, strategy_key_a='balanced', strategy_key_b='balanced', tutorial=None):
+def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, opponent_domain, player_cards, opponent_cards, build_a, build_b, selected_slot_a, selected_slot_b, strategy_key_a='balanced', strategy_key_b='balanced', tutorial=None, bot_difficulty_level=0):
     ensure_runtime_tables()
     player_cards = [normalize_card_profile(card) for card in (player_cards or [])]
     opponent_cards = [normalize_card_profile(card) for card in (opponent_cards or [])]
@@ -20117,6 +20221,9 @@ def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, oppone
     featured_b = find_card_by_slot(opponent_cards, selected_slot_b)
     domain_meta_a = battle_domain_metadata(domain, wallet=wallet)
     domain_meta_b = battle_domain_metadata(opponent_domain, wallet=opponent_wallet)
+    if mode == 'bot':
+        domain_meta_b = dict(domain_meta_b or {})
+        domain_meta_b['_bot_difficulty_level'] = max(0, min(4, int(bot_difficulty_level or 0)))
     synergy_a = compute_domain_synergies(wallet)
     synergy_b = compute_domain_synergies(opponent_wallet) if opponent_wallet and opponent_wallet != 'bot' else {'attack': 0, 'defense': 0, 'luck': 0, 'energy': 0, 'labels': []}
     session_id = uuid.uuid4().hex
@@ -20156,6 +20263,7 @@ def create_solo_battle(wallet, domain, mode, mode_title, opponent_wallet, oppone
         'energy_b': 3 + int(synergy_b.get('energy', 0)),
         'score_a': 0,
         'score_b': 0,
+        'bot_difficulty_level': max(0, min(4, int(bot_difficulty_level or 0))) if mode == 'bot' else 0,
         'prev_a': None,
         'prev_b': None,
         'rounds': [],
@@ -20501,6 +20609,11 @@ def apply_solo_battle_action(session_id, wallet, action_key):
             mode=state.get('mode'),
             side='a',
         )
+        if state.get('mode') == 'bot':
+            state['bot_difficulty'] = update_player_bot_progress(
+                state['wallet'],
+                'win' if won else ('draw' if state.get('winner') is None else 'loss'),
+            )
     else:
         state['energy_a'] = 3
         state['energy_b'] = 3
@@ -23315,11 +23428,20 @@ def api_match_bot():
     player_cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
     player_cards = [normalize_card_profile(card) for card in player_cards]
     player_build = load_deck_build(wallet, domain, player_cards)
+    bot_progress = player_bot_progress(wallet)
+    bot_difficulty_level = int(bot_progress.get('difficulty_level', 0) or 0)
     base_seed = f'bot-duel:{wallet}:{domain}:{now_iso()}'
-    bot_cards = bot_cards_slightly_weaker_than_player(player_cards, base_seed)
-    bot_pool = max(1750, int(round(player_build['pool'] * 0.86)))
+    bot_cards = bot_cards_slightly_weaker_than_player(player_cards, base_seed, difficulty_level=bot_difficulty_level)
+    pool_scale = {0: 0.86, 1: 0.92, 2: 0.98, 3: 1.04, 4: 1.08}.get(bot_difficulty_level, 0.92)
+    bot_pool_floor = {0: 1750, 1: 1880, 2: 1980, 3: 2080, 4: 2180}.get(bot_difficulty_level, 1880)
+    bot_pool = max(bot_pool_floor, int(round(player_build['pool'] * pool_scale)))
     bot_build = {'pool': bot_pool, 'points': default_discipline_build(bot_pool)}
     selected_slot = selected_slot or auto_tactical_slot(player_cards, player_build['points'])
+    bot_strategy_key = 'balanced'
+    if bot_difficulty_level >= 4:
+        bot_strategy_key = 'attack_boost'
+    elif bot_difficulty_level >= 2:
+        bot_strategy_key = 'defense_boost'
     result = create_solo_battle(
         wallet=wallet,
         domain=domain,
@@ -23332,14 +23454,20 @@ def api_match_bot():
         build_a=player_build['points'],
         build_b=bot_build['points'],
         selected_slot_a=selected_slot,
-        selected_slot_b=weakest_tactical_slot(bot_cards),
+        selected_slot_b=bot_selected_slot(bot_cards, bot_difficulty_level),
         strategy_key_a='balanced',
-        strategy_key_b='balanced',
+        strategy_key_b=bot_strategy_key,
+        bot_difficulty_level=bot_difficulty_level,
     )
+    result['bot_difficulty'] = {
+        'level': bot_difficulty_level,
+        'player_bot_win_streak': int(bot_progress.get('current_win_streak', 0) or 0),
+    }
     return jsonify(
         {
             'result': result,
             'bot_cards': bot_cards,
+            'bot_difficulty': result['bot_difficulty'],
             'player': get_player(wallet),
         }
     )
