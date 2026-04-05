@@ -8628,12 +8628,14 @@ PAGE_TEMPLATE = """
       telegramWidgetSignature: '',
       telegramMiniLinkInFlight: false,
       pendingDuelLaunch: null,
-      pendingDuelLaunchInFlight: false
+      pendingDuelLaunchInFlight: false,
+      activeDuelInviteId: null
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
     const telegramWebappUrl = {{ telegram_webapp_url|tojson }};
     const marketplaceLinks = {{ marketplace_links|tojson }};
+    const activeDuelInviteStoragePrefix = 'active_duel_invite:';
     const initialSearchParams = new URLSearchParams(window.location.search || '');
     const initialDuelInviteId = (initialSearchParams.get('duel_invite') || '').trim().toUpperCase();
     const initialDuelAction = (initialSearchParams.get('duel_action') || '').trim().toLowerCase();
@@ -8643,6 +8645,8 @@ PAGE_TEMPLATE = """
         action: initialDuelAction === 'accept' ? 'accept' : '',
       };
     }
+    let duelInvitePollTimer = null;
+    let duelInvitePollId = null;
 
     const walletBadge = document.getElementById('wallet-badge');
     const currencyBadge = document.getElementById('currency-badge');
@@ -9377,6 +9381,73 @@ PAGE_TEMPLATE = """
       } catch (_) {
       }
       state.pendingDuelLaunch = null;
+    }
+
+    function activeDuelInviteStorageKey(wallet = state.wallet) {
+      const normalizedWallet = String(wallet || '').trim();
+      return normalizedWallet ? `${activeDuelInviteStoragePrefix}${normalizedWallet}` : '';
+    }
+
+    function readPersistedActiveDuelInvite(wallet = state.wallet) {
+      const storageKey = activeDuelInviteStorageKey(wallet);
+      if (!storageKey) return '';
+      try {
+        return String(window.localStorage.getItem(storageKey) || '').trim().toUpperCase();
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function persistActiveDuelInvite(inviteId, wallet = state.wallet) {
+      const storageKey = activeDuelInviteStorageKey(wallet);
+      if (!storageKey) return;
+      const normalizedInviteId = String(inviteId || '').trim().toUpperCase();
+      try {
+        if (normalizedInviteId) {
+          window.localStorage.setItem(storageKey, normalizedInviteId);
+        } else {
+          window.localStorage.removeItem(storageKey);
+        }
+      } catch (_) {
+      }
+    }
+
+    function setActiveDuelInvite(inviteId, options = {}) {
+      const {persist = true} = options;
+      const normalizedInviteId = String(inviteId || '').trim().toUpperCase();
+      state.activeDuelInviteId = normalizedInviteId || null;
+      duelInvitePollId = normalizedInviteId || null;
+      if (persist) {
+        persistActiveDuelInvite(normalizedInviteId);
+      }
+    }
+
+    function clearActiveDuelInvite(options = {}) {
+      const {clearPersist = true} = options;
+      state.activeDuelInviteId = null;
+      duelInvitePollId = null;
+      if (duelInvitePollTimer) {
+        window.clearTimeout(duelInvitePollTimer);
+        duelInvitePollTimer = null;
+      }
+      if (clearPersist) {
+        persistActiveDuelInvite('');
+      }
+    }
+
+    async function resumeActiveDuelInvite(options = {}) {
+      const {force = false} = options;
+      if (!state.wallet) return;
+      const inviteId = state.activeDuelInviteId || readPersistedActiveDuelInvite();
+      if (!inviteId) return;
+      if (!force && duelInvitePollId === inviteId && duelInvitePollTimer) {
+        return;
+      }
+      switchView('modes');
+      inviteResult.style.display = 'block';
+      inviteResult.classList.add('duel-anim');
+      inviteResult.innerHTML = `<strong>Возвращаем дуэль ${escapeHtml(inviteId)}.</strong><p class="muted">Продолжаем отслеживать принятие и старт матча в этом окне.</p>`;
+      pollInvite(inviteId);
     }
 
     async function resumePendingDuelLaunch() {
@@ -13679,8 +13750,13 @@ PAGE_TEMPLATE = """
       const data = await api(`/api/social/${encodeURIComponent(state.wallet)}`);
       state.socialData = data.social || null;
       state.friends = (state.socialData && state.socialData.friends) || [];
+      const pendingOutgoingInvite = (((state.socialData && state.socialData.outgoing_duel_invites) || [])[0] || {}).id || '';
+      if (!state.activeDuelInviteId && pendingOutgoingInvite) {
+        setActiveDuelInvite(pendingOutgoingInvite);
+      }
       renderIdentityPanel();
       renderSocialPanel();
+      await resumeActiveDuelInvite();
     }
 
     async function loadGuildData(query = '') {
@@ -13810,26 +13886,34 @@ PAGE_TEMPLATE = """
         state.socialData = data.social || state.socialData;
         renderSocialPanel();
         if (data.result) {
+          clearActiveDuelInvite();
           state.lastResult = data.result;
+          switchView('modes');
           renderBattleResult(data.result);
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
           inviteResult.innerHTML = '<strong>Дуэль принята.</strong><p class="muted">Нажми «Готов», чтобы стартовать после 2/2.</p>';
         } else if (action === 'decline-duel') {
+          clearActiveDuelInvite();
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
           inviteResult.innerHTML = '<strong>Приглашение отклонено.</strong>';
+        } else if (dataset.inviteId) {
+          pollInvite(dataset.inviteId);
         }
         return;
       }
       if (action === 'open-duel') {
+        setActiveDuelInvite(dataset.inviteId);
         const data = await api(`/api/match-invite/${encodeURIComponent(dataset.inviteId)}?wallet=${encodeURIComponent(state.wallet)}`);
         if (data.player) {
           state.playerProfile = data.player;
           renderProfile();
         }
         if (data.result) {
+          clearActiveDuelInvite();
           state.lastResult = data.result;
+          switchView('modes');
           renderBattleResult(data.result);
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
@@ -13837,9 +13921,11 @@ PAGE_TEMPLATE = """
             ? `<strong>Приглашение ${dataset.inviteId} принято.</strong><p class="muted">Ожидание готовности 2/2.</p>`
             : `<strong>Приглашение ${dataset.inviteId} завершено.</strong>`;
         } else {
+          switchView('modes');
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
           inviteResult.innerHTML = `<strong>Статус приглашения ${dataset.inviteId}: ${escapeHtml((data.invite && data.invite.status) || 'pending')}</strong>`;
+          pollInvite(dataset.inviteId);
         }
         return;
       }
@@ -14453,21 +14539,32 @@ PAGE_TEMPLATE = """
     }
 
     async function pollInvite(inviteId) {
+      const normalizedInviteId = String(inviteId || '').trim().toUpperCase();
+      if (!normalizedInviteId || !state.wallet) return;
+      if (duelInvitePollTimer) {
+        window.clearTimeout(duelInvitePollTimer);
+        duelInvitePollTimer = null;
+      }
+      setActiveDuelInvite(normalizedInviteId);
       const startedAt = Date.now();
       const maxPollMs = 1000 * 60 * 15;
       const loop = async () => {
+        if (!state.wallet || duelInvitePollId !== normalizedInviteId) {
+          return;
+        }
         let data = null;
         try {
-          data = await api(`/api/match-invite/${inviteId}?wallet=${encodeURIComponent(state.wallet)}`);
+          data = await api(`/api/match-invite/${normalizedInviteId}?wallet=${encodeURIComponent(state.wallet)}`);
         } catch (error) {
           const elapsed = Date.now() - startedAt;
           if (elapsed < maxPollMs) {
             inviteResult.style.display = 'block';
             inviteResult.classList.add('duel-anim');
             inviteResult.innerHTML = `<strong>Проблема связи при проверке дуэли.</strong><p class="muted">Повторяем автоматически: ${escapeHtml(error.message || 'network error')}</p>`;
-            setTimeout(loop, 3200);
+            duelInvitePollTimer = window.setTimeout(loop, 3200);
             return;
           }
+          clearActiveDuelInvite();
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
           inviteResult.innerHTML = `<strong class="error">Ошибка дуэли: ${escapeHtml(error.message || 'Request failed')}</strong>`;
@@ -14480,32 +14577,38 @@ PAGE_TEMPLATE = """
           loadActiveUsers();
         }
         if (data.result) {
+          clearActiveDuelInvite();
           state.lastResult = data.result;
+          switchView('modes');
           renderBattleResult(data.result);
           await loadSocialData();
           loadAchievements();
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
           inviteResult.innerHTML = data.result.requires_ready
-            ? `<strong>Приглашение ${inviteId} принято.</strong><p class="muted">Матч готовится в live-режиме. Нажмите «Готов» и дождитесь 2/2.</p>`
-            : `<strong>Приглашение ${inviteId} завершено.</strong>`;
+            ? `<strong>Приглашение ${normalizedInviteId} принято.</strong><p class="muted">Матч готовится в live-режиме. Нажмите «Готов» и дождитесь 2/2.</p>`
+            : `<strong>Приглашение ${normalizedInviteId} завершено.</strong>`;
           return;
         }
         if (['declined', 'expired', 'completed'].includes(data.invite.status)) {
+          clearActiveDuelInvite();
           await loadSocialData();
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
-          inviteResult.innerHTML = `<strong>Статус приглашения ${inviteId}: ${data.invite.status}</strong>`;
+          inviteResult.innerHTML = `<strong>Статус приглашения ${normalizedInviteId}: ${data.invite.status}</strong>`;
           return;
         }
         if (data.invite.status === 'accepted') {
+          switchView('modes');
           inviteResult.style.display = 'block';
           inviteResult.classList.add('duel-anim');
-          inviteResult.innerHTML = `<strong>Приглашение ${inviteId} принято.</strong><p class="muted">Подготавливаем бой...</p>`;
+          inviteResult.innerHTML = `<strong>Приглашение ${normalizedInviteId} принято.</strong><p class="muted">Подготавливаем бой...</p>`;
         }
         if (Date.now() - startedAt < maxPollMs) {
-          setTimeout(loop, 4000);
+          duelInvitePollTimer = window.setTimeout(loop, 4000);
+          return;
         }
+        clearActiveDuelInvite({clearPersist: false});
       };
       loop();
     }
@@ -14650,6 +14753,7 @@ PAGE_TEMPLATE = """
         });
 
         if (data.result) {
+          clearActiveDuelInvite();
           state.lastResult = data.result;
           renderBattleResult(data.result);
           if (data.player) {
@@ -14669,6 +14773,8 @@ PAGE_TEMPLATE = """
           <strong>Приглашение ${data.invite.id} отправлено.</strong>
           <p class="muted">Сопернику отправлено приглашение в Telegram. Время на ответ: ${data.invite.timeout_seconds} сек.</p>
         `;
+        switchView('modes');
+        setActiveDuelInvite(data.invite.id);
         if (data.player) {
           state.playerProfile = data.player;
           renderProfile();
@@ -15050,8 +15156,10 @@ PAGE_TEMPLATE = """
           await loadAchievements();
           await loadDisciplineBuild();
           await resumePendingDuelLaunch();
+          await resumeActiveDuelInvite();
         } else {
           stopMatchmakingUI('');
+          clearActiveDuelInvite();
           state.domainsChecked = false;
           state.domains = [];
           state.selectedDomain = null;
@@ -15299,7 +15407,11 @@ PAGE_TEMPLATE = """
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         queueTmaModeSync();
+        resumeActiveDuelInvite({force: true}).catch(() => {});
       }
+    });
+    window.addEventListener('focus', () => {
+      resumeActiveDuelInvite({force: true}).catch(() => {});
     });
     window.addEventListener('orientationchange', queueTmaModeSync);
     window.addEventListener('resize', queueTmaModeSync);
