@@ -529,24 +529,108 @@ PAGE_TEMPLATE = """
       animation: mascotFloat 3.8s ease-in-out infinite;
     }
 
-    .hero-mascot-badge {
-      position: absolute;
-      left: 14px;
-      bottom: 12px;
-      z-index: 2;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(111, 204, 255, 0.28);
-      background: rgba(5, 16, 28, 0.82);
-      color: rgba(213, 235, 255, 0.86);
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
     @keyframes mascotFloat {
       0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-8px); }
+    }
+
+    .mascot-widget {
+      position: fixed;
+      right: 18px;
+      bottom: calc(100px + env(safe-area-inset-bottom));
+      z-index: 60;
+      display: grid;
+      gap: 10px;
+      align-items: end;
+      justify-items: end;
+      pointer-events: none;
+    }
+
+    .mascot-widget.open .mascot-popover {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .mascot-fab {
+      width: 78px;
+      height: 78px;
+      border-radius: 24px;
+      border: 1px solid rgba(111, 204, 255, 0.28);
+      background:
+        radial-gradient(circle at 50% 28%, rgba(69, 215, 255, 0.22), transparent 42%),
+        linear-gradient(180deg, rgba(8, 20, 36, 0.96), rgba(4, 12, 24, 0.98));
+      box-shadow: 0 20px 36px rgba(0, 0, 0, 0.32), inset 0 0 0 1px rgba(121, 217, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      pointer-events: auto;
+      padding: 0;
+    }
+
+    .mascot-fab img {
+      width: 82px;
+      height: 82px;
+      object-fit: contain;
+      transform: translateY(3px);
+      filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.25));
+    }
+
+    .mascot-popover {
+      width: min(320px, calc(100vw - 32px));
+      padding: 14px;
+      border-radius: 22px;
+      border: 1px solid rgba(111, 204, 255, 0.24);
+      background:
+        radial-gradient(circle at top right, rgba(69, 215, 255, 0.16), transparent 36%),
+        linear-gradient(180deg, rgba(10, 22, 38, 0.98), rgba(6, 14, 24, 0.98));
+      box-shadow: 0 28px 50px rgba(0, 0, 0, 0.34);
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+    }
+
+    .mascot-popover-head {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .mascot-popover-head img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+
+    .mascot-popover-title {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .mascot-popover-copy {
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .mascot-popover-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mascot-popover-actions button {
+      min-height: 42px;
+      padding: 10px 12px;
+      font-size: 13px;
     }
 
     .eyebrow {
@@ -6966,6 +7050,26 @@ PAGE_TEMPLATE = """
         width: min(100%, 140px);
       }
 
+      .mascot-widget {
+        right: 10px;
+        bottom: calc(82px + env(safe-area-inset-bottom));
+      }
+
+      .mascot-fab {
+        width: 66px;
+        height: 66px;
+        border-radius: 20px;
+      }
+
+      .mascot-fab img {
+        width: 70px;
+        height: 70px;
+      }
+
+      .mascot-popover {
+        width: min(290px, calc(100vw - 20px));
+      }
+
       .hero-top p,
       .stepper {
         display: none;
@@ -7533,6 +7637,26 @@ PAGE_TEMPLATE = """
       width: min(100%, 136px);
     }
 
+    body.tma-app .mascot-widget {
+      right: 10px;
+      bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app .mascot-fab {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+    }
+
+    body.tma-app .mascot-fab img {
+      width: 68px;
+      height: 68px;
+    }
+
+    body.tma-app .mascot-popover {
+      width: min(286px, calc(100vw - 20px));
+    }
+
     body.tma-app .mode-card.preferred-mode {
       padding-top: 76px;
     }
@@ -7617,7 +7741,6 @@ PAGE_TEMPLATE = """
         </div>
         <div class="hero-mascot">
           <img src="/static/mascot-ton-bot.png" alt="Ton Domain Game mascot">
-          <div class="hero-mascot-badge">Mascot</div>
         </div>
         <div class="badge-row">
           <div class="badge" id="wallet-badge">Кошелёк не подключен</div>
@@ -7966,6 +8089,27 @@ PAGE_TEMPLATE = """
     </div>
   </div>
 
+  <div class="mascot-widget" id="mascot-widget">
+    <div class="mascot-popover" id="mascot-popover">
+      <div class="mascot-popover-head">
+        <img src="/static/mascot-ton-bot.png" alt="">
+        <div>
+          <div class="mascot-popover-title">Помощник Ton Domain</div>
+          <div class="mascot-popover-copy" id="mascot-popover-copy">Быстрый доступ к основным разделам и гайду.</div>
+        </div>
+      </div>
+      <div class="mascot-popover-actions">
+        <button type="button" id="mascot-open-profile-btn">Профиль</button>
+        <button type="button" id="mascot-open-pack-btn">Карты</button>
+        <button type="button" id="mascot-open-battle-btn">Игра</button>
+        <button type="button" class="secondary" id="mascot-open-guide-btn">Гайд</button>
+      </div>
+    </div>
+    <button type="button" class="mascot-fab" id="mascot-fab" aria-label="Открыть помощника">
+      <img src="/static/mascot-ton-bot.png" alt="">
+    </button>
+  </div>
+
   <div class="public-profile-backdrop" id="public-profile-backdrop">
     <div class="public-profile-modal" id="public-profile-modal">
       <div id="public-profile-content"></div>
@@ -8044,6 +8188,13 @@ PAGE_TEMPLATE = """
     const battleResult = document.getElementById('battle-result');
     const inviteResult = document.getElementById('invite-result');
     const tutorialPanel = document.getElementById('tutorial-panel');
+    const mascotWidget = document.getElementById('mascot-widget');
+    const mascotFab = document.getElementById('mascot-fab');
+    const mascotOpenProfileBtn = document.getElementById('mascot-open-profile-btn');
+    const mascotOpenPackBtn = document.getElementById('mascot-open-pack-btn');
+    const mascotOpenBattleBtn = document.getElementById('mascot-open-battle-btn');
+    const mascotOpenGuideBtn = document.getElementById('mascot-open-guide-btn');
+    const mascotPopoverCopy = document.getElementById('mascot-popover-copy');
     const battleFlowView = document.getElementById('battle-flow-view');
     const leaderboard = document.getElementById('leaderboard');
     const marketplacesBox = document.getElementById('marketplaces-box');
@@ -9578,6 +9729,24 @@ PAGE_TEMPLATE = """
           softCameraFocus(preferredCard);
         }
       }
+    }
+
+    function setMascotOpen(open) {
+      if (!mascotWidget) return;
+      mascotWidget.classList.toggle('open', Boolean(open));
+    }
+
+    function mascotHintText() {
+      if (!state.wallet) {
+        return 'Сначала подключи кошелёк и проверь домены.';
+      }
+      if (!state.selectedDomain) {
+        return 'Выбери домен и переходи к картам или в бой.';
+      }
+      if (state.matchmakingMode) {
+        return 'Сейчас идёт поиск матча. Можно открыть игру и следить за статусом.';
+      }
+      return 'Быстрый доступ к профилю, картам, бою и гайду.';
     }
 
     function mountWalletIntoProfile() {
@@ -14037,6 +14206,40 @@ PAGE_TEMPLATE = """
     });
     bindFunctionalControl(document.getElementById('nav-guilds'), () => switchView('guilds'));
     bindFunctionalControl(document.getElementById('nav-achievements'), () => switchView('achievements'));
+    if (mascotFab) {
+      bindFunctionalControl(mascotFab, () => {
+        if (mascotPopoverCopy) mascotPopoverCopy.textContent = mascotHintText();
+        setMascotOpen(!(mascotWidget && mascotWidget.classList.contains('open')));
+      });
+    }
+    if (mascotOpenProfileBtn) {
+      bindFunctionalControl(mascotOpenProfileBtn, () => {
+        setMascotOpen(false);
+        switchView('profile');
+      });
+    }
+    if (mascotOpenPackBtn) {
+      bindFunctionalControl(mascotOpenPackBtn, () => {
+        setMascotOpen(false);
+        switchView('pack');
+      });
+    }
+    if (mascotOpenBattleBtn) {
+      bindFunctionalControl(mascotOpenBattleBtn, () => {
+        setMascotOpen(false);
+        switchView('modes');
+      });
+    }
+    if (mascotOpenGuideBtn) {
+      bindFunctionalControl(mascotOpenGuideBtn, () => {
+        setMascotOpen(false);
+        try {
+          window.localStorage.removeItem(startupGuideStorageKey);
+        } catch (_) {
+        }
+        showStartupGuideIfNeeded();
+      });
+    }
     [buildAttack, buildDefense, buildLuck, buildSpeed, buildMagic].forEach((node) => {
       node.addEventListener('input', () => {
         const pool = Number((state.disciplineBuild && state.disciplineBuild.pool) || 0);
@@ -14120,6 +14323,11 @@ PAGE_TEMPLATE = """
     switchView('profile');
     updateButtons();
     window.setTimeout(showStartupGuideIfNeeded, 160);
+    document.addEventListener('click', (event) => {
+      if (!mascotWidget || !mascotWidget.classList.contains('open')) return;
+      if (event.target.closest('#mascot-widget')) return;
+      setMascotOpen(false);
+    });
   </script>
 </body>
 </html>
