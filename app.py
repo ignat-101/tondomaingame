@@ -4502,9 +4502,9 @@ PAGE_TEMPLATE = """
 
     .startup-guide-pack-reveal-card {
       position: absolute;
-      top: 30px;
-      width: 124px;
-      height: 136px;
+      top: 34px;
+      width: 116px;
+      height: 132px;
       border-radius: 20px;
       border: 1px solid rgba(255, 208, 106, 0.24);
       background: linear-gradient(180deg, rgba(9, 20, 35, 0.96), rgba(8, 16, 28, 0.94));
@@ -4524,32 +4524,33 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-reveal-card::after {
       content: attr(data-tier);
       position: absolute;
-      left: 14px;
-      bottom: 14px;
+      left: 10px;
+      bottom: 10px;
       min-height: 24px;
-      padding: 0 10px;
+      padding: 0 8px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       color: rgba(255, 244, 220, 0.92);
       border: 1px solid rgba(255, 208, 106, 0.26);
       background: rgba(255, 208, 106, 0.08);
+      z-index: 2;
     }
 
     .startup-guide-pack-reveal-card.left {
-      left: 108px;
-      transform: rotate(-10deg);
+      left: 58px;
+      transform: rotate(-8deg);
       opacity: 0.86;
       animation: startupGuidePackLeft 3.6s ease-in-out infinite;
     }
 
     .startup-guide-pack-reveal-card.mid-left {
-      left: 214px;
-      transform: rotate(-4deg);
+      left: 188px;
+      transform: rotate(-3deg);
       opacity: 0.94;
       animation: startupGuidePackLeft 3.6s ease-in-out infinite 0.08s;
     }
@@ -4557,8 +4558,8 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-reveal-card.center {
       left: 50%;
       transform: translateX(-50%);
-      width: 148px;
-      height: 156px;
+      width: 132px;
+      height: 148px;
       z-index: 2;
       border-width: 2px;
       border-color: rgba(255, 208, 106, 0.68);
@@ -4566,8 +4567,8 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-pack-reveal-card.right {
-      right: 108px;
-      transform: rotate(10deg);
+      right: 58px;
+      transform: rotate(8deg);
       opacity: 0.86;
       animation: startupGuidePackRight 3.6s ease-in-out infinite;
     }
@@ -7041,35 +7042,36 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-pack-reveal-card {
-        top: 58px;
-        width: 88px;
-        height: 102px;
+        top: 62px;
+        width: 78px;
+        height: 96px;
         border-radius: 18px;
       }
 
       .startup-guide-pack-reveal-card::after {
-        left: 10px;
-        bottom: 10px;
-        min-height: 20px;
-        padding: 0 8px;
-        font-size: 9px;
+        left: 7px;
+        bottom: 7px;
+        min-height: 18px;
+        padding: 0 6px;
+        font-size: 8px;
+        letter-spacing: 0.04em;
       }
 
       .startup-guide-pack-reveal-card.left {
-        left: 20px;
+        left: 18px;
       }
 
       .startup-guide-pack-reveal-card.mid-left {
-        left: 86px;
+        left: 78px;
       }
 
       .startup-guide-pack-reveal-card.center {
-        width: 106px;
-        height: 122px;
+        width: 92px;
+        height: 112px;
       }
 
       .startup-guide-pack-reveal-card.right {
-        right: 20px;
+        right: 18px;
       }
 
       .startup-guide-pack-reveal-card.mid-right {
@@ -8919,6 +8921,7 @@ PAGE_TEMPLATE = """
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
               <div class="startup-guide-note" style="max-width:min(760px, calc(100% - 20px)); font-size:clamp(22px, 2.6vw, 34px); line-height:1.25; text-align:center;">
+              <div class="startup-guide-note" style="max-width:min(720px, calc(100% - 28px)); padding:18px 20px; font-size:clamp(15px, 1.5vw, 22px); line-height:1.45; text-align:center;">
                 Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде. Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.
               </div>
             </div>
@@ -10993,21 +10996,6 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 16)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
-          ${seasonTasks.length ? `
-            <div class="catalog-grid" style="margin-top:12px;">
-              ${seasonTasks.map((task) => `
-                <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:radial-gradient(circle at top, rgba(83,246,184,0.12), rgba(13,22,37,0.94) 62%);">
-                  <div class="catalog-kicker">${escapeHtml(task.tier_label || 'Задание дня')}</div>
-                  <strong>${escapeHtml(task.label)}</strong>
-                  <div class="tiny">Прогресс: ${Number(task.progress || 0)}/${Number(task.target || 0)}</div>
-                  <div class="tiny">Награда: +${Number(task.reward_points || 0)} очков пропуска</div>
-                  <div class="actions" style="margin-top:auto;">
-                    <button type="button" class="secondary season-task-claim-btn" data-task-key="${escapeHtml(task.key)}"${task.claimable ? '' : ' disabled'}>${task.claimed ? 'Получено' : (task.claimable ? 'Забрать' : 'Выполняется')}</button>
-                  </div>
-                </article>
-              `).join('')}
-            </div>
-          ` : ''}
           <div style="display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
             <button type="button" id="season-pass-prev-btn" style="min-width:110px; min-height:40px; border-radius:12px; border:1px solid rgba(121,217,255,0.24); background:rgba(10,23,40,0.9); color:#eef6ff; font-weight:800; cursor:pointer;">← Назад</button>
             <span id="season-pass-level-label" style="display:inline-flex; align-items:center; min-height:40px; padding:0 14px; border-radius:999px; border:1px solid rgba(121,217,255,0.22); background:rgba(10,23,40,0.78); color:#eef6ff; font-size:12px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;">Уровень 1 / ${track.length}</span>
@@ -11027,6 +11015,26 @@ PAGE_TEMPLATE = """
               </div>
             </div>
           </div>
+          ${seasonTasks.length ? `
+            <div style="margin-top:14px; display:grid; gap:10px;">
+              <button type="button" id="toggle-season-tasks-btn" class="secondary" style="justify-self:start;">Показать задания пропуска</button>
+              <div id="season-tasks-panel" style="display:none;">
+                <div class="catalog-grid">
+                  ${seasonTasks.map((task) => `
+                    <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:radial-gradient(circle at top, rgba(83,246,184,0.12), rgba(13,22,37,0.94) 62%);">
+                      <div class="catalog-kicker">${escapeHtml(task.tier_label || 'Задание дня')}</div>
+                      <strong>${escapeHtml(task.label)}</strong>
+                      <div class="tiny">Прогресс: ${Number(task.progress || 0)}/${Number(task.target || 0)}</div>
+                      <div class="tiny">Награда: +${Number(task.reward_points || 0)} очков пропуска</div>
+                      <div class="actions" style="margin-top:auto;">
+                        <button type="button" class="secondary season-task-claim-btn" data-task-key="${escapeHtml(task.key)}"${task.claimable ? '' : ' disabled'}>${task.claimed ? 'Получено' : (task.claimable ? 'Забрать' : 'Выполняется')}</button>
+                      </div>
+                    </article>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          ` : ''}
           <div class="actions" style="margin-top:10px;">
             <button id="buy-season-pass-btn"${rewards.premium_pass_active ? ' disabled' : ''}>Купить премиум-пропуск за 1.49 TON</button>
           </div>
@@ -11044,6 +11052,8 @@ PAGE_TEMPLATE = """
       const passLevelLabel = document.getElementById('season-pass-level-label');
       const passPrevBtn = document.getElementById('season-pass-prev-btn');
       const passNextBtn = document.getElementById('season-pass-next-btn');
+      const toggleSeasonTasksBtn = document.getElementById('toggle-season-tasks-btn');
+      const seasonTasksPanel = document.getElementById('season-tasks-panel');
       const showPassLevel = (index) => {
         const boundedIndex = Math.max(0, Math.min(track.length - 1, Number(index || 0)));
         ['premium', 'free'].forEach((target) => {
@@ -11069,6 +11079,13 @@ PAGE_TEMPLATE = """
       }
       if (passNextBtn) {
         bindFunctionalControl(passNextBtn, () => showPassLevel((state.seasonPassLevelIndex || 0) + 1));
+      }
+      if (toggleSeasonTasksBtn && seasonTasksPanel) {
+        bindFunctionalControl(toggleSeasonTasksBtn, () => {
+          const expanded = seasonTasksPanel.style.display !== 'none';
+          seasonTasksPanel.style.display = expanded ? 'none' : 'block';
+          toggleSeasonTasksBtn.textContent = expanded ? 'Показать задания пропуска' : 'Скрыть задания пропуска';
+        });
       }
       showPassLevel(Math.max(0, Math.min(track.length - 1, Number((state.seasonPassLevelIndex || 0)))));
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
