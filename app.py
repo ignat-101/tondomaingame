@@ -9079,7 +9079,7 @@ PAGE_TEMPLATE = """
                       data-gift-source="${escapeHtml(item.source || '')}"
                       title="${escapeHtml(item.label || 'Подарок')}"
                     >
-                      <img src="${escapeHtml(item.image_url || '')}" alt="${escapeHtml(item.label || 'Подарок')}">
+                      <img src="${escapeHtml(item.image_url || '')}" alt="${escapeHtml(item.label || 'Подарок')}" onerror="this.closest('.profile-gift-option')?.remove();">
                     </button>
                   `).join('')}
                 </div>
@@ -18242,6 +18242,46 @@ def clean_public_text(value, limit=160):
     return text[:limit]
 
 
+def looks_like_media_url(value):
+    text = clean_public_text(value, 1024)
+    if not text:
+        return False
+    if text.startswith(('http://', 'https://', 'data:image/', '/')):
+        return True
+    if text.startswith('ipfs://'):
+        return True
+    return False
+
+
+def extract_preview_media_url(value, depth=0):
+    if depth > 4 or value is None:
+        return ''
+    if isinstance(value, str):
+        return clean_public_text(value, 1024) if looks_like_media_url(value) else ''
+    if isinstance(value, dict):
+        preferred_keys = (
+            'thumbnail_url', 'image_url', 'photo_url', 'preview_url', 'url',
+            'static_url', 'png_url', 'webp_url', 'small', 'medium', 'large',
+            'thumbnail', 'image', 'photo', 'sticker', 'animation',
+        )
+        for key in preferred_keys:
+            if key in value:
+                found = extract_preview_media_url(value.get(key), depth + 1)
+                if found:
+                    return found
+        for nested in value.values():
+            found = extract_preview_media_url(nested, depth + 1)
+            if found:
+                return found
+        return ''
+    if isinstance(value, (list, tuple)):
+        for nested in value:
+            found = extract_preview_media_url(nested, depth + 1)
+            if found:
+                return found
+    return ''
+
+
 def safe_slug(value):
     base = re.sub(r'[^a-z0-9]+', '-', clean_public_text(value.lower(), 48)).strip('-')
     return base or f'guild-{uuid.uuid4().hex[:6]}'
@@ -18566,9 +18606,12 @@ def wallet_profile_gifts(wallet, limit=24):
             continue
         metadata = item.get('metadata') or {}
         previews = item.get('previews') or []
-        image_url = metadata.get('image') or metadata.get('image_url') or item.get('image') or ''
-        if not image_url and previews:
-            image_url = previews[0].get('url') or ''
+        image_url = (
+            extract_preview_media_url(metadata.get('image'))
+            or extract_preview_media_url(metadata.get('image_url'))
+            or extract_preview_media_url(item.get('image'))
+            or extract_preview_media_url(previews)
+        )
         image_url = clean_public_text(image_url, 512)
         name = clean_public_text(
             metadata.get('name')
@@ -18632,32 +18675,16 @@ def telegram_profile_gifts(wallet, limit=24):
             64,
         )
         image_url = clean_public_text(
-            gift.get('sticker')
-            or gift.get('image_url')
-            or gift.get('photo_url')
-            or gift.get('animation_url')
-            or item.get('sticker')
-            or item.get('image_url')
-            or item.get('photo_url')
-            or '',
+            extract_preview_media_url(gift.get('sticker'))
+            or extract_preview_media_url(gift.get('image_url'))
+            or extract_preview_media_url(gift.get('photo_url'))
+            or extract_preview_media_url(gift.get('animation_url'))
+            or extract_preview_media_url(item.get('sticker'))
+            or extract_preview_media_url(item.get('image_url'))
+            or extract_preview_media_url(item.get('photo_url'))
+            or extract_preview_media_url(item),
             512,
         )
-        if isinstance(gift.get('sticker'), dict):
-            image_url = clean_public_text(
-                gift['sticker'].get('url')
-                or gift['sticker'].get('thumbnail_url')
-                or gift['sticker'].get('image_url')
-                or image_url,
-                512,
-            )
-        if isinstance(item.get('sticker'), dict):
-            image_url = clean_public_text(
-                item['sticker'].get('url')
-                or item['sticker'].get('thumbnail_url')
-                or item['sticker'].get('image_url')
-                or image_url,
-                512,
-            )
         if not gift_id and not label:
             continue
         if not image_url:
