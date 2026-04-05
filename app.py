@@ -10237,11 +10237,7 @@ PAGE_TEMPLATE = """
       }
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
       const track = Array.isArray(rewards.season_pass_track) ? rewards.season_pass_track : [];
-      const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
       const seasonTasks = Array.isArray(rewards.season_tasks) ? rewards.season_tasks : [];
-      const cosmeticsMarkup = cosmetics.length
-        ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}</div>`).join('')
-        : '<div class="user-item muted">Косметика пока не открыта.</div>';
       const rewardTone = (text) => {
         const lower = String(text || '').toLowerCase();
         if (lower.includes('арена')) return 'radial-gradient(circle at top, rgba(69,215,255,0.2), rgba(13,22,37,0.94) 62%)';
@@ -10283,10 +10279,10 @@ PAGE_TEMPLATE = """
             <div class="catalog-grid" style="margin-top:12px;">
               ${seasonTasks.map((task) => `
                 <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:radial-gradient(circle at top, rgba(83,246,184,0.12), rgba(13,22,37,0.94) 62%);">
-                  <div class="catalog-kicker">Задание дня</div>
+                  <div class="catalog-kicker">Сложное задание дня</div>
                   <strong>${escapeHtml(task.label)}</strong>
                   <div class="tiny">Прогресс: ${Number(task.progress || 0)}/${Number(task.target || 0)}</div>
-                  <div class="tiny">Награда: +${Number(task.reward_points || 0)} очка пропуска</div>
+                  <div class="tiny">Крупная награда: +${Number(task.reward_points || 0)} очков пропуска</div>
                   <div class="actions" style="margin-top:auto;">
                     <button type="button" class="secondary season-task-claim-btn" data-task-key="${escapeHtml(task.key)}"${task.claimable ? '' : ' disabled'}>${task.claimed ? 'Получено' : (task.claimable ? 'Забрать' : 'Выполняется')}</button>
                   </div>
@@ -10318,13 +10314,7 @@ PAGE_TEMPLATE = """
           </div>
         </div>
       `;
-      achievementsList.innerHTML = `
-        ${passMarkup}
-        <div class="user-item">
-          <strong>Косметика</strong>
-          <div class="summary-chip-row">${cosmeticsMarkup}</div>
-        </div>
-      `;
+      achievementsList.innerHTML = passMarkup;
       achievementsList.querySelectorAll('.season-pass-claim-btn').forEach((button) => {
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
@@ -15846,9 +15836,9 @@ SEASON_PASS_TUTORIAL_POINTS = 3
 SEASON_PASS_DAILY_POINTS = 1
 SEASON_PASS_GUILD_CLAIM_POINTS = 3
 SEASON_PASS_TASKS = [
-    {'key': 'daily_play_2', 'label': 'Сыграть 2 матча', 'target': 2, 'reward_points': 3},
-    {'key': 'daily_win_1', 'label': 'Выиграть 1 матч', 'target': 1, 'reward_points': 4},
-    {'key': 'daily_open_1_pack', 'label': 'Открыть 1 пак', 'target': 1, 'reward_points': 3},
+    {'key': 'daily_play_6', 'label': 'Сыграть 6 матчей', 'target': 6, 'reward_points': 10},
+    {'key': 'daily_win_4', 'label': 'Выиграть 4 матча', 'target': 4, 'reward_points': 14},
+    {'key': 'daily_open_3_packs', 'label': 'Открыть 3 пака', 'target': 3, 'reward_points': 12},
 ]
 
 
@@ -15914,9 +15904,9 @@ def season_task_progress(wallet):
     packs_today = int((pack_row['value'] if pack_row else 0) or 0)
     claimed_keys = season_task_claimed_keys(wallet, task_day=day_key)
     metrics = {
-        'daily_play_2': matches_today,
-        'daily_win_1': wins_today,
-        'daily_open_1_pack': packs_today,
+        'daily_play_6': matches_today,
+        'daily_win_4': wins_today,
+        'daily_open_3_packs': packs_today,
     }
     tasks = []
     for item in SEASON_PASS_TASKS:
