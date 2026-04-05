@@ -4482,6 +4482,10 @@ PAGE_TEMPLATE = """
       width: min(620px, calc(100% - 44px));
       min-height: 194px;
       padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
       border-radius: 28px;
       border: 1px solid rgba(255, 208, 106, 0.18);
       background:
@@ -4501,8 +4505,8 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-pack-reveal-card {
-      position: absolute;
-      top: 34px;
+      position: relative;
+      flex: 0 0 auto;
       width: 116px;
       height: 132px;
       border-radius: 20px;
@@ -4510,6 +4514,7 @@ PAGE_TEMPLATE = """
       background: linear-gradient(180deg, rgba(9, 20, 35, 0.96), rgba(8, 16, 28, 0.94));
       box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24);
       overflow: hidden;
+      z-index: 1;
     }
 
     .startup-guide-pack-reveal-card::before {
@@ -4542,22 +4547,18 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-pack-reveal-card.left {
-      left: 58px;
       transform: rotate(-8deg);
       opacity: 0.86;
       animation: startupGuidePackLeft 3.6s ease-in-out infinite;
     }
 
     .startup-guide-pack-reveal-card.mid-left {
-      left: 188px;
       transform: rotate(-3deg);
       opacity: 0.94;
       animation: startupGuidePackLeft 3.6s ease-in-out infinite 0.08s;
     }
 
     .startup-guide-pack-reveal-card.center {
-      left: 50%;
-      transform: translateX(-50%);
       width: 132px;
       height: 148px;
       z-index: 2;
@@ -4567,7 +4568,6 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-pack-reveal-card.right {
-      right: 58px;
       transform: rotate(8deg);
       opacity: 0.86;
       animation: startupGuidePackRight 3.6s ease-in-out infinite;
@@ -4753,8 +4753,8 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes startupGuidePackMainFloat {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-5px); }
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
     }
 
     @keyframes startupGuidePackLeft {
@@ -7039,10 +7039,10 @@ PAGE_TEMPLATE = """
       .startup-guide-pack-reveal {
         min-height: 214px;
         padding: 18px 14px;
+        gap: 10px;
       }
 
       .startup-guide-pack-reveal-card {
-        top: 62px;
         width: 78px;
         height: 96px;
         border-radius: 18px;
@@ -7058,11 +7058,11 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-pack-reveal-card.left {
-        left: 18px;
+        transform: rotate(-7deg);
       }
 
       .startup-guide-pack-reveal-card.mid-left {
-        left: 78px;
+        transform: rotate(-3deg);
       }
 
       .startup-guide-pack-reveal-card.center {
@@ -7071,7 +7071,7 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-pack-reveal-card.right {
-        right: 18px;
+        transform: rotate(7deg);
       }
 
       .startup-guide-pack-reveal-card.mid-right {
@@ -8339,13 +8339,31 @@ PAGE_TEMPLATE = """
           </div>
           <div class="card-grid" id="pack-cards"></div>
           <h3 style="margin-top:18px;">Прокачка дисциплин</h3>
-          <div class="tiny">Распредели базовую силу колоды. Эти очки применяются в раундах и дают итоговый перевес.</div>
-          <div class="discipline-build-grid">
-            <label>Атака <input id="build-attack" type="number" min="0" step="1"></label>
-            <label>Защита <input id="build-defense" type="number" min="0" step="1"></label>
-            <label>Удача <input id="build-luck" type="number" min="0" step="1"></label>
-            <label>Скорость <input id="build-speed" type="number" min="0" step="1"></label>
-            <label>Магия <input id="build-magic" type="number" min="0" step="1"></label>
+          <div class="tiny">Сначала выбери готовый пресет кнопками. Если нужен точный контроль, открой расширенные настройки и выставь каждую дисциплину отдельно.</div>
+          <div class="prebattle-build-quick" id="build-quick-presets" style="margin-top:10px;">
+            <div class="startup-guide-chart prebattle-build-chart" id="build-quick-chart" data-build="balanced">
+              <div class="startup-guide-bar h1"></div>
+              <div class="startup-guide-bar h2"></div>
+              <div class="startup-guide-bar h3"></div>
+              <div class="startup-guide-bar h4"></div>
+              <div class="startup-guide-bar h5"></div>
+            </div>
+            <div class="prebattle-build-actions" id="build-preset-actions">
+              <button type="button" class="prebattle-build-btn active" data-build-preset-main="balanced">Баланс</button>
+              <button type="button" class="prebattle-build-btn" data-build-preset-main="aggressive">Агрессия</button>
+              <button type="button" class="prebattle-build-btn" data-build-preset-main="control">Контроль</button>
+              <button type="button" class="prebattle-build-btn" data-build-preset-main="fortune">Удача</button>
+            </div>
+            <button type="button" class="secondary" id="build-advanced-toggle">Расширенные настройки</button>
+          </div>
+          <div class="prebattle-build-advanced hidden" id="build-advanced-panel">
+            <div class="discipline-build-grid">
+              <label>Атака <input id="build-attack" type="number" min="0" step="1"></label>
+              <label>Защита <input id="build-defense" type="number" min="0" step="1"></label>
+              <label>Удача <input id="build-luck" type="number" min="0" step="1"></label>
+              <label>Скорость <input id="build-speed" type="number" min="0" step="1"></label>
+              <label>Магия <input id="build-magic" type="number" min="0" step="1"></label>
+            </div>
           </div>
           <div class="actions" style="margin-top:10px;">
             <button class="secondary" id="save-build-btn" disabled>Сохранить прокачку</button>
@@ -8590,6 +8608,7 @@ PAGE_TEMPLATE = """
       publicProfile: null,
       canRestorePreviousDeck: false,
       startupGuideBuildPreset: 'balanced',
+      disciplineBuildPreset: 'balanced',
       matchmakingMode: null,
       matchmakingPolling: false,
       matchmakingErrorStreak: 0,
@@ -8722,6 +8741,9 @@ PAGE_TEMPLATE = """
     const buildMagic = document.getElementById('build-magic');
     const saveBuildBtn = document.getElementById('save-build-btn');
     const buildStatus = document.getElementById('build-status');
+    const buildQuickChart = document.getElementById('build-quick-chart');
+    const buildAdvancedPanel = document.getElementById('build-advanced-panel');
+    const buildAdvancedToggle = document.getElementById('build-advanced-toggle');
     if (startupGuideGif && startupGuideStageOverlay) {
       startupGuideGif.addEventListener('error', () => {
         startupGuideGif.style.display = 'none';
@@ -8920,8 +8942,7 @@ PAGE_TEMPLATE = """
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
-              <div class="startup-guide-note" style="max-width:min(760px, calc(100% - 20px)); font-size:clamp(22px, 2.6vw, 34px); line-height:1.25; text-align:center;">
-              <div class="startup-guide-note" style="max-width:min(720px, calc(100% - 28px)); padding:18px 20px; font-size:clamp(15px, 1.5vw, 22px); line-height:1.45; text-align:center;">
+              <div class="startup-guide-note" style="max-width:min(660px, calc(100% - 28px)); padding:16px 18px; font-size:clamp(13px, 1.35vw, 20px); line-height:1.42; text-align:center;">
                 Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде. Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.
               </div>
             </div>
@@ -9014,6 +9035,46 @@ PAGE_TEMPLATE = """
         strategyKey: 'balanced',
         description: 'Ровная стартовая сборка без провалов. Самый безопасный выбор для первой игры.'
       };
+    }
+
+    function disciplinePresetPoints(poolValue, presetValue) {
+      const pool = Math.max(0, Number(poolValue || 0));
+      const weightsMap = {
+        balanced: {attack: 0.2, defense: 0.2, luck: 0.2, speed: 0.2, magic: 0.2},
+        aggressive: {attack: 0.34, defense: 0.16, luck: 0.1, speed: 0.24, magic: 0.16},
+        control: {attack: 0.14, defense: 0.34, luck: 0.14, speed: 0.16, magic: 0.22},
+        fortune: {attack: 0.14, defense: 0.12, luck: 0.3, speed: 0.16, magic: 0.28},
+      };
+      const weights = weightsMap[presetValue] || weightsMap.balanced;
+      const points = {};
+      let spent = 0;
+      DISCIPLINE_KEYS.forEach((key) => {
+        points[key] = Math.floor(pool * (weights[key] || 0));
+        spent += points[key];
+      });
+      const order = ['attack', 'defense', 'luck', 'speed', 'magic'];
+      let index = 0;
+      while (spent < pool) {
+        const key = order[index % order.length];
+        points[key] += 1;
+        spent += 1;
+        index += 1;
+      }
+      return points;
+    }
+
+    function syncDisciplineBuildPresetUi(presetValue = 'balanced') {
+      if (buildQuickChart) buildQuickChart.dataset.build = presetValue || 'balanced';
+      document.querySelectorAll('[data-build-preset-main]').forEach((button) => {
+        button.classList.toggle('active', button.dataset.buildPresetMain === presetValue);
+      });
+    }
+
+    function applyDisciplinePreset(presetValue = 'balanced') {
+      const pool = Number((state.disciplineBuild && state.disciplineBuild.pool) || 0);
+      const points = disciplinePresetPoints(pool, presetValue);
+      state.disciplineBuildPreset = presetValue;
+      renderDisciplineBuild({pool, points});
     }
 
     function renderStartupGuideStep() {
@@ -10700,6 +10761,7 @@ PAGE_TEMPLATE = """
       const spent = Number(points.attack || 0) + Number(points.defense || 0) + Number(points.luck || 0) + Number(points.speed || 0) + Number(points.magic || 0);
       buildStatus.textContent = `Пул: ${pool} • Потрачено: ${spent} • Остаток: ${Math.max(0, pool - spent)}`;
       saveBuildBtn.disabled = !(state.wallet && state.selectedDomain);
+      syncDisciplineBuildPresetUi(state.disciplineBuildPreset || 'balanced');
     }
 
     function collectBuildPoints() {
@@ -15160,9 +15222,21 @@ PAGE_TEMPLATE = """
         const pool = Number((state.disciplineBuild && state.disciplineBuild.pool) || 0);
         const points = collectBuildPoints();
         const spent = points.attack + points.defense + points.luck + points.speed + points.magic;
+        state.disciplineBuild = {pool, points};
+        state.disciplineBuildPreset = null;
+        document.querySelectorAll('[data-build-preset-main]').forEach((button) => button.classList.remove('active'));
         buildStatus.textContent = `Пул: ${pool} • Потрачено: ${spent} • Остаток: ${Math.max(0, pool - spent)}`;
       });
     });
+    document.querySelectorAll('[data-build-preset-main]').forEach((button) => {
+      bindFunctionalControl(button, () => applyDisciplinePreset(button.dataset.buildPresetMain || 'balanced'));
+    });
+    if (buildAdvancedToggle && buildAdvancedPanel) {
+      bindFunctionalControl(buildAdvancedToggle, () => {
+        const hidden = buildAdvancedPanel.classList.toggle('hidden');
+        buildAdvancedToggle.textContent = hidden ? 'Расширенные настройки' : 'Скрыть расширенные настройки';
+      });
+    }
 
     window.fillOpponent = fillOpponent;
     window.repeatLastMode = repeatLastMode;
