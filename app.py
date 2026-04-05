@@ -9174,12 +9174,14 @@ PAGE_TEMPLATE = """
     function renderRewardsPanels() {
       const rewards = state.playerProfile && state.playerProfile.rewards ? state.playerProfile.rewards : null;
       const synergies = state.playerProfile && state.playerProfile.synergies ? state.playerProfile.synergies : null;
+      const seasonTasks = rewards && Array.isArray(rewards.season_tasks) ? rewards.season_tasks : [];
       const content = rewards ? `
         <div class="user-item">
           <strong>Награды и сезон</strong>
           <div class="tiny">Осколки: ${rewards.pack_shards || 0} • Редкие токены: ${rewards.rare_tokens || 0} • Lucky-токены: ${rewards.lucky_tokens || 0}</div>
           <div class="tiny">Сезон: ур. ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 16} очков • ${rewards.premium_pass_active ? 'премиум активен' : 'free-трек'}</div>
           <div class="tiny">Дейлик: ${rewards.daily_available ? 'готов' : 'получен'} • Квест: ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}</div>
+          <div class="tiny">Задания пропуска: ${seasonTasks.length ? seasonTasks.map((item) => `${item.label} ${item.progress}/${item.target}${item.claimable ? ' • можно забрать' : (item.claimed ? ' • забрано' : '')}`).join(' • ') : 'нет'}</div>
           <div class="tiny">Синергии: ${synergies && synergies.labels && synergies.labels.length ? synergies.labels.join(' • ') : 'нет'}</div>
           <div class="tiny">Косметика: ${Array.isArray(rewards.cosmetics) && rewards.cosmetics.length ? rewards.cosmetics.map((item) => item.name).join(' • ') : 'ещё не открыта'}</div>
         </div>
@@ -10236,6 +10238,7 @@ PAGE_TEMPLATE = """
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
       const track = Array.isArray(rewards.season_pass_track) ? rewards.season_pass_track : [];
       const cosmetics = Array.isArray(rewards.cosmetics) ? rewards.cosmetics : [];
+      const seasonTasks = Array.isArray(rewards.season_tasks) ? rewards.season_tasks : [];
       const cosmeticsMarkup = cosmetics.length
         ? cosmetics.map((item) => `<div class="summary-chip">${item.type}: ${item.name}</div>`).join('')
         : '<div class="user-item muted">Косметика пока не открыта.</div>';
@@ -10276,6 +10279,21 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 16)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
+          ${seasonTasks.length ? `
+            <div class="catalog-grid" style="margin-top:12px;">
+              ${seasonTasks.map((task) => `
+                <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:radial-gradient(circle at top, rgba(83,246,184,0.12), rgba(13,22,37,0.94) 62%);">
+                  <div class="catalog-kicker">Задание дня</div>
+                  <strong>${escapeHtml(task.label)}</strong>
+                  <div class="tiny">Прогресс: ${Number(task.progress || 0)}/${Number(task.target || 0)}</div>
+                  <div class="tiny">Награда: +${Number(task.reward_points || 0)} очка пропуска</div>
+                  <div class="actions" style="margin-top:auto;">
+                    <button type="button" class="secondary season-task-claim-btn" data-task-key="${escapeHtml(task.key)}"${task.claimable ? '' : ' disabled'}>${task.claimed ? 'Получено' : (task.claimable ? 'Забрать' : 'Выполняется')}</button>
+                  </div>
+                </article>
+              `).join('')}
+            </div>
+          ` : ''}
           <div style="display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
             <button type="button" id="season-pass-prev-btn" style="min-width:110px; min-height:40px; border-radius:12px; border:1px solid rgba(121,217,255,0.24); background:rgba(10,23,40,0.9); color:#eef6ff; font-weight:800; cursor:pointer;">← Назад</button>
             <span id="season-pass-level-label" style="display:inline-flex; align-items:center; min-height:40px; padding:0 14px; border-radius:999px; border:1px solid rgba(121,217,255,0.22); background:rgba(10,23,40,0.78); color:#eef6ff; font-size:12px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;">Уровень 1 / ${track.length}</span>
@@ -10310,6 +10328,10 @@ PAGE_TEMPLATE = """
       achievementsList.querySelectorAll('.season-pass-claim-btn').forEach((button) => {
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
+      });
+      achievementsList.querySelectorAll('.season-task-claim-btn').forEach((button) => {
+        if (button.disabled) return;
+        bindFunctionalControl(button, () => claimSeasonTaskReward(button.dataset.taskKey));
       });
       const passLevelLabel = document.getElementById('season-pass-level-label');
       const passPrevBtn = document.getElementById('season-pass-prev-btn');
@@ -10979,6 +11001,24 @@ PAGE_TEMPLATE = """
       if (typeof renderWalletPanel === 'function') renderWalletPanel();
     }
 
+    async function claimSeasonTaskReward(taskKey) {
+      if (!state.wallet || !taskKey) return;
+      try {
+        const data = await api('/api/rewards/season-task', {
+          method: 'POST',
+          body: { wallet: state.wallet, task_key: taskKey }
+        });
+        if (state.playerProfile) {
+          state.playerProfile.rewards = data.rewards || state.playerProfile.rewards;
+        }
+        renderProfile();
+        if (typeof renderWalletPanel === 'function') renderWalletPanel();
+        setStatus(document.getElementById('pack-status'), 'Очки пропуска за задание получены.', 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
     function renderFaqPanel() {
       if (!faqPanel) return;
       const faqItems = [
@@ -10996,7 +11036,7 @@ PAGE_TEMPLATE = """
         },
         {
           title: 'Что даёт сезонный пропуск',
-          body: 'Верхняя линия — премиум, нижняя — бесплатная. В пропуске 8 уровней. Бесплатные награды идут через уровень, а премиум чередует косметический пак и валюту для открытия карт.'
+          body: 'Верхняя линия — премиум, нижняя — бесплатная. В пропуске 16 уровней. Бесплатные награды идут реже, а премиум чаще даёт валюту и косметические паки. Дополнительно есть ежедневные задания пропуска на быстрый прогресс.'
         },
         {
           title: 'Как работают кланы и войны',
@@ -14830,6 +14870,13 @@ def init_db():
                 claimed_at TEXT NOT NULL,
                 PRIMARY KEY (wallet, reward_tier, level)
             );
+            CREATE TABLE IF NOT EXISTS season_task_claims (
+                wallet TEXT NOT NULL,
+                task_key TEXT NOT NULL,
+                task_day TEXT NOT NULL,
+                claimed_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, task_key, task_day)
+            );
             CREATE TABLE IF NOT EXISTS tutorial_progress (
                 wallet TEXT PRIMARY KEY,
                 started_at TEXT,
@@ -15079,6 +15126,13 @@ def ensure_runtime_tables():
                 level INTEGER NOT NULL,
                 claimed_at TEXT NOT NULL,
                 PRIMARY KEY (wallet, reward_tier, level)
+            );
+            CREATE TABLE IF NOT EXISTS season_task_claims (
+                wallet TEXT NOT NULL,
+                task_key TEXT NOT NULL,
+                task_day TEXT NOT NULL,
+                claimed_at TEXT NOT NULL,
+                PRIMARY KEY (wallet, task_key, task_day)
             );
             CREATE TABLE IF NOT EXISTS tutorial_progress (
                 wallet TEXT PRIMARY KEY,
@@ -15791,6 +15845,11 @@ SEASON_PASS_LEVEL_POINTS = 16
 SEASON_PASS_TUTORIAL_POINTS = 3
 SEASON_PASS_DAILY_POINTS = 1
 SEASON_PASS_GUILD_CLAIM_POINTS = 3
+SEASON_PASS_TASKS = [
+    {'key': 'daily_play_2', 'label': 'Сыграть 2 матча', 'target': 2, 'reward_points': 3},
+    {'key': 'daily_win_1', 'label': 'Выиграть 1 матч', 'target': 1, 'reward_points': 4},
+    {'key': 'daily_open_1_pack', 'label': 'Открыть 1 пак', 'target': 1, 'reward_points': 3},
+]
 
 
 def normalize_reward_progress_fields(*, pack_shards, rare_tokens, lucky_tokens, season_points, season_level, wins_for_quest, wins_claimed, cosmetic_packs=None):
@@ -15813,6 +15872,69 @@ def normalize_reward_progress_fields(*, pack_shards, rare_tokens, lucky_tokens, 
     }
 
 
+def season_task_claimed_keys(wallet, task_day=None):
+    day_key = task_day or today_utc_str()
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            'SELECT task_key FROM season_task_claims WHERE wallet = ? AND task_day = ?',
+            (wallet, day_key),
+        ).fetchall()
+    return {row['task_key'] for row in rows}
+
+
+def season_task_progress(wallet):
+    ensure_runtime_tables()
+    day_key = today_utc_str()
+    with closing(get_db()) as conn:
+        telemetry_rows = conn.execute(
+            '''
+            SELECT event_type, payload_json
+            FROM domain_telemetry
+            WHERE wallet = ? AND created_at LIKE ?
+            ''',
+            (wallet, f'{day_key}%'),
+        ).fetchall()
+        pack_row = conn.execute(
+            'SELECT COUNT(*) AS value FROM pack_opens WHERE wallet = ? AND opened_on = ?',
+            (wallet, day_key),
+        ).fetchone()
+    matches_today = 0
+    wins_today = 0
+    for row in telemetry_rows:
+        event_type = str(row['event_type'] or '')
+        if not event_type.endswith('_battle_complete'):
+            continue
+        matches_today += 1
+        try:
+            payload = json.loads(row['payload_json'] or '{}')
+        except json.JSONDecodeError:
+            payload = {}
+        if str(payload.get('result') or '').lower() == 'win':
+            wins_today += 1
+    packs_today = int((pack_row['value'] if pack_row else 0) or 0)
+    claimed_keys = season_task_claimed_keys(wallet, task_day=day_key)
+    metrics = {
+        'daily_play_2': matches_today,
+        'daily_win_1': wins_today,
+        'daily_open_1_pack': packs_today,
+    }
+    tasks = []
+    for item in SEASON_PASS_TASKS:
+        progress = int(metrics.get(item['key'], 0) or 0)
+        target = int(item['target'])
+        claimed = item['key'] in claimed_keys
+        tasks.append(
+            {
+                **item,
+                'progress': min(progress, target),
+                'claimed': claimed,
+                'claimable': (progress >= target) and not claimed,
+                'day_key': day_key,
+            }
+        )
+    return tasks
+
+
 def reward_summary(wallet):
     rewards = ensure_player_rewards(wallet)
     rewards['daily_available'] = rewards.get('daily_claimed_on') != today_utc_str()
@@ -15823,6 +15945,8 @@ def reward_summary(wallet):
     rewards['premium_pass'] = int(rewards.get('premium_pass', 0) or 0)
     rewards['premium_pass_active'] = bool(rewards['premium_pass'])
     rewards['season_pass_track'] = season_pass_track_payload(wallet=wallet, rewards=rewards)
+    rewards['season_tasks'] = season_task_progress(wallet)
+    rewards['season_tasks_claimable'] = sum(1 for item in rewards['season_tasks'] if item.get('claimable'))
     rewards['cosmetics'] = cosmetic_inventory(wallet)
     rewards['cosmetic_catalog'] = COSMETIC_CATALOG
     rewards['equipped_cosmetics'] = equipped_cosmetics(wallet)
@@ -16020,6 +16144,55 @@ def claim_win_quest_reward(wallet):
             WHERE wallet = ?
             ''',
             (rare_tokens, wins_claimed, now_iso(), wallet),
+        )
+        conn.commit()
+    return reward_summary(wallet)
+
+
+def claim_season_task_reward(wallet, task_key):
+    rewards = ensure_player_rewards(wallet)
+    tasks = {item['key']: item for item in season_task_progress(wallet)}
+    task = tasks.get(str(task_key or '').strip())
+    if not task:
+        raise ValueError('Такое задание пропуска не найдено.')
+    if task.get('claimed'):
+        raise ValueError('Награда за это задание уже забрана.')
+    if not task.get('claimable'):
+        raise ValueError('Задание пропуска ещё не выполнено.')
+    normalized = normalize_reward_progress_fields(
+        pack_shards=int(rewards.get('pack_shards', 0)),
+        rare_tokens=int(rewards.get('rare_tokens', 0)),
+        lucky_tokens=int(rewards.get('lucky_tokens', 0)),
+        cosmetic_packs=int(rewards.get('cosmetic_packs', 0)),
+        season_points=int(rewards.get('season_points', 0)) + int(task.get('reward_points', 0) or 0),
+        season_level=rewards.get('season_level', 1),
+        wins_for_quest=rewards.get('wins_for_quest', 0),
+        wins_claimed=rewards.get('wins_claimed', 0),
+    )
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO season_task_claims (wallet, task_key, task_day, claimed_at)
+            VALUES (?, ?, ?, ?)
+            ''',
+            (wallet, task['key'], task['day_key'], now_iso()),
+        )
+        conn.execute(
+            '''
+            UPDATE player_rewards
+            SET pack_shards = ?, rare_tokens = ?, lucky_tokens = ?, cosmetic_packs = ?, season_points = ?, season_level = ?, updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (
+                normalized['pack_shards'],
+                normalized['rare_tokens'],
+                normalized['lucky_tokens'],
+                normalized['cosmetic_packs'],
+                normalized['season_points'],
+                normalized['season_level'],
+                now_iso(),
+                wallet,
+            ),
         )
         conn.commit()
     return reward_summary(wallet)
@@ -23527,6 +23700,20 @@ def api_rewards_season_pass_claim():
         return json_error('Некорректный адрес кошелька.')
     try:
         rewards = claim_season_pass_reward(wallet, level, reward_tier)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'wallet': wallet, 'rewards': rewards})
+
+
+@app.route('/api/rewards/season-task', methods=['POST'])
+def api_rewards_season_task():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    task_key = (payload.get('task_key') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    try:
+        rewards = claim_season_task_reward(wallet, task_key)
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'wallet': wallet, 'rewards': rewards})
