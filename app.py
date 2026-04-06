@@ -7014,7 +7014,8 @@ PAGE_TEMPLATE = """
       .startup-guide-card {
         width: calc(100vw - 16px);
         max-width: calc(100vw - 16px);
-        min-height: auto;
+        height: calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        min-height: calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
         max-height: calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
         margin-top: 0;
         padding: 8px 8px 10px;
@@ -7023,6 +7024,9 @@ PAGE_TEMPLATE = """
         border-right: 1px solid var(--line);
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        gap: 4px;
       }
 
       .startup-guide-stage {
@@ -7047,6 +7051,13 @@ PAGE_TEMPLATE = """
       .startup-guide-copy .tiny {
         font-size: 10px;
         line-height: 1.22;
+      }
+
+      .startup-guide-copy {
+        min-height: 0;
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding-right: 2px;
       }
 
       .startup-guide-flowboard,
@@ -7411,8 +7422,11 @@ PAGE_TEMPLATE = """
       .startup-guide-actions {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
-        padding: 2px 6px 0;
-        margin-top: 4px;
+        padding: 6px 6px 0;
+        margin-top: 0;
+        position: sticky;
+        bottom: 0;
+        background: linear-gradient(180deg, rgba(8, 20, 36, 0), rgba(8, 20, 36, 0.96) 28%);
       }
 
       .startup-guide-actions button {
