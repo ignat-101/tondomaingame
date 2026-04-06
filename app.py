@@ -7004,34 +7004,35 @@ PAGE_TEMPLATE = """
       .startup-guide {
         padding:
           calc(4px + env(safe-area-inset-top))
-          4px
-          calc(2px + env(safe-area-inset-bottom));
+          6px
+          calc(4px + env(safe-area-inset-bottom));
         align-items: center;
         justify-content: center;
         overflow-y: auto;
       }
 
       .startup-guide-card {
-        width: calc(100vw - 8px);
-        max-width: calc(100vw - 8px);
-        height: calc(100dvh - 6px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        min-height: calc(100dvh - 6px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        max-height: calc(100dvh - 6px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        width: calc(100vw - 12px);
+        max-width: calc(100vw - 12px);
+        height: calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        min-height: calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        max-height: calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
         margin-top: 0;
-        padding: 10px 10px 12px;
+        padding: 10px 8px 10px;
         border-radius: 22px;
         border-left: 1px solid var(--line);
         border-right: 1px solid var(--line);
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
         display: grid;
-        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
         gap: 6px;
       }
 
       .startup-guide-stage {
-        height: 190px;
-        margin-bottom: 6px;
+        height: auto;
+        min-height: 340px;
+        margin-bottom: 2px;
       }
 
       .startup-guide-stage-overlay {
@@ -7054,10 +7055,10 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-copy {
-        min-height: 0;
-        overflow-y: auto;
+        min-height: auto;
+        overflow: visible;
         margin-bottom: 0;
-        padding-right: 3px;
+        padding-right: 0;
       }
 
       .startup-guide-flowboard,
@@ -7422,11 +7423,10 @@ PAGE_TEMPLATE = """
       .startup-guide-actions {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
-        padding: 8px 4px 0;
+        padding: 4px 0 0;
         margin-top: 0;
-        position: sticky;
-        bottom: 0;
-        background: linear-gradient(180deg, rgba(8, 20, 36, 0), rgba(8, 20, 36, 0.96) 28%);
+        position: static;
+        background: none;
       }
 
       .startup-guide-actions button {
