@@ -7003,35 +7003,35 @@ PAGE_TEMPLATE = """
 
       .startup-guide {
         padding:
-          calc(8px + env(safe-area-inset-top))
-          8px
-          calc(10px + env(safe-area-inset-bottom));
+          calc(4px + env(safe-area-inset-top))
+          4px
+          calc(6px + env(safe-area-inset-bottom));
         align-items: center;
         justify-content: center;
         overflow-y: auto;
       }
 
       .startup-guide-card {
-        width: calc(100vw - 16px);
-        max-width: calc(100vw - 16px);
-        height: calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        min-height: calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        max-height: calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        width: calc(100vw - 8px);
+        max-width: calc(100vw - 8px);
+        height: calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        min-height: calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        max-height: calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
         margin-top: 0;
-        padding: 8px 8px 10px;
-        border-radius: 20px;
+        padding: 10px 10px 12px;
+        border-radius: 22px;
         border-left: 1px solid var(--line);
         border-right: 1px solid var(--line);
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
         display: grid;
         grid-template-rows: auto auto minmax(0, 1fr) auto;
-        gap: 4px;
+        gap: 6px;
       }
 
       .startup-guide-stage {
-        height: 152px;
-        margin-bottom: 4px;
+        height: 190px;
+        margin-bottom: 6px;
       }
 
       .startup-guide-stage-overlay {
@@ -7057,7 +7057,7 @@ PAGE_TEMPLATE = """
         min-height: 0;
         overflow-y: auto;
         margin-bottom: 0;
-        padding-right: 2px;
+        padding-right: 3px;
       }
 
       .startup-guide-flowboard,
@@ -7422,7 +7422,7 @@ PAGE_TEMPLATE = """
       .startup-guide-actions {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
-        padding: 6px 6px 0;
+        padding: 8px 4px 0;
         margin-top: 0;
         position: sticky;
         bottom: 0;
