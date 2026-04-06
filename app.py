@@ -7017,7 +7017,7 @@ PAGE_TEMPLATE = """
         min-height: auto;
         max-height: calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
         margin-top: 0;
-        padding: 10px 10px 12px;
+        padding: 8px 8px 10px;
         border-radius: 20px;
         border-left: 1px solid var(--line);
         border-right: 1px solid var(--line);
@@ -7026,27 +7026,27 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-stage {
-        height: 182px;
-        margin-bottom: 6px;
+        height: 152px;
+        margin-bottom: 4px;
       }
 
       .startup-guide-stage-overlay {
-        font-size: 24px;
-        padding: 14px;
+        font-size: 20px;
+        padding: 10px;
       }
 
       .startup-guide-meta {
-        margin-bottom: 6px;
-        font-size: 11px;
+        margin-bottom: 4px;
+        font-size: 10px;
       }
 
       .startup-guide-copy strong {
-        font-size: 14px;
+        font-size: 12px;
       }
 
       .startup-guide-copy .tiny {
-        font-size: 11px;
-        line-height: 1.28;
+        font-size: 10px;
+        line-height: 1.22;
       }
 
       .startup-guide-flowboard,
@@ -7054,7 +7054,7 @@ PAGE_TEMPLATE = """
       .startup-guide-connection-board,
       .startup-guide-pack-reveal {
         width: calc(100% - 14px);
-        height: 148px;
+        height: 128px;
       }
 
       .startup-guide-connection-board {
@@ -7175,70 +7175,70 @@ PAGE_TEMPLATE = """
         left: 10px;
         top: 10px;
         width: calc(100% - 20px);
-        height: 56px;
+        height: 48px;
         border-radius: 18px;
       }
 
       .startup-guide-wallet-card .head {
         left: 12px;
-        top: 8px;
-        font-size: 9px;
+        top: 6px;
+        font-size: 8px;
       }
 
       .startup-guide-wallet-card .name {
         left: 12px;
-        top: 18px;
-        font-size: 13px;
+        top: 14px;
+        font-size: 11px;
       }
 
       .startup-guide-wallet-card .rows {
         left: 12px;
         right: 12px;
-        bottom: 7px;
-        gap: 4px;
+        bottom: 6px;
+        gap: 3px;
       }
 
       .startup-guide-wallet-card .rows i {
-        height: 5px;
+        height: 4px;
       }
 
       .startup-guide-domain-panel {
         left: 10px;
         right: 10px;
-        top: 72px;
+        top: 62px;
         width: auto;
-        height: 44px;
+        height: 38px;
         border-radius: 18px;
       }
 
       .startup-guide-domain-panel .tag {
         left: 10px;
-        top: 6px;
-        padding: 4px 8px;
-        font-size: 9px;
+        top: 5px;
+        padding: 3px 7px;
+        font-size: 8px;
       }
 
       .startup-guide-domain-panel .domain {
         left: 10px;
-        top: 18px;
-        font-size: 15px;
+        top: 15px;
+        font-size: 13px;
       }
 
       .startup-guide-bridge {
         left: calc(50% - 2px);
         right: auto;
-        top: 58px;
+        top: 50px;
         width: 4px;
-        height: 14px;
+        height: 12px;
         transform: none;
         background: linear-gradient(180deg, rgba(88, 210, 255, 0.22), rgba(88, 210, 255, 0.62), rgba(88, 210, 255, 0.22));
       }
 
       .startup-guide-bridge::before {
-        width: 14px;
-        height: 14px;
+        width: 12px;
+        height: 12px;
         top: 1px;
-        left: -5px;
+        left: -4px;
         animation: startupGuideBridgePulseVertical 2.8s ease-in-out infinite;
       }
 
@@ -7381,7 +7381,7 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-scene-column {
-        gap: 10px;
+        gap: 8px;
       }
 
       .startup-guide-control-row {
@@ -7403,21 +7403,22 @@ PAGE_TEMPLATE = """
       .startup-guide-note {
         max-width: calc(100% - 24px);
         min-height: 0;
-        padding: 8px 10px;
-        font-size: 11px;
-        line-height: 1.18;
+        padding: 7px 9px;
+        font-size: 10px;
+        line-height: 1.14;
       }
 
       .startup-guide-actions {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-        padding: 4px 8px 0;
-        margin-top: 6px;
+        gap: 6px;
+        padding: 2px 6px 0;
+        margin-top: 4px;
       }
 
       .startup-guide-actions button {
-        min-height: 36px;
-        font-size: 12px;
+        min-height: 32px;
+        font-size: 11px;
+        padding: 10px 8px;
       }
 
       .startup-guide-note.compact.final-note {
