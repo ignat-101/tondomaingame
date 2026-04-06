@@ -3333,20 +3333,21 @@ PAGE_TEMPLATE = """
 
     .prebattle-stage {
       display: grid;
-      gap: 8px;
+      gap: 6px;
       justify-items: center;
       padding: 8px 4px;
     }
 
     .prebattle-build-quick {
-      width: min(100%, 520px);
+      width: min(100%, 438px);
       display: grid;
       gap: 10px;
       margin-top: 10px;
-      padding: 12px;
+      padding: 10px 10px 12px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.18);
       background: linear-gradient(180deg, rgba(8, 22, 40, 0.76), rgba(8, 18, 32, 0.9));
+      overflow: hidden;
     }
 
     .prebattle-build-quick.hidden {
@@ -3355,9 +3356,10 @@ PAGE_TEMPLATE = """
 
     .prebattle-build-chart {
       width: 100%;
-      max-width: 420px;
-      height: 128px;
+      max-width: 338px;
+      height: 108px;
       margin: 0 auto;
+      overflow: hidden;
     }
 
     .prebattle-build-actions {
@@ -3368,12 +3370,13 @@ PAGE_TEMPLATE = """
     }
 
     .prebattle-build-btn {
-      min-height: 42px;
+      min-height: 38px;
       border-radius: 14px;
       border: 1px solid rgba(121, 217, 255, 0.22);
       background: rgba(8, 22, 40, 0.88);
       color: #eef6ff;
       font-weight: 800;
+      font-size: 12px;
     }
 
     .prebattle-build-btn.active {
@@ -3385,7 +3388,7 @@ PAGE_TEMPLATE = """
     .prebattle-build-advanced {
       display: grid;
       gap: 10px;
-      width: min(100%, 520px);
+      width: min(100%, 438px);
     }
 
     .prebattle-build-advanced.hidden {
@@ -3886,7 +3889,7 @@ PAGE_TEMPLATE = """
       border: 1px solid var(--line);
       background: linear-gradient(165deg, rgba(8, 20, 36, 0.96), rgba(10, 18, 33, 0.94));
       box-shadow: var(--shadow);
-      padding: 18px;
+      padding: 18px 18px 20px;
     }
 
     .startup-guide-meta {
@@ -4000,6 +4003,7 @@ PAGE_TEMPLATE = """
       gap: 10px;
       width: 100%;
       padding: 0 16px;
+      box-sizing: border-box;
     }
 
     .startup-guide-control-btn {
@@ -4051,9 +4055,9 @@ PAGE_TEMPLATE = """
     .startup-guide-note.compact {
       max-width: min(520px, calc(100% - 32px));
       min-height: 0;
-      padding: 12px 16px;
-      font-size: clamp(12px, 1.05vw, 15px);
-      line-height: 1.28;
+      padding: 10px 14px;
+      font-size: clamp(11px, 0.92vw, 14px);
+      line-height: 1.2;
       font-weight: 700;
     }
 
@@ -4635,8 +4639,8 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-showcase {
       position: relative;
       width: min(640px, calc(100% - 44px));
-      min-height: 212px;
-      padding: 24px 24px 22px;
+      min-height: 194px;
+      padding: 20px 18px 18px;
       border-radius: 28px;
       border: 1px solid rgba(255, 208, 106, 0.18);
       background:
@@ -4644,7 +4648,7 @@ PAGE_TEMPLATE = """
         linear-gradient(135deg, rgba(10, 22, 40, 0.94), rgba(7, 16, 29, 0.92));
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
       overflow: hidden;
     }
 
@@ -4661,7 +4665,7 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-card {
       position: relative;
       z-index: 1;
-      min-height: 156px;
+      min-height: 144px;
       border-radius: 22px;
       border: 1px solid rgba(255, 208, 106, 0.24);
       background: linear-gradient(180deg, rgba(9, 20, 35, 0.96), rgba(8, 16, 28, 0.94));
@@ -4670,8 +4674,8 @@ PAGE_TEMPLATE = """
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      padding: 18px 10px 14px;
+      gap: 8px;
+      padding: 14px 8px 12px;
       text-align: center;
       transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
     }
@@ -4687,7 +4691,7 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-pack-card.active {
-      transform: translateY(-6px);
+      transform: translateY(-2px);
       border-color: rgba(83, 246, 184, 0.76);
       box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24), 0 0 26px rgba(83, 246, 184, 0.16);
     }
@@ -4714,14 +4718,14 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-card .glyph {
       position: relative;
       z-index: 1;
-      font-size: 42px;
+      font-size: 36px;
       filter: drop-shadow(0 10px 18px rgba(0,0,0,0.24));
     }
 
     .startup-guide-pack-card .title {
       position: relative;
       z-index: 1;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 900;
       letter-spacing: 0.04em;
       color: #f6fbff;
@@ -4730,8 +4734,8 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-card .count {
       position: relative;
       z-index: 1;
-      min-height: 24px;
-      padding: 0 10px;
+      min-height: 22px;
+      padding: 0 8px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
@@ -5113,6 +5117,8 @@ PAGE_TEMPLATE = """
       justify-content: flex-end;
       gap: 8px;
       flex-wrap: wrap;
+      padding: 0 6px;
+      margin-top: 10px;
     }
 
     .startup-guide-lane-board {
@@ -6975,7 +6981,7 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-stage {
-        height: 198px;
+        height: 180px;
       }
 
       .startup-guide-stage-overlay {
@@ -7211,23 +7217,24 @@ PAGE_TEMPLATE = """
 
       .startup-guide-pack-showcase {
         width: calc(100% - 14px);
-        min-height: 190px;
-        padding: 18px 10px 16px;
+        min-height: 176px;
+        padding: 14px 10px 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
       }
 
       .startup-guide-pack-card {
-        min-height: 118px;
-        padding: 12px 6px 10px;
+        min-height: 72px;
+        padding: 10px 6px 8px;
         border-radius: 18px;
       }
 
       .startup-guide-pack-card .glyph {
-        font-size: 28px;
+        font-size: 24px;
       }
 
       .startup-guide-pack-card .title {
-        font-size: 10px;
+        font-size: 11px;
       }
 
       .startup-guide-pack-card .count {
@@ -7318,21 +7325,48 @@ PAGE_TEMPLATE = """
 
       .startup-guide-control-row {
         gap: 8px;
-        padding: 0 8px;
+        padding: 0 4px;
       }
 
       .startup-guide-control-btn {
         min-height: 34px;
-        padding: 0 12px;
+        padding: 0 10px;
         font-size: 11px;
       }
 
       .startup-guide-note {
         max-width: calc(100% - 24px);
-        min-height: 52px;
-        padding: 12px 14px;
-        font-size: 13px;
-        line-height: 1.3;
+        min-height: 0;
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.22;
+      }
+
+      .startup-guide-actions {
+        justify-content: center;
+        padding: 0 2px;
+      }
+
+      .startup-guide-actions button {
+        min-width: 0;
+        flex: 1 1 0;
+      }
+
+      .prebattle-build-quick {
+        width: min(100%, 380px);
+      }
+
+      .prebattle-build-advanced {
+        width: min(100%, 380px);
+      }
+
+      .prebattle-build-chart {
+        max-width: 300px;
+        height: 96px;
+      }
+
+      .prebattle-build-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .startup-guide-rail {
@@ -8204,7 +8238,6 @@ PAGE_TEMPLATE = """
         </div>
         <div class="badge-row">
           <div class="badge" id="wallet-badge">Кошелёк не подключен</div>
-          <div class="badge currency-badge" id="currency-badge">Осколки: 0 • Редкие: 0 • Lucky: 0</div>
         </div>
       </div>
 
@@ -8232,14 +8265,6 @@ PAGE_TEMPLATE = """
               <div class="wallet-quick-item">
                 <strong>Активный домен</strong>
                 <div class="tiny" id="wallet-quick-domain">Не выбран</div>
-              </div>
-              <div class="wallet-quick-item">
-                <strong>Валюта</strong>
-                <div class="wallet-quick-currency" id="wallet-quick-currency">
-                  <span class="wallet-currency-chip">💠 0</span>
-                  <span class="wallet-currency-chip">🎟️ 0</span>
-                  <span class="wallet-currency-chip">✨ 0</span>
-                </div>
               </div>
             </div>
             <div class="wallet-flow-note">Подключи кошелёк, проверь свои `.ton` домены и сразу переходи к готовой колоде. Если карты для домена уже были открыты, они подтянутся автоматически.</div>
@@ -8374,6 +8399,7 @@ PAGE_TEMPLATE = """
             </div>
             <button type="button" class="secondary" id="build-advanced-toggle">Расширенные настройки</button>
           </div>
+          <div class="tiny" id="build-preset-help" style="text-align:center; margin-top:8px;"><strong>Баланс:</strong> Ровная стартовая сборка без провалов. Самый безопасный выбор для первой игры.</div>
           <div class="prebattle-build-advanced hidden" id="build-advanced-panel">
             <div class="discipline-build-grid">
               <label>Атака <input id="build-attack" type="number" min="0" step="1"></label>
@@ -8658,7 +8684,6 @@ PAGE_TEMPLATE = """
     let duelInvitePollId = null;
 
     const walletBadge = document.getElementById('wallet-badge');
-    const currencyBadge = document.getElementById('currency-badge');
     const walletStatus = document.getElementById('wallet-status');
     const walletTechStatus = document.getElementById('wallet-tech-status');
     const telegramLinkSummary = document.getElementById('telegram-link-summary');
@@ -8667,7 +8692,6 @@ PAGE_TEMPLATE = """
     const telegramMiniappLinkBtn = document.getElementById('telegram-miniapp-link-btn');
     const walletQuickWallet = document.getElementById('wallet-quick-wallet');
     const walletQuickDomain = document.getElementById('wallet-quick-domain');
-    const walletQuickCurrency = document.getElementById('wallet-quick-currency');
     const globalCurrencyShards = document.getElementById('global-currency-shards');
     const globalCurrencyRare = document.getElementById('global-currency-rare');
     const globalCurrencyLucky = document.getElementById('global-currency-lucky');
@@ -8766,6 +8790,7 @@ PAGE_TEMPLATE = """
     const buildQuickChart = document.getElementById('build-quick-chart');
     const buildAdvancedPanel = document.getElementById('build-advanced-panel');
     const buildAdvancedToggle = document.getElementById('build-advanced-toggle');
+    const buildPresetHelp = document.getElementById('build-preset-help');
     if (startupGuideGif && startupGuideStageOverlay) {
       startupGuideGif.addEventListener('error', () => {
         startupGuideGif.style.display = 'none';
@@ -9105,6 +9130,10 @@ PAGE_TEMPLATE = """
       document.querySelectorAll('[data-build-preset-main]').forEach((button) => {
         button.classList.toggle('active', button.dataset.buildPresetMain === presetValue);
       });
+      const meta = tutorialBuildPresetMeta(presetValue || 'balanced');
+      if (buildPresetHelp) {
+        buildPresetHelp.innerHTML = `<strong>${meta.label}:</strong> ${meta.description}`;
+      }
     }
 
     function applyDisciplinePreset(presetValue = 'balanced') {
@@ -10936,16 +10965,6 @@ PAGE_TEMPLATE = """
     function renderProfile() {
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
       walletBadge.textContent = state.wallet ? `Подключён: ${shortAddress(state.wallet)}` : 'Кошелёк не подключен';
-      currencyBadge.textContent = state.playerProfile && state.playerProfile.rewards
-        ? `Осколки: ${rewards.pack_shards || 0} • Редкие: ${rewards.rare_tokens || 0} • Lucky: ${rewards.lucky_tokens || 0}`
-        : 'Осколки: 0 • Редкие: 0 • Lucky: 0';
-      if (walletQuickCurrency) {
-        walletQuickCurrency.innerHTML = `
-          <span class="wallet-currency-chip">💠 ${Number(rewards.pack_shards || 0)}</span>
-          <span class="wallet-currency-chip">🎟️ ${Number(rewards.rare_tokens || 0)}</span>
-          <span class="wallet-currency-chip">✨ ${Number(rewards.lucky_tokens || 0)}</span>
-        `;
-      }
       if (globalCurrencyShards) globalCurrencyShards.textContent = Number(rewards.pack_shards || 0);
       if (globalCurrencyRare) globalCurrencyRare.textContent = Number(rewards.rare_tokens || 0);
       if (globalCurrencyLucky) globalCurrencyLucky.textContent = Number(rewards.lucky_tokens || 0);
@@ -13099,11 +13118,7 @@ PAGE_TEMPLATE = """
         if (Number(rewardGain.rare_tokens || 0) > 0) rewardParts.push(`редкие +${Number(rewardGain.rare_tokens || 0)}`);
         if (Number(rewardGain.lucky_tokens || 0) > 0) rewardParts.push(`lucky +${Number(rewardGain.lucky_tokens || 0)}`);
         const rewardLine = resultKey === 'win' && rewardParts.length ? `<div class="battle-reward-line">Награда: <strong>${rewardParts.join(' • ')}</strong></div>` : '';
-        const battleHeader = rewardSummary ? `
-          <div class="showdown-header">
-            <div class="tiny"><strong>Валюта</strong> • осколки ${Number(rewardSummary.pack_shards || 0)} • редкие ${Number(rewardSummary.rare_tokens || 0)} • lucky ${Number(rewardSummary.lucky_tokens || 0)}</div>
-          </div>
-        ` : '';
+        const battleHeader = '';
         const interactivePanel = result.interactive_session_id
           ? `
               <div class="arena-round-choice-strip">
@@ -13234,6 +13249,7 @@ PAGE_TEMPLATE = """
                         `).join('')}
                       </select>
                     </div>
+                    <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'}</div>
                     <div class="row" style="margin-top:10px;">
                       <div class="prebattle-build-quick" id="prebattle-build-quick">
                         <div class="startup-guide-chart prebattle-build-chart" id="prebattle-build-chart" data-build="${String(result.strategy_key || 'balanced') === 'attack_boost' ? 'aggressive' : String(result.strategy_key || 'balanced') === 'defense_boost' ? 'control' : String(result.strategy_key || 'balanced') === 'energy_boost' ? 'fortune' : 'balanced'}">
@@ -13261,7 +13277,6 @@ PAGE_TEMPLATE = """
                       </div>
                     </div>
                     <div class="tiny" id="prebattle-strategy-help" style="text-align:center;"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
-                    <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'}</div>
                     <div class="showdown-entry-actions">
                       <button id="start-battle-btn">Готов</button>
                       <button class="secondary" onclick="openModes()">К режимам</button>
@@ -15376,6 +15391,9 @@ PAGE_TEMPLATE = """
         state.disciplineBuild = {pool, points};
         state.disciplineBuildPreset = null;
         document.querySelectorAll('[data-build-preset-main]').forEach((button) => button.classList.remove('active'));
+        if (buildPresetHelp) {
+          buildPresetHelp.innerHTML = '<strong>Расширенные настройки:</strong> Здесь можно вручную выставить каждую дисциплину отдельно.';
+        }
         buildStatus.textContent = `Пул: ${pool} • Потрачено: ${spent} • Остаток: ${Math.max(0, pool - spent)}`;
       });
     });
