@@ -7005,7 +7005,7 @@ PAGE_TEMPLATE = """
         padding:
           calc(4px + env(safe-area-inset-top))
           4px
-          calc(6px + env(safe-area-inset-bottom));
+          calc(2px + env(safe-area-inset-bottom));
         align-items: center;
         justify-content: center;
         overflow-y: auto;
@@ -7014,9 +7014,9 @@ PAGE_TEMPLATE = """
       .startup-guide-card {
         width: calc(100vw - 8px);
         max-width: calc(100vw - 8px);
-        height: calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        min-height: calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        max-height: calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        height: calc(100dvh - 6px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        min-height: calc(100dvh - 6px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        max-height: calc(100dvh - 6px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
         margin-top: 0;
         padding: 10px 10px 12px;
         border-radius: 22px;
