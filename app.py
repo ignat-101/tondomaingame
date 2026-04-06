@@ -3843,15 +3843,15 @@ PAGE_TEMPLATE = """
 
     .mobile-nav {
       position: fixed;
-      left: 106px;
-      right: 12px;
+      left: 98px;
+      right: 8px;
       bottom: 12px;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
       width: auto;
-      padding: 8px;
-      border-radius: 18px;
+      padding: 6px;
+      border-radius: 16px;
       border: 1px solid var(--line);
       background: rgba(7, 16, 25, 0.96);
       backdrop-filter: blur(16px);
@@ -3860,10 +3860,10 @@ PAGE_TEMPLATE = """
     }
 
     .mobile-nav button {
-      min-height: 42px;
-      height: 42px;
-      padding: 6px 10px;
-      font-size: 12px;
+      min-height: 38px;
+      height: 38px;
+      padding: 6px 6px;
+      font-size: 11px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -7573,14 +7573,14 @@ PAGE_TEMPLATE = """
       }
       .mobile-nav {
         position: fixed;
-        left: 82px;
-        right: 8px;
+        left: 76px;
+        right: 6px;
         bottom: calc(8px + env(safe-area-inset-bottom));
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-        padding: 8px;
-        border-radius: 18px;
+        gap: 6px;
+        padding: 6px;
+        border-radius: 16px;
         border: 1px solid var(--line);
         background: rgba(7, 16, 25, 0.96);
         backdrop-filter: blur(16px);
@@ -7588,10 +7588,10 @@ PAGE_TEMPLATE = """
         box-shadow: 0 18px 34px rgba(0, 0, 0, 0.34);
       }
       .mobile-nav button {
-        min-height: 40px;
-        height: 40px;
-        padding: 6px 3px;
-        font-size: 10px;
+        min-height: 36px;
+        height: 36px;
+        padding: 5px 2px;
+        font-size: 9px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -8250,14 +8250,14 @@ PAGE_TEMPLATE = """
 
     body.tma-app .mobile-nav {
       position: fixed;
-      left: 82px;
-      right: 8px;
+      left: 76px;
+      right: 6px;
       bottom: calc(8px + env(safe-area-inset-bottom));
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      padding: 8px;
-      border-radius: 18px;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 16px;
       border: 1px solid var(--line);
       background: rgba(7, 16, 25, 0.96);
       backdrop-filter: blur(16px);
@@ -8266,10 +8266,10 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .mobile-nav button {
-      min-height: 40px;
-      height: 40px;
-      padding: 6px 3px;
-      font-size: 10px;
+      min-height: 36px;
+      height: 36px;
+      padding: 5px 2px;
+      font-size: 9px;
       display: flex;
       align-items: center;
       justify-content: center;
