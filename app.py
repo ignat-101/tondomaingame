@@ -4048,6 +4048,15 @@ PAGE_TEMPLATE = """
       backdrop-filter: blur(10px);
     }
 
+    .startup-guide-note.compact {
+      max-width: min(520px, calc(100% - 32px));
+      min-height: 0;
+      padding: 12px 16px;
+      font-size: clamp(12px, 1.05vw, 15px);
+      line-height: 1.28;
+      font-weight: 700;
+    }
+
     .startup-guide-scene-grid {
       position: absolute;
       inset: 18px;
@@ -8805,12 +8814,27 @@ PAGE_TEMPLATE = """
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
-              <div class="startup-guide-pack-reveal">
-                <div class="startup-guide-pack-reveal-burst"></div>
-                <div class="startup-guide-pack-reveal-card left common" data-pack-key="common" data-tier="Обычный"><div class="glyph">🃏</div></div>
-                <div class="startup-guide-pack-reveal-card mid-left rare" data-pack-key="rare" data-tier="Редкий"><div class="glyph">✨</div></div>
-                <div class="startup-guide-pack-reveal-card center epic active" data-pack-key="epic" data-tier="Эпический"><div class="glyph">💠</div></div>
-                <div class="startup-guide-pack-reveal-card right lucky" data-pack-key="lucky" data-tier="Счастливый"><div class="glyph">🍀</div></div>
+              <div class="startup-guide-pack-showcase">
+                <div class="startup-guide-pack-card common" data-pack-key="common">
+                  <div class="glyph">🃏</div>
+                  <div class="title">Обычный</div>
+                  <div class="count">3 карты</div>
+                </div>
+                <div class="startup-guide-pack-card rare" data-pack-key="rare">
+                  <div class="glyph">✨</div>
+                  <div class="title">Редкий</div>
+                  <div class="count">4 карты</div>
+                </div>
+                <div class="startup-guide-pack-card epic active" data-pack-key="epic">
+                  <div class="glyph">💠</div>
+                  <div class="title">Эпический</div>
+                  <div class="count">5 карт</div>
+                </div>
+                <div class="startup-guide-pack-card lucky" data-pack-key="lucky">
+                  <div class="glyph">🍀</div>
+                  <div class="title">Счастливый</div>
+                  <div class="count">4 карты</div>
+                </div>
               </div>
               <div class="startup-guide-control-row">
                 <button type="button" class="startup-guide-control-btn" data-guide-action="pack" data-guide-value="common">Обычный</button>
@@ -8955,7 +8979,7 @@ PAGE_TEMPLATE = """
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
-              <div class="startup-guide-note" style="max-width:min(660px, calc(100% - 28px)); padding:16px 18px; font-size:clamp(13px, 1.35vw, 20px); line-height:1.42; text-align:center;">
+              <div class="startup-guide-note compact">
                 Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде. Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.
               </div>
             </div>
@@ -9190,7 +9214,7 @@ PAGE_TEMPLATE = """
               state.selectedPackType = value || 'common';
               if (typeof renderPackTypePicker === 'function') renderPackTypePicker();
               if (typeof updatePackShowcase === 'function') updatePackShowcase();
-              startupGuideStageOverlay.querySelectorAll('.startup-guide-pack-reveal-card').forEach((card) => {
+              startupGuideStageOverlay.querySelectorAll('.startup-guide-pack-reveal-card, .startup-guide-pack-card').forEach((card) => {
                 card.classList.toggle('active', (card.dataset.packKey || '') === value);
               });
               const copy = {
