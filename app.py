@@ -3339,7 +3339,7 @@ PAGE_TEMPLATE = """
     }
 
     .prebattle-build-quick {
-      width: min(100%, 386px);
+      width: min(100%, 352px);
       display: grid;
       gap: 8px;
       margin-top: 8px;
@@ -3356,8 +3356,8 @@ PAGE_TEMPLATE = """
 
     .prebattle-build-chart {
       width: 100%;
-      max-width: 290px;
-      height: 92px;
+      max-width: 248px;
+      height: 86px;
       margin: 0 auto;
       overflow: hidden;
     }
@@ -3365,7 +3365,7 @@ PAGE_TEMPLATE = """
     .prebattle-build-actions {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
       width: 100%;
     }
 
@@ -3376,7 +3376,7 @@ PAGE_TEMPLATE = """
       background: rgba(8, 22, 40, 0.88);
       color: #eef6ff;
       font-weight: 800;
-      font-size: 11px;
+      font-size: 10px;
     }
 
     .prebattle-build-btn.active {
@@ -3388,7 +3388,20 @@ PAGE_TEMPLATE = """
     .prebattle-build-advanced {
       display: grid;
       gap: 10px;
-      width: min(100%, 386px);
+      width: min(100%, 352px);
+    }
+
+    #prebattle-action-help,
+    #prebattle-strategy-help {
+      max-width: 100%;
+      text-align: center;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    #profile-rewards-panel,
+    #mobile-rewards-panel {
+      display: none;
     }
 
     .prebattle-build-advanced.hidden {
@@ -4066,9 +4079,9 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-note.compact.final-note {
-      padding: 10px 14px;
-      font-size: clamp(11px, 0.9vw, 14px);
-      line-height: 1.2;
+      padding: 12px 16px;
+      font-size: clamp(13px, 1.05vw, 18px);
+      line-height: 1.24;
     }
 
     .startup-guide-scene-grid {
@@ -6982,31 +6995,31 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide {
-        padding: 0;
-        align-items: stretch;
-        justify-content: stretch;
+        padding:
+          calc(8px + env(safe-area-inset-top))
+          8px
+          calc(10px + env(safe-area-inset-bottom));
+        align-items: center;
+        justify-content: center;
         overflow-y: auto;
       }
 
       .startup-guide-card {
-        width: 100vw;
-        max-width: 100vw;
-        min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        width: calc(100vw - 16px);
+        max-width: calc(100vw - 16px);
+        min-height: auto;
+        max-height: calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
         margin-top: 0;
-        padding:
-          calc(10px + env(safe-area-inset-top))
-          10px
-          calc(12px + env(safe-area-inset-bottom));
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
+        padding: 10px 10px 12px;
+        border-radius: 20px;
+        border-left: 1px solid var(--line);
+        border-right: 1px solid var(--line);
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
       }
 
       .startup-guide-stage {
-        height: 168px;
+        height: 182px;
         margin-bottom: 6px;
       }
 
@@ -7253,15 +7266,15 @@ PAGE_TEMPLATE = """
 
       .startup-guide-pack-showcase {
         width: calc(100% - 14px);
-        min-height: 154px;
-        padding: 12px 8px 10px;
+        min-height: 168px;
+        padding: 12px 10px 12px;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
+        gap: 8px;
       }
 
       .startup-guide-pack-card {
-        min-height: 64px;
-        padding: 8px 6px 7px;
+        min-height: 72px;
+        padding: 9px 7px 8px;
         border-radius: 18px;
       }
 
@@ -7385,7 +7398,7 @@ PAGE_TEMPLATE = """
 
       .startup-guide-actions {
         justify-content: center;
-        padding: 2px 0 0;
+        padding: 4px 4px 0;
         margin-top: 6px;
       }
 
@@ -7398,22 +7411,22 @@ PAGE_TEMPLATE = """
 
       .startup-guide-note.compact.final-note {
         max-width: calc(100% - 18px);
-        font-size: 13px;
-        line-height: 1.22;
-        padding: 10px 12px;
+        font-size: 14px;
+        line-height: 1.25;
+        padding: 12px 14px;
       }
 
       .prebattle-build-quick {
-        width: min(100%, 340px);
+        width: min(100%, 320px);
       }
 
       .prebattle-build-advanced {
-        width: min(100%, 340px);
+        width: min(100%, 320px);
       }
 
       .prebattle-build-chart {
-        max-width: 260px;
-        height: 90px;
+        max-width: 230px;
+        height: 82px;
       }
 
       .prebattle-build-actions {
@@ -9054,8 +9067,8 @@ PAGE_TEMPLATE = """
         body: 'Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде.',
         overlayHtml: `
           <div class="startup-guide-scene">
-            <div class="startup-guide-scene-column">
-              <div class="startup-guide-note compact">
+              <div class="startup-guide-scene-column">
+              <div class="startup-guide-note compact final-note">
                 Всё готово. Нажми «Пробная игра». Игра проведёт тебя через первый матч и подскажет лучший ход. В TMA нажми «Проверить наличие доменов» для калибровки экрана.
               </div>
             </div>
