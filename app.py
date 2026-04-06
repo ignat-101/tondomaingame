@@ -6982,23 +6982,31 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide {
-        padding: 8px;
-        align-items: flex-start;
+        padding: 0;
+        align-items: stretch;
+        justify-content: stretch;
         overflow-y: auto;
       }
 
       .startup-guide-card {
-        width: calc(100vw - 14px);
-        max-height: calc(100dvh - 8px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        margin-top: calc(2px + env(safe-area-inset-top));
-        padding: 8px 8px 10px;
-        border-radius: 18px;
+        width: 100vw;
+        max-width: 100vw;
+        min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        margin-top: 0;
+        padding:
+          calc(10px + env(safe-area-inset-top))
+          10px
+          calc(12px + env(safe-area-inset-bottom));
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
       }
 
       .startup-guide-stage {
-        height: 124px;
+        height: 168px;
         margin-bottom: 6px;
       }
 
