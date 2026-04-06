@@ -3886,6 +3886,7 @@ PAGE_TEMPLATE = """
     .startup-guide-card {
       width: min(760px, calc(100vw - 28px));
       max-height: min(92vh, 860px);
+      box-sizing: border-box;
       border-radius: 22px;
       border: 1px solid var(--line);
       background: linear-gradient(165deg, rgba(8, 20, 36, 0.96), rgba(10, 18, 33, 0.94));
@@ -4062,6 +4063,12 @@ PAGE_TEMPLATE = """
       font-size: clamp(10px, 0.76vw, 12px);
       line-height: 1.16;
       font-weight: 700;
+    }
+
+    .startup-guide-note.compact.final-note {
+      padding: 10px 14px;
+      font-size: clamp(11px, 0.9vw, 14px);
+      line-height: 1.2;
     }
 
     .startup-guide-scene-grid {
@@ -6975,17 +6982,24 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide {
-        padding: 12px;
+        padding: 8px;
+        align-items: flex-start;
+        overflow-y: auto;
       }
 
       .startup-guide-card {
-        width: calc(100vw - 18px);
-        max-height: calc(100vh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        padding: 10px;
+        width: calc(100vw - 14px);
+        max-height: calc(100dvh - 8px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        margin-top: calc(2px + env(safe-area-inset-top));
+        padding: 8px 8px 10px;
+        border-radius: 18px;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
       }
 
       .startup-guide-stage {
-        height: 160px;
+        height: 124px;
+        margin-bottom: 6px;
       }
 
       .startup-guide-stage-overlay {
@@ -6993,8 +7007,18 @@ PAGE_TEMPLATE = """
         padding: 14px;
       }
 
+      .startup-guide-meta {
+        margin-bottom: 6px;
+        font-size: 11px;
+      }
+
       .startup-guide-copy strong {
-        font-size: 16px;
+        font-size: 14px;
+      }
+
+      .startup-guide-copy .tiny {
+        font-size: 11px;
+        line-height: 1.28;
       }
 
       .startup-guide-flowboard,
@@ -7002,7 +7026,7 @@ PAGE_TEMPLATE = """
       .startup-guide-connection-board,
       .startup-guide-pack-reveal {
         width: calc(100% - 14px);
-        height: 168px;
+        height: 148px;
       }
 
       .startup-guide-connection-board {
@@ -7120,10 +7144,10 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-wallet-card {
-        left: 14px;
-        top: 12px;
-        width: calc(100% - 28px);
-        height: 74px;
+        left: 10px;
+        top: 10px;
+        width: calc(100% - 20px);
+        height: 56px;
         border-radius: 18px;
       }
 
@@ -7135,49 +7159,49 @@ PAGE_TEMPLATE = """
 
       .startup-guide-wallet-card .name {
         left: 12px;
-        top: 22px;
-        font-size: 16px;
+        top: 18px;
+        font-size: 13px;
       }
 
       .startup-guide-wallet-card .rows {
         left: 12px;
         right: 12px;
-        bottom: 8px;
-        gap: 5px;
+        bottom: 7px;
+        gap: 4px;
       }
 
       .startup-guide-wallet-card .rows i {
-        height: 6px;
+        height: 5px;
       }
 
       .startup-guide-domain-panel {
-        left: 14px;
-        right: 14px;
-        top: 96px;
+        left: 10px;
+        right: 10px;
+        top: 72px;
         width: auto;
-        height: 66px;
+        height: 44px;
         border-radius: 18px;
       }
 
       .startup-guide-domain-panel .tag {
         left: 10px;
-        top: 8px;
+        top: 6px;
         padding: 4px 8px;
         font-size: 9px;
       }
 
       .startup-guide-domain-panel .domain {
         left: 10px;
-        top: 28px;
-        font-size: 18px;
+        top: 18px;
+        font-size: 15px;
       }
 
       .startup-guide-bridge {
         left: calc(50% - 2px);
         right: auto;
-        top: 78px;
+        top: 58px;
         width: 4px;
-        height: 16px;
+        height: 14px;
         transform: none;
         background: linear-gradient(180deg, rgba(88, 210, 255, 0.22), rgba(88, 210, 255, 0.62), rgba(88, 210, 255, 0.22));
       }
@@ -7360,7 +7384,15 @@ PAGE_TEMPLATE = """
       .startup-guide-actions button {
         min-width: 0;
         flex: 1 1 0;
-        min-height: 40px;
+        min-height: 36px;
+        font-size: 12px;
+      }
+
+      .startup-guide-note.compact.final-note {
+        max-width: calc(100% - 18px);
+        font-size: 13px;
+        line-height: 1.22;
+        padding: 10px 12px;
       }
 
       .prebattle-build-quick {
