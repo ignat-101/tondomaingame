@@ -3333,17 +3333,17 @@ PAGE_TEMPLATE = """
 
     .prebattle-stage {
       display: grid;
-      gap: 6px;
+      gap: 5px;
       justify-items: center;
-      padding: 8px 4px;
+      padding: 6px 4px;
     }
 
     .prebattle-build-quick {
-      width: min(100%, 438px);
+      width: min(100%, 386px);
       display: grid;
-      gap: 10px;
-      margin-top: 10px;
-      padding: 10px 10px 12px;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 8px 8px 10px;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.18);
       background: linear-gradient(180deg, rgba(8, 22, 40, 0.76), rgba(8, 18, 32, 0.9));
@@ -3356,8 +3356,8 @@ PAGE_TEMPLATE = """
 
     .prebattle-build-chart {
       width: 100%;
-      max-width: 338px;
-      height: 108px;
+      max-width: 290px;
+      height: 92px;
       margin: 0 auto;
       overflow: hidden;
     }
@@ -3370,13 +3370,13 @@ PAGE_TEMPLATE = """
     }
 
     .prebattle-build-btn {
-      min-height: 38px;
+      min-height: 36px;
       border-radius: 14px;
       border: 1px solid rgba(121, 217, 255, 0.22);
       background: rgba(8, 22, 40, 0.88);
       color: #eef6ff;
       font-weight: 800;
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .prebattle-build-btn.active {
@@ -3388,7 +3388,7 @@ PAGE_TEMPLATE = """
     .prebattle-build-advanced {
       display: grid;
       gap: 10px;
-      width: min(100%, 438px);
+      width: min(100%, 386px);
     }
 
     .prebattle-build-advanced.hidden {
@@ -3885,11 +3885,14 @@ PAGE_TEMPLATE = """
 
     .startup-guide-card {
       width: min(760px, calc(100vw - 28px));
+      max-height: min(92vh, 860px);
       border-radius: 22px;
       border: 1px solid var(--line);
       background: linear-gradient(165deg, rgba(8, 20, 36, 0.96), rgba(10, 18, 33, 0.94));
       box-shadow: var(--shadow);
       padding: 18px 18px 20px;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .startup-guide-meta {
@@ -3923,12 +3926,12 @@ PAGE_TEMPLATE = """
 
     .startup-guide-stage {
       position: relative;
-      height: 260px;
+      height: 228px;
       border-radius: 16px;
       border: 1px solid rgba(121, 217, 255, 0.2);
       background: radial-gradient(circle at center, rgba(69, 215, 255, 0.2), rgba(8, 20, 36, 0.94));
       overflow: hidden;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .startup-guide-gif {
@@ -3990,7 +3993,7 @@ PAGE_TEMPLATE = """
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 18px;
+      gap: 14px;
     }
 
     .startup-guide-control-row {
@@ -4053,11 +4056,11 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-note.compact {
-      max-width: min(520px, calc(100% - 32px));
+      max-width: min(480px, calc(100% - 36px));
       min-height: 0;
-      padding: 10px 14px;
-      font-size: clamp(11px, 0.92vw, 14px);
-      line-height: 1.2;
+      padding: 8px 12px;
+      font-size: clamp(10px, 0.76vw, 12px);
+      line-height: 1.16;
       font-weight: 700;
     }
 
@@ -4639,8 +4642,8 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-showcase {
       position: relative;
       width: min(640px, calc(100% - 44px));
-      min-height: 194px;
-      padding: 20px 18px 18px;
+      min-height: 168px;
+      padding: 16px 16px 12px;
       border-radius: 28px;
       border: 1px solid rgba(255, 208, 106, 0.18);
       background:
@@ -4648,7 +4651,7 @@ PAGE_TEMPLATE = """
         linear-gradient(135deg, rgba(10, 22, 40, 0.94), rgba(7, 16, 29, 0.92));
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
       overflow: hidden;
     }
 
@@ -4665,7 +4668,7 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-card {
       position: relative;
       z-index: 1;
-      min-height: 144px;
+      min-height: 126px;
       border-radius: 22px;
       border: 1px solid rgba(255, 208, 106, 0.24);
       background: linear-gradient(180deg, rgba(9, 20, 35, 0.96), rgba(8, 16, 28, 0.94));
@@ -4674,8 +4677,8 @@ PAGE_TEMPLATE = """
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 14px 8px 12px;
+      gap: 6px;
+      padding: 12px 8px 10px;
       text-align: center;
       transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
     }
@@ -4718,14 +4721,14 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-card .glyph {
       position: relative;
       z-index: 1;
-      font-size: 36px;
+      font-size: 30px;
       filter: drop-shadow(0 10px 18px rgba(0,0,0,0.24));
     }
 
     .startup-guide-pack-card .title {
       position: relative;
       z-index: 1;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 900;
       letter-spacing: 0.04em;
       color: #f6fbff;
@@ -4734,13 +4737,13 @@ PAGE_TEMPLATE = """
     .startup-guide-pack-card .count {
       position: relative;
       z-index: 1;
-      min-height: 22px;
+      min-height: 20px;
       padding: 0 8px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -6977,11 +6980,12 @@ PAGE_TEMPLATE = """
 
       .startup-guide-card {
         width: calc(100vw - 18px);
-        padding: 12px;
+        max-height: calc(100vh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        padding: 10px;
       }
 
       .startup-guide-stage {
-        height: 180px;
+        height: 160px;
       }
 
       .startup-guide-stage-overlay {
@@ -6998,7 +7002,7 @@ PAGE_TEMPLATE = """
       .startup-guide-connection-board,
       .startup-guide-pack-reveal {
         width: calc(100% - 14px);
-        height: 198px;
+        height: 168px;
       }
 
       .startup-guide-connection-board {
@@ -7217,41 +7221,43 @@ PAGE_TEMPLATE = """
 
       .startup-guide-pack-showcase {
         width: calc(100% - 14px);
-        min-height: 176px;
-        padding: 14px 10px 12px;
+        min-height: 154px;
+        padding: 12px 8px 10px;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        gap: 6px;
       }
 
       .startup-guide-pack-card {
-        min-height: 72px;
-        padding: 10px 6px 8px;
+        min-height: 64px;
+        padding: 8px 6px 7px;
         border-radius: 18px;
       }
 
       .startup-guide-pack-card .glyph {
-        font-size: 24px;
+        font-size: 20px;
       }
 
       .startup-guide-pack-card .title {
-        font-size: 11px;
+        font-size: 10px;
       }
 
       .startup-guide-pack-card .count {
-        min-height: 20px;
-        padding: 0 7px;
-        font-size: 8px;
+        min-height: 18px;
+        padding: 0 6px;
+        font-size: 7px;
       }
 
       .startup-guide-chart {
-        width: 294px;
-        height: 124px;
-        gap: 14px;
-        padding: 0 14px 8px;
+        width: min(100%, 286px);
+        height: 120px;
+        gap: 12px;
+        padding: 8px 12px 8px;
+        overflow: hidden;
       }
 
       .startup-guide-bar {
         width: 36px;
+        max-height: calc(100% - 8px);
       }
 
       .startup-guide-pill-row {
@@ -7305,64 +7311,69 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-tile-row {
-        gap: 8px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
         padding: 0;
       }
 
       .startup-guide-tile {
-        min-height: 84px;
-        padding: 10px 8px;
-        font-size: 11px;
+        width: auto;
+        min-height: 74px;
+        padding: 8px 6px;
+        font-size: 10px;
       }
 
       .startup-guide-tile b {
-        font-size: 15px;
+        font-size: 13px;
       }
 
       .startup-guide-scene-column {
-        gap: 12px;
+        gap: 10px;
       }
 
       .startup-guide-control-row {
-        gap: 8px;
-        padding: 0 4px;
+        gap: 6px;
+        padding: 0 2px;
       }
 
       .startup-guide-control-btn {
-        min-height: 34px;
-        padding: 0 10px;
-        font-size: 11px;
+        min-height: 32px;
+        padding: 0 9px;
+        font-size: 10px;
       }
 
       .startup-guide-note {
         max-width: calc(100% - 24px);
         min-height: 0;
-        padding: 10px 12px;
-        font-size: 12px;
-        line-height: 1.22;
+        padding: 8px 10px;
+        font-size: 11px;
+        line-height: 1.18;
       }
 
       .startup-guide-actions {
         justify-content: center;
-        padding: 0 2px;
+        padding: 2px 0 0;
+        margin-top: 6px;
       }
 
       .startup-guide-actions button {
         min-width: 0;
         flex: 1 1 0;
+        min-height: 40px;
       }
 
       .prebattle-build-quick {
-        width: min(100%, 380px);
+        width: min(100%, 340px);
       }
 
       .prebattle-build-advanced {
-        width: min(100%, 380px);
+        width: min(100%, 340px);
       }
 
       .prebattle-build-chart {
-        max-width: 300px;
-        height: 96px;
+        max-width: 260px;
+        height: 90px;
       }
 
       .prebattle-build-actions {
@@ -9005,7 +9016,7 @@ PAGE_TEMPLATE = """
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
               <div class="startup-guide-note compact">
-                Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде. Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.
+                Всё готово. Нажми «Пробная игра». Игра проведёт тебя через первый матч и подскажет лучший ход. В TMA нажми «Проверить наличие доменов» для калибровки экрана.
               </div>
             </div>
           </div>
@@ -13259,6 +13270,7 @@ PAGE_TEMPLATE = """
                           <button type="button" class="prebattle-build-btn ${String(result.strategy_key || 'balanced') === 'defense_boost' ? 'active' : ''}" data-build-preset="control">Контроль</button>
                           <button type="button" class="prebattle-build-btn ${String(result.strategy_key || 'balanced') === 'energy_boost' ? 'active' : ''}" data-build-preset="fortune">Удача</button>
                         </div>
+                        <div class="tiny" id="prebattle-strategy-help" style="text-align:center;"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
                         <button type="button" class="secondary" id="prebattle-advanced-toggle">Расширенный режим</button>
                       </div>
                       <div class="prebattle-build-advanced hidden" id="prebattle-build-advanced">
@@ -13270,7 +13282,6 @@ PAGE_TEMPLATE = """
                         </select>
                       </div>
                     </div>
-                    <div class="tiny" id="prebattle-strategy-help" style="text-align:center;"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
                     <div class="showdown-entry-actions">
                       <button id="start-battle-btn">Готов</button>
                       <button class="secondary" onclick="openModes()">К режимам</button>
