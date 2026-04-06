@@ -8959,13 +8959,13 @@ PAGE_TEMPLATE = """
       },
       {
         title: 'Кланы, сезонный пропуск и награды',
-        body: 'Играй клановые активности, забирай награды пропуска вручную, получай осколки/токены и открывай новые паки.',
+        body: 'Играй клановые активности, качай пропуск через задания и матчи, получай осколки/токены и открывай новые паки.',
         overlayHtml: `
           <div class="startup-guide-scene">
             <div class="startup-guide-scene-column">
               <div class="startup-guide-tile-row">
                 <div class="startup-guide-tile active" data-tile="clans"><b>Кланы</b>Войны и недельные цели</div>
-                <div class="startup-guide-tile" data-tile="pass"><b>Пропуск</b>Забирай награды вручную</div>
+                <div class="startup-guide-tile" data-tile="pass"><b>Пропуск</b>Очки начисляются автоматически</div>
                 <div class="startup-guide-tile" data-tile="rewards"><b>Награды</b>Осколки, токены и паки</div>
               </div>
               <div class="startup-guide-rail"><div class="startup-guide-rail-fill" data-progress="clans"></div></div>
@@ -9311,7 +9311,7 @@ PAGE_TEMPLATE = """
               });
               const copy = {
                 clans: 'Кланы дают совместные цели, войны и дополнительный темп прогресса через командную активность.',
-                pass: 'Пропуск качается матчами и заданиями. Награды забираются вручную, чтобы ты не пропускал уровни.',
+                pass: 'Пропуск качается матчами и заданиями. Очки за выполненные задания начисляются автоматически.',
                 rewards: 'Осколки, токены и паки помогают усиливать коллекцию и открывать больше вариантов под домены.'
               };
               setStartupGuideInteractiveBody(copy[value] || startupGuideSteps[6].body);
@@ -11214,9 +11214,7 @@ PAGE_TEMPLATE = """
                       <strong>${escapeHtml(task.label)}</strong>
                       <div class="tiny">Прогресс: ${Number(task.progress || 0)}/${Number(task.target || 0)}</div>
                       <div class="tiny">Награда: +${Number(task.reward_points || 0)} очков пропуска</div>
-                      <div class="actions" style="margin-top:auto;">
-                        <button type="button" class="secondary season-task-claim-btn" data-task-key="${escapeHtml(task.key)}"${task.claimable ? '' : ' disabled'}>${task.claimed ? 'Получено' : (task.claimable ? 'Забрать' : 'Выполняется')}</button>
-                      </div>
+                      <div class="tiny" style="margin-top:auto;">${task.claimed ? 'Начислено автоматически' : (task.claimable ? 'Будет начислено автоматически' : 'Выполняется')}</div>
                     </article>
                   `).join('')}
                 </div>
@@ -11232,10 +11230,6 @@ PAGE_TEMPLATE = """
       achievementsList.querySelectorAll('.season-pass-claim-btn').forEach((button) => {
         if (button.disabled) return;
         bindFunctionalControl(button, () => claimSeasonPassReward(button.dataset.level, button.dataset.passClaim));
-      });
-      achievementsList.querySelectorAll('.season-task-claim-btn').forEach((button) => {
-        if (button.disabled) return;
-        bindFunctionalControl(button, () => claimSeasonTaskReward(button.dataset.taskKey));
       });
       const passLevelLabel = document.getElementById('season-pass-level-label');
       const passPrevBtn = document.getElementById('season-pass-prev-btn');
@@ -16983,8 +16977,56 @@ def season_task_progress(wallet):
     return tasks
 
 
-def reward_summary(wallet):
+def auto_claim_season_tasks(wallet):
+    ensure_runtime_tables()
     rewards = ensure_player_rewards(wallet)
+    tasks = season_task_progress(wallet)
+    claimable = [item for item in tasks if item.get('claimable') and not item.get('claimed')]
+    if not claimable:
+        return rewards
+    total_reward_points = sum(int(item.get('reward_points', 0) or 0) for item in claimable)
+    normalized = normalize_reward_progress_fields(
+        pack_shards=int(rewards.get('pack_shards', 0)),
+        rare_tokens=int(rewards.get('rare_tokens', 0)),
+        lucky_tokens=int(rewards.get('lucky_tokens', 0)),
+        cosmetic_packs=int(rewards.get('cosmetic_packs', 0)),
+        season_points=int(rewards.get('season_points', 0)) + total_reward_points,
+        season_level=rewards.get('season_level', 1),
+        wins_for_quest=rewards.get('wins_for_quest', 0),
+        wins_claimed=rewards.get('wins_claimed', 0),
+    )
+    with closing(get_db()) as conn:
+        for task in claimable:
+            conn.execute(
+                '''
+                INSERT OR IGNORE INTO season_task_claims (wallet, task_key, task_day, claimed_at)
+                VALUES (?, ?, ?, ?)
+                ''',
+                (wallet, task['key'], task['day_key'], now_iso()),
+            )
+        conn.execute(
+            '''
+            UPDATE player_rewards
+            SET pack_shards = ?, rare_tokens = ?, lucky_tokens = ?, cosmetic_packs = ?, season_points = ?, season_level = ?, updated_at = ?
+            WHERE wallet = ?
+            ''',
+            (
+                normalized['pack_shards'],
+                normalized['rare_tokens'],
+                normalized['lucky_tokens'],
+                normalized['cosmetic_packs'],
+                normalized['season_points'],
+                normalized['season_level'],
+                now_iso(),
+                wallet,
+            ),
+        )
+        conn.commit()
+    return ensure_player_rewards(wallet)
+
+
+def reward_summary(wallet):
+    rewards = auto_claim_season_tasks(wallet)
     rewards['daily_available'] = rewards.get('daily_claimed_on') != today_utc_str()
     rewards['quest_ready'] = int(rewards.get('wins_for_quest', 0)) - int(rewards.get('wins_claimed', 0)) >= 3
     rewards['next_quest_target'] = int(rewards.get('wins_claimed', 0)) + 3
