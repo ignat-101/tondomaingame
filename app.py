@@ -10079,13 +10079,16 @@ PAGE_TEMPLATE = """
             <div class="tiny">Побед: ${tutorial.wins || 1} • попыток: ${tutorial.attempts || 1}</div>
             <div class="tiny">Первый успех уже засчитан. Можно идти в обычный или рейтинговый режим.</div>
             <div class="actions" style="margin-top:10px;">
+              <button id="tutorial-replay-btn"${!(state.wallet && state.selectedDomain) ? ' disabled' : ''}>Повторить пробный бой</button>
               <button id="tutorial-go-casual-btn">Обычный бой</button>
               <button class="secondary" id="tutorial-go-ranked-btn">Рейтинг</button>
             </div>
           </div>
         `;
+        const replayBtn = document.getElementById('tutorial-replay-btn');
         const casualBtn = document.getElementById('tutorial-go-casual-btn');
         const rankedBtn = document.getElementById('tutorial-go-ranked-btn');
+        if (replayBtn) bindFunctionalControl(replayBtn, startTutorialBattle);
         if (casualBtn) bindFunctionalControl(casualBtn, () => launchRecommendedMode('casual'));
         if (rankedBtn) bindFunctionalControl(rankedBtn, () => launchRecommendedMode('ranked'));
         return;
@@ -13722,11 +13725,18 @@ PAGE_TEMPLATE = """
       }
       const profile = await api(`/api/player/${encodeURIComponent(state.wallet)}`);
       state.playerProfile = profile.player;
-      if (!state.selectedDomain && state.playerProfile && state.playerProfile.current_domain) {
-        state.selectedDomain = state.playerProfile.current_domain;
+      const preferredCurrentDomain = (state.playerProfile && (state.playerProfile.current_domain || state.playerProfile.best_domain)) || '';
+      if (!state.selectedDomain && preferredCurrentDomain) {
+        state.selectedDomain = preferredCurrentDomain;
       }
       renderProfile();
       await Promise.all([loadSocialData(), loadGuildData(), loadTutorialData()]);
+      if (preferredCurrentDomain && (!state.cards.length || state.selectedDomain !== preferredCurrentDomain)) {
+        try {
+          await selectDeckDomain(preferredCurrentDomain, {silent: true, switchToPack: false, skipSync: true});
+        } catch (_) {
+        }
+      }
     }
 
     async function loadTutorialData() {
@@ -24175,9 +24185,6 @@ def api_tutorial_start():
             return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
     except (RuntimeError, ValueError) as exc:
         return json_error(str(exc), 502)
-    tutorial = tutorial_summary(wallet)
-    if tutorial.get('completed'):
-        return json_error('Туториал уже завершён.', 400)
     player_cards = load_active_deck_cards(wallet, domain) or generate_pack(domain)
     player_cards = [normalize_card_profile(card) for card in player_cards]
     player_build = load_deck_build(wallet, domain, player_cards)
