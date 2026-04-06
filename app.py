@@ -5137,11 +5137,18 @@ PAGE_TEMPLATE = """
     }
 
     .startup-guide-actions {
-      justify-content: flex-end;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 0 6px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0 16px 2px;
       margin-top: 10px;
+    }
+
+    .startup-guide-actions button {
+      width: 100%;
+      min-width: 0;
     }
 
     .startup-guide-lane-board {
@@ -7379,11 +7386,16 @@ PAGE_TEMPLATE = """
 
       .startup-guide-control-row {
         gap: 6px;
-        padding: 0 2px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: calc(100% - 8px);
+        padding: 0 4px;
       }
 
       .startup-guide-control-btn {
         min-height: 32px;
+        width: 100%;
+        min-width: 0;
         padding: 0 9px;
         font-size: 10px;
       }
@@ -7397,14 +7409,13 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-actions {
-        justify-content: center;
-        padding: 4px 4px 0;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        padding: 4px 8px 0;
         margin-top: 6px;
       }
 
       .startup-guide-actions button {
-        min-width: 0;
-        flex: 1 1 0;
         min-height: 36px;
         font-size: 12px;
       }
