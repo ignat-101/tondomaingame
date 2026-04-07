@@ -2153,32 +2153,46 @@ PAGE_TEMPLATE = """
     .arena-battle-dock .interactive-battle-panel.tutorial-live-panel {
       max-height: none;
       overflow: visible;
-      gap: 6px;
-      padding: 8px 10px 9px;
+      gap: 5px;
+      padding: 7px 10px 9px;
       scrollbar-width: thin;
     }
 
+    .arena-battle-dock .tutorial-live-panel .interactive-battle-head,
     .arena-battle-dock .tutorial-live-panel .tutorial-tip-badge {
-      margin-bottom: 0;
-      padding: 5px 9px;
-      font-size: 10px;
-      letter-spacing: 0.03em;
+      display: none;
     }
 
     .arena-battle-dock .tutorial-live-panel .user-item {
       margin-bottom: 2px !important;
       padding: 6px 8px;
       border-radius: 12px;
+      max-height: 50px;
+      overflow: hidden;
     }
 
     .arena-battle-dock .tutorial-live-panel .user-item strong {
-      font-size: 12px;
-      line-height: 1.1;
+      display: none;
     }
 
     .arena-battle-dock .tutorial-live-panel .user-item .tiny {
       font-size: 10px;
       line-height: 1.22;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .arena-battle-dock .tutorial-live-panel .tutorial-action-legend {
+      display: none;
+    }
+
+    .arena-battle-dock .tutorial-live-panel .interactive-battle-prompt {
+      min-height: 0;
+      font-size: 11px;
+      line-height: 1.15;
+      margin: 0;
     }
 
     .arena-battle-dock .tutorial-live-panel .interactive-battle-actions {
@@ -8132,24 +8146,35 @@ PAGE_TEMPLATE = """
         gap: 5px;
       }
 
+      .arena-battle-dock .tutorial-live-panel .interactive-battle-head,
       .arena-battle-dock .tutorial-live-panel .tutorial-tip-badge {
-        padding: 4px 8px;
-        font-size: 9px;
+        display: none;
       }
 
       .arena-battle-dock .tutorial-live-panel .user-item {
         padding: 5px 7px;
-        max-height: 62px;
-        overflow: auto;
+        max-height: 48px;
+        overflow: hidden;
       }
 
       .arena-battle-dock .tutorial-live-panel .user-item strong {
-        font-size: 11px;
+        display: none;
       }
 
       .arena-battle-dock .tutorial-live-panel .user-item .tiny {
         font-size: 9px;
         line-height: 1.18;
+        -webkit-line-clamp: 2;
+      }
+
+      .arena-battle-dock .tutorial-live-panel .tutorial-action-legend {
+        display: none;
+      }
+
+      .arena-battle-dock .tutorial-live-panel .interactive-battle-prompt {
+        min-height: 0;
+        font-size: 10px;
+        line-height: 1.1;
       }
 
       .arena-battle-dock .tutorial-live-panel .interactive-battle-actions {
