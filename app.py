@@ -2129,7 +2129,7 @@ PAGE_TEMPLATE = """
       top: 50%;
       bottom: auto;
       transform: translate(-50%, -50%);
-      width: min(100%, 388px);
+      width: min(calc(100% - 18px), 430px);
       z-index: 9;
       pointer-events: none;
     }
@@ -2151,10 +2151,10 @@ PAGE_TEMPLATE = """
     }
 
     .arena-battle-dock .interactive-battle-panel.tutorial-live-panel {
-      max-height: min(70vh, 360px);
-      overflow-y: auto;
+      max-height: none;
+      overflow: visible;
       gap: 6px;
-      padding: 8px 10px 10px;
+      padding: 8px 10px 9px;
       scrollbar-width: thin;
     }
 
@@ -2167,7 +2167,7 @@ PAGE_TEMPLATE = """
 
     .arena-battle-dock .tutorial-live-panel .user-item {
       margin-bottom: 2px !important;
-      padding: 7px 9px;
+      padding: 6px 8px;
       border-radius: 12px;
     }
 
@@ -2183,11 +2183,11 @@ PAGE_TEMPLATE = """
 
     .arena-battle-dock .tutorial-live-panel .interactive-battle-actions {
       grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-      gap: 6px;
+      gap: 7px;
     }
 
     .arena-battle-dock .tutorial-live-panel .interactive-action-btn {
-      min-height: 42px;
+      min-height: 38px;
       border-radius: 12px;
       padding: 0 6px;
       font-size: 10px;
@@ -8114,7 +8114,7 @@ PAGE_TEMPLATE = """
       .arena-battle-dock {
         left: 50%;
         right: auto;
-        width: min(calc(100% - 16px), 360px);
+        width: min(calc(100% - 18px), 360px);
         top: 50%;
         bottom: auto;
         transform: translate(-50%, -50%);
@@ -8126,8 +8126,9 @@ PAGE_TEMPLATE = """
       }
 
       .arena-battle-dock .interactive-battle-panel.tutorial-live-panel {
-        max-height: min(58vh, 300px);
-        padding: 7px 8px 8px;
+        max-height: min(62vh, 330px);
+        overflow-y: auto;
+        padding: 6px 8px 8px;
         gap: 5px;
       }
 
@@ -8137,7 +8138,9 @@ PAGE_TEMPLATE = """
       }
 
       .arena-battle-dock .tutorial-live-panel .user-item {
-        padding: 6px 8px;
+        padding: 5px 7px;
+        max-height: 62px;
+        overflow: auto;
       }
 
       .arena-battle-dock .tutorial-live-panel .user-item strong {
@@ -8150,11 +8153,12 @@ PAGE_TEMPLATE = """
       }
 
       .arena-battle-dock .tutorial-live-panel .interactive-battle-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 5px;
       }
 
       .arena-battle-dock .tutorial-live-panel .interactive-action-btn {
-        min-height: 38px;
+        min-height: 34px;
         font-size: 9px;
         border-radius: 10px;
       }
