@@ -3393,6 +3393,25 @@ PAGE_TEMPLATE = """
       overflow: hidden;
     }
 
+    .prebattle-build-row {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .prebattle-build-row .prebattle-build-quick {
+      flex: 0 1 352px;
+      margin-left: auto;
+      margin-right: auto;
+      justify-self: center;
+      box-sizing: border-box;
+    }
+
+    .prebattle-build-row .prebattle-build-advanced.hidden {
+      display: none !important;
+    }
+
     .prebattle-build-quick.hidden {
       display: none;
     }
@@ -7519,6 +7538,10 @@ PAGE_TEMPLATE = """
 
       .prebattle-build-quick {
         width: min(100%, 320px);
+      }
+
+      .prebattle-build-row .prebattle-build-quick {
+        flex-basis: min(100%, 320px);
       }
 
       .prebattle-build-advanced {
@@ -13443,7 +13466,7 @@ PAGE_TEMPLATE = """
                       </select>
                     </div>
                     <div class="tiny" id="prebattle-action-help">${result.player_featured_card ? skillCounterText(result.player_featured_card) : 'Тактическая карта сильнее всего влияет на раунд.'}</div>
-                    <div class="row" style="margin-top:10px;">
+                    <div class="row prebattle-build-row" style="margin-top:10px;">
                       <div class="prebattle-build-quick" id="prebattle-build-quick">
                         <div class="startup-guide-chart prebattle-build-chart" id="prebattle-build-chart" data-build="${String(result.strategy_key || 'balanced') === 'attack_boost' ? 'aggressive' : String(result.strategy_key || 'balanced') === 'defense_boost' ? 'control' : String(result.strategy_key || 'balanced') === 'energy_boost' ? 'fortune' : 'balanced'}">
                           <div class="startup-guide-bar h1"></div>
