@@ -3940,7 +3940,7 @@ PAGE_TEMPLATE = """
 
     .startup-guide-stage {
       position: relative;
-      height: 228px;
+      height: 286px;
       border-radius: 16px;
       border: 1px solid rgba(121, 217, 255, 0.2);
       background: radial-gradient(circle at center, rgba(69, 215, 255, 0.2), rgba(8, 20, 36, 0.94));
@@ -7067,7 +7067,7 @@ PAGE_TEMPLATE = """
       .startup-guide-connection-board,
       .startup-guide-pack-reveal {
         width: calc(100% - 14px);
-        height: 128px;
+        height: 178px;
       }
 
       .startup-guide-connection-board {
@@ -7186,63 +7186,63 @@ PAGE_TEMPLATE = """
 
       .startup-guide-wallet-card {
         left: 10px;
-        top: 10px;
+        top: 12px;
         width: calc(100% - 20px);
-        height: 48px;
+        height: 70px;
         border-radius: 18px;
       }
 
       .startup-guide-wallet-card .head {
-        left: 12px;
-        top: 6px;
-        font-size: 8px;
+        left: 14px;
+        top: 8px;
+        font-size: 9px;
       }
 
       .startup-guide-wallet-card .name {
-        left: 12px;
-        top: 14px;
-        font-size: 11px;
+        left: 14px;
+        top: 22px;
+        font-size: 15px;
       }
 
       .startup-guide-wallet-card .rows {
-        left: 12px;
-        right: 12px;
-        bottom: 6px;
-        gap: 3px;
+        left: 14px;
+        right: 14px;
+        bottom: 8px;
+        gap: 4px;
       }
 
       .startup-guide-wallet-card .rows i {
-        height: 4px;
+        height: 5px;
       }
 
       .startup-guide-domain-panel {
         left: 10px;
         right: 10px;
-        top: 62px;
+        top: 104px;
         width: auto;
-        height: 38px;
+        height: 56px;
         border-radius: 18px;
       }
 
       .startup-guide-domain-panel .tag {
-        left: 10px;
-        top: 5px;
-        padding: 3px 7px;
-        font-size: 8px;
+        left: 14px;
+        top: 8px;
+        padding: 4px 9px;
+        font-size: 9px;
       }
 
       .startup-guide-domain-panel .domain {
-        left: 10px;
-        top: 15px;
-        font-size: 13px;
+        left: 14px;
+        top: 26px;
+        font-size: 18px;
       }
 
       .startup-guide-bridge {
         left: calc(50% - 2px);
         right: auto;
-        top: 50px;
+        top: 82px;
         width: 4px;
-        height: 12px;
+        height: 22px;
         transform: none;
         background: linear-gradient(180deg, rgba(88, 210, 255, 0.22), rgba(88, 210, 255, 0.62), rgba(88, 210, 255, 0.22));
       }
