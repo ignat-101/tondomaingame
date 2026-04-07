@@ -4017,20 +4017,21 @@ PAGE_TEMPLATE = """
       align-items: center;
       justify-content: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 16px;
       width: 100%;
-      padding: 0 16px;
+      padding: 0 24px;
       box-sizing: border-box;
     }
 
     .startup-guide-control-btn {
-      min-height: 38px;
-      padding: 0 16px;
+      min-height: 44px;
+      min-width: 132px;
+      padding: 0 22px;
       border-radius: 999px;
       border: 1px solid rgba(121, 217, 255, 0.24);
       background: rgba(8, 18, 32, 0.84);
       color: #dceeff;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 800;
       cursor: pointer;
       transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
@@ -7393,23 +7394,32 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-scene-column {
-        gap: 8px;
+        gap: 12px;
+        padding: 6px 0 8px;
+        box-sizing: border-box;
       }
 
       .startup-guide-control-row {
-        gap: 6px;
+        gap: 10px;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        width: calc(100% - 8px);
-        padding: 0 4px;
+        width: calc(100% - 24px);
+        padding: 0;
+        margin: 0 auto;
       }
 
       .startup-guide-control-btn {
-        min-height: 32px;
+        min-height: 40px;
         width: 100%;
         min-width: 0;
-        padding: 0 9px;
-        font-size: 10px;
+        padding: 0 11px;
+        font-size: 11px;
+      }
+
+      .startup-guide-control-row .startup-guide-control-btn:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        justify-self: center;
+        width: min(100%, 150px);
       }
 
       .startup-guide-note {
