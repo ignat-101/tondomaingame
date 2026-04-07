@@ -4930,32 +4930,32 @@ PAGE_TEMPLATE = """
       box-shadow: inset 0 -10px 18px rgba(255, 255, 255, 0.12);
     }
 
-    .startup-guide-bar.h1 { height: 74px; }
-    .startup-guide-bar.h2 { height: 106px; }
-    .startup-guide-bar.h3 { height: 132px; }
-    .startup-guide-bar.h4 { height: 98px; }
-    .startup-guide-bar.h5 { height: 64px; }
+    .startup-guide-bar.h1 { height: 78px; }
+    .startup-guide-bar.h2 { height: 108px; }
+    .startup-guide-bar.h3 { height: 136px; }
+    .startup-guide-bar.h4 { height: 96px; }
+    .startup-guide-bar.h5 { height: 60px; }
     .startup-guide-bar.h1 { animation: startupGuideBarWave 2.9s ease-in-out infinite; }
     .startup-guide-bar.h2 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.14s; }
     .startup-guide-bar.h3 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.28s; }
     .startup-guide-bar.h4 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.42s; }
     .startup-guide-bar.h5 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.56s; }
 
-    .startup-guide-chart[data-build="aggressive"] .h1 { height: 108px; }
-    .startup-guide-chart[data-build="aggressive"] .h2 { height: 126px; }
-    .startup-guide-chart[data-build="aggressive"] .h3 { height: 94px; }
-    .startup-guide-chart[data-build="aggressive"] .h4 { height: 78px; }
-    .startup-guide-chart[data-build="aggressive"] .h5 { height: 58px; }
-    .startup-guide-chart[data-build="control"] .h1 { height: 58px; }
-    .startup-guide-chart[data-build="control"] .h2 { height: 88px; }
-    .startup-guide-chart[data-build="control"] .h3 { height: 132px; }
+    .startup-guide-chart[data-build="aggressive"] .h1 { height: 132px; }
+    .startup-guide-chart[data-build="aggressive"] .h2 { height: 118px; }
+    .startup-guide-chart[data-build="aggressive"] .h3 { height: 88px; }
+    .startup-guide-chart[data-build="aggressive"] .h4 { height: 62px; }
+    .startup-guide-chart[data-build="aggressive"] .h5 { height: 44px; }
+    .startup-guide-chart[data-build="control"] .h1 { height: 44px; }
+    .startup-guide-chart[data-build="control"] .h2 { height: 72px; }
+    .startup-guide-chart[data-build="control"] .h3 { height: 136px; }
     .startup-guide-chart[data-build="control"] .h4 { height: 116px; }
-    .startup-guide-chart[data-build="control"] .h5 { height: 92px; }
-    .startup-guide-chart[data-build="fortune"] .h1 { height: 68px; }
-    .startup-guide-chart[data-build="fortune"] .h2 { height: 82px; }
-    .startup-guide-chart[data-build="fortune"] .h3 { height: 84px; }
+    .startup-guide-chart[data-build="control"] .h5 { height: 96px; }
+    .startup-guide-chart[data-build="fortune"] .h1 { height: 48px; }
+    .startup-guide-chart[data-build="fortune"] .h2 { height: 62px; }
+    .startup-guide-chart[data-build="fortune"] .h3 { height: 86px; }
     .startup-guide-chart[data-build="fortune"] .h4 { height: 118px; }
-    .startup-guide-chart[data-build="fortune"] .h5 { height: 132px; }
+    .startup-guide-chart[data-build="fortune"] .h5 { height: 136px; }
 
     .startup-guide-pill-row {
       display: flex;
@@ -7312,16 +7312,16 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-chart {
-        width: min(100%, 286px);
-        height: 120px;
-        gap: 12px;
-        padding: 8px 12px 8px;
+        width: min(100%, 292px);
+        height: 132px;
+        gap: 10px;
+        padding: 8px 10px 8px;
         overflow: hidden;
       }
 
       .startup-guide-bar {
         width: 36px;
-        max-height: calc(100% - 8px);
+        max-height: calc(100% - 6px);
       }
 
       .startup-guide-pill-row {
