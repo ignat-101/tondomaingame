@@ -2150,6 +2150,49 @@ PAGE_TEMPLATE = """
         0 0 0 1px rgba(255, 255, 255, 0.03);
     }
 
+    .arena-battle-dock .interactive-battle-panel.tutorial-live-panel {
+      max-height: min(70vh, 360px);
+      overflow-y: auto;
+      gap: 6px;
+      padding: 8px 10px 10px;
+      scrollbar-width: thin;
+    }
+
+    .arena-battle-dock .tutorial-live-panel .tutorial-tip-badge {
+      margin-bottom: 0;
+      padding: 5px 9px;
+      font-size: 10px;
+      letter-spacing: 0.03em;
+    }
+
+    .arena-battle-dock .tutorial-live-panel .user-item {
+      margin-bottom: 2px !important;
+      padding: 7px 9px;
+      border-radius: 12px;
+    }
+
+    .arena-battle-dock .tutorial-live-panel .user-item strong {
+      font-size: 12px;
+      line-height: 1.1;
+    }
+
+    .arena-battle-dock .tutorial-live-panel .user-item .tiny {
+      font-size: 10px;
+      line-height: 1.22;
+    }
+
+    .arena-battle-dock .tutorial-live-panel .interactive-battle-actions {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 6px;
+    }
+
+    .arena-battle-dock .tutorial-live-panel .interactive-action-btn {
+      min-height: 42px;
+      border-radius: 12px;
+      padding: 0 6px;
+      font-size: 10px;
+    }
+
     .arena-battle-dock .interactive-battle-head {
       display: flex;
       align-items: center;
@@ -3356,11 +3399,32 @@ PAGE_TEMPLATE = """
 
     .prebattle-build-chart {
       width: 100%;
-      max-width: 248px;
-      height: 86px;
+      max-width: 268px;
+      height: 104px;
       margin: 0 auto;
       overflow: hidden;
     }
+
+    .prebattle-build-chart .startup-guide-bar.h1 { height: 54px; }
+    .prebattle-build-chart .startup-guide-bar.h2 { height: 78px; }
+    .prebattle-build-chart .startup-guide-bar.h3 { height: 104px; }
+    .prebattle-build-chart .startup-guide-bar.h4 { height: 66px; }
+    .prebattle-build-chart .startup-guide-bar.h5 { height: 36px; }
+    .prebattle-build-chart[data-build="aggressive"] .h1 { height: 104px; }
+    .prebattle-build-chart[data-build="aggressive"] .h2 { height: 84px; }
+    .prebattle-build-chart[data-build="aggressive"] .h3 { height: 48px; }
+    .prebattle-build-chart[data-build="aggressive"] .h4 { height: 28px; }
+    .prebattle-build-chart[data-build="aggressive"] .h5 { height: 18px; }
+    .prebattle-build-chart[data-build="control"] .h1 { height: 18px; }
+    .prebattle-build-chart[data-build="control"] .h2 { height: 40px; }
+    .prebattle-build-chart[data-build="control"] .h3 { height: 104px; }
+    .prebattle-build-chart[data-build="control"] .h4 { height: 84px; }
+    .prebattle-build-chart[data-build="control"] .h5 { height: 66px; }
+    .prebattle-build-chart[data-build="fortune"] .h1 { height: 18px; }
+    .prebattle-build-chart[data-build="fortune"] .h2 { height: 30px; }
+    .prebattle-build-chart[data-build="fortune"] .h3 { height: 52px; }
+    .prebattle-build-chart[data-build="fortune"] .h4 { height: 84px; }
+    .prebattle-build-chart[data-build="fortune"] .h5 { height: 104px; }
 
     .prebattle-build-actions {
       display: grid;
@@ -4929,34 +4993,35 @@ PAGE_TEMPLATE = """
       border-radius: 12px 12px 8px 8px;
       background: linear-gradient(180deg, rgba(134, 243, 191, 0.96), rgba(98, 196, 156, 0.78));
       box-shadow: inset 0 -10px 18px rgba(255, 255, 255, 0.12);
+      transform-origin: bottom center;
     }
 
-    .startup-guide-bar.h1 { height: 78px; }
-    .startup-guide-bar.h2 { height: 108px; }
-    .startup-guide-bar.h3 { height: 136px; }
-    .startup-guide-bar.h4 { height: 96px; }
-    .startup-guide-bar.h5 { height: 60px; }
+    .startup-guide-bar.h1 { height: 76px; }
+    .startup-guide-bar.h2 { height: 112px; }
+    .startup-guide-bar.h3 { height: 150px; }
+    .startup-guide-bar.h4 { height: 94px; }
+    .startup-guide-bar.h5 { height: 50px; }
     .startup-guide-bar.h1 { animation: startupGuideBarWave 2.9s ease-in-out infinite; }
     .startup-guide-bar.h2 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.14s; }
     .startup-guide-bar.h3 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.28s; }
     .startup-guide-bar.h4 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.42s; }
     .startup-guide-bar.h5 { animation: startupGuideBarWave 2.9s ease-in-out infinite 0.56s; }
 
-    .startup-guide-chart[data-build="aggressive"] .h1 { height: 132px; }
-    .startup-guide-chart[data-build="aggressive"] .h2 { height: 118px; }
-    .startup-guide-chart[data-build="aggressive"] .h3 { height: 88px; }
-    .startup-guide-chart[data-build="aggressive"] .h4 { height: 62px; }
-    .startup-guide-chart[data-build="aggressive"] .h5 { height: 44px; }
-    .startup-guide-chart[data-build="control"] .h1 { height: 44px; }
-    .startup-guide-chart[data-build="control"] .h2 { height: 72px; }
-    .startup-guide-chart[data-build="control"] .h3 { height: 136px; }
-    .startup-guide-chart[data-build="control"] .h4 { height: 116px; }
-    .startup-guide-chart[data-build="control"] .h5 { height: 96px; }
-    .startup-guide-chart[data-build="fortune"] .h1 { height: 48px; }
-    .startup-guide-chart[data-build="fortune"] .h2 { height: 62px; }
-    .startup-guide-chart[data-build="fortune"] .h3 { height: 86px; }
-    .startup-guide-chart[data-build="fortune"] .h4 { height: 118px; }
-    .startup-guide-chart[data-build="fortune"] .h5 { height: 136px; }
+    .startup-guide-chart[data-build="aggressive"] .h1 { height: 150px; }
+    .startup-guide-chart[data-build="aggressive"] .h2 { height: 128px; }
+    .startup-guide-chart[data-build="aggressive"] .h3 { height: 76px; }
+    .startup-guide-chart[data-build="aggressive"] .h4 { height: 46px; }
+    .startup-guide-chart[data-build="aggressive"] .h5 { height: 30px; }
+    .startup-guide-chart[data-build="control"] .h1 { height: 30px; }
+    .startup-guide-chart[data-build="control"] .h2 { height: 68px; }
+    .startup-guide-chart[data-build="control"] .h3 { height: 150px; }
+    .startup-guide-chart[data-build="control"] .h4 { height: 126px; }
+    .startup-guide-chart[data-build="control"] .h5 { height: 104px; }
+    .startup-guide-chart[data-build="fortune"] .h1 { height: 32px; }
+    .startup-guide-chart[data-build="fortune"] .h2 { height: 48px; }
+    .startup-guide-chart[data-build="fortune"] .h3 { height: 82px; }
+    .startup-guide-chart[data-build="fortune"] .h4 { height: 126px; }
+    .startup-guide-chart[data-build="fortune"] .h5 { height: 150px; }
 
     .startup-guide-pill-row {
       display: flex;
@@ -7461,8 +7526,8 @@ PAGE_TEMPLATE = """
       }
 
       .prebattle-build-chart {
-        max-width: 230px;
-        height: 82px;
+        max-width: 250px;
+        height: 112px;
       }
 
       .prebattle-build-actions {
@@ -8035,6 +8100,40 @@ PAGE_TEMPLATE = """
       .arena-battle-dock .interactive-battle-panel {
         padding: 10px 10px 12px;
         border-radius: 16px;
+      }
+
+      .arena-battle-dock .interactive-battle-panel.tutorial-live-panel {
+        max-height: min(58vh, 300px);
+        padding: 7px 8px 8px;
+        gap: 5px;
+      }
+
+      .arena-battle-dock .tutorial-live-panel .tutorial-tip-badge {
+        padding: 4px 8px;
+        font-size: 9px;
+      }
+
+      .arena-battle-dock .tutorial-live-panel .user-item {
+        padding: 6px 8px;
+      }
+
+      .arena-battle-dock .tutorial-live-panel .user-item strong {
+        font-size: 11px;
+      }
+
+      .arena-battle-dock .tutorial-live-panel .user-item .tiny {
+        font-size: 9px;
+        line-height: 1.18;
+      }
+
+      .arena-battle-dock .tutorial-live-panel .interactive-battle-actions {
+        gap: 5px;
+      }
+
+      .arena-battle-dock .tutorial-live-panel .interactive-action-btn {
+        min-height: 38px;
+        font-size: 9px;
+        border-radius: 10px;
       }
 
       .arena-battle-dock .interactive-battle-head {
@@ -13237,7 +13336,7 @@ PAGE_TEMPLATE = """
         const interactiveDock = result.interactive_live
           ? `
               <div class="arena-battle-dock">
-                <div class="interactive-battle-panel" id="interactive-battle-panel">
+                <div class="interactive-battle-panel ${tutorialMeta ? 'tutorial-live-panel' : ''}" id="interactive-battle-panel">
                   <div class="interactive-battle-head">
                     <div class="interactive-battle-title">Раунд ${activeRoundNumber}</div>
                     <div class="interactive-timer" id="interactive-timer">5 c</div>
@@ -13360,7 +13459,6 @@ PAGE_TEMPLATE = """
                           <button type="button" class="prebattle-build-btn ${String(result.strategy_key || 'balanced') === 'energy_boost' ? 'active' : ''}" data-build-preset="fortune">Удача</button>
                         </div>
                         <div class="tiny" id="prebattle-strategy-help" style="text-align:center;"><strong>${selectedStrategy.label}:</strong> ${selectedStrategy.description}</div>
-                        <button type="button" class="secondary" id="prebattle-advanced-toggle">Расширенный режим</button>
                       </div>
                       <div class="prebattle-build-advanced hidden" id="prebattle-build-advanced">
                         <select id="prebattle-strategy">
@@ -13419,8 +13517,6 @@ PAGE_TEMPLATE = """
         const prebattleActionHelp = battleResult.querySelector('#prebattle-action-help');
         const prebattleStage = battleResult.querySelector('#prebattle-stage');
         const prebattleBuildChart = battleResult.querySelector('#prebattle-build-chart');
-        const prebattleBuildAdvanced = battleResult.querySelector('#prebattle-build-advanced');
-        const prebattleAdvancedToggle = battleResult.querySelector('#prebattle-advanced-toggle');
         const showdownMain = battleResult.querySelector('.showdown-main');
         const interactiveBattlePanel = battleResult.querySelector('#interactive-battle-panel');
         const interactiveBattleStatus = battleResult.querySelector('#interactive-battle-status');
@@ -13510,12 +13606,6 @@ PAGE_TEMPLATE = """
             applyPrebattlePreset(button.dataset.buildPreset || 'balanced');
           });
         });
-        if (prebattleAdvancedToggle && prebattleBuildAdvanced) {
-          prebattleAdvancedToggle.addEventListener('click', () => {
-            const hidden = prebattleBuildAdvanced.classList.toggle('hidden');
-            prebattleAdvancedToggle.textContent = hidden ? 'Расширенный режим' : 'Скрыть расширенный режим';
-          });
-        }
         if (startBtn) {
           startBtn.addEventListener('click', async () => {
             queueTmaModeSync();
