@@ -9855,6 +9855,7 @@ PAGE_TEMPLATE = """
 
     let tmaSyncRaf = null;
     let tmaSyncTimers = [];
+    let tmaResizeObserver = null;
 
     function clearScheduledTmaSyncs() {
       tmaSyncTimers.forEach((timer) => window.clearTimeout(timer));
@@ -9864,6 +9865,13 @@ PAGE_TEMPLATE = """
     function performTmaSync() {
       syncTmaMode();
       syncTmaViewport();
+      const appWidth = getComputedStyle(document.documentElement).getPropertyValue('--app-width').trim();
+      if (appWidth) {
+        document.documentElement.style.width = appWidth;
+        document.documentElement.style.maxWidth = appWidth;
+        document.body.style.width = appWidth;
+        document.body.style.maxWidth = appWidth;
+      }
       resetHorizontalViewportDrift();
     }
 
@@ -9921,9 +9929,37 @@ PAGE_TEMPLATE = """
     }
 
     function resetHorizontalViewportDrift() {
+      const scrollingElement = document.scrollingElement || document.documentElement;
       document.documentElement.scrollLeft = 0;
       document.body.scrollLeft = 0;
+      if (scrollingElement) scrollingElement.scrollLeft = 0;
+      document.querySelectorAll('.shell, .layout, #view-wallet, .panel, .wallet-quick-panel').forEach((node) => {
+        try {
+          node.scrollLeft = 0;
+        } catch (_) {
+        }
+      });
       window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' });
+    }
+
+    function setupTmaResizeWatchers() {
+      if (!('ResizeObserver' in window)) return;
+      if (tmaResizeObserver) {
+        try {
+          tmaResizeObserver.disconnect();
+        } catch (_) {
+        }
+      }
+      tmaResizeObserver = new ResizeObserver(() => {
+        queueTmaModeSync();
+      });
+      document.querySelectorAll('.shell, .layout, #view-wallet, #ton-connect, #global-currency-float, .wallet-quick-panel').forEach((node) => {
+        if (!node) return;
+        try {
+          tmaResizeObserver.observe(node);
+        } catch (_) {
+        }
+      });
     }
 
     function clearPendingDuelLaunchParams() {
@@ -15971,6 +16007,7 @@ PAGE_TEMPLATE = """
     syncTmaMode();
     syncTmaViewport();
     resetHorizontalViewportDrift();
+    setupTmaResizeWatchers();
     const tgWebApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tgWebApp && typeof tgWebApp.onEvent === 'function') {
       tgWebApp.onEvent('viewportChanged', queueTmaModeSync);
