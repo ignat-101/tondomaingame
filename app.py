@@ -8453,10 +8453,12 @@ PAGE_TEMPLATE = """
       }
     }
 
+    html.tma-app,
     body.tma-app {
       padding-bottom: calc(116px + env(safe-area-inset-bottom));
       touch-action: pan-y;
       overflow-x: hidden;
+      max-width: 100vw;
     }
 
     body.tma-app .shell {
@@ -8484,6 +8486,8 @@ PAGE_TEMPLATE = """
     body.tma-app .hero,
     body.tma-app .panel {
       border-radius: 20px;
+      width: 100%;
+      max-width: 100%;
     }
 
     body.tma-app .panel,
@@ -8497,6 +8501,17 @@ PAGE_TEMPLATE = """
       padding: 12px;
       max-width: 100%;
       overflow-x: hidden;
+    }
+
+    body.tma-app #ton-connect,
+    body.tma-app #ton-connect > div,
+    body.tma-app #ton-connect iframe,
+    body.tma-app #ton-connect button,
+    body.tma-app #ton-connect [role="button"] {
+      max-width: 100% !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      box-sizing: border-box !important;
     }
 
     body.tma-app .hero {
@@ -15749,6 +15764,10 @@ PAGE_TEMPLATE = """
           renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
           setStatus(walletStatus, 'Подключи кошелёк через TonConnect.', 'warning');
         }
+        queueTmaModeSync();
+        window.setTimeout(queueTmaModeSync, 60);
+        window.setTimeout(queueTmaModeSync, 180);
+        window.setTimeout(queueTmaModeSync, 420);
       };
 
       tonConnectUI.onStatusChange(async () => {
