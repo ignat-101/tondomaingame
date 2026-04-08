@@ -8456,6 +8456,7 @@ PAGE_TEMPLATE = """
     body.tma-app {
       padding-bottom: calc(116px + env(safe-area-inset-bottom));
       touch-action: pan-y;
+      overflow-x: hidden;
     }
 
     body.tma-app .shell {
@@ -8471,6 +8472,9 @@ PAGE_TEMPLATE = """
 
     body.tma-app .layout {
       grid-template-columns: 1fr;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
     }
 
     body.tma-app .side {
@@ -8491,6 +8495,8 @@ PAGE_TEMPLATE = """
     body.tma-app .user-item,
     body.tma-app .catalog-card {
       padding: 12px;
+      max-width: 100%;
+      overflow-x: hidden;
     }
 
     body.tma-app .hero {
@@ -14655,6 +14661,7 @@ PAGE_TEMPLATE = """
         } else {
           loadDisciplineBuild();
         }
+        queueTmaModeSync();
       } catch (error) {
         setStatus(walletStatus, error.message, 'error');
       }
@@ -15590,6 +15597,7 @@ PAGE_TEMPLATE = """
           setStatus(document.getElementById('pack-status'), `Активная колода переключена на ${data.domain}.ton.`, 'success');
         }
         await loadDisciplineBuild();
+        queueTmaModeSync();
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
