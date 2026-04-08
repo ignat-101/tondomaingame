@@ -1019,19 +1019,26 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
-    .card-grid.reveal .game-card {
+    .card-grid.reveal .game-card,
+    .card-grid.reveal .pack-flip-card {
       opacity: 0;
       transform: translateY(14px) rotateY(90deg);
       animation: cardFlipIn 650ms ease forwards;
     }
 
-    .card-grid.reveal .game-card:nth-child(1) { animation-delay: 0.05s; }
-    .card-grid.reveal .game-card:nth-child(2) { animation-delay: 0.15s; }
-    .card-grid.reveal .game-card:nth-child(3) { animation-delay: 0.25s; }
-    .card-grid.reveal .game-card:nth-child(4) { animation-delay: 0.35s; }
-    .card-grid.reveal .game-card:nth-child(5) { animation-delay: 0.45s; }
+    .card-grid.reveal .game-card:nth-child(1),
+    .card-grid.reveal .pack-flip-card:nth-child(1) { animation-delay: 0.05s; }
+    .card-grid.reveal .game-card:nth-child(2),
+    .card-grid.reveal .pack-flip-card:nth-child(2) { animation-delay: 0.15s; }
+    .card-grid.reveal .game-card:nth-child(3),
+    .card-grid.reveal .pack-flip-card:nth-child(3) { animation-delay: 0.25s; }
+    .card-grid.reveal .game-card:nth-child(4),
+    .card-grid.reveal .pack-flip-card:nth-child(4) { animation-delay: 0.35s; }
+    .card-grid.reveal .game-card:nth-child(5),
+    .card-grid.reveal .pack-flip-card:nth-child(5) { animation-delay: 0.45s; }
 
-    .card-grid.pack-emerge.reveal .game-card {
+    .card-grid.pack-emerge.reveal .game-card,
+    .card-grid.pack-emerge.reveal .pack-flip-card {
       animation: packCardRise 820ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
@@ -1053,15 +1060,103 @@ PAGE_TEMPLATE = """
       100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0deg); filter: blur(0); }
     }
 
-    .card-grid.sequence-prep .game-card {
+    .card-grid.sequence-prep .game-card,
+    .card-grid.sequence-prep .pack-flip-card {
       opacity: 0;
       transform: scale(0.86) translateY(18px);
       transition: opacity 320ms ease, transform 320ms ease;
     }
 
-    .card-grid.sequence-prep .game-card.sequence-visible {
+    .card-grid.sequence-prep .game-card.sequence-visible,
+    .card-grid.sequence-prep .pack-flip-card.sequence-visible {
       opacity: 1;
       transform: scale(1) translateY(0);
+    }
+
+    .pack-flip-card {
+      position: relative;
+      min-height: 250px;
+      perspective: 1400px;
+      transform-style: preserve-3d;
+      opacity: 1;
+    }
+
+    .pack-flip-inner {
+      position: relative;
+      min-height: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      animation: packLootFlip 900ms cubic-bezier(.16,.84,.2,1) both;
+      animation-delay: var(--pack-flip-delay, 0ms);
+    }
+
+    .pack-flip-back,
+    .pack-flip-front {
+      min-height: 100%;
+      height: 100%;
+      border-radius: 20px;
+      overflow: hidden;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .pack-flip-back {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255, 211, 110, 0.42);
+      background: var(--pack-cardback-surface, linear-gradient(180deg, rgba(60,68,82,0.98), rgba(38,44,56,0.98)));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.08),
+        0 18px 42px rgba(0,0,0,0.36);
+    }
+
+    .pack-flip-back::after {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), transparent 62%);
+    }
+
+    .pack-flip-front {
+      position: relative;
+      transform: rotateY(180deg);
+    }
+
+    .pack-flip-front .game-card {
+      min-height: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    .pack-flip-card.sequence-visible .pack-flip-inner,
+    .card-grid.reveal:not(.sequence-prep) .pack-flip-card .pack-flip-inner {
+      animation: none;
+      transform: rotateY(180deg);
+    }
+
+    .pack-flip-card.sequence-visible::after,
+    .card-grid.reveal:not(.sequence-prep) .pack-flip-card::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: 22px;
+      pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(255, 211, 110, 0.34), 0 0 28px rgba(255, 211, 110, 0.22);
+      animation: packLootHighlight 900ms ease both;
+    }
+
+    @keyframes packLootFlip {
+      0% { transform: translateY(-18px) rotateY(0deg) scale(0.96); filter: brightness(0.9); }
+      58% { transform: translateY(6px) rotateY(164deg) scale(1.02); filter: brightness(1.12); }
+      100% { transform: translateY(0) rotateY(180deg) scale(1); filter: brightness(1); }
+    }
+
+    @keyframes packLootHighlight {
+      0% { opacity: 0; }
+      30% { opacity: 1; }
+      100% { opacity: 0; }
     }
 
     .duel-anim {
@@ -6510,6 +6605,17 @@ PAGE_TEMPLATE = """
       transform: scale(1);
     }
 
+    .reward-pack-btn.reward-pack-empty {
+      opacity: 0.52;
+      filter: grayscale(0.35);
+    }
+
+    .reward-pack-btn.reward-pack-ready {
+      opacity: 1;
+      border-color: rgba(83, 246, 184, 0.42);
+      box-shadow: 0 0 0 1px rgba(83, 246, 184, 0.14), 0 12px 28px rgba(83, 246, 184, 0.12);
+    }
+
     .foil-pack.vanishing {
       animation: packVanish 1.5s cubic-bezier(.16,.84,.2,1) forwards;
     }
@@ -6766,6 +6872,15 @@ PAGE_TEMPLATE = """
       padding: 18px;
       overflow: hidden;
       box-shadow: inset 0 0 0 1px rgba(121, 217, 255, 0.24);
+    }
+
+    .pack-preview-card .pack-flip-card {
+      min-height: min(560px, 78vh);
+      height: min(560px, 78vh);
+    }
+
+    .pack-preview-card .pack-flip-inner {
+      animation-delay: 0ms;
     }
 
     .pack-preview-card.focused {
@@ -7880,6 +7995,7 @@ PAGE_TEMPLATE = """
         margin-top: 12px;
         padding: 12px 10px 14px;
         border-radius: 22px;
+        max-width: 100%;
       }
 
       .pack-counter {
@@ -7901,7 +8017,7 @@ PAGE_TEMPLATE = """
 
       .foil-pack,
       .pack-showcase.cinematic .foil-pack {
-        width: min(280px, calc(100vw - 70px));
+        width: min(270px, calc(100vw - 64px));
         border-radius: 20px;
       }
 
@@ -7920,11 +8036,28 @@ PAGE_TEMPLATE = """
       }
 
       .pack-preview-card {
-        width: min(300px, calc(100vw - 28px));
+        width: min(292px, calc(100vw - 24px));
       }
 
       .pack-preview-card .game-card {
-        padding: 14px;
+        padding: 12px;
+      }
+
+      .pack-flip-card {
+        min-height: 220px;
+      }
+
+      .pack-preview-card .pack-flip-card {
+        min-height: min(500px, 72vh);
+        height: min(500px, 72vh);
+      }
+
+      .reward-pack-btn,
+      #open-pack-btn,
+      #claim-daily-reward-btn,
+      #claim-quest-reward-btn {
+        width: 100%;
+        min-height: 44px;
       }
 
       .wallet-domain-card,
@@ -8458,6 +8591,59 @@ PAGE_TEMPLATE = """
 
     body.tma-app #nav-achievements {
       font-size: 9px;
+    }
+
+    @media (max-width: 425px) {
+      body {
+        overflow-x: hidden;
+      }
+
+      .shell,
+      .panel,
+      .view {
+        max-width: 100%;
+      }
+
+      #view-pack .actions,
+      #reward-pack-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .pack-showcase {
+        padding-inline: 8px;
+      }
+
+      .foil-pack,
+      .pack-showcase.cinematic .foil-pack {
+        width: min(260px, calc(100vw - 52px));
+      }
+
+      .pack-counter {
+        max-width: calc(100vw - 48px);
+      }
+    }
+
+    @media (max-width: 360px) {
+      .foil-pack,
+      .pack-showcase.cinematic .foil-pack {
+        width: min(236px, calc(100vw - 42px));
+      }
+
+      .pack-note,
+      .pack-tap {
+        letter-spacing: 0.08em;
+      }
+
+      .pack-preview-card {
+        width: calc(100vw - 18px);
+      }
+
+      .pack-preview-card .pack-flip-card {
+        min-height: min(450px, 68vh);
+        height: min(450px, 68vh);
+      }
     }
   </style>
 </head>
@@ -10273,6 +10459,8 @@ PAGE_TEMPLATE = """
         claimQuestRewardBtn.disabled = true;
         document.querySelectorAll('.reward-pack-btn').forEach((button) => {
           button.disabled = true;
+          button.classList.remove('reward-pack-ready');
+          button.classList.add('reward-pack-empty');
         });
         return;
       }
@@ -10282,10 +10470,16 @@ PAGE_TEMPLATE = """
       claimDailyRewardBtn.disabled = !(state.wallet && rewards.daily_available);
       claimQuestRewardBtn.disabled = !(state.wallet && rewards.quest_ready);
       document.querySelectorAll('.reward-pack-btn').forEach((button) => {
-        const meta = packTypeMeta(button.dataset.rewardPack);
+        const packKey = button.dataset.rewardPack;
+        const meta = packTypeMeta(packKey);
         const costs = (meta && meta.costs) || {};
-        button.textContent = `${meta ? meta.label : button.dataset.rewardPack} за ${packCostText(costs)}`;
-        button.disabled = !(state.wallet && state.selectedDomain && canAffordPack(costs, rewards));
+        const available = Boolean(state.wallet && state.selectedDomain && canAffordPack(costs, rewards));
+        button.textContent = packKey === 'cosmetic'
+          ? (meta ? meta.label : 'Косметический пак')
+          : `${meta ? meta.label : packKey} за ${packCostText(costs)}`;
+        button.disabled = !available;
+        button.classList.toggle('reward-pack-ready', available);
+        button.classList.toggle('reward-pack-empty', !available);
       });
     }
 
@@ -10988,6 +11182,17 @@ PAGE_TEMPLATE = """
           softCameraFocus(preferredCard);
         }
       }
+      if (name === 'profile') {
+        requestAnimationFrame(() => {
+          resetHorizontalViewportDrift();
+          syncTmaMode();
+          syncTmaViewport();
+          requestAnimationFrame(() => {
+            resetHorizontalViewportDrift();
+            syncTmaViewport();
+          });
+        });
+      }
     }
 
     function setMascotOpen(open) {
@@ -11259,6 +11464,11 @@ PAGE_TEMPLATE = """
       renderGuildPanel();
       renderTutorialPanel();
       renderClanSeasonHub();
+      const profileView = document.getElementById('view-profile');
+      if (profileView && profileView.classList.contains('active')) {
+        queueTmaModeSync();
+        requestAnimationFrame(resetHorizontalViewportDrift);
+      }
     }
 
     function telegramLinkTitle() {
@@ -12429,7 +12639,7 @@ PAGE_TEMPLATE = """
 
     async function playPackSequence() {
       const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const targets = Array.from(packCards.querySelectorAll('.game-card'));
+      const targets = Array.from(packCards.querySelectorAll('.pack-flip-card, .game-card'));
       if (!targets.length || prefersReduced) {
         packCards.classList.remove('sequence-prep');
         requestAnimationFrame(() => packCards.classList.add('reveal'));
@@ -12448,10 +12658,12 @@ PAGE_TEMPLATE = """
 
       for (const [index, target] of targets.entries()) {
         const preview = document.createElement('article');
-        preview.className = 'pack-preview-card';
-        const previewCard = document.createElement('article');
-        previewCard.className = 'game-card';
-        previewCard.innerHTML = target.innerHTML;
+        preview.className = 'pack-preview-card pack-preview-card-flip';
+        const previewCard = target.cloneNode(true);
+        previewCard.classList.remove('sequence-visible');
+        if (previewCard.style && previewCard.style.setProperty) {
+          previewCard.style.setProperty('--pack-flip-delay', '0ms');
+        }
         preview.appendChild(previewCard);
         preview.style.left = `${startX}px`;
         preview.style.top = `${startY}px`;
@@ -12520,6 +12732,38 @@ PAGE_TEMPLATE = """
       packCards.classList.add('reveal');
     }
 
+    function currentPackCardbackSurface() {
+      const equipped = (state.playerProfile && state.playerProfile.rewards && state.playerProfile.rewards.equipped_cosmetics) || {};
+      const backKey = ((equipped.cardback || {}).key) || 'cardback_stock_plain';
+      const emoji = cosmeticEmojiSymbol(equipped);
+      return giftCardbackSurface(backKey, emoji);
+    }
+
+    function packLootCardMarkup(card) {
+      return `
+        <article class="game-card">
+          <div class="tiny">${escapeHtml(card.rarity || '')}</div>
+          <h3>${escapeHtml(card.title || 'Карта')}</h3>
+          <p>${escapeHtml(card.domain || '')}.ton • слот ${escapeHtml(String(card.slot || '-'))}</p>
+          <div class="team-line"><span>Базовая сила</span><strong>${escapeHtml(String(card.pool_value || card.base_power || 0))}</strong></div>
+          <div class="team-line"><span>Скилл</span><strong>${escapeHtml(card.skill_name || '-')}</strong></div>
+          <p>${escapeHtml(card.ability || '')}</p>
+        </article>
+      `;
+    }
+
+    function packLootFlipMarkup(card, index) {
+      const surface = currentPackCardbackSurface();
+      return `
+        <article class="pack-flip-card" style="--pack-cardback-surface:${escapeHtml(surface)}; --pack-flip-delay:${60 + Number(index || 0) * 90}ms;">
+          <div class="pack-flip-inner">
+            <div class="pack-flip-back" aria-hidden="true"></div>
+            <div class="pack-flip-front">${packLootCardMarkup(card)}</div>
+          </div>
+        </article>
+      `;
+    }
+
     async function renderPack(cards, total, cinematic = true) {
       const rarityOrderIndex = { basic: 0, rare: 1, epic: 2, mythic: 3, legendary: 4 };
       const orderedCards = [...cards].sort((a, b) => {
@@ -12529,16 +12773,7 @@ PAGE_TEMPLATE = """
         return Number(a.slot || 0) - Number(b.slot || 0);
       });
       packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
-      packCards.innerHTML = orderedCards.map((card) => `
-        <article class="game-card">
-          <div class="tiny">${card.rarity}</div>
-          <h3>${card.title}</h3>
-          <p>${card.domain}.ton • слот ${card.slot}</p>
-          <div class="team-line"><span>Базовая сила</span><strong>${card.pool_value || card.base_power || 0}</strong></div>
-          <div class="team-line"><span>Скилл</span><strong>${card.skill_name || '-'}</strong></div>
-          <p>${card.ability}</p>
-        </article>
-      `).join('');
+      packCards.innerHTML = orderedCards.map((card, index) => packLootFlipMarkup(card, index)).join('');
       packScoreLabel.textContent = `Вклад карт: ${total}`;
       refreshOneCardSelector();
       if (cinematic) {
@@ -15503,7 +15738,7 @@ PAGE_TEMPLATE = """
     document.querySelectorAll('.reward-pack-btn').forEach((button) => {
       bindFunctionalControl(button, () => openRewardPack(button.dataset.rewardPack));
     });
-    bindFunctionalControl(foilPack, () => {
+    function triggerPackShowcaseOpen() {
       if (state.packOpening) {
         return;
       }
@@ -15516,6 +15751,17 @@ PAGE_TEMPLATE = """
       if (!document.getElementById('open-pack-btn').disabled) {
         openPack('daily', null, 'common');
       }
+    }
+
+    bindFunctionalControl(foilPack, triggerPackShowcaseOpen);
+    bindFunctionalControl(packShowcase, (event) => {
+      if (event && event.target && typeof event.target.closest === 'function' && event.target.closest('button, a, select, input, textarea')) {
+        return;
+      }
+      if (event && event.target && typeof event.target.closest === 'function' && event.target.closest('#foil-pack')) {
+        return;
+      }
+      triggerPackShowcaseOpen();
     });
     bindFunctionalControl(document.getElementById('continue-to-modes-btn'), () => switchView('modes'));
     bindFunctionalControl(document.getElementById('play-ranked-btn'), () => startMatchmaking('ranked'));
