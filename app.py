@@ -4205,19 +4205,22 @@ PAGE_TEMPLATE = """
     .startup-guide-control-row {
       position: relative;
       z-index: 2;
-      display: flex;
-      align-items: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      align-items: stretch;
       justify-content: center;
-      flex-wrap: wrap;
       gap: 16px;
-      width: 100%;
-      padding: 0 24px;
+      width: calc(100% - 38px);
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 0;
       box-sizing: border-box;
     }
 
     .startup-guide-control-btn {
-      min-height: 44px;
-      min-width: 132px;
+      min-height: 48px;
+      min-width: 0;
+      width: 100%;
       padding: 0 22px;
       border-radius: 999px;
       border: 1px solid rgba(121, 217, 255, 0.24);
@@ -5336,7 +5339,7 @@ PAGE_TEMPLATE = """
       gap: 10px;
       width: 100%;
       box-sizing: border-box;
-      padding: 0 16px 2px;
+      padding: 0 20px 2px;
       margin-top: 10px;
     }
 
@@ -7613,26 +7616,27 @@ PAGE_TEMPLATE = """
       }
 
       .startup-guide-control-row {
-        gap: 10px;
+        gap: 12px;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        width: calc(100% - 24px);
+        width: calc(100% - 20px);
+        max-width: none;
         padding: 0;
         margin: 0 auto;
       }
 
       .startup-guide-control-btn {
-        min-height: 40px;
+        min-height: 44px;
         width: 100%;
         min-width: 0;
-        padding: 0 11px;
-        font-size: 11px;
+        padding: 0 12px;
+        font-size: 12px;
       }
 
       .startup-guide-control-row .startup-guide-control-btn:last-child:nth-child(odd) {
         grid-column: 1 / -1;
         justify-self: center;
-        width: min(100%, 150px);
+        width: min(100%, 170px);
       }
 
       .startup-guide-note {
@@ -7645,15 +7649,15 @@ PAGE_TEMPLATE = """
 
       .startup-guide-actions {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
-        padding: 4px 0 0;
+        gap: 8px;
+        padding: 4px 10px 0;
         margin-top: 0;
         position: static;
         background: none;
       }
 
       .startup-guide-actions button {
-        min-height: 32px;
+        min-height: 36px;
         font-size: 11px;
         padding: 10px 8px;
       }
