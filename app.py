@@ -8464,7 +8464,7 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
-      width: min(100%, calc(var(--app-width, 100vw) - 20px));
+      width: 100%;
       max-width: calc(var(--app-width, 100vw) - 20px);
       margin: 0 auto;
     }
@@ -9863,11 +9863,14 @@ PAGE_TEMPLATE = """
       const stableWidth = tg && Number.isFinite(Number(tg.viewportStableWidth)) && Number(tg.viewportStableWidth) > 0
         ? Number(tg.viewportStableWidth)
         : 0;
-      const viewportWidth = Math.max(
+      const widthCandidates = [
         stableWidth,
         Number(window.visualViewport && window.visualViewport.width) || 0,
         window.innerWidth
-      );
+      ].filter((value) => Number.isFinite(value) && value > 0);
+      const viewportWidth = widthCandidates.length
+        ? Math.min(...widthCandidates)
+        : window.innerWidth;
       document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
       document.documentElement.style.setProperty('--app-width', `${viewportWidth}px`);
       if (tg && typeof tg.expand === 'function') {
