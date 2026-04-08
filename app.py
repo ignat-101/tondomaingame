@@ -8464,6 +8464,9 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
+      width: min(100%, calc(var(--app-width, 100vw) - 20px));
+      max-width: calc(var(--app-width, 100vw) - 20px);
+      margin: 0 auto;
     }
 
     body.tma-app .layout {
@@ -9830,14 +9833,41 @@ PAGE_TEMPLATE = """
     }
 
     let tmaSyncRaf = null;
+    let tmaSyncTimers = [];
+
+    function clearScheduledTmaSyncs() {
+      tmaSyncTimers.forEach((timer) => window.clearTimeout(timer));
+      tmaSyncTimers = [];
+    }
+
+    function performTmaSync() {
+      syncTmaMode();
+      syncTmaViewport();
+      resetHorizontalViewportDrift();
+    }
+
     function syncTmaViewport() {
       const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-      const viewportHeight = tg && Number.isFinite(Number(tg.viewportHeight)) && Number(tg.viewportHeight) > 0
+      const stableHeight = tg && Number.isFinite(Number(tg.viewportStableHeight)) && Number(tg.viewportStableHeight) > 0
+        ? Number(tg.viewportStableHeight)
+        : 0;
+      const dynamicHeight = tg && Number.isFinite(Number(tg.viewportHeight)) && Number(tg.viewportHeight) > 0
         ? Number(tg.viewportHeight)
-        : window.innerHeight;
-      const viewportWidth = tg && Number.isFinite(Number(tg.viewportStableWidth)) && Number(tg.viewportStableWidth) > 0
+        : 0;
+      const viewportHeight = Math.max(
+        stableHeight,
+        dynamicHeight,
+        Number(window.visualViewport && window.visualViewport.height) || 0,
+        window.innerHeight
+      );
+      const stableWidth = tg && Number.isFinite(Number(tg.viewportStableWidth)) && Number(tg.viewportStableWidth) > 0
         ? Number(tg.viewportStableWidth)
-        : window.innerWidth;
+        : 0;
+      const viewportWidth = Math.max(
+        stableWidth,
+        Number(window.visualViewport && window.visualViewport.width) || 0,
+        window.innerWidth
+      );
       document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
       document.documentElement.style.setProperty('--app-width', `${viewportWidth}px`);
       if (tg && typeof tg.expand === 'function') {
@@ -9855,8 +9885,14 @@ PAGE_TEMPLATE = """
       }
       tmaSyncRaf = window.requestAnimationFrame(() => {
         tmaSyncRaf = null;
-        syncTmaMode();
-        syncTmaViewport();
+        clearScheduledTmaSyncs();
+        performTmaSync();
+        [80, 220, 420].forEach((delay) => {
+          const timer = window.setTimeout(() => {
+            performTmaSync();
+          }, delay);
+          tmaSyncTimers.push(timer);
+        });
       });
     }
 
