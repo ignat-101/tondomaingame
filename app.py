@@ -6956,7 +6956,7 @@ PAGE_TEMPLATE = """
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
       pointer-events: none;
       opacity: 0;
       transform: translate(-50%, -50%) scale(0.76);
@@ -6976,8 +6976,8 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-slot {
-      flex: 0 0 min(180px, 17vw);
-      max-width: min(180px, 17vw);
+      flex: 0 0 min(164px, 18vw);
+      max-width: min(164px, 18vw);
     }
 
     .pack-preview-grid .pack-flip-card {
@@ -6989,7 +6989,24 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-grid .pack-flip-inner {
-      animation-duration: 960ms;
+      animation-duration: 1320ms;
+    }
+
+    .pack-preview-grid .pack-flip-front .game-card {
+      padding: 12px 10px;
+    }
+
+    .pack-preview-grid .pack-flip-front .game-card h3 {
+      font-size: 16px;
+      line-height: 1.05;
+      margin-bottom: 8px;
+    }
+
+    .pack-preview-grid .pack-flip-front .game-card p,
+    .pack-preview-grid .pack-flip-front .game-card .tiny,
+    .pack-preview-grid .pack-flip-front .game-card .team-line {
+      font-size: 11px;
+      line-height: 1.25;
     }
 
     @media (max-width: 720px) {
@@ -6999,13 +7016,28 @@ PAGE_TEMPLATE = """
       }
 
       .pack-preview-slot {
-        flex-basis: min(78px, 18vw);
-        max-width: min(78px, 18vw);
+        flex-basis: min(68px, 18vw);
+        max-width: min(68px, 18vw);
       }
 
       .pack-preview-grid .pack-flip-card {
-        min-height: min(220px, 42vh);
-        height: min(220px, 42vh);
+        min-height: min(210px, 40vh);
+        height: min(210px, 40vh);
+      }
+
+      .pack-preview-grid .pack-flip-front .game-card {
+        padding: 8px 7px;
+      }
+
+      .pack-preview-grid .pack-flip-front .game-card h3 {
+        font-size: 10px;
+        margin-bottom: 5px;
+      }
+
+      .pack-preview-grid .pack-flip-front .game-card p,
+      .pack-preview-grid .pack-flip-front .game-card .tiny,
+      .pack-preview-grid .pack-flip-front .game-card .team-line {
+        font-size: 8px;
       }
     }
 
@@ -10097,6 +10129,8 @@ PAGE_TEMPLATE = """
         [80, 220, 420].forEach((delay) => {
           const timer = window.setTimeout(() => {
             performTmaSync();
+            alignTmaShellToViewport();
+            resetHorizontalViewportDrift();
           }, delay);
           tmaSyncTimers.push(timer);
         });
@@ -10125,6 +10159,32 @@ PAGE_TEMPLATE = """
       window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' });
     }
 
+    function correctTmaShellDrift() {
+      if (!isTelegramMiniApp()) return;
+      const shell = document.querySelector('.shell');
+      if (!shell) return;
+      const viewportWidth = Math.max(
+        0,
+        Math.min(
+          Number(window.visualViewport && window.visualViewport.width) || window.innerWidth,
+          window.innerWidth
+        )
+      );
+      const inset = 10;
+      const rect = shell.getBoundingClientRect();
+      let shiftX = 0;
+      if (rect.left < inset) {
+        shiftX = inset - rect.left;
+      } else if (rect.right > viewportWidth - inset) {
+        shiftX = (viewportWidth - inset) - rect.right;
+      }
+      if (Math.abs(shiftX) > 0.5) {
+        shell.style.transform = `translateX(${Math.round(shiftX)}px)`;
+      } else {
+        shell.style.transform = 'none';
+      }
+    }
+
     function alignTmaShellToViewport() {
       if (!isTelegramMiniApp()) return;
       const shell = document.querySelector('.shell');
@@ -10138,6 +10198,9 @@ PAGE_TEMPLATE = """
       shell.style.right = '';
       shell.style.transform = 'none';
       shell.style.willChange = 'auto';
+      window.requestAnimationFrame(() => {
+        correctTmaShellDrift();
+      });
     }
 
     function setupTmaResizeWatchers() {
@@ -12964,10 +13027,10 @@ PAGE_TEMPLATE = """
       await nextFrame();
       layer.classList.add('dimmed');
       grid.classList.add('focused');
-      await sleep(2200);
+      await sleep(3600);
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
-      await sleep(980);
+      await sleep(1220);
       cleanupPackSequencePreview();
     }
 
