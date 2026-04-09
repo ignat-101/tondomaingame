@@ -346,7 +346,7 @@ def _build_cosmetic_catalog():
         {'key': 'cardback_stock_plain', 'type': 'cardback', 'name': 'Stock Plain Cardback', 'source': 'stock', 'nft_family': 'cardback', 'rarity_key': 'basic', 'drop_weight': 22},
         {'key': 'arena_stock_grid', 'type': 'arena', 'name': 'Stock Grid Arena', 'source': 'stock', 'nft_family': 'arena', 'rarity_key': 'basic', 'drop_weight': 20},
         {'key': 'guild_banner_stock_plain', 'type': 'guild', 'name': 'Stock Plain Banner', 'source': 'stock', 'nft_family': 'guild', 'rarity_key': 'basic', 'drop_weight': 20},
-        {'key': 'emoji_stock_dot', 'type': 'emoji', 'name': 'Stock Grid Monogram', 'emoji': '▦', 'source': 'stock', 'nft_family': 'emoji', 'rarity_key': 'basic', 'drop_weight': 18},
+        {'key': 'emoji_stock_dot', 'type': 'emoji', 'name': 'Stock Dot Monogram', 'emoji': '•', 'source': 'stock', 'nft_family': 'emoji', 'rarity_key': 'basic', 'drop_weight': 18},
     ])
     return catalog
 
@@ -1346,6 +1346,13 @@ PAGE_TEMPLATE = """
       opacity: 0.92;
       box-shadow: 0 10px 24px rgba(0,0,0,0.22);
       pointer-events: none;
+    }
+
+    .player-card.profile-preview .player-card-banner {
+      width: 112px;
+      height: 24px;
+      top: 14px;
+      border-radius: 9px;
     }
 
     .player-card-domain {
@@ -6996,11 +7003,11 @@ PAGE_TEMPLATE = """
       left: 50%;
       top: 50%;
       z-index: 7310;
-      width: min(1340px, 98vw);
+      width: min(1480px, 100vw);
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 0;
+      gap: 10px;
       pointer-events: none;
       opacity: 0;
       transform: translate(-50%, -50%) scale(0.76);
@@ -7020,11 +7027,11 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-slot {
-      flex: 0 0 min(228px, 18vw);
-      max-width: min(228px, 18vw);
-      margin-left: -4px;
+      flex: 0 0 min(184px, 16vw);
+      max-width: min(184px, 16vw);
       position: relative;
       z-index: 1;
+      transition: transform 320ms ease, filter 320ms ease;
     }
 
     .pack-preview-slot:first-child {
@@ -7032,7 +7039,7 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-slot:nth-child(1) {
-      transform: translateY(20px) rotate(-10deg);
+      transform: translateY(18px) rotate(-10deg);
       z-index: 1;
     }
 
@@ -7052,23 +7059,62 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-slot:nth-child(5) {
-      transform: translateY(20px) rotate(10deg);
+      transform: translateY(18px) rotate(10deg);
       z-index: 1;
     }
 
+    .pack-preview-slot.revealing,
+    .pack-preview-slot.revealed {
+      z-index: 9;
+      filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.42));
+    }
+
+    .pack-preview-slot.revealing:nth-child(1),
+    .pack-preview-slot.revealed:nth-child(1) {
+      transform: translateY(-4px) rotate(-6deg) scale(1.06);
+    }
+
+    .pack-preview-slot.revealing:nth-child(2),
+    .pack-preview-slot.revealed:nth-child(2) {
+      transform: translateY(-8px) rotate(-3deg) scale(1.08);
+    }
+
+    .pack-preview-slot.revealing:nth-child(3),
+    .pack-preview-slot.revealed:nth-child(3) {
+      transform: translateY(-10px) rotate(0deg) scale(1.1);
+    }
+
+    .pack-preview-slot.revealing:nth-child(4),
+    .pack-preview-slot.revealed:nth-child(4) {
+      transform: translateY(-8px) rotate(3deg) scale(1.08);
+    }
+
+    .pack-preview-slot.revealing:nth-child(5),
+    .pack-preview-slot.revealed:nth-child(5) {
+      transform: translateY(-4px) rotate(6deg) scale(1.06);
+    }
+
     .pack-preview-grid .pack-flip-card {
-      min-height: min(500px, 72vh);
-      height: min(500px, 72vh);
+      min-height: min(460px, 68vh);
+      height: min(460px, 68vh);
       box-shadow:
         0 28px 72px rgba(0, 0, 0, 0.56),
         0 0 0 1px rgba(121, 217, 255, 0.2);
     }
 
     .pack-preview-grid .pack-flip-inner {
-      animation: packPreviewInnerFlip 2580ms cubic-bezier(.16,.84,.2,1) both;
-      animation-delay: var(--pack-flip-delay, 0ms);
+      transition:
+        transform 1050ms cubic-bezier(.16,.84,.2,1),
+        filter 1050ms cubic-bezier(.16,.84,.2,1);
       transform: rotateY(0deg);
       -webkit-transform: rotateY(0deg);
+    }
+
+    .pack-preview-slot.revealing .pack-flip-inner,
+    .pack-preview-slot.revealed .pack-flip-inner {
+      transform: rotateY(180deg);
+      -webkit-transform: rotateY(180deg);
+      filter: brightness(1.05);
     }
 
     .pack-preview-grid .pack-flip-back,
@@ -7101,29 +7147,44 @@ PAGE_TEMPLATE = """
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      gap: 8px;
+      gap: 10px;
     }
 
     .pack-preview-face-card .team-line {
+      margin-top: 6px;
+    }
+
+    .pack-preview-face-card .pack-preview-skill {
+      font-size: 14px;
+      line-height: 1.3;
+      font-weight: 700;
+      color: rgba(236, 245, 255, 0.94);
+      margin: 0;
+    }
+
+    .pack-preview-face-card .pack-preview-meta {
       margin-top: auto;
+      font-size: 12px;
+      line-height: 1.2;
+      color: rgba(199, 216, 236, 0.86);
     }
 
     .pack-preview-grid .pack-flip-front .game-card h3 {
-      font-size: 22px;
+      font-size: 21px;
       line-height: 1.04;
-      margin-bottom: 12px;
+      margin-bottom: 4px;
       text-shadow: 0 4px 14px rgba(0,0,0,0.42);
     }
 
     .pack-preview-grid .pack-flip-front .game-card p,
     .pack-preview-grid .pack-flip-front .game-card .tiny,
-    .pack-preview-grid .pack-flip-front .game-card .team-line {
+    .pack-preview-grid .pack-flip-front .game-card .team-line,
+    .pack-preview-grid .pack-flip-front .game-card .pack-preview-meta {
       font-size: 13px;
       line-height: 1.28;
       margin: 0;
     }
 
-    .pack-preview-grid .pack-flip-front .game-card p,
     .pack-preview-grid .pack-flip-front .game-card .tiny {
       padding: 6px 9px;
       border-radius: 10px;
@@ -7136,39 +7197,19 @@ PAGE_TEMPLATE = """
       background: rgba(8, 16, 27, 0.72);
     }
 
-    @keyframes packPreviewInnerFlip {
-      0%, 36% {
-        transform: rotateY(0deg) scale(0.98);
-        filter: brightness(0.96);
-      }
-      58% {
-        transform: rotateY(88deg) scale(1);
-        filter: brightness(1.02);
-      }
-      72% {
-        transform: rotateY(188deg) scale(1.02);
-        filter: brightness(1.08);
-      }
-      100% {
-        transform: rotateY(180deg) scale(1);
-        filter: brightness(1);
-      }
-    }
-
     @media (max-width: 720px) {
       .pack-preview-grid {
-        width: min(100vw, 620px);
-        gap: 0;
+        width: min(100vw, 640px);
+        gap: 6px;
       }
 
       .pack-preview-slot {
-        flex-basis: min(128px, 24vw);
-        max-width: min(128px, 24vw);
-        margin-left: -4px;
+        flex-basis: min(92px, 18vw);
+        max-width: min(92px, 18vw);
       }
 
       .pack-preview-slot:nth-child(1) {
-        transform: translateY(14px) rotate(-6deg);
+        transform: translateY(12px) rotate(-6deg);
       }
 
       .pack-preview-slot:nth-child(2) {
@@ -7184,27 +7225,54 @@ PAGE_TEMPLATE = """
       }
 
       .pack-preview-slot:nth-child(5) {
-        transform: translateY(14px) rotate(6deg);
+        transform: translateY(12px) rotate(6deg);
+      }
+
+      .pack-preview-slot.revealing:nth-child(1),
+      .pack-preview-slot.revealed:nth-child(1) {
+        transform: translateY(-3px) rotate(-4deg) scale(1.08);
+      }
+
+      .pack-preview-slot.revealing:nth-child(2),
+      .pack-preview-slot.revealed:nth-child(2) {
+        transform: translateY(-6px) rotate(-2deg) scale(1.1);
+      }
+
+      .pack-preview-slot.revealing:nth-child(3),
+      .pack-preview-slot.revealed:nth-child(3) {
+        transform: translateY(-8px) rotate(0deg) scale(1.12);
+      }
+
+      .pack-preview-slot.revealing:nth-child(4),
+      .pack-preview-slot.revealed:nth-child(4) {
+        transform: translateY(-6px) rotate(2deg) scale(1.1);
+      }
+
+      .pack-preview-slot.revealing:nth-child(5),
+      .pack-preview-slot.revealed:nth-child(5) {
+        transform: translateY(-3px) rotate(4deg) scale(1.08);
       }
 
       .pack-preview-grid .pack-flip-card {
-        min-height: min(342px, 58vh);
-        height: min(342px, 58vh);
+        min-height: min(312px, 54vh);
+        height: min(312px, 54vh);
       }
 
       .pack-preview-grid .pack-flip-front .game-card {
-        padding: 14px 10px 12px;
+        padding: 12px 9px 10px;
       }
 
       .pack-preview-grid .pack-flip-front .game-card h3 {
-        font-size: 17px;
-        margin-bottom: 8px;
+        font-size: 15px;
+        margin-bottom: 4px;
       }
 
       .pack-preview-grid .pack-flip-front .game-card p,
       .pack-preview-grid .pack-flip-front .game-card .tiny,
-      .pack-preview-grid .pack-flip-front .game-card .team-line {
-        font-size: 12px;
+      .pack-preview-grid .pack-flip-front .game-card .team-line,
+      .pack-preview-grid .pack-flip-front .game-card .pack-preview-meta,
+      .pack-preview-face-card .pack-preview-skill {
+        font-size: 11px;
       }
     }
 
@@ -8839,6 +8907,13 @@ PAGE_TEMPLATE = """
       min-width: 0;
       box-sizing: border-box;
       overflow-x: clip;
+    }
+
+    body.tma-app .player-card.profile-preview .player-card-banner {
+      width: 88px;
+      height: 18px;
+      top: 10px;
+      border-radius: 8px;
     }
 
     body.tma-app .panel,
@@ -13263,7 +13338,15 @@ PAGE_TEMPLATE = """
       await nextFrame();
       layer.classList.add('dimmed');
       grid.classList.add('focused');
-      await sleep(7600);
+      const slots = Array.from(grid.querySelectorAll('.pack-preview-slot'));
+      for (const slot of slots) {
+        slot.classList.add('revealing');
+        await sleep(1120);
+        slot.classList.remove('revealing');
+        slot.classList.add('revealed');
+        await sleep(560);
+      }
+      await sleep(1750);
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
       await sleep(2050);
@@ -13298,8 +13381,8 @@ PAGE_TEMPLATE = """
           <div class="tiny">${escapeHtml(card.rarity || '')}</div>
           <h3>${escapeHtml(card.title || 'Карта')}</h3>
           <div class="team-line"><span>Сила</span><strong>${escapeHtml(power)}</strong></div>
-          <p>${escapeHtml(skill || 'Без навыка')}</p>
-          <div class="tiny">${escapeHtml(card.domain || '')}.ton • слот ${escapeHtml(String(card.slot || '-'))}</div>
+          <p class="pack-preview-skill">${escapeHtml(skill || 'Без навыка')}</p>
+          <div class="pack-preview-meta">${escapeHtml(card.domain || '')}.ton • слот ${escapeHtml(String(card.slot || '-'))}</div>
         </article>
       `;
     }
@@ -13307,7 +13390,7 @@ PAGE_TEMPLATE = """
     function packLootFlipMarkup(card, index) {
       const surface = currentPackCardbackSurface();
       return `
-        <article class="pack-flip-card" style="--pack-cardback-surface:${escapeHtml(surface)}; --pack-flip-delay:${180 + Number(index || 0) * 210}ms;">
+        <article class="pack-flip-card" style="--pack-cardback-surface:${escapeHtml(surface)};">
           <div class="pack-flip-inner">
             <div class="pack-flip-back" aria-hidden="true"></div>
             <div class="pack-flip-front">${packLootPreviewCardMarkup(card)}</div>
