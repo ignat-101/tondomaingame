@@ -8491,15 +8491,17 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
-      width: calc(var(--app-width, 100vw) - 20px);
-      max-width: calc(var(--app-width, 100vw) - 20px);
+      width: auto;
+      max-width: none;
       margin: 0 10px 0 10px;
+      box-sizing: border-box;
     }
 
     body.tma-app .layout {
       grid-template-columns: 1fr;
       width: 100%;
       max-width: 100%;
+      min-width: 0;
       overflow-x: hidden;
     }
 
@@ -8512,6 +8514,21 @@ PAGE_TEMPLATE = """
       border-radius: 20px;
       width: 100%;
       max-width: 100%;
+      min-width: 0;
+    }
+
+    body.tma-app #view-wallet,
+    body.tma-app .wallet-quick-panel,
+    body.tma-app .wallet-body,
+    body.tma-app .wallet-quick-grid,
+    body.tma-app .wallet-quick-actions,
+    body.tma-app .wallet-box,
+    body.tma-app .panel-body,
+    body.tma-app .profile-preview-hero {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     body.tma-app .panel,
@@ -12860,7 +12877,11 @@ PAGE_TEMPLATE = """
         return Number(a.slot || 0) - Number(b.slot || 0);
       });
       packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
-      packCards.innerHTML = orderedCards.map((card, index) => packLootFlipMarkup(card, index)).join('');
+      if (cinematic) {
+        packCards.innerHTML = orderedCards.map((card, index) => packLootFlipMarkup(card, index)).join('');
+      } else {
+        packCards.innerHTML = orderedCards.map((card) => packLootCardMarkup(card)).join('');
+      }
       packScoreLabel.textContent = `Вклад карт: ${total}`;
       refreshOneCardSelector();
       if (cinematic) {
