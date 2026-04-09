@@ -8503,6 +8503,48 @@ PAGE_TEMPLATE = """
       overflow-x: hidden;
     }
 
+    body.tma-app #view-wallet,
+    body.tma-app .wallet-quick-panel,
+    body.tma-app .wallet-quick-grid,
+    body.tma-app .wallet-quick-item,
+    body.tma-app .wallet-quick-actions,
+    body.tma-app .wallet-telegram-panel,
+    body.tma-app .wallet-telegram-head,
+    body.tma-app .wallet-section,
+    body.tma-app .wallet-section-head,
+    body.tma-app .wallet-domain-card,
+    body.tma-app .wallet-domain-stats,
+    body.tma-app .wallet-domain-mainline,
+    body.tma-app .wallet-domain-more,
+    body.tma-app .owned-decks,
+    body.tma-app .domain-grid,
+    body.tma-app #mobile-profile-summary,
+    body.tma-app #profile-wallet-hub {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+
+    body.tma-app .wallet-quick-grid,
+    body.tma-app .wallet-quick-actions,
+    body.tma-app .wallet-telegram-panel,
+    body.tma-app .wallet-section-head,
+    body.tma-app .wallet-telegram-head {
+      grid-template-columns: 1fr;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    body.tma-app .wallet-quick-actions > *,
+    body.tma-app .wallet-telegram-panel > *,
+    body.tma-app .wallet-section-head > *,
+    body.tma-app .wallet-telegram-head > * {
+      min-width: 0;
+      max-width: 100%;
+    }
+
     body.tma-app #ton-connect,
     body.tma-app #ton-connect > div,
     body.tma-app #ton-connect iframe,
