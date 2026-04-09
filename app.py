@@ -6952,11 +6952,11 @@ PAGE_TEMPLATE = """
       left: 50%;
       top: 50%;
       z-index: 7310;
-      width: min(1100px, 94vw);
+      width: min(1120px, 96vw);
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 10px;
+      gap: 0;
       pointer-events: none;
       opacity: 0;
       transform: translate(-50%, -50%) scale(0.76);
@@ -6976,68 +6976,121 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-slot {
-      flex: 0 0 min(164px, 18vw);
-      max-width: min(164px, 18vw);
+      flex: 0 0 min(182px, 18vw);
+      max-width: min(182px, 18vw);
+      margin-left: -22px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pack-preview-slot:first-child {
+      margin-left: 0;
+    }
+
+    .pack-preview-slot:nth-child(1) {
+      transform: translateY(20px) rotate(-10deg);
+      z-index: 1;
+    }
+
+    .pack-preview-slot:nth-child(2) {
+      transform: translateY(10px) rotate(-5deg);
+      z-index: 2;
+    }
+
+    .pack-preview-slot:nth-child(3) {
+      transform: translateY(0) rotate(0deg);
+      z-index: 5;
+    }
+
+    .pack-preview-slot:nth-child(4) {
+      transform: translateY(10px) rotate(5deg);
+      z-index: 2;
+    }
+
+    .pack-preview-slot:nth-child(5) {
+      transform: translateY(20px) rotate(10deg);
+      z-index: 1;
     }
 
     .pack-preview-grid .pack-flip-card {
-      min-height: min(430px, 64vh);
-      height: min(430px, 64vh);
+      min-height: min(440px, 66vh);
+      height: min(440px, 66vh);
       box-shadow:
         0 28px 72px rgba(0, 0, 0, 0.56),
         0 0 0 1px rgba(121, 217, 255, 0.2);
     }
 
     .pack-preview-grid .pack-flip-inner {
-      animation-duration: 1320ms;
+      animation-duration: 1680ms;
     }
 
     .pack-preview-grid .pack-flip-front .game-card {
-      padding: 12px 10px;
+      padding: 16px 14px;
     }
 
     .pack-preview-grid .pack-flip-front .game-card h3 {
-      font-size: 16px;
-      line-height: 1.05;
-      margin-bottom: 8px;
+      font-size: 20px;
+      line-height: 1.02;
+      margin-bottom: 10px;
     }
 
     .pack-preview-grid .pack-flip-front .game-card p,
     .pack-preview-grid .pack-flip-front .game-card .tiny,
     .pack-preview-grid .pack-flip-front .game-card .team-line {
-      font-size: 11px;
-      line-height: 1.25;
+      font-size: 13px;
+      line-height: 1.3;
     }
 
     @media (max-width: 720px) {
       .pack-preview-grid {
-        width: min(98vw, 430px);
-        gap: 6px;
+        width: min(98vw, 450px);
+        gap: 0;
       }
 
       .pack-preview-slot {
-        flex-basis: min(68px, 18vw);
-        max-width: min(68px, 18vw);
+        flex-basis: min(98px, 24vw);
+        max-width: min(98px, 24vw);
+        margin-left: -26px;
+      }
+
+      .pack-preview-slot:nth-child(1) {
+        transform: translateY(16px) rotate(-10deg);
+      }
+
+      .pack-preview-slot:nth-child(2) {
+        transform: translateY(8px) rotate(-5deg);
+      }
+
+      .pack-preview-slot:nth-child(3) {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      .pack-preview-slot:nth-child(4) {
+        transform: translateY(8px) rotate(5deg);
+      }
+
+      .pack-preview-slot:nth-child(5) {
+        transform: translateY(16px) rotate(10deg);
       }
 
       .pack-preview-grid .pack-flip-card {
-        min-height: min(210px, 40vh);
-        height: min(210px, 40vh);
+        min-height: min(270px, 46vh);
+        height: min(270px, 46vh);
       }
 
       .pack-preview-grid .pack-flip-front .game-card {
-        padding: 8px 7px;
+        padding: 10px 8px;
       }
 
       .pack-preview-grid .pack-flip-front .game-card h3 {
-        font-size: 10px;
-        margin-bottom: 5px;
+        font-size: 13px;
+        margin-bottom: 6px;
       }
 
       .pack-preview-grid .pack-flip-front .game-card p,
       .pack-preview-grid .pack-flip-front .game-card .tiny,
       .pack-preview-grid .pack-flip-front .game-card .team-line {
-        font-size: 8px;
+        font-size: 10px;
       }
     }
 
@@ -8616,15 +8669,16 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
-      width: auto;
-      max-width: none;
-      min-width: 0;
-      margin: 0 10px 0 10px;
+      width: calc(var(--app-width, 100vw) - 20px) !important;
+      max-width: calc(var(--app-width, 100vw) - 20px) !important;
+      min-width: calc(var(--app-width, 100vw) - 20px) !important;
+      margin: 0 10px 0 10px !important;
       box-sizing: border-box;
       position: relative;
-      left: auto !important;
+      left: 0 !important;
       right: auto !important;
       transform: none !important;
+      transform-origin: left top;
     }
 
     body.tma-app .layout {
@@ -10126,7 +10180,7 @@ PAGE_TEMPLATE = """
         tmaSyncRaf = null;
         clearScheduledTmaSyncs();
         performTmaSync();
-        [80, 220, 420].forEach((delay) => {
+        [80, 220, 420, 900, 1500, 2400].forEach((delay) => {
           const timer = window.setTimeout(() => {
             performTmaSync();
             alignTmaShellToViewport();
@@ -10148,11 +10202,6 @@ PAGE_TEMPLATE = """
           node.style.transform = 'none';
           node.style.left = '';
           node.style.right = '';
-          node.style.width = '';
-          node.style.maxWidth = '';
-          node.style.minWidth = '';
-          node.style.marginLeft = '';
-          node.style.marginRight = '';
         } catch (_) {
         }
       });
@@ -10189,17 +10238,30 @@ PAGE_TEMPLATE = """
       if (!isTelegramMiniApp()) return;
       const shell = document.querySelector('.shell');
       if (!shell) return;
-      shell.style.width = '';
-      shell.style.maxWidth = '';
-      shell.style.minWidth = '';
-      shell.style.marginLeft = '';
-      shell.style.marginRight = '';
-      shell.style.left = '';
-      shell.style.right = '';
+      const viewportWidth = getComputedStyle(document.documentElement).getPropertyValue('--app-width').trim() || `${window.innerWidth}px`;
+      shell.style.width = `calc(${viewportWidth} - 20px)`;
+      shell.style.maxWidth = `calc(${viewportWidth} - 20px)`;
+      shell.style.minWidth = `calc(${viewportWidth} - 20px)`;
+      shell.style.marginLeft = '10px';
+      shell.style.marginRight = '10px';
+      shell.style.left = '0';
+      shell.style.right = 'auto';
       shell.style.transform = 'none';
       shell.style.willChange = 'auto';
       window.requestAnimationFrame(() => {
         correctTmaShellDrift();
+      });
+    }
+
+    function stabilizeTmaAfterAsyncRender() {
+      if (!isTelegramMiniApp()) return;
+      [0, 60, 180, 360, 720, 1200, 2000].forEach((delay) => {
+        const timer = window.setTimeout(() => {
+          performTmaSync();
+          alignTmaShellToViewport();
+          resetHorizontalViewportDrift();
+        }, delay);
+        tmaSyncTimers.push(timer);
       });
     }
 
@@ -13027,10 +13089,10 @@ PAGE_TEMPLATE = """
       await nextFrame();
       layer.classList.add('dimmed');
       grid.classList.add('focused');
-      await sleep(3600);
+      await sleep(5000);
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
-      await sleep(1220);
+      await sleep(1450);
       cleanupPackSequencePreview();
     }
 
@@ -13054,13 +13116,25 @@ PAGE_TEMPLATE = """
       `;
     }
 
+    function packLootPreviewCardMarkup(card) {
+      return `
+        <article class="game-card">
+          <div class="tiny">${escapeHtml(card.rarity || '')}</div>
+          <h3>${escapeHtml(card.title || 'Карта')}</h3>
+          <div class="team-line"><span>Базовая сила</span><strong>${escapeHtml(String(card.pool_value || card.base_power || 0))}</strong></div>
+          <div class="team-line"><span>Скилл</span><strong>${escapeHtml(card.skill_name || '-')}</strong></div>
+          <p>${escapeHtml(card.domain || '')}.ton • слот ${escapeHtml(String(card.slot || '-'))}</p>
+        </article>
+      `;
+    }
+
     function packLootFlipMarkup(card, index) {
       const surface = currentPackCardbackSurface();
       return `
         <article class="pack-flip-card" style="--pack-cardback-surface:${escapeHtml(surface)}; --pack-flip-delay:${60 + Number(index || 0) * 90}ms;">
           <div class="pack-flip-inner">
             <div class="pack-flip-back" aria-hidden="true"></div>
-            <div class="pack-flip-front">${packLootCardMarkup(card)}</div>
+            <div class="pack-flip-front">${packLootPreviewCardMarkup(card)}</div>
           </div>
         </article>
       `;
@@ -14918,6 +14992,7 @@ PAGE_TEMPLATE = """
           loadDisciplineBuild();
         }
         queueTmaModeSync();
+        stabilizeTmaAfterAsyncRender();
       } catch (error) {
         setStatus(walletStatus, error.message, 'error');
       }
@@ -15844,6 +15919,7 @@ PAGE_TEMPLATE = """
         }
         await loadDisciplineBuild();
         queueTmaModeSync();
+        stabilizeTmaAfterAsyncRender();
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
@@ -15999,6 +16075,7 @@ PAGE_TEMPLATE = """
         window.setTimeout(queueTmaModeSync, 60);
         window.setTimeout(queueTmaModeSync, 180);
         window.setTimeout(queueTmaModeSync, 420);
+        stabilizeTmaAfterAsyncRender();
       };
 
       tonConnectUI.onStatusChange(async () => {
