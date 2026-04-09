@@ -8467,9 +8467,9 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
-      width: 100%;
+      width: calc(var(--app-width, 100vw) - 20px);
       max-width: calc(var(--app-width, 100vw) - 20px);
-      margin: 0 auto;
+      margin: 0 10px 0 10px;
     }
 
     body.tma-app .layout {
@@ -9865,13 +9865,6 @@ PAGE_TEMPLATE = """
     function performTmaSync() {
       syncTmaMode();
       syncTmaViewport();
-      const appWidth = getComputedStyle(document.documentElement).getPropertyValue('--app-width').trim();
-      if (appWidth) {
-        document.documentElement.style.width = appWidth;
-        document.documentElement.style.maxWidth = appWidth;
-        document.body.style.width = appWidth;
-        document.body.style.maxWidth = appWidth;
-      }
       resetHorizontalViewportDrift();
     }
 
@@ -9933,9 +9926,11 @@ PAGE_TEMPLATE = """
       document.documentElement.scrollLeft = 0;
       document.body.scrollLeft = 0;
       if (scrollingElement) scrollingElement.scrollLeft = 0;
-      document.querySelectorAll('.shell, .layout, #view-wallet, .panel, .wallet-quick-panel').forEach((node) => {
+      document.querySelectorAll('.shell, .layout, #view-wallet, .panel, .wallet-quick-panel, .hero').forEach((node) => {
         try {
           node.scrollLeft = 0;
+          node.style.transform = 'translateX(0)';
+          node.style.left = '';
         } catch (_) {
         }
       });
