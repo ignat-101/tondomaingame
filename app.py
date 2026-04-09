@@ -1098,7 +1098,9 @@ PAGE_TEMPLATE = """
       position: relative;
       min-height: 250px;
       perspective: 1400px;
+      -webkit-perspective: 1400px;
       transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
       opacity: 1;
     }
 
@@ -1107,6 +1109,7 @@ PAGE_TEMPLATE = """
       min-height: 100%;
       height: 100%;
       transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
       animation: packLootFlip 900ms cubic-bezier(.16,.84,.2,1) both;
       animation-delay: var(--pack-flip-delay, 0ms);
     }
@@ -1124,6 +1127,9 @@ PAGE_TEMPLATE = """
     .pack-flip-back {
       position: absolute;
       inset: 0;
+      z-index: 1;
+      transform: rotateY(0deg) translateZ(0);
+      -webkit-transform: rotateY(0deg) translateZ(0);
       border: 1px solid rgba(255, 211, 110, 0.42);
       background: var(--pack-cardback-surface, linear-gradient(180deg, rgba(60,68,82,0.98), rgba(38,44,56,0.98)));
       box-shadow:
@@ -1142,7 +1148,9 @@ PAGE_TEMPLATE = """
 
     .pack-flip-front {
       position: relative;
-      transform: rotateY(180deg);
+      z-index: 2;
+      transform: rotateY(180deg) translateZ(1px);
+      -webkit-transform: rotateY(180deg) translateZ(1px);
     }
 
     .pack-flip-front .game-card {
@@ -1183,6 +1191,42 @@ PAGE_TEMPLATE = """
       0% { opacity: 0; }
       30% { opacity: 1; }
       100% { opacity: 0; }
+    }
+
+    @keyframes packPreviewBackTurn {
+      0%, 42% {
+        opacity: 1;
+        transform: rotateY(0deg) scale(1);
+        filter: brightness(1);
+      }
+      58% {
+        opacity: 0.28;
+        transform: rotateY(-92deg) scale(0.98);
+        filter: brightness(0.96);
+      }
+      100% {
+        opacity: 0;
+        transform: rotateY(-180deg) scale(0.98);
+        filter: brightness(0.9);
+      }
+    }
+
+    @keyframes packPreviewFrontTurn {
+      0%, 42% {
+        opacity: 0;
+        transform: rotateY(92deg) scale(0.96);
+        filter: brightness(0.88);
+      }
+      60% {
+        opacity: 0.84;
+        transform: rotateY(-12deg) scale(1.03);
+        filter: brightness(1.06);
+      }
+      100% {
+        opacity: 1;
+        transform: rotateY(0deg) scale(1);
+        filter: brightness(1);
+      }
     }
 
     .duel-anim {
@@ -6952,7 +6996,7 @@ PAGE_TEMPLATE = """
       left: 50%;
       top: 50%;
       z-index: 7310;
-      width: min(1120px, 96vw);
+      width: min(1340px, 98vw);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -6976,9 +7020,9 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-slot {
-      flex: 0 0 min(182px, 18vw);
-      max-width: min(182px, 18vw);
-      margin-left: -22px;
+      flex: 0 0 min(228px, 18vw);
+      max-width: min(228px, 18vw);
+      margin-left: -4px;
       position: relative;
       z-index: 1;
     }
@@ -6993,18 +7037,18 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-slot:nth-child(2) {
-      transform: translateY(10px) rotate(-5deg);
-      z-index: 2;
+      transform: translateY(8px) rotate(-5deg);
+      z-index: 3;
     }
 
     .pack-preview-slot:nth-child(3) {
       transform: translateY(0) rotate(0deg);
-      z-index: 5;
+      z-index: 6;
     }
 
     .pack-preview-slot:nth-child(4) {
-      transform: translateY(10px) rotate(5deg);
-      z-index: 2;
+      transform: translateY(8px) rotate(5deg);
+      z-index: 3;
     }
 
     .pack-preview-slot:nth-child(5) {
@@ -7013,52 +7057,122 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-grid .pack-flip-card {
-      min-height: min(440px, 66vh);
-      height: min(440px, 66vh);
+      min-height: min(500px, 72vh);
+      height: min(500px, 72vh);
       box-shadow:
         0 28px 72px rgba(0, 0, 0, 0.56),
         0 0 0 1px rgba(121, 217, 255, 0.2);
     }
 
     .pack-preview-grid .pack-flip-inner {
-      animation-duration: 1680ms;
+      animation: packPreviewInnerFlip 2580ms cubic-bezier(.16,.84,.2,1) both;
+      animation-delay: var(--pack-flip-delay, 0ms);
+      transform: rotateY(0deg);
+      -webkit-transform: rotateY(0deg);
+    }
+
+    .pack-preview-grid .pack-flip-back,
+    .pack-preview-grid .pack-flip-front {
+      position: absolute;
+      inset: 0;
+      transform-origin: center center;
+      opacity: 1;
+      animation: none;
+    }
+
+    .pack-preview-grid .pack-flip-back {
+      transform: rotateY(0deg) translateZ(1px);
+      -webkit-transform: rotateY(0deg) translateZ(1px);
+    }
+
+    .pack-preview-grid .pack-flip-front {
+      transform: rotateY(180deg) translateZ(2px);
+      -webkit-transform: rotateY(180deg) translateZ(2px);
     }
 
     .pack-preview-grid .pack-flip-front .game-card {
-      padding: 16px 14px;
+      padding: 18px 14px 16px;
+      background:
+        radial-gradient(circle at 30% 18%, rgba(255,255,255,0.16), transparent 40%),
+        linear-gradient(180deg, rgba(15, 25, 42, 0.98), rgba(8, 14, 25, 0.98));
+    }
+
+    .pack-preview-face-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 8px;
+    }
+
+    .pack-preview-face-card .team-line {
+      margin-top: auto;
     }
 
     .pack-preview-grid .pack-flip-front .game-card h3 {
-      font-size: 20px;
-      line-height: 1.02;
-      margin-bottom: 10px;
+      font-size: 22px;
+      line-height: 1.04;
+      margin-bottom: 12px;
+      text-shadow: 0 4px 14px rgba(0,0,0,0.42);
     }
 
     .pack-preview-grid .pack-flip-front .game-card p,
     .pack-preview-grid .pack-flip-front .game-card .tiny,
     .pack-preview-grid .pack-flip-front .game-card .team-line {
       font-size: 13px;
-      line-height: 1.3;
+      line-height: 1.28;
+      margin: 0;
+    }
+
+    .pack-preview-grid .pack-flip-front .game-card p,
+    .pack-preview-grid .pack-flip-front .game-card .tiny {
+      padding: 6px 9px;
+      border-radius: 10px;
+      background: rgba(8, 16, 27, 0.68);
+    }
+
+    .pack-preview-grid .pack-flip-front .game-card .team-line {
+      padding: 8px 10px;
+      border-radius: 11px;
+      background: rgba(8, 16, 27, 0.72);
+    }
+
+    @keyframes packPreviewInnerFlip {
+      0%, 36% {
+        transform: rotateY(0deg) scale(0.98);
+        filter: brightness(0.96);
+      }
+      58% {
+        transform: rotateY(88deg) scale(1);
+        filter: brightness(1.02);
+      }
+      72% {
+        transform: rotateY(188deg) scale(1.02);
+        filter: brightness(1.08);
+      }
+      100% {
+        transform: rotateY(180deg) scale(1);
+        filter: brightness(1);
+      }
     }
 
     @media (max-width: 720px) {
       .pack-preview-grid {
-        width: min(98vw, 450px);
+        width: min(100vw, 620px);
         gap: 0;
       }
 
       .pack-preview-slot {
-        flex-basis: min(98px, 24vw);
-        max-width: min(98px, 24vw);
-        margin-left: -26px;
+        flex-basis: min(128px, 24vw);
+        max-width: min(128px, 24vw);
+        margin-left: -4px;
       }
 
       .pack-preview-slot:nth-child(1) {
-        transform: translateY(16px) rotate(-10deg);
+        transform: translateY(14px) rotate(-6deg);
       }
 
       .pack-preview-slot:nth-child(2) {
-        transform: translateY(8px) rotate(-5deg);
+        transform: translateY(6px) rotate(-3deg);
       }
 
       .pack-preview-slot:nth-child(3) {
@@ -7066,31 +7180,31 @@ PAGE_TEMPLATE = """
       }
 
       .pack-preview-slot:nth-child(4) {
-        transform: translateY(8px) rotate(5deg);
+        transform: translateY(6px) rotate(3deg);
       }
 
       .pack-preview-slot:nth-child(5) {
-        transform: translateY(16px) rotate(10deg);
+        transform: translateY(14px) rotate(6deg);
       }
 
       .pack-preview-grid .pack-flip-card {
-        min-height: min(270px, 46vh);
-        height: min(270px, 46vh);
+        min-height: min(342px, 58vh);
+        height: min(342px, 58vh);
       }
 
       .pack-preview-grid .pack-flip-front .game-card {
-        padding: 10px 8px;
+        padding: 14px 10px 12px;
       }
 
       .pack-preview-grid .pack-flip-front .game-card h3 {
-        font-size: 13px;
-        margin-bottom: 6px;
+        font-size: 17px;
+        margin-bottom: 8px;
       }
 
       .pack-preview-grid .pack-flip-front .game-card p,
       .pack-preview-grid .pack-flip-front .game-card .tiny,
       .pack-preview-grid .pack-flip-front .game-card .team-line {
-        font-size: 10px;
+        font-size: 12px;
       }
     }
 
@@ -8659,6 +8773,7 @@ PAGE_TEMPLATE = """
       padding-bottom: calc(116px + env(safe-area-inset-bottom));
       touch-action: pan-y;
       overflow-x: hidden;
+      overflow-x: clip;
       width: 100%;
       max-width: 100%;
     }
@@ -8672,12 +8787,12 @@ PAGE_TEMPLATE = """
       width: calc(var(--app-width, 100vw) - 20px) !important;
       max-width: calc(var(--app-width, 100vw) - 20px) !important;
       min-width: calc(var(--app-width, 100vw) - 20px) !important;
-      margin: 0 10px 0 10px !important;
+      margin: 0 10px !important;
       box-sizing: border-box;
       position: relative;
       left: 0 !important;
       right: auto !important;
-      transform: none !important;
+      transform: translateX(0) !important;
       transform-origin: left top;
     }
 
@@ -8687,6 +8802,7 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       min-width: 0;
       overflow-x: hidden;
+      overflow-x: clip;
     }
 
     body.tma-app .side {
@@ -8699,9 +8815,18 @@ PAGE_TEMPLATE = """
       width: 100%;
       max-width: 100%;
       min-width: 0;
+      overflow-x: clip;
+    }
+
+    body.tma-app #view-wallet *,
+    body.tma-app #view-profile * {
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     body.tma-app #view-wallet,
+    body.tma-app #view-profile,
     body.tma-app .wallet-quick-panel,
     body.tma-app .wallet-body,
     body.tma-app .wallet-quick-grid,
@@ -8713,6 +8838,7 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       min-width: 0;
       box-sizing: border-box;
+      overflow-x: clip;
     }
 
     body.tma-app .panel,
@@ -8729,6 +8855,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app #view-wallet,
+    body.tma-app #view-profile,
     body.tma-app .wallet-quick-panel,
     body.tma-app .wallet-quick-grid,
     body.tma-app .wallet-quick-item,
@@ -8779,6 +8906,17 @@ PAGE_TEMPLATE = """
       width: 100% !important;
       min-width: 0 !important;
       box-sizing: border-box !important;
+    }
+
+    body.tma-app #view-wallet > *,
+    body.tma-app #view-profile > *,
+    body.tma-app .wallet-body > *,
+    body.tma-app .wallet-quick-panel > *,
+    body.tma-app .wallet-section > *,
+    body.tma-app .profile-preview-hero > * {
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     body.tma-app .hero {
@@ -10123,6 +10261,7 @@ PAGE_TEMPLATE = """
     let tmaSyncRaf = null;
     let tmaSyncTimers = [];
     let tmaResizeObserver = null;
+    let tmaMutationObserver = null;
 
     function clearScheduledTmaSyncs() {
       tmaSyncTimers.forEach((timer) => window.clearTimeout(timer));
@@ -10180,7 +10319,7 @@ PAGE_TEMPLATE = """
         tmaSyncRaf = null;
         clearScheduledTmaSyncs();
         performTmaSync();
-        [80, 220, 420, 900, 1500, 2400].forEach((delay) => {
+        [80, 220, 420, 900, 1500, 2400, 3600, 5200].forEach((delay) => {
           const timer = window.setTimeout(() => {
             performTmaSync();
             alignTmaShellToViewport();
@@ -10196,7 +10335,7 @@ PAGE_TEMPLATE = """
       document.documentElement.scrollLeft = 0;
       document.body.scrollLeft = 0;
       if (scrollingElement) scrollingElement.scrollLeft = 0;
-      document.querySelectorAll('.shell, .layout, #view-wallet, .panel, .wallet-quick-panel, .hero').forEach((node) => {
+      document.querySelectorAll('.shell, .layout, #view-wallet, #view-profile, .panel, .wallet-quick-panel, .wallet-body, .wallet-box, .panel-body, .hero, #ton-connect, .profile-preview-hero, .wallet-section, .wallet-telegram-panel').forEach((node) => {
         try {
           node.scrollLeft = 0;
           node.style.transform = 'none';
@@ -10220,17 +10359,25 @@ PAGE_TEMPLATE = """
         )
       );
       const inset = 10;
+      const widthPx = Math.max(0, Math.floor(viewportWidth - inset * 2));
+      shell.style.width = `${widthPx}px`;
+      shell.style.maxWidth = `${widthPx}px`;
+      shell.style.minWidth = `${widthPx}px`;
+      shell.style.marginLeft = `${inset}px`;
+      shell.style.marginRight = `${inset}px`;
+      shell.style.transform = 'none';
       const rect = shell.getBoundingClientRect();
-      let shiftX = 0;
+      let shift = 0;
       if (rect.left < inset) {
-        shiftX = inset - rect.left;
-      } else if (rect.right > viewportWidth - inset) {
-        shiftX = (viewportWidth - inset) - rect.right;
+        shift = inset - rect.left;
       }
-      if (Math.abs(shiftX) > 0.5) {
-        shell.style.transform = `translateX(${Math.round(shiftX)}px)`;
-      } else {
-        shell.style.transform = 'none';
+      const maxRight = viewportWidth - inset;
+      if (rect.right > maxRight) {
+        const rightShift = maxRight - rect.right;
+        shift = shift === 0 ? rightShift : Math.min(shift, rightShift);
+      }
+      if (Math.abs(shift) > 0.5) {
+        shell.style.transform = `translateX(${Math.round(shift)}px)`;
       }
     }
 
@@ -10238,15 +10385,22 @@ PAGE_TEMPLATE = """
       if (!isTelegramMiniApp()) return;
       const shell = document.querySelector('.shell');
       if (!shell) return;
-      const viewportWidth = getComputedStyle(document.documentElement).getPropertyValue('--app-width').trim() || `${window.innerWidth}px`;
-      shell.style.width = `calc(${viewportWidth} - 20px)`;
-      shell.style.maxWidth = `calc(${viewportWidth} - 20px)`;
-      shell.style.minWidth = `calc(${viewportWidth} - 20px)`;
+      const viewportWidth = Math.max(
+        0,
+        Math.min(
+          Number(window.visualViewport && window.visualViewport.width) || window.innerWidth,
+          window.innerWidth
+        )
+      );
+      const widthPx = Math.max(0, Math.floor(viewportWidth - 20));
+      shell.style.width = `${widthPx}px`;
+      shell.style.maxWidth = `${widthPx}px`;
+      shell.style.minWidth = `${widthPx}px`;
       shell.style.marginLeft = '10px';
       shell.style.marginRight = '10px';
       shell.style.left = '0';
       shell.style.right = 'auto';
-      shell.style.transform = 'none';
+      shell.style.transform = 'translateX(0)';
       shell.style.willChange = 'auto';
       window.requestAnimationFrame(() => {
         correctTmaShellDrift();
@@ -10255,7 +10409,7 @@ PAGE_TEMPLATE = """
 
     function stabilizeTmaAfterAsyncRender() {
       if (!isTelegramMiniApp()) return;
-      [0, 60, 180, 360, 720, 1200, 2000].forEach((delay) => {
+      [0, 60, 180, 360, 720, 1200, 2000, 3200, 5200].forEach((delay) => {
         const timer = window.setTimeout(() => {
           performTmaSync();
           alignTmaShellToViewport();
@@ -10276,10 +10430,30 @@ PAGE_TEMPLATE = """
       tmaResizeObserver = new ResizeObserver(() => {
         queueTmaModeSync();
       });
-      document.querySelectorAll('.shell, .layout, #view-wallet, #ton-connect, #global-currency-float, .wallet-quick-panel').forEach((node) => {
+      document.querySelectorAll('.shell, .layout, #view-wallet, #view-profile, #ton-connect, #global-currency-float, .wallet-quick-panel, .wallet-body, .profile-preview-hero, .wallet-section, .wallet-telegram-panel, .hero, .panel').forEach((node) => {
         if (!node) return;
         try {
           tmaResizeObserver.observe(node);
+        } catch (_) {
+        }
+      });
+    }
+
+    function setupTmaMutationWatchers() {
+      if (!('MutationObserver' in window)) return;
+      if (tmaMutationObserver) {
+        try {
+          tmaMutationObserver.disconnect();
+        } catch (_) {
+        }
+      }
+      tmaMutationObserver = new MutationObserver(() => {
+        stabilizeTmaAfterAsyncRender();
+      });
+      document.querySelectorAll('#view-wallet, #view-profile, #ton-connect, .wallet-quick-panel, .wallet-body, .profile-preview-hero, .wallet-section, .wallet-telegram-panel').forEach((node) => {
+        if (!node) return;
+        try {
+          tmaMutationObserver.observe(node, { childList: true, subtree: true, attributes: true, characterData: true });
         } catch (_) {
         }
       });
@@ -13089,10 +13263,10 @@ PAGE_TEMPLATE = """
       await nextFrame();
       layer.classList.add('dimmed');
       grid.classList.add('focused');
-      await sleep(5000);
+      await sleep(7600);
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
-      await sleep(1450);
+      await sleep(2050);
       cleanupPackSequencePreview();
     }
 
@@ -13117,13 +13291,15 @@ PAGE_TEMPLATE = """
     }
 
     function packLootPreviewCardMarkup(card) {
+      const power = String(card.pool_value || card.base_power || 0);
+      const skill = String(card.skill_name || '-').trim();
       return `
-        <article class="game-card">
+        <article class="game-card pack-preview-face-card">
           <div class="tiny">${escapeHtml(card.rarity || '')}</div>
           <h3>${escapeHtml(card.title || 'Карта')}</h3>
-          <div class="team-line"><span>Базовая сила</span><strong>${escapeHtml(String(card.pool_value || card.base_power || 0))}</strong></div>
-          <div class="team-line"><span>Скилл</span><strong>${escapeHtml(card.skill_name || '-')}</strong></div>
-          <p>${escapeHtml(card.domain || '')}.ton • слот ${escapeHtml(String(card.slot || '-'))}</p>
+          <div class="team-line"><span>Сила</span><strong>${escapeHtml(power)}</strong></div>
+          <p>${escapeHtml(skill || 'Без навыка')}</p>
+          <div class="tiny">${escapeHtml(card.domain || '')}.ton • слот ${escapeHtml(String(card.slot || '-'))}</div>
         </article>
       `;
     }
@@ -13131,7 +13307,7 @@ PAGE_TEMPLATE = """
     function packLootFlipMarkup(card, index) {
       const surface = currentPackCardbackSurface();
       return `
-        <article class="pack-flip-card" style="--pack-cardback-surface:${escapeHtml(surface)}; --pack-flip-delay:${60 + Number(index || 0) * 90}ms;">
+        <article class="pack-flip-card" style="--pack-cardback-surface:${escapeHtml(surface)}; --pack-flip-delay:${180 + Number(index || 0) * 210}ms;">
           <div class="pack-flip-inner">
             <div class="pack-flip-back" aria-hidden="true"></div>
             <div class="pack-flip-front">${packLootPreviewCardMarkup(card)}</div>
@@ -16281,6 +16457,7 @@ PAGE_TEMPLATE = """
     syncTmaViewport();
     resetHorizontalViewportDrift();
     setupTmaResizeWatchers();
+    setupTmaMutationWatchers();
     const tgWebApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tgWebApp && typeof tgWebApp.onEvent === 'function') {
       tgWebApp.onEvent('viewportChanged', queueTmaModeSync);
