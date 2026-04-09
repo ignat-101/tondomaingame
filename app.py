@@ -6917,6 +6917,10 @@ PAGE_TEMPLATE = """
         0 0 0 1px rgba(121, 217, 255, 0.26);
     }
 
+    .pack-preview-card.arrived {
+      transform: perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1);
+    }
+
     .owned-decks {
       display: grid;
       gap: 10px;
@@ -9949,6 +9953,7 @@ PAGE_TEMPLATE = """
       syncTmaMode();
       syncTmaViewport();
       resetHorizontalViewportDrift();
+      alignTmaShellToViewport();
     }
 
     function syncTmaViewport() {
@@ -10009,7 +10014,7 @@ PAGE_TEMPLATE = """
       document.documentElement.scrollLeft = 0;
       document.body.scrollLeft = 0;
       if (scrollingElement) scrollingElement.scrollLeft = 0;
-      document.querySelectorAll('.shell, .layout, #view-wallet, .panel, .wallet-quick-panel, .hero').forEach((node) => {
+      document.querySelectorAll('.layout, #view-wallet, .panel, .wallet-quick-panel, .hero').forEach((node) => {
         try {
           node.scrollLeft = 0;
           node.style.transform = 'translateX(0)';
@@ -10018,6 +10023,28 @@ PAGE_TEMPLATE = """
         }
       });
       window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' });
+    }
+
+    function alignTmaShellToViewport() {
+      if (!isTelegramMiniApp()) return;
+      const shell = document.querySelector('.shell');
+      if (!shell) return;
+      const viewportWidth = Math.min(
+        Number(window.visualViewport && window.visualViewport.width) || window.innerWidth,
+        window.innerWidth
+      );
+      const targetLeft = 10;
+      const targetRight = viewportWidth - 10;
+      const rect = shell.getBoundingClientRect();
+      let delta = 0;
+      if (rect.left < targetLeft) {
+        delta = targetLeft - rect.left;
+      }
+      if (rect.right + delta > targetRight) {
+        delta -= (rect.right + delta) - targetRight;
+      }
+      shell.style.transform = Math.abs(delta) > 0.5 ? `translateX(${delta}px)` : 'translateX(0)';
+      shell.style.willChange = 'transform';
     }
 
     function setupTmaResizeWatchers() {
@@ -12829,7 +12856,62 @@ PAGE_TEMPLATE = """
       });
     }
 
-    async function playPackSequence() {
+    let activePackSequenceLayer = null;
+    let activePackPreviewCard = null;
+
+    function cleanupPackSequencePreview() {
+      if (activePackPreviewCard && activePackPreviewCard.parentNode) {
+        activePackPreviewCard.parentNode.removeChild(activePackPreviewCard);
+      }
+      if (activePackSequenceLayer && activePackSequenceLayer.parentNode) {
+        activePackSequenceLayer.parentNode.removeChild(activePackSequenceLayer);
+      }
+      activePackPreviewCard = null;
+      activePackSequenceLayer = null;
+    }
+
+    function packPreviewMarkup(card) {
+      const surface = currentPackCardbackSurface();
+      return `
+        <article class="pack-flip-card" style="--pack-cardback-surface:${escapeHtml(surface)}; --pack-flip-delay:140ms;">
+          <div class="pack-flip-inner">
+            <div class="pack-flip-back" aria-hidden="true"></div>
+            <div class="pack-flip-front">${packLootCardMarkup(card)}</div>
+          </div>
+        </article>
+      `;
+    }
+
+    async function playPackSequence(cards = []) {
+      const featuredCard = Array.isArray(cards) && cards.length ? cards[cards.length - 1] : null;
+      if (!featuredCard) {
+        packCards.classList.remove('sequence-prep');
+        await nextFrame();
+        packCards.classList.add('reveal', 'pack-emerge');
+        await sleep(1100);
+        return;
+      }
+      cleanupPackSequencePreview();
+      const layer = document.createElement('div');
+      layer.className = 'pack-sequence-layer';
+      const preview = document.createElement('div');
+      preview.className = 'pack-preview-card';
+      preview.innerHTML = packPreviewMarkup(featuredCard);
+      preview.style.left = '50%';
+      preview.style.top = '50%';
+      document.body.appendChild(layer);
+      document.body.appendChild(preview);
+      activePackSequenceLayer = layer;
+      activePackPreviewCard = preview;
+      await nextFrame();
+      layer.classList.add('dimmed');
+      preview.classList.add('focused', 'arrived');
+      await sleep(1320);
+      await sleep(260);
+      layer.classList.remove('dimmed');
+      preview.classList.remove('focused');
+      await sleep(220);
+      cleanupPackSequencePreview();
       packCards.classList.remove('sequence-prep');
       await nextFrame();
       packCards.classList.add('reveal', 'pack-emerge');
@@ -12877,15 +12959,12 @@ PAGE_TEMPLATE = """
         return Number(a.slot || 0) - Number(b.slot || 0);
       });
       packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
-      if (cinematic) {
-        packCards.innerHTML = orderedCards.map((card, index) => packLootFlipMarkup(card, index)).join('');
-      } else {
-        packCards.innerHTML = orderedCards.map((card) => packLootCardMarkup(card)).join('');
-      }
+      packCards.innerHTML = orderedCards.map((card) => packLootCardMarkup(card)).join('');
       packScoreLabel.textContent = `Вклад карт: ${total}`;
       refreshOneCardSelector();
       if (cinematic) {
-        await playPackSequence();
+        packCards.classList.add('sequence-prep');
+        await playPackSequence(orderedCards);
       } else {
         packCards.classList.add('reveal');
       }
