@@ -7003,13 +7003,14 @@ PAGE_TEMPLATE = """
       left: 50%;
       top: 50%;
       z-index: 7310;
-      width: min(1480px, 100vw);
+      width: min(1280px, calc(100vw - 36px));
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 10px;
+      gap: 0;
       pointer-events: none;
       opacity: 0;
+      overflow: visible;
       transform: translate(-50%, -50%) scale(0.76);
       transition:
         transform 820ms cubic-bezier(.16,.84,.2,1),
@@ -7027,10 +7028,11 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-slot {
-      flex: 0 0 min(184px, 16vw);
-      max-width: min(184px, 16vw);
+      flex: 0 0 clamp(138px, 14vw, 184px);
+      max-width: clamp(138px, 14vw, 184px);
       position: relative;
       z-index: 1;
+      margin-left: -18px;
       transition: transform 320ms ease, filter 320ms ease;
     }
 
@@ -7071,32 +7073,32 @@ PAGE_TEMPLATE = """
 
     .pack-preview-slot.revealing:nth-child(1),
     .pack-preview-slot.revealed:nth-child(1) {
-      transform: translateY(-4px) rotate(-6deg) scale(1.06);
+      transform: translateY(-10px) rotate(-4deg) scale(1.18);
     }
 
     .pack-preview-slot.revealing:nth-child(2),
     .pack-preview-slot.revealed:nth-child(2) {
-      transform: translateY(-8px) rotate(-3deg) scale(1.08);
+      transform: translateY(-16px) rotate(-2deg) scale(1.2);
     }
 
     .pack-preview-slot.revealing:nth-child(3),
     .pack-preview-slot.revealed:nth-child(3) {
-      transform: translateY(-10px) rotate(0deg) scale(1.1);
+      transform: translateY(-20px) rotate(0deg) scale(1.22);
     }
 
     .pack-preview-slot.revealing:nth-child(4),
     .pack-preview-slot.revealed:nth-child(4) {
-      transform: translateY(-8px) rotate(3deg) scale(1.08);
+      transform: translateY(-16px) rotate(2deg) scale(1.2);
     }
 
     .pack-preview-slot.revealing:nth-child(5),
     .pack-preview-slot.revealed:nth-child(5) {
-      transform: translateY(-4px) rotate(6deg) scale(1.06);
+      transform: translateY(-10px) rotate(4deg) scale(1.18);
     }
 
     .pack-preview-grid .pack-flip-card {
-      min-height: min(460px, 68vh);
-      height: min(460px, 68vh);
+      min-height: min(420px, 64vh);
+      height: min(420px, 64vh);
       box-shadow:
         0 28px 72px rgba(0, 0, 0, 0.56),
         0 0 0 1px rgba(121, 217, 255, 0.2);
@@ -7122,22 +7124,34 @@ PAGE_TEMPLATE = """
       position: absolute;
       inset: 0;
       transform-origin: center center;
-      opacity: 1;
+      transition: opacity 180ms ease;
       animation: none;
     }
 
     .pack-preview-grid .pack-flip-back {
       transform: rotateY(0deg) translateZ(1px);
       -webkit-transform: rotateY(0deg) translateZ(1px);
+      opacity: 1;
     }
 
     .pack-preview-grid .pack-flip-front {
       transform: rotateY(180deg) translateZ(2px);
       -webkit-transform: rotateY(180deg) translateZ(2px);
+      opacity: 0;
+    }
+
+    .pack-preview-slot.revealing .pack-flip-back,
+    .pack-preview-slot.revealed .pack-flip-back {
+      opacity: 0;
+    }
+
+    .pack-preview-slot.revealing .pack-flip-front,
+    .pack-preview-slot.revealed .pack-flip-front {
+      opacity: 1;
     }
 
     .pack-preview-grid .pack-flip-front .game-card {
-      padding: 18px 14px 16px;
+      padding: 16px 12px 14px;
       background:
         radial-gradient(circle at 30% 18%, rgba(255,255,255,0.16), transparent 40%),
         linear-gradient(180deg, rgba(15, 25, 42, 0.98), rgba(8, 14, 25, 0.98));
@@ -7147,7 +7161,7 @@ PAGE_TEMPLATE = """
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      gap: 10px;
+      gap: 8px;
     }
 
     .pack-preview-face-card .team-line {
@@ -7155,33 +7169,25 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-face-card .pack-preview-skill {
-      font-size: 14px;
-      line-height: 1.3;
+      font-size: 13px;
+      line-height: 1.26;
       font-weight: 700;
       color: rgba(236, 245, 255, 0.94);
       margin: 0;
     }
 
-    .pack-preview-face-card .pack-preview-meta {
-      margin-top: auto;
-      font-size: 12px;
-      line-height: 1.2;
-      color: rgba(199, 216, 236, 0.86);
-    }
-
     .pack-preview-grid .pack-flip-front .game-card h3 {
-      font-size: 21px;
-      line-height: 1.04;
+      font-size: 19px;
+      line-height: 1.02;
       margin-bottom: 4px;
       text-shadow: 0 4px 14px rgba(0,0,0,0.42);
     }
 
     .pack-preview-grid .pack-flip-front .game-card p,
     .pack-preview-grid .pack-flip-front .game-card .tiny,
-    .pack-preview-grid .pack-flip-front .game-card .team-line,
-    .pack-preview-grid .pack-flip-front .game-card .pack-preview-meta {
-      font-size: 13px;
-      line-height: 1.28;
+    .pack-preview-grid .pack-flip-front .game-card .team-line {
+      font-size: 12px;
+      line-height: 1.24;
       margin: 0;
     }
 
@@ -7199,21 +7205,26 @@ PAGE_TEMPLATE = """
 
     @media (max-width: 720px) {
       .pack-preview-grid {
-        width: min(100vw, 640px);
-        gap: 6px;
+        width: calc(100vw - 14px);
+        gap: 0;
       }
 
       .pack-preview-slot {
-        flex-basis: min(92px, 18vw);
-        max-width: min(92px, 18vw);
+        flex-basis: 22vw;
+        max-width: 22vw;
+        margin-left: -8vw;
+      }
+
+      .pack-preview-slot:first-child {
+        margin-left: 0;
       }
 
       .pack-preview-slot:nth-child(1) {
-        transform: translateY(12px) rotate(-6deg);
+        transform: translateY(10px) rotate(-7deg);
       }
 
       .pack-preview-slot:nth-child(2) {
-        transform: translateY(6px) rotate(-3deg);
+        transform: translateY(5px) rotate(-4deg);
       }
 
       .pack-preview-slot:nth-child(3) {
@@ -7221,58 +7232,57 @@ PAGE_TEMPLATE = """
       }
 
       .pack-preview-slot:nth-child(4) {
-        transform: translateY(6px) rotate(3deg);
+        transform: translateY(5px) rotate(4deg);
       }
 
       .pack-preview-slot:nth-child(5) {
-        transform: translateY(12px) rotate(6deg);
+        transform: translateY(10px) rotate(7deg);
       }
 
       .pack-preview-slot.revealing:nth-child(1),
       .pack-preview-slot.revealed:nth-child(1) {
-        transform: translateY(-3px) rotate(-4deg) scale(1.08);
+        transform: translateY(-8px) rotate(-4deg) scale(1.28);
       }
 
       .pack-preview-slot.revealing:nth-child(2),
       .pack-preview-slot.revealed:nth-child(2) {
-        transform: translateY(-6px) rotate(-2deg) scale(1.1);
+        transform: translateY(-12px) rotate(-2deg) scale(1.3);
       }
 
       .pack-preview-slot.revealing:nth-child(3),
       .pack-preview-slot.revealed:nth-child(3) {
-        transform: translateY(-8px) rotate(0deg) scale(1.12);
+        transform: translateY(-16px) rotate(0deg) scale(1.34);
       }
 
       .pack-preview-slot.revealing:nth-child(4),
       .pack-preview-slot.revealed:nth-child(4) {
-        transform: translateY(-6px) rotate(2deg) scale(1.1);
+        transform: translateY(-12px) rotate(2deg) scale(1.3);
       }
 
       .pack-preview-slot.revealing:nth-child(5),
       .pack-preview-slot.revealed:nth-child(5) {
-        transform: translateY(-3px) rotate(4deg) scale(1.08);
+        transform: translateY(-8px) rotate(4deg) scale(1.28);
       }
 
       .pack-preview-grid .pack-flip-card {
-        min-height: min(312px, 54vh);
-        height: min(312px, 54vh);
+        min-height: min(280px, 42vh);
+        height: min(280px, 42vh);
       }
 
       .pack-preview-grid .pack-flip-front .game-card {
-        padding: 12px 9px 10px;
+        padding: 10px 8px 10px;
       }
 
       .pack-preview-grid .pack-flip-front .game-card h3 {
-        font-size: 15px;
+        font-size: 13px;
         margin-bottom: 4px;
       }
 
       .pack-preview-grid .pack-flip-front .game-card p,
       .pack-preview-grid .pack-flip-front .game-card .tiny,
       .pack-preview-grid .pack-flip-front .game-card .team-line,
-      .pack-preview-grid .pack-flip-front .game-card .pack-preview-meta,
       .pack-preview-face-card .pack-preview-skill {
-        font-size: 11px;
+        font-size: 10px;
       }
     }
 
@@ -8852,13 +8862,13 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
-      width: calc(var(--app-width, 100vw) - 20px) !important;
-      max-width: calc(var(--app-width, 100vw) - 20px) !important;
-      min-width: calc(var(--app-width, 100vw) - 20px) !important;
+      width: auto !important;
+      max-width: none !important;
+      min-width: 0 !important;
       margin: 0 10px !important;
       box-sizing: border-box;
       position: relative;
-      left: 0 !important;
+      left: auto !important;
       right: auto !important;
       transform: translateX(0) !important;
       transform-origin: left top;
@@ -10426,54 +10436,26 @@ PAGE_TEMPLATE = """
       if (!isTelegramMiniApp()) return;
       const shell = document.querySelector('.shell');
       if (!shell) return;
-      const viewportWidth = Math.max(
-        0,
-        Math.min(
-          Number(window.visualViewport && window.visualViewport.width) || window.innerWidth,
-          window.innerWidth
-        )
-      );
-      const inset = 10;
-      const widthPx = Math.max(0, Math.floor(viewportWidth - inset * 2));
-      shell.style.width = `${widthPx}px`;
-      shell.style.maxWidth = `${widthPx}px`;
-      shell.style.minWidth = `${widthPx}px`;
-      shell.style.marginLeft = `${inset}px`;
-      shell.style.marginRight = `${inset}px`;
+      shell.style.width = 'auto';
+      shell.style.maxWidth = 'none';
+      shell.style.minWidth = '0';
+      shell.style.marginLeft = '10px';
+      shell.style.marginRight = '10px';
+      shell.style.left = 'auto';
+      shell.style.right = 'auto';
       shell.style.transform = 'none';
-      const rect = shell.getBoundingClientRect();
-      let shift = 0;
-      if (rect.left < inset) {
-        shift = inset - rect.left;
-      }
-      const maxRight = viewportWidth - inset;
-      if (rect.right > maxRight) {
-        const rightShift = maxRight - rect.right;
-        shift = shift === 0 ? rightShift : Math.min(shift, rightShift);
-      }
-      if (Math.abs(shift) > 0.5) {
-        shell.style.transform = `translateX(${Math.round(shift)}px)`;
-      }
     }
 
     function alignTmaShellToViewport() {
       if (!isTelegramMiniApp()) return;
       const shell = document.querySelector('.shell');
       if (!shell) return;
-      const viewportWidth = Math.max(
-        0,
-        Math.min(
-          Number(window.visualViewport && window.visualViewport.width) || window.innerWidth,
-          window.innerWidth
-        )
-      );
-      const widthPx = Math.max(0, Math.floor(viewportWidth - 20));
-      shell.style.width = `${widthPx}px`;
-      shell.style.maxWidth = `${widthPx}px`;
-      shell.style.minWidth = `${widthPx}px`;
+      shell.style.width = 'auto';
+      shell.style.maxWidth = 'none';
+      shell.style.minWidth = '0';
       shell.style.marginLeft = '10px';
       shell.style.marginRight = '10px';
-      shell.style.left = '0';
+      shell.style.left = 'auto';
       shell.style.right = 'auto';
       shell.style.transform = 'translateX(0)';
       shell.style.willChange = 'auto';
@@ -13341,12 +13323,12 @@ PAGE_TEMPLATE = """
       const slots = Array.from(grid.querySelectorAll('.pack-preview-slot'));
       for (const slot of slots) {
         slot.classList.add('revealing');
-        await sleep(1120);
+        await sleep(1480);
         slot.classList.remove('revealing');
         slot.classList.add('revealed');
-        await sleep(560);
+        await sleep(980);
       }
-      await sleep(1750);
+      await sleep(2250);
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
       await sleep(2050);
@@ -13382,7 +13364,6 @@ PAGE_TEMPLATE = """
           <h3>${escapeHtml(card.title || 'Карта')}</h3>
           <div class="team-line"><span>Сила</span><strong>${escapeHtml(power)}</strong></div>
           <p class="pack-preview-skill">${escapeHtml(skill || 'Без навыка')}</p>
-          <div class="pack-preview-meta">${escapeHtml(card.domain || '')}.ton • слот ${escapeHtml(String(card.slot || '-'))}</div>
         </article>
       `;
     }
