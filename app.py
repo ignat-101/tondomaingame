@@ -1048,6 +1048,22 @@ PAGE_TEMPLATE = """
     .card-grid.pack-emerge.reveal .game-card:nth-child(4) { animation-delay: 0.30s; }
     .card-grid.pack-emerge.reveal .game-card:nth-child(5) { animation-delay: 0.38s; }
 
+    .card-grid.sequence-depart .pack-flip-card,
+    .card-grid.sequence-depart .game-card {
+      animation: packCardToDeck 760ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .card-grid.sequence-depart .pack-flip-card:nth-child(1),
+    .card-grid.sequence-depart .game-card:nth-child(1) { animation-delay: 0s; }
+    .card-grid.sequence-depart .pack-flip-card:nth-child(2),
+    .card-grid.sequence-depart .game-card:nth-child(2) { animation-delay: 0.05s; }
+    .card-grid.sequence-depart .pack-flip-card:nth-child(3),
+    .card-grid.sequence-depart .game-card:nth-child(3) { animation-delay: 0.1s; }
+    .card-grid.sequence-depart .pack-flip-card:nth-child(4),
+    .card-grid.sequence-depart .game-card:nth-child(4) { animation-delay: 0.15s; }
+    .card-grid.sequence-depart .pack-flip-card:nth-child(5),
+    .card-grid.sequence-depart .game-card:nth-child(5) { animation-delay: 0.2s; }
+
     @keyframes cardFlipIn {
       0% { opacity: 0; transform: translateY(18px) rotateY(90deg) scale(0.96); }
       60% { opacity: 1; transform: translateY(-4px) rotateY(0deg) scale(1.01); }
@@ -1058,6 +1074,11 @@ PAGE_TEMPLATE = """
       0% { opacity: 0; transform: translateY(-130px) scale(0.72) rotateX(72deg); filter: blur(1.2px); }
       55% { opacity: 1; transform: translateY(-16px) scale(1.03) rotateX(8deg); filter: blur(0); }
       100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0deg); filter: blur(0); }
+    }
+
+    @keyframes packCardToDeck {
+      0% { opacity: 1; transform: translateY(0) scale(1) rotateY(0deg); filter: blur(0); }
+      100% { opacity: 0; transform: translateY(240px) scale(0.38) rotateY(-18deg); filter: blur(1.1px); }
     }
 
     .card-grid.sequence-prep .game-card,
@@ -1131,6 +1152,11 @@ PAGE_TEMPLATE = """
     }
 
     .pack-flip-card.sequence-visible .pack-flip-inner {
+      animation: none;
+      transform: rotateY(180deg);
+    }
+
+    .card-grid.sequence-depart .pack-flip-inner {
       animation: none;
       transform: rotateY(180deg);
     }
@@ -6921,6 +6947,68 @@ PAGE_TEMPLATE = """
       transform: perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1);
     }
 
+    .pack-preview-grid {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 7310;
+      width: min(1100px, 94vw);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.76);
+      transition:
+        transform 820ms cubic-bezier(.16,.84,.2,1),
+        opacity 260ms ease;
+    }
+
+    .pack-preview-grid.focused {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .pack-preview-grid.departing {
+      opacity: 0;
+      transform: translate(-50%, calc(-50% + 180px)) scale(0.42);
+    }
+
+    .pack-preview-slot {
+      flex: 0 0 min(180px, 17vw);
+      max-width: min(180px, 17vw);
+    }
+
+    .pack-preview-grid .pack-flip-card {
+      min-height: min(430px, 64vh);
+      height: min(430px, 64vh);
+      box-shadow:
+        0 28px 72px rgba(0, 0, 0, 0.56),
+        0 0 0 1px rgba(121, 217, 255, 0.2);
+    }
+
+    .pack-preview-grid .pack-flip-inner {
+      animation-duration: 960ms;
+    }
+
+    @media (max-width: 720px) {
+      .pack-preview-grid {
+        width: min(98vw, 430px);
+        gap: 6px;
+      }
+
+      .pack-preview-slot {
+        flex-basis: min(78px, 18vw);
+        max-width: min(78px, 18vw);
+      }
+
+      .pack-preview-grid .pack-flip-card {
+        min-height: min(220px, 42vh);
+        height: min(220px, 42vh);
+      }
+    }
+
     .owned-decks {
       display: grid;
       gap: 10px;
@@ -8486,7 +8574,8 @@ PAGE_TEMPLATE = """
       padding-bottom: calc(116px + env(safe-area-inset-bottom));
       touch-action: pan-y;
       overflow-x: hidden;
-      max-width: 100vw;
+      width: 100%;
+      max-width: 100%;
     }
 
     body.tma-app .shell {
@@ -8497,8 +8586,13 @@ PAGE_TEMPLATE = """
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
       width: auto;
       max-width: none;
+      min-width: 0;
       margin: 0 10px 0 10px;
       box-sizing: border-box;
+      position: relative;
+      left: auto !important;
+      right: auto !important;
+      transform: none !important;
     }
 
     body.tma-app .layout {
@@ -10014,11 +10108,17 @@ PAGE_TEMPLATE = """
       document.documentElement.scrollLeft = 0;
       document.body.scrollLeft = 0;
       if (scrollingElement) scrollingElement.scrollLeft = 0;
-      document.querySelectorAll('.layout, #view-wallet, .panel, .wallet-quick-panel, .hero').forEach((node) => {
+      document.querySelectorAll('.shell, .layout, #view-wallet, .panel, .wallet-quick-panel, .hero').forEach((node) => {
         try {
           node.scrollLeft = 0;
-          node.style.transform = 'translateX(0)';
+          node.style.transform = 'none';
           node.style.left = '';
+          node.style.right = '';
+          node.style.width = '';
+          node.style.maxWidth = '';
+          node.style.minWidth = '';
+          node.style.marginLeft = '';
+          node.style.marginRight = '';
         } catch (_) {
         }
       });
@@ -10029,22 +10129,15 @@ PAGE_TEMPLATE = """
       if (!isTelegramMiniApp()) return;
       const shell = document.querySelector('.shell');
       if (!shell) return;
-      const viewportWidth = Math.min(
-        Number(window.visualViewport && window.visualViewport.width) || window.innerWidth,
-        window.innerWidth
-      );
-      const targetLeft = 10;
-      const targetRight = viewportWidth - 10;
-      const rect = shell.getBoundingClientRect();
-      let delta = 0;
-      if (rect.left < targetLeft) {
-        delta = targetLeft - rect.left;
-      }
-      if (rect.right + delta > targetRight) {
-        delta -= (rect.right + delta) - targetRight;
-      }
-      shell.style.transform = Math.abs(delta) > 0.5 ? `translateX(${delta}px)` : 'translateX(0)';
-      shell.style.willChange = 'transform';
+      shell.style.width = '';
+      shell.style.maxWidth = '';
+      shell.style.minWidth = '';
+      shell.style.marginLeft = '';
+      shell.style.marginRight = '';
+      shell.style.left = '';
+      shell.style.right = '';
+      shell.style.transform = 'none';
+      shell.style.willChange = 'auto';
     }
 
     function setupTmaResizeWatchers() {
@@ -10715,31 +10808,8 @@ PAGE_TEMPLATE = """
 
     function renderPackTypePicker() {
       if (!packTypePicker) return;
-      const items = (state.packTypes || []).filter((item) => ['common', 'rare', 'epic', 'lucky'].includes(item.key));
-      if (!items.length) {
-        packTypePicker.innerHTML = '';
-        syncSelectedPackVisuals();
-        return;
-      }
-      packTypePicker.innerHTML = items.map((item) => {
-        const active = state.selectedPackType === item.key;
-        const tone = item.key === 'common' ? 'rgba(69, 215, 255, 0.16)'
-          : item.key === 'rare' ? 'rgba(83, 246, 184, 0.16)'
-          : item.key === 'epic' ? 'rgba(188, 126, 255, 0.18)'
-          : 'rgba(255, 211, 110, 0.18)';
-        const border = item.key === 'common' ? 'rgba(69, 215, 255, 0.34)'
-          : item.key === 'rare' ? 'rgba(83, 246, 184, 0.34)'
-          : item.key === 'epic' ? 'rgba(188, 126, 255, 0.34)'
-          : 'rgba(255, 211, 110, 0.36)';
-        return `<button type="button" class="${active ? '' : 'secondary'}" data-pack-type="${item.key}" style="background:${tone}; border-color:${border};">${item.label}</button>`;
-      }).join('');
-      packTypePicker.querySelectorAll('[data-pack-type]').forEach((button) => {
-        button.addEventListener('click', () => {
-          state.selectedPackType = button.dataset.packType || 'common';
-          renderPackTypePicker();
-          updateButtons();
-        });
-      });
+      packTypePicker.innerHTML = '';
+      packTypePicker.style.display = 'none';
       syncSelectedPackVisuals();
     }
 
@@ -12858,64 +12928,47 @@ PAGE_TEMPLATE = """
 
     let activePackSequenceLayer = null;
     let activePackPreviewCard = null;
+    let activePackPreviewGrid = null;
 
     function cleanupPackSequencePreview() {
       if (activePackPreviewCard && activePackPreviewCard.parentNode) {
         activePackPreviewCard.parentNode.removeChild(activePackPreviewCard);
       }
+      if (activePackPreviewGrid && activePackPreviewGrid.parentNode) {
+        activePackPreviewGrid.parentNode.removeChild(activePackPreviewGrid);
+      }
       if (activePackSequenceLayer && activePackSequenceLayer.parentNode) {
         activePackSequenceLayer.parentNode.removeChild(activePackSequenceLayer);
       }
       activePackPreviewCard = null;
+      activePackPreviewGrid = null;
       activePackSequenceLayer = null;
     }
 
-    function packPreviewMarkup(card) {
-      const surface = currentPackCardbackSurface();
-      return `
-        <article class="pack-flip-card" style="--pack-cardback-surface:${escapeHtml(surface)}; --pack-flip-delay:140ms;">
-          <div class="pack-flip-inner">
-            <div class="pack-flip-back" aria-hidden="true"></div>
-            <div class="pack-flip-front">${packLootCardMarkup(card)}</div>
-          </div>
-        </article>
-      `;
-    }
-
     async function playPackSequence(cards = []) {
-      const featuredCard = Array.isArray(cards) && cards.length ? cards[cards.length - 1] : null;
-      if (!featuredCard) {
-        packCards.classList.remove('sequence-prep');
-        await nextFrame();
-        packCards.classList.add('reveal', 'pack-emerge');
-        await sleep(1100);
-        return;
-      }
       cleanupPackSequencePreview();
+      if (!Array.isArray(cards) || !cards.length) return;
       const layer = document.createElement('div');
       layer.className = 'pack-sequence-layer';
-      const preview = document.createElement('div');
-      preview.className = 'pack-preview-card';
-      preview.innerHTML = packPreviewMarkup(featuredCard);
-      preview.style.left = '50%';
-      preview.style.top = '50%';
+      const grid = document.createElement('div');
+      grid.className = 'pack-preview-grid';
+      grid.innerHTML = cards.map((card, index) => `
+        <div class="pack-preview-slot">
+          ${packLootFlipMarkup(card, index)}
+        </div>
+      `).join('');
       document.body.appendChild(layer);
-      document.body.appendChild(preview);
+      document.body.appendChild(grid);
       activePackSequenceLayer = layer;
-      activePackPreviewCard = preview;
+      activePackPreviewGrid = grid;
       await nextFrame();
       layer.classList.add('dimmed');
-      preview.classList.add('focused', 'arrived');
-      await sleep(1320);
-      await sleep(260);
+      grid.classList.add('focused');
+      await sleep(2200);
+      grid.classList.add('departing');
       layer.classList.remove('dimmed');
-      preview.classList.remove('focused');
-      await sleep(220);
+      await sleep(980);
       cleanupPackSequencePreview();
-      packCards.classList.remove('sequence-prep');
-      await nextFrame();
-      packCards.classList.add('reveal', 'pack-emerge');
-      await sleep(1100);
     }
 
     function currentPackCardbackSurface() {
@@ -12958,14 +13011,17 @@ PAGE_TEMPLATE = """
         if (aRank !== bRank) return aRank - bRank;
         return Number(a.slot || 0) - Number(b.slot || 0);
       });
-      packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
-      packCards.innerHTML = orderedCards.map((card) => packLootCardMarkup(card)).join('');
+      packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep', 'sequence-depart');
       packScoreLabel.textContent = `Вклад карт: ${total}`;
       refreshOneCardSelector();
       if (cinematic) {
+        packCards.innerHTML = orderedCards.map((card) => packLootCardMarkup(card)).join('');
         packCards.classList.add('sequence-prep');
         await playPackSequence(orderedCards);
+        packCards.classList.remove('sequence-prep');
+        packCards.classList.add('reveal');
       } else {
+        packCards.innerHTML = orderedCards.map((card) => packLootCardMarkup(card)).join('');
         packCards.classList.add('reveal');
       }
     }
