@@ -346,7 +346,7 @@ def _build_cosmetic_catalog():
         {'key': 'cardback_stock_plain', 'type': 'cardback', 'name': 'Stock Plain Cardback', 'source': 'stock', 'nft_family': 'cardback', 'rarity_key': 'basic', 'drop_weight': 22},
         {'key': 'arena_stock_grid', 'type': 'arena', 'name': 'Stock Grid Arena', 'source': 'stock', 'nft_family': 'arena', 'rarity_key': 'basic', 'drop_weight': 20},
         {'key': 'guild_banner_stock_plain', 'type': 'guild', 'name': 'Stock Plain Banner', 'source': 'stock', 'nft_family': 'guild', 'rarity_key': 'basic', 'drop_weight': 20},
-        {'key': 'emoji_stock_dot', 'type': 'emoji', 'name': 'Stock Dot Monogram', 'emoji': '•', 'source': 'stock', 'nft_family': 'emoji', 'rarity_key': 'basic', 'drop_weight': 18},
+        {'key': 'emoji_stock_dot', 'type': 'emoji', 'name': 'Stock Grid Monogram', 'emoji': '▦', 'source': 'stock', 'nft_family': 'emoji', 'rarity_key': 'basic', 'drop_weight': 18},
     ])
     return catalog
 
@@ -1130,14 +1130,13 @@ PAGE_TEMPLATE = """
       margin: 0;
     }
 
-    .pack-flip-card.sequence-visible .pack-flip-inner,
-    .card-grid.reveal:not(.sequence-prep) .pack-flip-card .pack-flip-inner {
+    .pack-flip-card.sequence-visible .pack-flip-inner {
       animation: none;
       transform: rotateY(180deg);
     }
 
     .pack-flip-card.sequence-visible::after,
-    .card-grid.reveal:not(.sequence-prep) .pack-flip-card::after {
+    .card-grid.reveal .pack-flip-card::after {
       content: "";
       position: absolute;
       inset: -1px;
@@ -1148,9 +1147,10 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes packLootFlip {
-      0% { transform: translateY(-18px) rotateY(0deg) scale(0.96); filter: brightness(0.9); }
-      58% { transform: translateY(6px) rotateY(164deg) scale(1.02); filter: brightness(1.12); }
-      100% { transform: translateY(0) rotateY(180deg) scale(1); filter: brightness(1); }
+      0% { transform: translateY(148px) scale(0.56) rotateY(0deg); filter: brightness(0.88); }
+      42% { transform: translateY(-14px) scale(1.06) rotateY(0deg); filter: brightness(1.08); }
+      72% { transform: translateY(2px) scale(1.02) rotateY(164deg); filter: brightness(1.14); }
+      100% { transform: translateY(0) scale(1) rotateY(180deg); filter: brightness(1); }
     }
 
     @keyframes packLootHighlight {
@@ -6613,10 +6613,34 @@ PAGE_TEMPLATE = """
       filter: grayscale(0.35);
     }
 
+    .reward-pack-btn[data-reward-pack="common"] {
+      background: rgba(69, 215, 255, 0.16);
+      border-color: rgba(69, 215, 255, 0.34);
+    }
+
+    .reward-pack-btn[data-reward-pack="rare"] {
+      background: rgba(83, 246, 184, 0.16);
+      border-color: rgba(83, 246, 184, 0.34);
+    }
+
+    .reward-pack-btn[data-reward-pack="epic"] {
+      background: rgba(188, 126, 255, 0.18);
+      border-color: rgba(188, 126, 255, 0.38);
+    }
+
+    .reward-pack-btn[data-reward-pack="lucky"] {
+      background: rgba(255, 211, 110, 0.18);
+      border-color: rgba(255, 211, 110, 0.38);
+    }
+
+    .reward-pack-btn[data-reward-pack="cosmetic"] {
+      background: rgba(173, 191, 215, 0.14);
+      border-color: rgba(173, 191, 215, 0.32);
+    }
+
     .reward-pack-btn.reward-pack-ready {
       opacity: 1;
-      border-color: rgba(83, 246, 184, 0.42);
-      box-shadow: 0 0 0 1px rgba(83, 246, 184, 0.14), 0 12px 28px rgba(83, 246, 184, 0.12);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 28px rgba(0, 0, 0, 0.18);
     }
 
     .foil-pack.vanishing {
@@ -10620,6 +10644,20 @@ PAGE_TEMPLATE = """
       });
     }
 
+    function queuePackOpen(source = 'daily', packType = 'common', paymentId = null) {
+      if (!state.wallet || !state.selectedDomain || state.packOpening) return;
+      state.pendingPackSource = source;
+      state.pendingPackPaymentId = paymentId;
+      state.pendingRewardPackType = packType || 'common';
+      const meta = packTypeMeta(state.pendingRewardPackType);
+      packShowcase.classList.remove('opened');
+      packShowcase.classList.add('cinematic');
+      foilPack.classList.remove('opening');
+      foilPack.classList.remove('vanishing');
+      packNote.textContent = `Нажми на пак, чтобы открыть ${meta ? meta.label.toLowerCase() : 'пак'}`;
+      setStatus(document.getElementById('pack-status'), `${meta ? meta.label : 'Пак'} готов к открытию. Нажми на сам пак.`, 'warning');
+    }
+
     function syncSelectedPackVisuals() {
       if (!packShowcase) return;
       packShowcase.classList.remove('pack-type-common', 'pack-type-rare', 'pack-type-epic', 'pack-type-lucky');
@@ -12775,98 +12813,10 @@ PAGE_TEMPLATE = """
     }
 
     async function playPackSequence() {
-      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const targets = Array.from(packCards.querySelectorAll('.pack-flip-card, .game-card'));
-      if (!targets.length || prefersReduced) {
-        packCards.classList.remove('sequence-prep');
-        requestAnimationFrame(() => packCards.classList.add('reveal'));
-        return;
-      }
-
-      const layer = document.createElement('div');
-      layer.className = 'pack-sequence-layer';
-      document.body.appendChild(layer);
-
-      const packRect = foilPack.getBoundingClientRect();
-      const startX = packRect.left + packRect.width * 0.5;
-      const startY = packRect.top + packRect.height * 0.17;
-      const centerX = window.innerWidth * 0.5;
-      const centerY = window.innerHeight * 0.5;
-
-      for (const [index, target] of targets.entries()) {
-        const preview = document.createElement('article');
-        preview.className = 'pack-preview-card pack-preview-card-flip';
-        const previewCard = target.cloneNode(true);
-        previewCard.classList.remove('sequence-visible');
-        if (previewCard.style && previewCard.style.setProperty) {
-          previewCard.style.setProperty('--pack-flip-delay', '0ms');
-        }
-        preview.appendChild(previewCard);
-        preview.style.left = `${startX}px`;
-        preview.style.top = `${startY}px`;
-        preview.style.transform = 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1)';
-        preview.style.opacity = '1';
-        layer.appendChild(preview);
-
-        await nextFrame();
-        preview.classList.add('focused');
-        layer.classList.add('dimmed');
-        await animateElement(preview, [
-          {
-            left: `${startX}px`,
-            top: `${startY}px`,
-            opacity: 0,
-            transform: `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? 220 : -220}deg) scale(0.2)`
-          },
-          {
-            left: `${centerX}px`,
-            top: `${centerY}px`,
-            opacity: 1,
-            transform: 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.02)'
-          }
-        ], {
-          duration: 900,
-          easing: 'cubic-bezier(.16,.84,.2,1)',
-          fill: 'forwards'
-        });
-
-        preview.style.left = `${centerX}px`;
-        preview.style.top = `${centerY}px`;
-        preview.style.opacity = '1';
-        preview.style.transform = 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.02)';
-
-        await sleep(1000);
-
-        const rect = target.getBoundingClientRect();
-        const targetX = rect.left + rect.width / 2;
-        const targetY = rect.top + rect.height / 2;
-        await animateElement(preview, [
-          {
-            left: `${centerX}px`,
-            top: `${centerY}px`,
-            opacity: 1,
-            transform: 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.02)'
-          },
-          {
-            left: `${targetX}px`,
-            top: `${targetY}px`,
-            opacity: 0.94,
-            transform: `perspective(1400px) translate(-50%, -50%) rotateY(${index % 2 === 0 ? -180 : 180}deg) scale(0.44)`
-          }
-        ], {
-          duration: 620,
-          easing: 'cubic-bezier(.16,.84,.2,1)',
-          fill: 'forwards'
-        });
-
-        target.classList.add('sequence-visible');
-        preview.remove();
-      }
-
-      layer.classList.remove('dimmed');
-      layer.remove();
       packCards.classList.remove('sequence-prep');
-      packCards.classList.add('reveal');
+      await nextFrame();
+      packCards.classList.add('reveal', 'pack-emerge');
+      await sleep(1100);
     }
 
     function currentPackCardbackSurface() {
@@ -12914,7 +12864,6 @@ PAGE_TEMPLATE = """
       packScoreLabel.textContent = `Вклад карт: ${total}`;
       refreshOneCardSelector();
       if (cinematic) {
-        packCards.classList.add('sequence-prep');
         await playPackSequence();
       } else {
         packCards.classList.add('reveal');
@@ -15071,17 +15020,7 @@ PAGE_TEMPLATE = """
 
     async function openRewardPack(packType) {
       if (!state.wallet || !state.selectedDomain) return;
-      if (String(packType || '').toLowerCase() === 'cosmetic') {
-        state.pendingRewardPackType = 'cosmetic';
-        packNote.textContent = 'Нажми на пак, чтобы открыть косметический';
-        packShowcase.classList.remove('opened');
-        foilPack.classList.remove('opening');
-        foilPack.classList.remove('vanishing');
-        setStatus(document.getElementById('pack-status'), 'Косметический пак готов к открытию. Нажми на пак.', 'warning');
-        return;
-      }
-      state.pendingRewardPackType = null;
-      await openPack('reward', null, packType);
+      queuePackOpen('reward', packType);
     }
 
     async function claimDailyReward() {
@@ -15871,7 +15810,7 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(document.getElementById('back-to-wallet-btn'), () => switchView('profile'));
     bindFunctionalControl(document.getElementById('rebind-domain-btn'), rebindDomain);
     bindFunctionalControl(document.getElementById('shuffle-deck-btn'), shuffleDeck);
-    bindFunctionalControl(document.getElementById('open-pack-btn'), () => openPack('daily'));
+    bindFunctionalControl(document.getElementById('open-pack-btn'), () => queuePackOpen('daily', 'common'));
     bindFunctionalControl(buyPackBtn, buySeasonPassWithTon);
     bindFunctionalControl(claimDailyRewardBtn, claimDailyReward);
     bindFunctionalControl(claimQuestRewardBtn, claimQuestReward);
@@ -15885,14 +15824,15 @@ PAGE_TEMPLATE = """
       if (state.packOpening) {
         return;
       }
-      if (state.pendingRewardPackType) {
-        const rewardType = state.pendingRewardPackType;
+      if (state.pendingPackSource) {
+        const source = state.pendingPackSource;
+        const paymentId = state.pendingPackPaymentId;
+        const rewardType = state.pendingRewardPackType || (source === 'daily' ? 'common' : null);
+        state.pendingPackSource = null;
+        state.pendingPackPaymentId = null;
         state.pendingRewardPackType = null;
-        openPack('reward', null, rewardType);
+        openPack(source, paymentId, rewardType);
         return;
-      }
-      if (!document.getElementById('open-pack-btn').disabled) {
-        openPack('daily', null, 'common');
       }
     }
 
