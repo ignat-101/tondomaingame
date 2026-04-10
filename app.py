@@ -7001,8 +7001,8 @@ PAGE_TEMPLATE = """
     .pack-preview-card .pack-flip-card.final-face-lock .pack-flip-inner,
     .pack-preview-slot.face-locked .pack-flip-inner {
       animation: none !important;
-      transform: rotateY(180deg) !important;
-      -webkit-transform: rotateY(180deg) !important;
+      transform: rotateY(0deg) !important;
+      -webkit-transform: rotateY(0deg) !important;
       filter: brightness(1.05);
     }
 
@@ -7017,10 +7017,10 @@ PAGE_TEMPLATE = """
       opacity: 1 !important;
       visibility: visible !important;
       z-index: 8;
-      transform: rotateY(180deg) translateZ(2px) !important;
-      -webkit-transform: rotateY(180deg) translateZ(2px) !important;
-      backface-visibility: hidden !important;
-      -webkit-backface-visibility: hidden !important;
+      transform: rotateY(0deg) translateZ(2px) !important;
+      -webkit-transform: rotateY(0deg) translateZ(2px) !important;
+      backface-visibility: visible !important;
+      -webkit-backface-visibility: visible !important;
     }
 
     .pack-preview-card.focused {
@@ -7155,8 +7155,8 @@ PAGE_TEMPLATE = """
     .pack-preview-slot.front-visible .pack-flip-inner,
     .pack-preview-slot.face-locked .pack-flip-inner,
     .pack-preview-slot.revealed .pack-flip-inner {
-      transform: rotateY(180deg) !important;
-      -webkit-transform: rotateY(180deg) !important;
+      transform: rotateY(0deg) !important;
+      -webkit-transform: rotateY(0deg) !important;
       filter: brightness(1.05);
     }
 
@@ -7176,9 +7176,10 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-grid .pack-flip-front {
-      transform: rotateY(180deg) translateZ(2px);
-      -webkit-transform: rotateY(180deg) translateZ(2px);
+      transform: rotateY(0deg) translateZ(2px);
+      -webkit-transform: rotateY(0deg) translateZ(2px);
       opacity: 0;
+      pointer-events: none;
     }
 
     .pack-preview-slot.front-visible .pack-flip-back,
@@ -7206,13 +7207,17 @@ PAGE_TEMPLATE = """
       opacity: 1 !important;
       visibility: visible;
       z-index: 5;
-      transform: rotateY(180deg) translateZ(3px) !important;
-      -webkit-transform: rotateY(180deg) translateZ(3px) !important;
-      backface-visibility: hidden !important;
-      -webkit-backface-visibility: hidden !important;
+      transform: rotateY(0deg) translateZ(3px) !important;
+      -webkit-transform: rotateY(0deg) translateZ(3px) !important;
+      backface-visibility: visible !important;
+      -webkit-backface-visibility: visible !important;
+      background:
+        radial-gradient(circle at 30% 18%, rgba(255,255,255,0.16), transparent 40%),
+        linear-gradient(180deg, rgba(15, 25, 42, 0.99), rgba(8, 14, 25, 0.99));
     }
 
     .pack-preview-slot.front-visible .pack-preview-face-card,
+    .pack-preview-slot.face-locked .pack-preview-face-card,
     .pack-preview-slot.revealed .pack-preview-face-card {
       opacity: 1 !important;
       visibility: visible !important;
@@ -7222,7 +7227,10 @@ PAGE_TEMPLATE = """
       padding: 16px 12px 14px;
       background:
         radial-gradient(circle at 30% 18%, rgba(255,255,255,0.16), transparent 40%),
-        linear-gradient(180deg, rgba(15, 25, 42, 0.98), rgba(8, 14, 25, 0.98));
+        linear-gradient(180deg, rgba(15, 25, 42, 0.99), rgba(8, 14, 25, 0.99)) !important;
+      color: rgba(236, 245, 255, 0.96) !important;
+      opacity: 1 !important;
+      visibility: visible !important;
     }
 
     .pack-preview-face-card {
@@ -10164,6 +10172,18 @@ PAGE_TEMPLATE = """
       const points = disciplinePresetPoints(pool, presetValue);
       state.disciplineBuildPreset = presetValue;
       renderDisciplineBuild({pool, points});
+    }
+
+    async function applyAndSaveDisciplinePreset(presetValue = 'balanced') {
+      const normalizedPreset = presetValue || 'balanced';
+      applyDisciplinePreset(normalizedPreset);
+      if (!state.wallet || !state.selectedDomain) {
+        if (buildStatus) {
+          buildStatus.textContent = 'Пресет выбран. Подключи кошелёк и домен, чтобы сохранить прокачку.';
+        }
+        return;
+      }
+      await saveDisciplineBuild();
     }
 
     function renderStartupGuideStep() {
@@ -16575,7 +16595,9 @@ PAGE_TEMPLATE = """
       if (!presetButton) return;
       event.preventDefault();
       event.stopPropagation();
-      applyDisciplinePreset(presetButton.dataset.buildPresetMain || 'balanced');
+      applyAndSaveDisciplinePreset(presetButton.dataset.buildPresetMain || 'balanced').catch((error) => {
+        if (buildStatus) buildStatus.textContent = error.message || 'Не удалось сохранить пресет.';
+      });
     }, true);
     if (buildAdvancedToggle && buildAdvancedPanel) {
       bindFunctionalControl(buildAdvancedToggle, () => {
