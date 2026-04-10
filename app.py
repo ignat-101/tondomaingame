@@ -1194,37 +1194,37 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes packPreviewBackTurn {
-      0%, 42% {
+      0%, 38% {
         opacity: 1;
-        transform: rotateY(0deg) scale(1);
+        transform: scaleX(1);
         filter: brightness(1);
       }
-      58% {
-        opacity: 0.28;
-        transform: rotateY(-92deg) scale(0.98);
-        filter: brightness(0.96);
+      55% {
+        opacity: 0.18;
+        transform: scaleX(0.06);
+        filter: brightness(1.32);
       }
       100% {
         opacity: 0;
-        transform: rotateY(-180deg) scale(0.98);
+        transform: scaleX(1);
         filter: brightness(0.9);
       }
     }
 
     @keyframes packPreviewFrontTurn {
-      0%, 42% {
+      0%, 46% {
         opacity: 0;
-        transform: rotateY(92deg) scale(0.96);
-        filter: brightness(0.88);
+        transform: scaleX(0.06);
+        filter: brightness(1.24);
       }
-      60% {
-        opacity: 0.84;
-        transform: rotateY(-12deg) scale(1.03);
+      66% {
+        opacity: 1;
+        transform: scaleX(1.04);
         filter: brightness(1.06);
       }
       100% {
         opacity: 1;
-        transform: rotateY(0deg) scale(1);
+        transform: scaleX(1);
         filter: brightness(1);
       }
     }
@@ -3646,6 +3646,12 @@ PAGE_TEMPLATE = """
       color: #eef6ff;
       font-weight: 800;
       font-size: 10px;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      position: relative;
+      z-index: 2;
     }
 
     .prebattle-build-btn.active {
@@ -7072,6 +7078,21 @@ PAGE_TEMPLATE = """
       transition: transform 320ms ease, filter 320ms ease;
     }
 
+    .pack-preview-slot::before {
+      content: "";
+      position: absolute;
+      inset: -12px -10px;
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255, 223, 142, 0.34), transparent 54%),
+        conic-gradient(from 180deg, rgba(83, 246, 184, 0), rgba(255, 211, 110, 0.5), rgba(69, 215, 255, 0.2), rgba(83, 246, 184, 0));
+      filter: blur(14px);
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 240ms ease, transform 320ms ease;
+      pointer-events: none;
+    }
+
     .pack-preview-slot:first-child {
       margin-left: 0;
     }
@@ -7107,6 +7128,13 @@ PAGE_TEMPLATE = """
       filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.42));
     }
 
+    .pack-preview-slot.revealing::before,
+    .pack-preview-slot.revealed::before {
+      opacity: 0.76;
+      transform: scale(1.04);
+      animation: packPreviewAuraPulse 1100ms ease-in-out infinite;
+    }
+
     .pack-preview-slot.revealing:nth-child(1),
     .pack-preview-slot.revealed:nth-child(1) {
       transform: translateY(-10px) rotate(-4deg) scale(1.18);
@@ -7135,6 +7163,10 @@ PAGE_TEMPLATE = """
     .pack-preview-grid .pack-flip-card {
       min-height: min(420px, 64vh);
       height: min(420px, 64vh);
+      border-radius: 24px;
+      overflow: hidden;
+      isolation: isolate;
+      background: rgba(8, 14, 25, 0.98);
       outline: 0 !important;
       border: 0 !important;
       box-shadow:
@@ -7143,6 +7175,8 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-grid .pack-flip-inner {
+      border-radius: inherit;
+      overflow: hidden;
       animation: none !important;
       animation-delay: 0ms !important;
       transition:
@@ -7164,22 +7198,32 @@ PAGE_TEMPLATE = """
     .pack-preview-grid .pack-flip-front {
       position: absolute;
       inset: 0;
+      border-radius: inherit;
+      overflow: hidden;
       transform-origin: center center;
       transition: opacity 180ms ease;
       animation: none;
     }
 
     .pack-preview-grid .pack-flip-back {
-      transform: rotateY(0deg) translateZ(1px);
-      -webkit-transform: rotateY(0deg) translateZ(1px);
+      transform: scaleX(1);
+      -webkit-transform: scaleX(1);
       opacity: 1;
     }
 
     .pack-preview-grid .pack-flip-front {
-      transform: rotateY(0deg) translateZ(2px);
-      -webkit-transform: rotateY(0deg) translateZ(2px);
+      transform: scaleX(0.06);
+      -webkit-transform: scaleX(0.06);
       opacity: 0;
       pointer-events: none;
+    }
+
+    .pack-preview-slot.revealing .pack-flip-back {
+      animation: packPreviewBackTurn 720ms cubic-bezier(.16,.84,.2,1) both;
+    }
+
+    .pack-preview-slot.revealing .pack-flip-front {
+      animation: packPreviewFrontTurn 720ms cubic-bezier(.16,.84,.2,1) both;
     }
 
     .pack-preview-slot.front-visible .pack-flip-back,
@@ -7207,13 +7251,29 @@ PAGE_TEMPLATE = """
       opacity: 1 !important;
       visibility: visible;
       z-index: 5;
-      transform: rotateY(0deg) translateZ(3px) !important;
-      -webkit-transform: rotateY(0deg) translateZ(3px) !important;
+      transform: scaleX(1) !important;
+      -webkit-transform: scaleX(1) !important;
       backface-visibility: visible !important;
       -webkit-backface-visibility: visible !important;
       background:
         radial-gradient(circle at 30% 18%, rgba(255,255,255,0.16), transparent 40%),
         linear-gradient(180deg, rgba(15, 25, 42, 0.99), rgba(8, 14, 25, 0.99));
+    }
+
+    .pack-preview-grid .pack-flip-front::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(112deg, transparent 0%, rgba(255,255,255,0.0) 34%, rgba(255, 236, 178, 0.34) 48%, rgba(255,255,255,0.0) 62%, transparent 100%);
+      transform: translateX(-130%) skewX(-14deg);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .pack-preview-slot.front-visible .pack-flip-front::after,
+    .pack-preview-slot.revealed .pack-flip-front::after {
+      animation: packPreviewFaceShine 900ms ease both;
     }
 
     .pack-preview-slot.front-visible .pack-preview-face-card,
@@ -7225,6 +7285,8 @@ PAGE_TEMPLATE = """
 
     .pack-preview-grid .pack-flip-front .game-card {
       padding: 16px 12px 14px;
+      border-radius: inherit;
+      overflow: hidden;
       background:
         radial-gradient(circle at 30% 18%, rgba(255,255,255,0.16), transparent 40%),
         linear-gradient(180deg, rgba(15, 25, 42, 0.99), rgba(8, 14, 25, 0.99)) !important;
@@ -7277,6 +7339,33 @@ PAGE_TEMPLATE = """
       padding: 8px 10px;
       border-radius: 11px;
       background: rgba(8, 16, 27, 0.72);
+    }
+
+    @keyframes packPreviewAuraPulse {
+      0%, 100% {
+        opacity: 0.46;
+        transform: scale(0.96);
+        filter: blur(16px);
+      }
+      50% {
+        opacity: 0.84;
+        transform: scale(1.08);
+        filter: blur(20px);
+      }
+    }
+
+    @keyframes packPreviewFaceShine {
+      0% {
+        opacity: 0;
+        transform: translateX(-130%) skewX(-14deg);
+      }
+      32% {
+        opacity: 0.92;
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(130%) skewX(-14deg);
+      }
     }
 
     @media (max-width: 720px) {
@@ -13397,7 +13486,7 @@ PAGE_TEMPLATE = """
       const grid = document.createElement('div');
       grid.className = 'pack-preview-grid';
       grid.innerHTML = cards.map((card, index) => `
-        <div class="pack-preview-slot">
+        <div class="pack-preview-slot" style="--pack-slot-index:${index};">
           ${packLootFlipMarkup(card, index)}
         </div>
       `).join('');
@@ -14599,10 +14688,23 @@ PAGE_TEMPLATE = """
             });
           });
         }
+        let lastPrebattlePresetPointerAt = 0;
+        const handlePrebattlePresetChoice = (event) => {
+          const button = event.currentTarget;
+          if (event.type === 'click' && Date.now() - lastPrebattlePresetPointerAt < 650) {
+            event.preventDefault();
+            return;
+          }
+          if (event.type === 'pointerdown') {
+            lastPrebattlePresetPointerAt = Date.now();
+          }
+          event.preventDefault();
+          if (typeof button.blur === 'function') button.blur();
+          applyPrebattlePreset(button.dataset.buildPreset || 'balanced');
+        };
         battleResult.querySelectorAll('.prebattle-build-btn[data-build-preset]').forEach((button) => {
-          button.addEventListener('click', () => {
-            applyPrebattlePreset(button.dataset.buildPreset || 'balanced');
-          });
+          button.addEventListener('pointerdown', handlePrebattlePresetChoice);
+          button.addEventListener('click', handlePrebattlePresetChoice);
         });
         if (startBtn) {
           startBtn.addEventListener('click', async () => {
@@ -16590,15 +16692,27 @@ PAGE_TEMPLATE = """
         buildStatus.textContent = `Пул: ${pool} • Потрачено: ${spent} • Остаток: ${Math.max(0, pool - spent)}`;
       });
     });
-    document.addEventListener('click', (event) => {
+    let lastDisciplinePresetPointerAt = 0;
+    function handleMainDisciplinePresetEvent(event) {
       const presetButton = event.target && event.target.closest ? event.target.closest('[data-build-preset-main]') : null;
       if (!presetButton) return;
+      if (event.type === 'click' && Date.now() - lastDisciplinePresetPointerAt < 650) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      if (event.type === 'pointerdown') {
+        lastDisciplinePresetPointerAt = Date.now();
+      }
       event.preventDefault();
       event.stopPropagation();
+      if (typeof presetButton.blur === 'function') presetButton.blur();
       applyAndSaveDisciplinePreset(presetButton.dataset.buildPresetMain || 'balanced').catch((error) => {
         if (buildStatus) buildStatus.textContent = error.message || 'Не удалось сохранить пресет.';
       });
-    }, true);
+    }
+    document.addEventListener('pointerdown', handleMainDisciplinePresetEvent, true);
+    document.addEventListener('click', handleMainDisciplinePresetEvent, true);
     if (buildAdvancedToggle && buildAdvancedPanel) {
       bindFunctionalControl(buildAdvancedToggle, () => {
         const hidden = buildAdvancedPanel.classList.toggle('hidden');
