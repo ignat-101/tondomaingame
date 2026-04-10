@@ -13413,16 +13413,12 @@ PAGE_TEMPLATE = """
       preview.classList.add('focused');
       await nextFrame();
       preview.classList.add('arrived');
-      await sleep(560);
+      await sleep(460);
       const previewFlipCard = preview.querySelector('.pack-flip-card');
-      if (previewFlipCard) {
-        previewFlipCard.classList.add('sequence-visible');
-      }
-      await sleep(680);
       if (previewFlipCard) {
         previewFlipCard.classList.add('final-face-lock');
       }
-      await sleep(900);
+      await sleep(960);
       layer.classList.remove('dimmed');
       await sleep(520);
       cleanupPackSequencePreview();
