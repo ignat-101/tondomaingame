@@ -7108,8 +7108,8 @@ PAGE_TEMPLATE = """
       animation: none !important;
       animation-delay: 0ms !important;
       transition:
-        transform 1350ms cubic-bezier(.16,.84,.2,1),
-        filter 1350ms cubic-bezier(.16,.84,.2,1);
+        transform 820ms cubic-bezier(.16,.84,.2,1),
+        filter 820ms cubic-bezier(.16,.84,.2,1);
       transform: rotateY(0deg);
       -webkit-transform: rotateY(0deg);
     }
@@ -7120,12 +7120,6 @@ PAGE_TEMPLATE = """
       transform: rotateY(180deg) !important;
       -webkit-transform: rotateY(180deg) !important;
       filter: brightness(1.05);
-    }
-
-    .pack-preview-slot.front-visible .pack-flip-inner,
-    .pack-preview-slot.revealed .pack-flip-inner {
-      transform: rotateY(0deg) !important;
-      -webkit-transform: rotateY(0deg) !important;
     }
 
     .pack-preview-grid .pack-flip-back,
@@ -7172,10 +7166,10 @@ PAGE_TEMPLATE = """
       opacity: 1 !important;
       visibility: visible;
       z-index: 5;
-      transform: rotateY(0deg) translateZ(3px) !important;
-      -webkit-transform: rotateY(0deg) translateZ(3px) !important;
-      backface-visibility: visible !important;
-      -webkit-backface-visibility: visible !important;
+      transform: rotateY(180deg) translateZ(3px) !important;
+      -webkit-transform: rotateY(180deg) translateZ(3px) !important;
+      backface-visibility: hidden !important;
+      -webkit-backface-visibility: hidden !important;
     }
 
     .pack-preview-slot.front-visible .pack-preview-face-card,
@@ -13357,17 +13351,17 @@ PAGE_TEMPLATE = """
       const slots = Array.from(grid.querySelectorAll('.pack-preview-slot'));
       for (const slot of slots) {
         slot.classList.add('revealing');
-        await sleep(1380);
+        await sleep(860);
         slot.classList.add('front-visible');
-        await sleep(1800);
+        await sleep(1120);
         slot.classList.remove('revealing');
         slot.classList.add('revealed');
-        await sleep(900);
+        await sleep(420);
       }
-      await sleep(2600);
+      await sleep(1500);
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
-      await sleep(2050);
+      await sleep(1200);
       cleanupPackSequencePreview();
     }
 
