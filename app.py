@@ -7001,8 +7001,8 @@ PAGE_TEMPLATE = """
     .pack-preview-card .pack-flip-card.final-face-lock .pack-flip-inner,
     .pack-preview-slot.face-locked .pack-flip-inner {
       animation: none !important;
-      transform: rotateY(0deg) !important;
-      -webkit-transform: rotateY(0deg) !important;
+      transform: rotateY(180deg) !important;
+      -webkit-transform: rotateY(180deg) !important;
       filter: brightness(1.05);
     }
 
@@ -7017,10 +7017,10 @@ PAGE_TEMPLATE = """
       opacity: 1 !important;
       visibility: visible !important;
       z-index: 8;
-      transform: rotateY(0deg) translateZ(2px) !important;
-      -webkit-transform: rotateY(0deg) translateZ(2px) !important;
-      backface-visibility: visible !important;
-      -webkit-backface-visibility: visible !important;
+      transform: rotateY(180deg) translateZ(2px) !important;
+      -webkit-transform: rotateY(180deg) translateZ(2px) !important;
+      backface-visibility: hidden !important;
+      -webkit-backface-visibility: hidden !important;
     }
 
     .pack-preview-card.focused {
@@ -7152,8 +7152,8 @@ PAGE_TEMPLATE = """
       -webkit-transform: rotateY(0deg);
     }
 
-    .pack-preview-slot.revealing .pack-flip-inner,
     .pack-preview-slot.front-visible .pack-flip-inner,
+    .pack-preview-slot.face-locked .pack-flip-inner,
     .pack-preview-slot.revealed .pack-flip-inner {
       transform: rotateY(180deg) !important;
       -webkit-transform: rotateY(180deg) !important;
@@ -7181,25 +7181,27 @@ PAGE_TEMPLATE = """
       opacity: 0;
     }
 
-    .pack-preview-slot.revealing .pack-flip-back,
     .pack-preview-slot.front-visible .pack-flip-back,
+    .pack-preview-slot.face-locked .pack-flip-back,
     .pack-preview-slot.revealed .pack-flip-back {
       opacity: 0;
     }
 
-    .pack-preview-slot.revealing .pack-flip-front,
     .pack-preview-slot.front-visible .pack-flip-front,
+    .pack-preview-slot.face-locked .pack-flip-front,
     .pack-preview-slot.revealed .pack-flip-front {
       opacity: 1;
     }
 
     .pack-preview-slot.front-visible .pack-flip-back,
+    .pack-preview-slot.face-locked .pack-flip-back,
     .pack-preview-slot.revealed .pack-flip-back {
       opacity: 0 !important;
       visibility: hidden;
     }
 
     .pack-preview-slot.front-visible .pack-flip-front,
+    .pack-preview-slot.face-locked .pack-flip-front,
     .pack-preview-slot.revealed .pack-flip-front {
       opacity: 1 !important;
       visibility: visible;
@@ -13389,19 +13391,19 @@ PAGE_TEMPLATE = """
       const slots = Array.from(grid.querySelectorAll('.pack-preview-slot'));
       for (const slot of slots) {
         slot.classList.add('revealing');
-        await sleep(860);
+        await sleep(720);
         slot.classList.add('front-visible');
-        await sleep(520);
+        await sleep(820);
         slot.classList.add('face-locked');
-        await sleep(1120);
+        await sleep(560);
         slot.classList.remove('revealing');
         slot.classList.add('revealed');
-        await sleep(420);
+        await sleep(180);
       }
-      await sleep(900);
+      await sleep(360);
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
-      await sleep(900);
+      await sleep(560);
       cleanupPackSequencePreview();
     }
 
