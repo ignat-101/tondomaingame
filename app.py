@@ -6948,7 +6948,7 @@ PAGE_TEMPLATE = """
       position: fixed;
       width: min(430px, 88vw);
       max-height: 86vh;
-      z-index: 7010;
+      z-index: 7320;
       border-radius: 20px;
       border: 1px solid rgba(121, 217, 255, 0.4);
       padding: 0;
@@ -6984,7 +6984,18 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-card .pack-flip-inner {
-      animation-delay: 0ms;
+      animation: none !important;
+      animation-delay: 0ms !important;
+      transform: rotateY(0deg);
+      -webkit-transform: rotateY(0deg);
+      transition: transform 620ms cubic-bezier(.16,.84,.2,1), filter 620ms cubic-bezier(.16,.84,.2,1);
+    }
+
+    .pack-preview-card .pack-flip-card.sequence-visible .pack-flip-inner {
+      animation: none !important;
+      transform: rotateY(180deg) !important;
+      -webkit-transform: rotateY(180deg) !important;
+      filter: brightness(1.06);
     }
 
     .pack-preview-card.focused {
@@ -13358,10 +13369,29 @@ PAGE_TEMPLATE = """
         slot.classList.add('revealed');
         await sleep(420);
       }
-      await sleep(1500);
+      await sleep(620);
       grid.classList.add('departing');
+      await sleep(560);
+      const featuredCard = cards[cards.length - 1] || cards[0];
+      const preview = document.createElement('div');
+      preview.className = 'pack-preview-card';
+      preview.style.left = '50%';
+      preview.style.top = '50%';
+      preview.innerHTML = packLootFlipMarkup(featuredCard, 0);
+      document.body.appendChild(preview);
+      activePackPreviewCard = preview;
+      await nextFrame();
+      preview.classList.add('focused');
+      await nextFrame();
+      preview.classList.add('arrived');
+      await sleep(560);
+      const previewFlipCard = preview.querySelector('.pack-flip-card');
+      if (previewFlipCard) {
+        previewFlipCard.classList.add('sequence-visible');
+      }
+      await sleep(1160);
       layer.classList.remove('dimmed');
-      await sleep(1200);
+      await sleep(520);
       cleanupPackSequencePreview();
     }
 
