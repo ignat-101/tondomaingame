@@ -13398,29 +13398,10 @@ PAGE_TEMPLATE = """
         slot.classList.add('revealed');
         await sleep(420);
       }
-      await sleep(620);
+      await sleep(900);
       grid.classList.add('departing');
-      await sleep(560);
-      const featuredCard = cards[cards.length - 1] || cards[0];
-      const preview = document.createElement('div');
-      preview.className = 'pack-preview-card';
-      preview.style.left = '50%';
-      preview.style.top = '50%';
-      preview.innerHTML = packLootFlipMarkup(featuredCard, 0);
-      document.body.appendChild(preview);
-      activePackPreviewCard = preview;
-      await nextFrame();
-      preview.classList.add('focused');
-      await nextFrame();
-      preview.classList.add('arrived');
-      await sleep(460);
-      const previewFlipCard = preview.querySelector('.pack-flip-card');
-      if (previewFlipCard) {
-        previewFlipCard.classList.add('final-face-lock');
-      }
-      await sleep(960);
       layer.classList.remove('dimmed');
-      await sleep(520);
+      await sleep(900);
       cleanupPackSequencePreview();
     }
 
@@ -16587,9 +16568,13 @@ PAGE_TEMPLATE = """
         buildStatus.textContent = `Пул: ${pool} • Потрачено: ${spent} • Остаток: ${Math.max(0, pool - spent)}`;
       });
     });
-    document.querySelectorAll('[data-build-preset-main]').forEach((button) => {
-      bindFunctionalControl(button, () => applyDisciplinePreset(button.dataset.buildPresetMain || 'balanced'));
-    });
+    document.addEventListener('click', (event) => {
+      const presetButton = event.target && event.target.closest ? event.target.closest('[data-build-preset-main]') : null;
+      if (!presetButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      applyDisciplinePreset(presetButton.dataset.buildPresetMain || 'balanced');
+    }, true);
     if (buildAdvancedToggle && buildAdvancedPanel) {
       bindFunctionalControl(buildAdvancedToggle, () => {
         const hidden = buildAdvancedPanel.classList.toggle('hidden');
