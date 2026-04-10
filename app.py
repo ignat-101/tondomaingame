@@ -9910,6 +9910,7 @@ PAGE_TEMPLATE = """
     const buildQuickChart = document.getElementById('build-quick-chart');
     const buildAdvancedPanel = document.getElementById('build-advanced-panel');
     const buildAdvancedToggle = document.getElementById('build-advanced-toggle');
+    const buildPresetButtons = Array.from(document.querySelectorAll('#build-preset-actions [data-build-preset-main]'));
     const buildPresetHelp = document.getElementById('build-preset-help');
     if (startupGuideGif && startupGuideStageOverlay) {
       startupGuideGif.addEventListener('error', () => {
@@ -10247,7 +10248,7 @@ PAGE_TEMPLATE = """
 
     function syncDisciplineBuildPresetUi(presetValue = 'balanced') {
       if (buildQuickChart) buildQuickChart.dataset.build = presetValue || 'balanced';
-      document.querySelectorAll('[data-build-preset-main]').forEach((button) => {
+      buildPresetButtons.forEach((button) => {
         button.classList.toggle('active', button.dataset.buildPresetMain === presetValue);
       });
       const meta = tutorialBuildPresetMeta(presetValue || 'balanced');
@@ -10256,16 +10257,34 @@ PAGE_TEMPLATE = """
       }
     }
 
-    function applyDisciplinePreset(presetValue = 'balanced') {
-      const pool = Number((state.disciplineBuild && state.disciplineBuild.pool) || 0);
+    function applyDisciplinePreset(presetValue = 'balanced', sourceBuild = null) {
+      const build = sourceBuild || state.disciplineBuild || null;
+      const pool = Number((build && build.pool) || 0);
       const points = disciplinePresetPoints(pool, presetValue);
       state.disciplineBuildPreset = presetValue;
       renderDisciplineBuild({pool, points});
     }
 
+    async function ensureDisciplineBuildReady() {
+      const currentPool = Number((state.disciplineBuild && state.disciplineBuild.pool) || 0);
+      if (currentPool > 0) {
+        return state.disciplineBuild;
+      }
+      if (!state.wallet || !state.selectedDomain) {
+        return state.disciplineBuild || {
+          pool: 0,
+          points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}
+        };
+      }
+      const data = await api(`/api/deck-build?wallet=${encodeURIComponent(state.wallet)}&domain=${encodeURIComponent(state.selectedDomain)}`);
+      renderDisciplineBuild(data.build);
+      return data.build;
+    }
+
     async function applyAndSaveDisciplinePreset(presetValue = 'balanced') {
       const normalizedPreset = presetValue || 'balanced';
-      applyDisciplinePreset(normalizedPreset);
+      const sourceBuild = await ensureDisciplineBuildReady();
+      applyDisciplinePreset(normalizedPreset, sourceBuild);
       if (!state.wallet || !state.selectedDomain) {
         if (buildStatus) {
           buildStatus.textContent = 'Пресет выбран. Подключи кошелёк и домен, чтобы сохранить прокачку.';
@@ -16685,34 +16704,29 @@ PAGE_TEMPLATE = """
         const spent = points.attack + points.defense + points.luck + points.speed + points.magic;
         state.disciplineBuild = {pool, points};
         state.disciplineBuildPreset = null;
-        document.querySelectorAll('[data-build-preset-main]').forEach((button) => button.classList.remove('active'));
+        buildPresetButtons.forEach((button) => button.classList.remove('active'));
         if (buildPresetHelp) {
           buildPresetHelp.innerHTML = '<strong>Расширенные настройки:</strong> Здесь можно вручную выставить каждую дисциплину отдельно.';
         }
         buildStatus.textContent = `Пул: ${pool} • Потрачено: ${spent} • Остаток: ${Math.max(0, pool - spent)}`;
       });
     });
-    let lastDisciplinePresetPointerAt = 0;
-    function handleMainDisciplinePresetEvent(event) {
-      const presetButton = event.target && event.target.closest ? event.target.closest('[data-build-preset-main]') : null;
+    const handleMainDisciplinePresetEvent = (event) => {
+      const presetButton = event.currentTarget;
       if (!presetButton) return;
-      if (event.type === 'click' && Date.now() - lastDisciplinePresetPointerAt < 650) {
+      if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
-        event.stopPropagation();
-        return;
       }
-      if (event.type === 'pointerdown') {
-        lastDisciplinePresetPointerAt = Date.now();
-      }
-      event.preventDefault();
-      event.stopPropagation();
       if (typeof presetButton.blur === 'function') presetButton.blur();
       applyAndSaveDisciplinePreset(presetButton.dataset.buildPresetMain || 'balanced').catch((error) => {
-        if (buildStatus) buildStatus.textContent = error.message || 'Не удалось сохранить пресет.';
+        if (buildStatus) {
+          buildStatus.textContent = error.message || 'Не удалось сохранить пресет.';
+        }
       });
-    }
-    document.addEventListener('pointerdown', handleMainDisciplinePresetEvent, true);
-    document.addEventListener('click', handleMainDisciplinePresetEvent, true);
+    };
+    buildPresetButtons.forEach((button) => {
+      bindFunctionalControl(button, handleMainDisciplinePresetEvent);
+    });
     if (buildAdvancedToggle && buildAdvancedPanel) {
       bindFunctionalControl(buildAdvancedToggle, () => {
         const hidden = buildAdvancedPanel.classList.toggle('hidden');
