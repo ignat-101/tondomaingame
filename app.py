@@ -6998,6 +6998,31 @@ PAGE_TEMPLATE = """
       filter: brightness(1.06);
     }
 
+    .pack-preview-card .pack-flip-card.final-face-lock .pack-flip-inner,
+    .pack-preview-slot.face-locked .pack-flip-inner {
+      animation: none !important;
+      transform: rotateY(0deg) !important;
+      -webkit-transform: rotateY(0deg) !important;
+      filter: brightness(1.05);
+    }
+
+    .pack-preview-card .pack-flip-card.final-face-lock .pack-flip-back,
+    .pack-preview-slot.face-locked .pack-flip-back {
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
+    .pack-preview-card .pack-flip-card.final-face-lock .pack-flip-front,
+    .pack-preview-slot.face-locked .pack-flip-front {
+      opacity: 1 !important;
+      visibility: visible !important;
+      z-index: 8;
+      transform: rotateY(0deg) translateZ(2px) !important;
+      -webkit-transform: rotateY(0deg) translateZ(2px) !important;
+      backface-visibility: visible !important;
+      -webkit-backface-visibility: visible !important;
+    }
+
     .pack-preview-card.focused {
       opacity: 1;
       box-shadow:
@@ -7110,9 +7135,11 @@ PAGE_TEMPLATE = """
     .pack-preview-grid .pack-flip-card {
       min-height: min(420px, 64vh);
       height: min(420px, 64vh);
+      outline: 0 !important;
+      border: 0 !important;
       box-shadow:
         0 28px 72px rgba(0, 0, 0, 0.56),
-        0 0 0 1px rgba(121, 217, 255, 0.2);
+        0 0 26px rgba(255, 211, 110, 0.16);
     }
 
     .pack-preview-grid .pack-flip-inner {
@@ -13364,6 +13391,8 @@ PAGE_TEMPLATE = """
         slot.classList.add('revealing');
         await sleep(860);
         slot.classList.add('front-visible');
+        await sleep(520);
+        slot.classList.add('face-locked');
         await sleep(1120);
         slot.classList.remove('revealing');
         slot.classList.add('revealed');
@@ -13389,7 +13418,11 @@ PAGE_TEMPLATE = """
       if (previewFlipCard) {
         previewFlipCard.classList.add('sequence-visible');
       }
-      await sleep(1160);
+      await sleep(680);
+      if (previewFlipCard) {
+        previewFlipCard.classList.add('final-face-lock');
+      }
+      await sleep(900);
       layer.classList.remove('dimmed');
       await sleep(520);
       cleanupPackSequencePreview();
