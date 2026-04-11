@@ -1942,6 +1942,7 @@ PAGE_TEMPLATE = """
       background: transparent;
       box-shadow: none;
       padding: 12px;
+      overscroll-behavior: contain;
     }
 
     .arena-shell {
@@ -2151,6 +2152,7 @@ PAGE_TEMPLATE = """
       display: grid;
       place-items: center;
       padding: 18px 10px 10px;
+      overflow: hidden;
     }
 
     .arena-choice-panel {
@@ -9046,6 +9048,10 @@ PAGE_TEMPLATE = """
       overflow-y: hidden;
     }
 
+    body.tma-app .showdown-fullscreen.battle-live {
+      background: linear-gradient(180deg, rgba(3, 10, 20, 0.98), rgba(5, 14, 26, 0.98));
+    }
+
     body.tma-app .showdown-fullscreen::before,
     body.tma-app .showdown-fullscreen::after {
       border-radius: inherit;
@@ -9054,7 +9060,7 @@ PAGE_TEMPLATE = """
     body.tma-app .showdown-fullscreen::after {
       inset: -4%;
       filter: blur(2px);
-      opacity: 0.52;
+      opacity: 0.2;
     }
 
     body.tma-app .startup-guide {
@@ -9167,6 +9173,37 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       min-width: 0;
       box-sizing: border-box;
+    }
+
+    body.tma-app .showdown-main {
+      overflow-y: auto;
+      overflow-x: clip;
+      overscroll-behavior: contain;
+      background: rgba(4, 14, 27, 0.96);
+    }
+
+    body.tma-app .showdown-main.arena-board {
+      background: transparent;
+      padding: 8px 4px 10px;
+    }
+
+    body.tma-app .arena-shell {
+      gap: 8px;
+      align-content: start;
+    }
+
+    body.tma-app .arena-core {
+      min-height: 200px;
+      background-position: center center !important;
+      background-size: cover !important;
+      background-repeat: no-repeat !important;
+      overflow: hidden;
+    }
+
+    body.tma-app .arena-choice-hub {
+      min-height: 200px;
+      padding: 12px 6px 8px;
+      overflow: hidden;
     }
 
     body.tma-app .arena-battle-dock {
@@ -9462,8 +9499,6 @@ PAGE_TEMPLATE = """
       <main class="stack">
         <section class="panel view active" id="view-wallet">
           <h2>Шаг 1. Подключение кошелька и проверка доменов</h2>
-          <p class="muted">Подключение происходит через настоящий TonConnect UI. После этого можно проверить NFT в кошельке и найти 4-значные домены клуба 10K.</p>
-
           <div class="wallet-quick-panel">
             <div class="wallet-quick-grid" id="wallet-quick-grid">
               <div class="wallet-quick-item">
@@ -9491,7 +9526,6 @@ PAGE_TEMPLATE = """
               <button type="button" class="secondary" id="telegram-miniapp-link-btn">Включить уведомления Telegram в mini app</button>
               <div class="status" id="telegram-link-status"></div>
             </div>
-            <div class="tiny" style="margin-top:8px; color: var(--warning);">Чтобы откалибровать экран в TMA, нажми «Проверить наличие доменов».</div>
             <div class="tiny" id="wallet-tech-status" style="margin-top:6px; color: var(--muted);"></div>
           </div>
 
@@ -10214,7 +10248,7 @@ PAGE_TEMPLATE = """
           <div class="startup-guide-scene">
               <div class="startup-guide-scene-column">
               <div class="startup-guide-note compact final-note">
-                Всё готово. Нажми «Пробная игра». Игра проведёт тебя через первый матч и подскажет лучший ход. В TMA нажми «Проверить наличие доменов» для калибровки экрана.
+                Всё готово. Нажми «Пробная игра». Игра проведёт тебя через первый матч и подскажет лучший ход.
               </div>
             </div>
           </div>
@@ -10276,7 +10310,7 @@ PAGE_TEMPLATE = """
       if (!state.selectedDomain) {
         return 'Кошелёк уже подключён. Теперь нажми «Проверить наличие доменов», чтобы игра выбрала 4-значный .ton домен и открыла путь к пробной игре.';
       }
-      return 'Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде. Если вы в TMA, нажмите «Проверить наличие доменов» для калибровки экрана.';
+      return 'Всё готово. Нажми «Пробная игра»: дальше игра сама проведёт тебя через первый матч и подскажет лучший ход в каждом раунде.';
     }
 
     function tutorialBuildPresetMeta(value) {
@@ -15033,9 +15067,11 @@ PAGE_TEMPLATE = """
 
     function focusBattleChoiceMenu(panel) {
       if (!panel) return;
-      requestAnimationFrame(() => {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-      });
+      if (!document.body.classList.contains('tma-app')) {
+        requestAnimationFrame(() => {
+          panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        });
+      }
       panel.classList.remove('menu-live');
       void panel.offsetWidth;
       panel.classList.add('menu-live');
@@ -15047,9 +15083,11 @@ PAGE_TEMPLATE = """
 
     function focusBattleSetupPanel(panel) {
       if (!panel) return;
-      requestAnimationFrame(() => {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      });
+      if (!document.body.classList.contains('tma-app')) {
+        requestAnimationFrame(() => {
+          panel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        });
+      }
     }
 
     async function openModes() {
