@@ -8823,14 +8823,15 @@ PAGE_TEMPLATE = """
       .arena-battle-dock {
         left: 50%;
         right: auto;
-        width: min(calc(100% - 18px), 360px);
+        width: min(calc(100% - 28px), 344px);
+        max-width: calc(100% - 28px);
         top: 50%;
         bottom: auto;
         transform: translate(-50%, -50%);
       }
 
       .arena-battle-dock .interactive-battle-panel {
-        padding: 10px 10px 12px;
+        padding: 8px 8px 10px;
         border-radius: 16px;
       }
 
@@ -9027,15 +9028,15 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
-      width: auto !important;
-      max-width: none !important;
+      width: calc(var(--app-width, 100vw) - 20px) !important;
+      max-width: calc(var(--app-width, 100vw) - 20px) !important;
       min-width: 0 !important;
-      margin: 0 10px !important;
+      margin: 0 auto !important;
       box-sizing: border-box;
       position: relative;
-      left: auto !important;
-      right: auto !important;
-      transform: translateX(0) !important;
+      left: 0 !important;
+      right: 0 !important;
+      transform: none !important;
       transform-origin: left top;
     }
 
@@ -10632,13 +10633,19 @@ PAGE_TEMPLATE = """
       if (!isTelegramMiniApp()) return;
       const shell = document.querySelector('.shell');
       if (!shell) return;
-      shell.style.width = 'auto';
-      shell.style.maxWidth = 'none';
+      const cssViewportWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--app-width')) || 0;
+      const visualViewportWidth = Number(window.visualViewport && window.visualViewport.width) || 0;
+      const viewportWidth = [cssViewportWidth, visualViewportWidth, window.innerWidth]
+        .filter((value) => Number.isFinite(value) && value > 0)
+        .reduce((smallest, value) => smallest ? Math.min(smallest, value) : value, 0) || window.innerWidth;
+      const shellWidth = Math.max(280, Math.floor(viewportWidth - 20));
+      shell.style.width = `${shellWidth}px`;
+      shell.style.maxWidth = `${shellWidth}px`;
       shell.style.minWidth = '0';
-      shell.style.marginLeft = '10px';
-      shell.style.marginRight = '10px';
-      shell.style.left = 'auto';
-      shell.style.right = 'auto';
+      shell.style.marginLeft = 'auto';
+      shell.style.marginRight = 'auto';
+      shell.style.left = '0';
+      shell.style.right = '0';
       shell.style.transform = 'none';
     }
 
@@ -10646,14 +10653,8 @@ PAGE_TEMPLATE = """
       if (!isTelegramMiniApp()) return;
       const shell = document.querySelector('.shell');
       if (!shell) return;
-      shell.style.width = 'auto';
-      shell.style.maxWidth = 'none';
-      shell.style.minWidth = '0';
-      shell.style.marginLeft = '10px';
-      shell.style.marginRight = '10px';
-      shell.style.left = 'auto';
-      shell.style.right = 'auto';
-      shell.style.transform = 'translateX(0)';
+      correctTmaShellDrift();
+      shell.style.transform = 'none';
       shell.style.willChange = 'auto';
       window.requestAnimationFrame(() => {
         correctTmaShellDrift();
@@ -16711,21 +16712,37 @@ PAGE_TEMPLATE = """
         buildStatus.textContent = `Пул: ${pool} • Потрачено: ${spent} • Остаток: ${Math.max(0, pool - spent)}`;
       });
     });
-    const handleMainDisciplinePresetEvent = (event) => {
+    let lastMainPresetPointerAt = 0;
+    const handleMainDisciplinePresetEvent = async (event) => {
       const presetButton = event.currentTarget;
       if (!presetButton) return;
+      if (event.type === 'click' && Date.now() - lastMainPresetPointerAt < 650) {
+        event.preventDefault();
+        return;
+      }
+      if (event.type === 'pointerdown') {
+        lastMainPresetPointerAt = Date.now();
+      }
       if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
       }
       if (typeof presetButton.blur === 'function') presetButton.blur();
-      applyAndSaveDisciplinePreset(presetButton.dataset.buildPresetMain || 'balanced').catch((error) => {
+      const presetValue = presetButton.dataset.buildPresetMain || 'balanced';
+      syncDisciplineBuildPresetUi(presetValue);
+      if (state.disciplineBuild && Number(state.disciplineBuild.pool || 0) > 0) {
+        applyDisciplinePreset(presetValue, state.disciplineBuild);
+      }
+      try {
+        await applyAndSaveDisciplinePreset(presetValue);
+      } catch (error) {
         if (buildStatus) {
           buildStatus.textContent = error.message || 'Не удалось сохранить пресет.';
         }
-      });
+      }
     };
     buildPresetButtons.forEach((button) => {
-      bindFunctionalControl(button, handleMainDisciplinePresetEvent);
+      button.addEventListener('pointerdown', handleMainDisciplinePresetEvent, { passive: false });
+      button.addEventListener('click', handleMainDisciplinePresetEvent);
     });
     if (buildAdvancedToggle && buildAdvancedPanel) {
       bindFunctionalControl(buildAdvancedToggle, () => {
