@@ -151,8 +151,8 @@ PACK_TYPES = {
     },
     'lucky': {
         'label': 'Счастливый пак',
-        'count': 4,
-        'weights': {'basic': 42, 'rare': 26, 'epic': 18, 'mythic': 10, 'legendary': 4},
+        'count': 5,
+        'weights': {'basic': 24, 'rare': 28, 'epic': 24, 'mythic': 16, 'legendary': 8},
         'lucky_bonus': True,
         'costs': {'lucky_tokens': 1},
     },
@@ -20074,8 +20074,17 @@ def generate_pack(domain, count=None, seed_value=None, pack_type='common', guara
     config = pack_config(pack_type)
     count = int(count or config['count'])
     weights = rarity_weights_for_domain(base)
-    for rarity_key, weight in (config.get('weights') or {}).items():
-        weights[rarity_key] = max(weights.get(rarity_key, 0), int(weight))
+    profile = dict(config.get('weights') or {})
+    common_profile = dict(PACK_TYPES.get('common', {}).get('weights') or {})
+    if str(pack_type) == 'common':
+        for rarity_key, weight in profile.items():
+            weights[rarity_key] = max(weights.get(rarity_key, 0), int(weight))
+    else:
+        for rarity_key in RARITY_ORDER:
+            base_value = int(weights.get(rarity_key, 0))
+            profile_value = int(profile.get(rarity_key, 0))
+            common_value = int(common_profile.get(rarity_key, 0))
+            weights[rarity_key] = max(0, base_value + (profile_value - common_value))
     if config.get('lucky_bonus'):
         metadata = base.get('metadata') or {}
         if metadata.get('superPattern') or (metadata.get('specialCollections') or []):
