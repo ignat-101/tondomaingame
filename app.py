@@ -1850,7 +1850,8 @@ PAGE_TEMPLATE = """
     }
 
     body.showdown-open {
-      overflow: auto;
+      overflow: hidden;
+      overscroll-behavior: none;
     }
 
     .showdown-fullscreen {
@@ -9022,16 +9023,64 @@ PAGE_TEMPLATE = """
       max-width: 100%;
     }
 
+    body.tma-app .showdown-fullscreen,
+    body.tma-app .startup-guide {
+      left: 6px;
+      right: 6px;
+      transform: none;
+      width: auto;
+      max-width: none;
+      box-sizing: border-box;
+    }
+
+    body.tma-app .showdown-fullscreen {
+      inset: auto;
+      top: calc(6px + env(safe-area-inset-top));
+      bottom: calc(6px + env(safe-area-inset-bottom));
+      border-radius: 22px;
+      padding:
+        calc(10px + env(safe-area-inset-top))
+        8px
+        calc(12px + env(safe-area-inset-bottom));
+      overflow-x: clip;
+      overflow-y: hidden;
+    }
+
+    body.tma-app .showdown-fullscreen::before,
+    body.tma-app .showdown-fullscreen::after {
+      border-radius: inherit;
+    }
+
+    body.tma-app .showdown-fullscreen::after {
+      inset: -4%;
+      filter: blur(2px);
+      opacity: 0.52;
+    }
+
+    body.tma-app .startup-guide {
+      padding:
+        calc(6px + env(safe-area-inset-top))
+        6px
+        calc(6px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app .startup-guide-card {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
     body.tma-app .shell {
       overflow-x: hidden;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
-      width: calc(var(--app-width, 100vw) - 20px) !important;
-      max-width: calc(var(--app-width, 100vw) - 20px) !important;
+      width: auto !important;
+      max-width: none !important;
       min-width: 0 !important;
-      margin: 0 auto !important;
+      margin: 0 10px !important;
       box-sizing: border-box;
       position: relative;
       left: 0 !important;
@@ -9103,6 +9152,44 @@ PAGE_TEMPLATE = """
       padding: 12px;
       max-width: 100%;
       overflow-x: hidden;
+    }
+
+    body.tma-app .showdown-header,
+    body.tma-app .showdown-main,
+    body.tma-app .showdown-main.arena-board,
+    body.tma-app .arena-shell,
+    body.tma-app .arena-rail,
+    body.tma-app .arena-core,
+    body.tma-app .arena-choice-hub,
+    body.tma-app .arena-deck-grid,
+    body.tma-app .result-box {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    body.tma-app .arena-battle-dock {
+      left: 8px;
+      right: 8px;
+      width: auto;
+      max-width: none;
+      transform: translateY(-50%);
+    }
+
+    body.tma-app .interactive-battle-panel::before,
+    body.tma-app .interactive-battle-panel::after {
+      border-radius: inherit;
+    }
+
+    body.tma-app .interactive-battle-panel::before {
+      inset: -4%;
+      filter: blur(4px);
+    }
+
+    body.tma-app .interactive-battle-panel::after {
+      inset: -1%;
+      filter: blur(1px);
     }
 
     body.tma-app #view-wallet,
@@ -10574,8 +10661,12 @@ PAGE_TEMPLATE = """
       const stableWidth = tg && Number.isFinite(Number(tg.viewportStableWidth)) && Number(tg.viewportStableWidth) > 0
         ? Number(tg.viewportStableWidth)
         : 0;
+      const docClientWidth = Number(document.documentElement && document.documentElement.clientWidth) || 0;
+      const bodyClientWidth = Number(document.body && document.body.clientWidth) || 0;
       const widthCandidates = [
         stableWidth,
+        docClientWidth,
+        bodyClientWidth,
         Number(window.visualViewport && window.visualViewport.width) || 0,
         window.innerWidth
       ].filter((value) => Number.isFinite(value) && value > 0);
@@ -10635,18 +10726,55 @@ PAGE_TEMPLATE = """
       if (!shell) return;
       const cssViewportWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--app-width')) || 0;
       const visualViewportWidth = Number(window.visualViewport && window.visualViewport.width) || 0;
-      const viewportWidth = [cssViewportWidth, visualViewportWidth, window.innerWidth]
+      const docClientWidth = Number(document.documentElement && document.documentElement.clientWidth) || 0;
+      const bodyClientWidth = Number(document.body && document.body.clientWidth) || 0;
+      const viewportWidth = [cssViewportWidth, docClientWidth, bodyClientWidth, visualViewportWidth, window.innerWidth]
         .filter((value) => Number.isFinite(value) && value > 0)
         .reduce((smallest, value) => smallest ? Math.min(smallest, value) : value, 0) || window.innerWidth;
-      const shellWidth = Math.max(280, Math.floor(viewportWidth - 20));
-      shell.style.width = `${shellWidth}px`;
-      shell.style.maxWidth = `${shellWidth}px`;
+      const shellGutter = 10;
+      const overlayGutter = 6;
+      const overlayWidth = Math.max(280, Math.floor(viewportWidth - overlayGutter * 2));
+      shell.style.width = 'auto';
+      shell.style.maxWidth = 'none';
       shell.style.minWidth = '0';
-      shell.style.marginLeft = 'auto';
-      shell.style.marginRight = 'auto';
+      shell.style.marginLeft = `${shellGutter}px`;
+      shell.style.marginRight = `${shellGutter}px`;
       shell.style.left = '0';
       shell.style.right = '0';
       shell.style.transform = 'none';
+      document.querySelectorAll('#view-wallet, #view-profile, .wallet-quick-panel, .wallet-body, .wallet-box, .panel-body, .profile-preview-hero, .wallet-section, .wallet-telegram-panel, .hero, .panel').forEach((node) => {
+        if (!node) return;
+        node.style.width = '100%';
+        node.style.maxWidth = '100%';
+        node.style.minWidth = '0';
+        node.style.marginLeft = '0';
+        node.style.marginRight = '0';
+        node.style.left = '';
+        node.style.right = '';
+        node.style.transform = 'none';
+      });
+      document.querySelectorAll('.showdown-fullscreen, .startup-guide').forEach((node) => {
+        if (!node) return;
+        node.style.width = 'auto';
+        node.style.maxWidth = 'none';
+        node.style.left = `${overlayGutter}px`;
+        node.style.right = `${overlayGutter}px`;
+        node.style.transform = 'none';
+      });
+      document.querySelectorAll('.arena-battle-dock').forEach((node) => {
+        if (!node) return;
+        node.style.left = '8px';
+        node.style.right = '8px';
+        node.style.width = 'auto';
+        node.style.maxWidth = 'none';
+        node.style.transform = 'translateY(-50%)';
+      });
+      const currencyFloat = document.getElementById('global-currency-float');
+      if (currencyFloat) {
+        currencyFloat.style.maxWidth = `${Math.max(180, overlayWidth - 4)}px`;
+        currencyFloat.style.right = '8px';
+        currencyFloat.style.left = 'auto';
+      }
     }
 
     function alignTmaShellToViewport() {
