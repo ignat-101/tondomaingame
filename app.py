@@ -1943,6 +1943,10 @@ PAGE_TEMPLATE = """
       box-shadow: none;
       padding: 12px;
       overscroll-behavior: contain;
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: local;
     }
 
     .arena-shell {
@@ -3722,6 +3726,18 @@ PAGE_TEMPLATE = """
       display: grid;
       gap: 12px;
       align-content: start;
+    }
+
+    .arena-shell,
+    .arena-choice-hub,
+    .battle-stage,
+    .arena-battle-dock,
+    .arena-battle-dock .interactive-battle-panel,
+    .arena-player-resource-bar {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     .interactive-battle-panel {
@@ -9030,8 +9046,8 @@ PAGE_TEMPLATE = """
       left: 6px;
       right: 6px;
       transform: none;
-      width: auto;
-      max-width: none;
+      width: calc(var(--app-width, 100vw) - 12px);
+      max-width: calc(var(--app-width, 100vw) - 12px);
       box-sizing: border-box;
     }
 
@@ -9083,10 +9099,10 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
-      width: auto !important;
-      max-width: none !important;
+      width: calc(var(--app-width, 100vw) - 20px) !important;
+      max-width: calc(var(--app-width, 100vw) - 20px) !important;
       min-width: 0 !important;
-      margin: 0 10px !important;
+      margin: 0 auto !important;
       box-sizing: border-box;
       position: relative;
       left: 0 !important;
@@ -9185,6 +9201,10 @@ PAGE_TEMPLATE = """
     body.tma-app .showdown-main.arena-board {
       background: transparent;
       padding: 8px 4px 10px;
+      background-position: center center !important;
+      background-size: cover !important;
+      background-repeat: no-repeat !important;
+      background-attachment: local !important;
     }
 
     body.tma-app .arena-shell {
@@ -10742,12 +10762,14 @@ PAGE_TEMPLATE = """
       document.documentElement.scrollLeft = 0;
       document.body.scrollLeft = 0;
       if (scrollingElement) scrollingElement.scrollLeft = 0;
-      document.querySelectorAll('.shell, .layout, #view-wallet, #view-profile, .panel, .wallet-quick-panel, .wallet-body, .wallet-box, .panel-body, .hero, #ton-connect, .profile-preview-hero, .wallet-section, .wallet-telegram-panel').forEach((node) => {
+      document.querySelectorAll('.shell, .layout, #view-wallet, #view-profile, .panel, .wallet-quick-panel, .wallet-body, .wallet-box, .panel-body, .hero, #ton-connect, .profile-preview-hero, .wallet-section, .wallet-telegram-panel, .showdown-fullscreen, .startup-guide, .showdown-main, .arena-shell, .arena-core, .arena-choice-hub, .arena-battle-dock').forEach((node) => {
         try {
           node.scrollLeft = 0;
-          node.style.transform = 'none';
-          node.style.left = '';
-          node.style.right = '';
+          if (node.classList && node.classList.contains('shell')) {
+            node.style.transform = 'none';
+            node.style.left = '';
+            node.style.right = '';
+          }
         } catch (_) {
         }
       });
@@ -10767,12 +10789,13 @@ PAGE_TEMPLATE = """
         .reduce((smallest, value) => smallest ? Math.min(smallest, value) : value, 0) || window.innerWidth;
       const shellGutter = 10;
       const overlayGutter = 6;
+      const shellWidth = Math.max(300, Math.floor(viewportWidth - shellGutter * 2));
       const overlayWidth = Math.max(280, Math.floor(viewportWidth - overlayGutter * 2));
-      shell.style.width = 'auto';
-      shell.style.maxWidth = 'none';
+      shell.style.width = `${shellWidth}px`;
+      shell.style.maxWidth = `${shellWidth}px`;
       shell.style.minWidth = '0';
-      shell.style.marginLeft = `${shellGutter}px`;
-      shell.style.marginRight = `${shellGutter}px`;
+      shell.style.marginLeft = 'auto';
+      shell.style.marginRight = 'auto';
       shell.style.left = '0';
       shell.style.right = '0';
       shell.style.transform = 'none';
@@ -10789,8 +10812,8 @@ PAGE_TEMPLATE = """
       });
       document.querySelectorAll('.showdown-fullscreen, .startup-guide').forEach((node) => {
         if (!node) return;
-        node.style.width = 'auto';
-        node.style.maxWidth = 'none';
+        node.style.width = `${overlayWidth}px`;
+        node.style.maxWidth = `${overlayWidth}px`;
         node.style.left = `${overlayGutter}px`;
         node.style.right = `${overlayGutter}px`;
         node.style.transform = 'none';
@@ -14682,7 +14705,7 @@ PAGE_TEMPLATE = """
         const outcomeClass = immediateInteractiveOutcome ? '' : 'delayed-outcome';
         battleResult.innerHTML = `
           ${battleHeader}
-          <section class="showdown-main arena-board">
+          <section class="showdown-main arena-board" style="background:${battleArenaBackground(battleArenaCosmetics)}; background-position:center center; background-size:cover; background-repeat:no-repeat; ${battleArenaUiStyle(battleArenaCosmetics)};">
             <div class="arena-shell">
               <div class="arena-rail enemy">
                 <div class="tiny"><strong>Колода соперника</strong> • <span class="arena-domain-label">${opponentLabel}</span></div>
@@ -14690,7 +14713,7 @@ PAGE_TEMPLATE = """
                   ${opponentArenaDeck}
                 </div>
               </div>
-              <div class="arena-core" style="background:${battleArenaBackground(battleArenaCosmetics)}; ${battleArenaUiStyle(battleArenaCosmetics)};">
+              <div class="arena-core" style="${battleArenaUiStyle(battleArenaCosmetics)}">
                 ${arenaRoutes}
                 <div class="arena-choice-hub">
                   <div class="prebattle-stage arena-choice-panel" id="prebattle-stage">
