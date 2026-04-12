@@ -9066,7 +9066,8 @@ PAGE_TEMPLATE = """
       touch-action: pan-y;
     }
 
-    body.tma-app .showdown-fullscreen.battle-live {
+    body.tma-app .showdown-fullscreen.battle-live,
+    body.tma-app .showdown-fullscreen.showdown-battle {
       background: transparent;
     }
 
@@ -9079,6 +9080,11 @@ PAGE_TEMPLATE = """
       inset: -4%;
       filter: blur(2px);
       opacity: 0.1;
+    }
+
+    body.tma-app .showdown-fullscreen.showdown-battle::before,
+    body.tma-app .showdown-fullscreen.showdown-battle::after {
+      display: none;
     }
 
     body.tma-app .startup-guide {
@@ -9245,7 +9251,40 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .battle-stage.visible .arena-round-choice-strip {
-      display: none;
+      position: relative;
+      inset: auto;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      align-items: start;
+      gap: 6px;
+      width: 100%;
+      margin: 0 0 2px;
+      padding: 0 2px;
+      z-index: 4;
+    }
+
+    body.tma-app .battle-stage.visible .arena-round-choice-slot {
+      position: relative;
+      top: auto;
+      left: auto !important;
+      transform: none;
+      min-width: 0;
+      gap: 4px;
+      justify-items: center;
+    }
+
+    body.tma-app .battle-stage.visible .arena-round-marker {
+      width: 12px;
+      height: 12px;
+      min-width: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+    }
+
+    body.tma-app .battle-stage.visible .arena-round-state {
+      min-height: 18px;
+      padding: 0 5px;
+      font-size: 8px;
+      letter-spacing: 0.03em;
     }
 
     body.tma-app .battle-stage.visible .arena-battle-dock {
@@ -13991,10 +14030,17 @@ PAGE_TEMPLATE = """
       }
       const opponentActionKey = latestRound.opponent_action || 'guard';
       const resultKey = latestRound.winner === 'player' ? 'win' : (latestRound.winner === 'opponent' ? 'lose' : 'draw');
-      const laneRect = activeLane.getBoundingClientRect();
       const coreRect = arenaCore.getBoundingClientRect();
       const arenaShell = battleResult.querySelector('.arena-shell');
-      const laneCenter = laneRect.left + laneRect.width / 2 - coreRect.left;
+      const laneRect = activeLane.getBoundingClientRect();
+      const laneLeftPercent = parseFloat(activeLane.style.left || '');
+      const laneCenterFromPercent = Number.isFinite(laneLeftPercent)
+        ? coreRect.width * (laneLeftPercent / 100)
+        : null;
+      const laneCenterFromRect = laneRect.width > 0
+        ? (laneRect.left + laneRect.width / 2 - coreRect.left)
+        : null;
+      const laneCenter = laneCenterFromRect ?? laneCenterFromPercent ?? (coreRect.width / 2);
       const playerActiveSlot = Number(playerCard.slot || currentRoundIndex + 1);
       const opponentActiveSlot = Number(opponentCard.slot || currentRoundIndex + 1);
       const playerSource = battleResult.querySelector(`.arena-rail.player .arena-slot-card[data-slot="${playerActiveSlot}"].active-slot`) ||
@@ -14735,7 +14781,7 @@ PAGE_TEMPLATE = """
           </div>
         `;
         state.lastReplayMode = result.mode || (result.mode_title === 'Матч с ботом' ? 'bot' : (result.mode_title === 'Рейтинговый матч' ? 'ranked' : 'casual'));
-        battleResult.classList.add('showdown-fullscreen');
+        battleResult.classList.add('showdown-fullscreen', 'showdown-battle');
         battleResult.classList.remove('result-win', 'result-lose', 'result-draw', 'battle-live');
         battleResult.classList.add(resultKey === 'win' ? 'result-win' : (resultKey === 'lose' ? 'result-lose' : 'result-draw'));
         document.body.classList.add('showdown-open');
