@@ -1946,7 +1946,6 @@ PAGE_TEMPLATE = """
       background-position: center center;
       background-size: cover;
       background-repeat: no-repeat;
-      background-attachment: local;
     }
 
     .arena-shell {
@@ -9043,11 +9042,11 @@ PAGE_TEMPLATE = """
 
     body.tma-app .showdown-fullscreen,
     body.tma-app .startup-guide {
-      left: 6px;
-      right: 6px;
+      left: 8px;
+      right: auto;
       transform: none;
-      width: calc(var(--app-width, 100vw) - 12px);
-      max-width: calc(var(--app-width, 100vw) - 12px);
+      width: calc(var(--app-width, 100vw) - 16px);
+      max-width: calc(var(--app-width, 100vw) - 16px);
       box-sizing: border-box;
     }
 
@@ -9196,6 +9195,8 @@ PAGE_TEMPLATE = """
       overflow-x: clip;
       overscroll-behavior: contain;
       background: rgba(4, 14, 27, 0.96);
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
     }
 
     body.tma-app .showdown-main.arena-board {
@@ -9204,7 +9205,6 @@ PAGE_TEMPLATE = """
       background-position: center center !important;
       background-size: cover !important;
       background-repeat: no-repeat !important;
-      background-attachment: local !important;
     }
 
     body.tma-app .arena-shell {
@@ -10788,7 +10788,7 @@ PAGE_TEMPLATE = """
         .filter((value) => Number.isFinite(value) && value > 0)
         .reduce((smallest, value) => smallest ? Math.min(smallest, value) : value, 0) || window.innerWidth;
       const shellGutter = 10;
-      const overlayGutter = 6;
+      const overlayGutter = 8;
       const shellWidth = Math.max(300, Math.floor(viewportWidth - shellGutter * 2));
       const overlayWidth = Math.max(280, Math.floor(viewportWidth - overlayGutter * 2));
       shell.style.width = `${shellWidth}px`;
@@ -10796,8 +10796,8 @@ PAGE_TEMPLATE = """
       shell.style.minWidth = '0';
       shell.style.marginLeft = 'auto';
       shell.style.marginRight = 'auto';
-      shell.style.left = '0';
-      shell.style.right = '0';
+      shell.style.left = '';
+      shell.style.right = '';
       shell.style.transform = 'none';
       document.querySelectorAll('#view-wallet, #view-profile, .wallet-quick-panel, .wallet-body, .wallet-box, .panel-body, .profile-preview-hero, .wallet-section, .wallet-telegram-panel, .hero, .panel').forEach((node) => {
         if (!node) return;
@@ -10815,7 +10815,7 @@ PAGE_TEMPLATE = """
         node.style.width = `${overlayWidth}px`;
         node.style.maxWidth = `${overlayWidth}px`;
         node.style.left = `${overlayGutter}px`;
-        node.style.right = `${overlayGutter}px`;
+        node.style.right = 'auto';
         node.style.transform = 'none';
       });
       document.querySelectorAll('.arena-battle-dock').forEach((node) => {
@@ -14703,6 +14703,10 @@ PAGE_TEMPLATE = """
         const immediateInteractiveOutcome = Boolean(result.interactive_session_id && !result.interactive_live);
         const hideLiveScoreCard = Boolean(result.interactive_live && (!Array.isArray(result.rounds) || !result.rounds.length));
         const outcomeClass = immediateInteractiveOutcome ? '' : 'delayed-outcome';
+        battleResult.style.background = battleArenaBackground(battleArenaCosmetics);
+        battleResult.style.backgroundPosition = 'center center';
+        battleResult.style.backgroundSize = 'cover';
+        battleResult.style.backgroundRepeat = 'no-repeat';
         battleResult.innerHTML = `
           ${battleHeader}
           <section class="showdown-main arena-board" style="background:${battleArenaBackground(battleArenaCosmetics)}; background-position:center center; background-size:cover; background-repeat:no-repeat; ${battleArenaUiStyle(battleArenaCosmetics)};">
