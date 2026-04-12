@@ -9072,6 +9072,11 @@ PAGE_TEMPLATE = """
       max-width: 100%;
     }
 
+    body.tma-app.showdown-open {
+      overflow-y: auto;
+      overscroll-behavior-y: auto;
+    }
+
     body.tma-app .showdown-fullscreen,
     body.tma-app .startup-guide {
       left: 8px;
@@ -9083,19 +9088,25 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .showdown-fullscreen {
+      position: relative;
       inset: auto;
-      top: calc(6px + env(safe-area-inset-top));
-      bottom: calc(6px + env(safe-area-inset-bottom));
-      border-radius: 22px;
+      top: auto;
+      bottom: auto;
+      left: auto;
+      right: auto;
+      width: 100%;
+      max-width: 100%;
+      min-height: calc(var(--app-height, 100dvh) - 22px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      margin: 0;
+      border-radius: 20px;
       padding:
-        calc(10px + env(safe-area-inset-top))
-        8px
-        calc(12px + env(safe-area-inset-bottom));
-      overflow-x: clip;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-      touch-action: pan-y;
+        calc(4px + env(safe-area-inset-top))
+        0
+        calc(10px + env(safe-area-inset-bottom));
+      overflow: visible;
+      -webkit-overflow-scrolling: auto;
+      overscroll-behavior: auto;
+      touch-action: auto;
     }
 
     body.tma-app .showdown-fullscreen.battle-live,
@@ -9104,11 +9115,9 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .showdown-fullscreen.showdown-battle {
-      top: calc(2px + env(safe-area-inset-top));
-      bottom: calc(4px + env(safe-area-inset-bottom));
       padding:
         calc(4px + env(safe-area-inset-top))
-        6px
+        0
         calc(10px + env(safe-area-inset-bottom));
       gap: 6px;
       align-content: start;
@@ -9249,6 +9258,7 @@ PAGE_TEMPLATE = """
       background: transparent;
       -webkit-overflow-scrolling: auto;
       touch-action: auto;
+      min-height: 0;
       max-height: none;
     }
 
@@ -9277,11 +9287,11 @@ PAGE_TEMPLATE = """
 
     body.tma-app .arena-choice-hub {
       position: sticky;
-      top: 0;
+      top: 6px;
       z-index: 8;
       min-height: 0;
       padding: 4px 6px 8px;
-      margin: -2px -2px 0;
+      margin: 0;
       overflow: visible;
       place-items: stretch;
       align-content: start;
@@ -9322,9 +9332,19 @@ PAGE_TEMPLATE = """
 
     body.tma-app .battle-stage.visible,
     body.tma-app #prebattle-stage:not(.hidden) {
-      position: sticky;
-      top: 0;
-      z-index: 9;
+      position: static;
+      top: auto;
+      z-index: auto;
+    }
+
+    body.tma-app.showdown-open .shell,
+    body.tma-app.showdown-open .layout,
+    body.tma-app.showdown-open #view-modes {
+      overflow: visible;
+    }
+
+    body.tma-app.showdown-open #view-modes > :not(#battle-result):not(#invite-result) {
+      display: none !important;
     }
 
     body.tma-app .battle-stage.visible .arena-round-choice-strip {
@@ -10979,7 +10999,15 @@ PAGE_TEMPLATE = """
         node.style.right = '';
         node.style.transform = 'none';
       });
-      document.querySelectorAll('.showdown-fullscreen, .startup-guide').forEach((node) => {
+      document.querySelectorAll('.showdown-fullscreen').forEach((node) => {
+        if (!node) return;
+        node.style.width = '100%';
+        node.style.maxWidth = '100%';
+        node.style.left = '';
+        node.style.right = '';
+        node.style.transform = 'none';
+      });
+      document.querySelectorAll('.startup-guide').forEach((node) => {
         if (!node) return;
         node.style.width = 'auto';
         node.style.maxWidth = 'none';
@@ -11024,6 +11052,21 @@ PAGE_TEMPLATE = """
           resetHorizontalViewportDrift();
         }, delay);
         tmaSyncTimers.push(timer);
+      });
+    }
+
+    function focusTmaShowdown() {
+      if (!isTelegramMiniApp() || !battleResult) return;
+      requestAnimationFrame(() => {
+        try {
+          battleResult.scrollIntoView({ block: 'start', inline: 'nearest' });
+        } catch (_) {
+          const scrollingElement = document.scrollingElement || document.documentElement;
+          if (scrollingElement) {
+            const top = Math.max(0, battleResult.offsetTop - 6);
+            scrollingElement.scrollTop = top;
+          }
+        }
       });
     }
 
@@ -14670,6 +14713,7 @@ PAGE_TEMPLATE = """
           <p class="muted">Подготавливаем колоды и дисциплины. Сейчас начнётся разбор по раундам.</p>
         </section>
       `;
+      focusTmaShowdown();
     }
 
     function setBattleLaunchInFlight(active) {
@@ -14982,6 +15026,7 @@ PAGE_TEMPLATE = """
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
         `;
+        focusTmaShowdown();
 
         let liveResult = result;
         const startBtn = battleResult.querySelector('#start-battle-btn');
