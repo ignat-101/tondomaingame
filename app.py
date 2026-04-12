@@ -9060,11 +9060,14 @@ PAGE_TEMPLATE = """
         8px
         calc(12px + env(safe-area-inset-bottom));
       overflow-x: clip;
-      overflow-y: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
     }
 
     body.tma-app .showdown-fullscreen.battle-live {
-      background: linear-gradient(180deg, rgba(3, 10, 20, 0.98), rgba(5, 14, 26, 0.98));
+      background: transparent;
     }
 
     body.tma-app .showdown-fullscreen::before,
@@ -9075,7 +9078,7 @@ PAGE_TEMPLATE = """
     body.tma-app .showdown-fullscreen::after {
       inset: -4%;
       filter: blur(2px);
-      opacity: 0.2;
+      opacity: 0.1;
     }
 
     body.tma-app .startup-guide {
@@ -9191,12 +9194,13 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .showdown-main {
-      overflow-y: auto;
+      overflow-y: visible;
       overflow-x: clip;
-      overscroll-behavior: contain;
-      background: rgba(4, 14, 27, 0.96);
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-y;
+      overscroll-behavior: auto;
+      background: transparent;
+      -webkit-overflow-scrolling: auto;
+      touch-action: auto;
+      max-height: none;
     }
 
     body.tma-app .showdown-main.arena-board {
@@ -10715,17 +10719,13 @@ PAGE_TEMPLATE = """
       const stableWidth = tg && Number.isFinite(Number(tg.viewportStableWidth)) && Number(tg.viewportStableWidth) > 0
         ? Number(tg.viewportStableWidth)
         : 0;
-      const docClientWidth = Number(document.documentElement && document.documentElement.clientWidth) || 0;
-      const bodyClientWidth = Number(document.body && document.body.clientWidth) || 0;
       const widthCandidates = [
         stableWidth,
-        docClientWidth,
-        bodyClientWidth,
         Number(window.visualViewport && window.visualViewport.width) || 0,
         window.innerWidth
       ].filter((value) => Number.isFinite(value) && value > 0);
       const viewportWidth = widthCandidates.length
-        ? Math.min(...widthCandidates)
+        ? Math.max(...widthCandidates)
         : window.innerWidth;
       document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
       document.documentElement.style.setProperty('--app-width', `${viewportWidth}px`);
@@ -10773,7 +10773,6 @@ PAGE_TEMPLATE = """
         } catch (_) {
         }
       });
-      window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' });
     }
 
     function correctTmaShellDrift() {
@@ -10782,11 +10781,9 @@ PAGE_TEMPLATE = """
       if (!shell) return;
       const cssViewportWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--app-width')) || 0;
       const visualViewportWidth = Number(window.visualViewport && window.visualViewport.width) || 0;
-      const docClientWidth = Number(document.documentElement && document.documentElement.clientWidth) || 0;
-      const bodyClientWidth = Number(document.body && document.body.clientWidth) || 0;
-      const viewportWidth = [cssViewportWidth, docClientWidth, bodyClientWidth, visualViewportWidth, window.innerWidth]
+      const viewportWidth = [cssViewportWidth, visualViewportWidth, window.innerWidth]
         .filter((value) => Number.isFinite(value) && value > 0)
-        .reduce((smallest, value) => smallest ? Math.min(smallest, value) : value, 0) || window.innerWidth;
+        .reduce((largest, value) => largest ? Math.max(largest, value) : value, 0) || window.innerWidth;
       const shellGutter = 10;
       const overlayGutter = 8;
       const shellWidth = Math.max(300, Math.floor(viewportWidth - shellGutter * 2));
