@@ -9103,6 +9103,17 @@ PAGE_TEMPLATE = """
       background: transparent;
     }
 
+    body.tma-app .showdown-fullscreen.showdown-battle {
+      top: calc(2px + env(safe-area-inset-top));
+      bottom: calc(4px + env(safe-area-inset-bottom));
+      padding:
+        calc(4px + env(safe-area-inset-top))
+        6px
+        calc(10px + env(safe-area-inset-bottom));
+      gap: 6px;
+      align-content: start;
+    }
+
     body.tma-app .showdown-fullscreen::before,
     body.tma-app .showdown-fullscreen::after {
       border-radius: inherit;
@@ -9243,7 +9254,7 @@ PAGE_TEMPLATE = """
 
     body.tma-app .showdown-main.arena-board {
       background: transparent;
-      padding: 8px 4px 10px;
+      padding: 4px 4px 10px;
       background-position: center center !important;
       background-size: cover !important;
       background-repeat: no-repeat !important;
@@ -9256,6 +9267,8 @@ PAGE_TEMPLATE = """
 
     body.tma-app .arena-core {
       min-height: 200px;
+      display: grid;
+      align-content: start;
       background-position: center center !important;
       background-size: cover !important;
       background-repeat: no-repeat !important;
@@ -9263,11 +9276,29 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .arena-choice-hub {
+      position: sticky;
+      top: 0;
+      z-index: 8;
       min-height: 0;
-      padding: 6px 6px 8px;
+      padding: 4px 6px 8px;
+      margin: -2px -2px 0;
       overflow: visible;
       place-items: stretch;
       align-content: start;
+    }
+
+    body.tma-app .arena-choice-hub::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: -18px;
+      border-radius: 18px 18px 26px 26px;
+      background:
+        linear-gradient(180deg, rgba(4, 14, 27, 0.97) 0%, rgba(4, 14, 27, 0.9) 74%, rgba(4, 14, 27, 0) 100%);
+      pointer-events: none;
+      z-index: -1;
     }
 
     body.tma-app .arena-choice-panel {
@@ -9287,6 +9318,13 @@ PAGE_TEMPLATE = """
 
     body.tma-app .battle-stage.visible {
       gap: 10px;
+    }
+
+    body.tma-app .battle-stage.visible,
+    body.tma-app #prebattle-stage:not(.hidden) {
+      position: sticky;
+      top: 0;
+      z-index: 9;
     }
 
     body.tma-app .battle-stage.visible .arena-round-choice-strip {
