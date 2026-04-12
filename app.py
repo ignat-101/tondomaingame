@@ -9043,10 +9043,10 @@ PAGE_TEMPLATE = """
     body.tma-app .showdown-fullscreen,
     body.tma-app .startup-guide {
       left: 8px;
-      right: auto;
+      right: 8px;
       transform: none;
-      width: calc(var(--app-width, 100vw) - 16px);
-      max-width: calc(var(--app-width, 100vw) - 16px);
+      width: auto;
+      max-width: none;
       box-sizing: border-box;
     }
 
@@ -9221,13 +9221,15 @@ PAGE_TEMPLATE = """
       background-position: center center !important;
       background-size: cover !important;
       background-repeat: no-repeat !important;
-      overflow: hidden;
+      overflow: visible;
     }
 
     body.tma-app .arena-choice-hub {
-      min-height: 200px;
+      min-height: 0;
       padding: 12px 6px 8px;
-      overflow: hidden;
+      overflow: visible;
+      place-items: stretch;
+      align-content: start;
     }
 
     body.tma-app .arena-battle-dock {
@@ -9236,6 +9238,43 @@ PAGE_TEMPLATE = """
       width: auto;
       max-width: none;
       transform: translateY(-50%);
+    }
+
+    body.tma-app .battle-stage.visible {
+      gap: 10px;
+    }
+
+    body.tma-app .battle-stage.visible .arena-round-choice-strip {
+      display: none;
+    }
+
+    body.tma-app .battle-stage.visible .arena-battle-dock {
+      position: relative;
+      left: auto !important;
+      right: auto !important;
+      top: auto;
+      bottom: auto;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0;
+      transform: none !important;
+      z-index: 4;
+      pointer-events: auto;
+    }
+
+    body.tma-app .battle-stage.visible .arena-battle-dock .interactive-battle-panel {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+    }
+
+    body.tma-app .battle-stage.visible .interactive-battle-panel::before,
+    body.tma-app .battle-stage.visible .interactive-battle-panel::after {
+      display: none;
+    }
+
+    body.tma-app .arena-core.clash-live .arena-battle-dock {
+      transform: translateY(10px) !important;
     }
 
     body.tma-app .interactive-battle-panel::before,
@@ -10695,6 +10734,24 @@ PAGE_TEMPLATE = """
       tmaSyncTimers = [];
     }
 
+    function resolveTmaViewportWidth(tg = null) {
+      const telegramApp = tg || (window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null);
+      const stableWidth = telegramApp && Number.isFinite(Number(telegramApp.viewportStableWidth)) && Number(telegramApp.viewportStableWidth) > 0
+        ? Number(telegramApp.viewportStableWidth)
+        : 0;
+      const widthCandidates = [
+        stableWidth,
+        Number(window.visualViewport && window.visualViewport.width) || 0,
+        Number(document.documentElement && document.documentElement.clientWidth) || 0,
+        Number(document.body && document.body.clientWidth) || 0,
+        window.innerWidth
+      ].filter((value) => Number.isFinite(value) && value > 0);
+      if (!widthCandidates.length) {
+        return window.innerWidth;
+      }
+      return Math.max(280, Math.floor(Math.min(...widthCandidates)));
+    }
+
     function performTmaSync() {
       syncTmaMode();
       syncTmaViewport();
@@ -10716,17 +10773,7 @@ PAGE_TEMPLATE = """
         Number(window.visualViewport && window.visualViewport.height) || 0,
         window.innerHeight
       );
-      const stableWidth = tg && Number.isFinite(Number(tg.viewportStableWidth)) && Number(tg.viewportStableWidth) > 0
-        ? Number(tg.viewportStableWidth)
-        : 0;
-      const widthCandidates = [
-        stableWidth,
-        Number(window.visualViewport && window.visualViewport.width) || 0,
-        window.innerWidth
-      ].filter((value) => Number.isFinite(value) && value > 0);
-      const viewportWidth = widthCandidates.length
-        ? Math.max(...widthCandidates)
-        : window.innerWidth;
+      const viewportWidth = resolveTmaViewportWidth(tg);
       document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
       document.documentElement.style.setProperty('--app-width', `${viewportWidth}px`);
       if (tg && typeof tg.expand === 'function') {
@@ -10779,11 +10826,7 @@ PAGE_TEMPLATE = """
       if (!isTelegramMiniApp()) return;
       const shell = document.querySelector('.shell');
       if (!shell) return;
-      const cssViewportWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--app-width')) || 0;
-      const visualViewportWidth = Number(window.visualViewport && window.visualViewport.width) || 0;
-      const viewportWidth = [cssViewportWidth, visualViewportWidth, window.innerWidth]
-        .filter((value) => Number.isFinite(value) && value > 0)
-        .reduce((largest, value) => largest ? Math.max(largest, value) : value, 0) || window.innerWidth;
+      const viewportWidth = resolveTmaViewportWidth();
       const shellGutter = 10;
       const overlayGutter = 8;
       const shellWidth = Math.max(300, Math.floor(viewportWidth - shellGutter * 2));
@@ -10809,10 +10852,10 @@ PAGE_TEMPLATE = """
       });
       document.querySelectorAll('.showdown-fullscreen, .startup-guide').forEach((node) => {
         if (!node) return;
-        node.style.width = `${overlayWidth}px`;
-        node.style.maxWidth = `${overlayWidth}px`;
+        node.style.width = 'auto';
+        node.style.maxWidth = 'none';
         node.style.left = `${overlayGutter}px`;
-        node.style.right = 'auto';
+        node.style.right = `${overlayGutter}px`;
         node.style.transform = 'none';
       });
       document.querySelectorAll('.arena-battle-dock').forEach((node) => {
