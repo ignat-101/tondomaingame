@@ -82,6 +82,18 @@ PACK_PRICE_NANO = int(os.getenv('PACK_PRICE_NANO', '1000000000'))  # 1 TON
 PACK_RECEIVER_WALLET = os.getenv('PACK_RECEIVER_WALLET', '').strip()
 SEASON_PASS_PRICE_NANO = int(os.getenv('SEASON_PASS_PRICE_NANO', '1490000000'))
 SEASON_PASS_RECEIVER_WALLET = os.getenv('SEASON_PASS_RECEIVER_WALLET', PACK_RECEIVER_WALLET).strip()
+SEASON_PASS_WEB3_JETTON_MASTER = os.getenv('SEASON_PASS_WEB3_JETTON_MASTER', 'EQBtcL4JA-PdPiUkB8utHcqdaftmUSTqdL8Z1EeXePLti_nK').strip()
+SEASON_PASS_WEB3_SYMBOL = os.getenv('SEASON_PASS_WEB3_SYMBOL', 'WEB3').strip() or 'WEB3'
+SEASON_PASS_WEB3_NAME = os.getenv('SEASON_PASS_WEB3_NAME', 'Web3 TON Token').strip() or 'Web3 TON Token'
+SEASON_PASS_WEB3_DECIMALS = int(os.getenv('SEASON_PASS_WEB3_DECIMALS', '3'))
+SEASON_PASS_WEB3_AMOUNT = os.getenv('SEASON_PASS_WEB3_AMOUNT', '100').strip() or '100'
+SEASON_PASS_WEB3_AMOUNT_UNITS = int(
+    os.getenv(
+        'SEASON_PASS_WEB3_AMOUNT_UNITS',
+        str(int(SEASON_PASS_WEB3_AMOUNT) * (10 ** max(0, SEASON_PASS_WEB3_DECIMALS))),
+    )
+)
+SEASON_PASS_WEB3_GAS_NANO = int(os.getenv('SEASON_PASS_WEB3_GAS_NANO', '50000000'))
 ALLOW_GUEST_WITHOUT_DOMAIN = os.getenv('ALLOW_GUEST_WITHOUT_DOMAIN', '0').strip().lower() in {'1', 'true', 'yes', 'on'}
 ENV_FILE_PATH = Path(os.getenv('ENV_FILE_PATH', '.env'))
 PACK_PITY_THRESHOLD = int(os.getenv('PACK_PITY_THRESHOLD', '20'))
@@ -410,6 +422,26 @@ PAGE_TEMPLATE = """
         try {
           await loadExternalScript(src);
           if (window.TON_CONNECT_UI && window.TON_CONNECT_UI.TonConnectUI) {
+            return true;
+          }
+        } catch (_) {
+        }
+      }
+      return false;
+    }
+
+    async function ensureTonWebScript() {
+      if (window.TonWeb) {
+        return true;
+      }
+      const candidates = [
+        'https://cdn.jsdelivr.net/npm/tonweb/dist/tonweb.min.js',
+        'https://unpkg.com/tonweb/dist/tonweb.min.js'
+      ];
+      for (const src of candidates) {
+        try {
+          await loadExternalScript(src);
+          if (window.TonWeb) {
             return true;
           }
         } catch (_) {
@@ -9232,10 +9264,17 @@ PAGE_TEMPLATE = """
 
     body.tma-app .arena-choice-hub {
       min-height: 0;
-      padding: 12px 6px 8px;
+      padding: 6px 6px 8px;
       overflow: visible;
       place-items: stretch;
       align-content: start;
+    }
+
+    body.tma-app .arena-choice-panel {
+      align-self: start;
+      margin: 0;
+      width: 100%;
+      max-width: 100%;
     }
 
     body.tma-app .arena-battle-dock {
@@ -9274,10 +9313,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .battle-stage.visible .arena-round-marker {
-      width: 12px;
-      height: 12px;
-      min-width: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+      display: none;
     }
 
     body.tma-app .battle-stage.visible .arena-round-state {
@@ -9285,6 +9321,22 @@ PAGE_TEMPLATE = """
       padding: 0 5px;
       font-size: 8px;
       letter-spacing: 0.03em;
+    }
+
+    body.tma-app .battle-stage.visible .arena-round-choice-slot.active::before {
+      content: attr(data-round-number);
+      min-height: 18px;
+      padding: 0 6px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid color-mix(in srgb, var(--arena-route-active) 44%, transparent);
+      background: color-mix(in srgb, var(--arena-route-active) 16%, transparent);
+      color: var(--arena-overlay-text);
+      font-size: 8px;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
     }
 
     body.tma-app .battle-stage.visible .arena-battle-dock {
@@ -12788,8 +12840,9 @@ PAGE_TEMPLATE = """
               </div>
             </div>
           ` : ''}
-          <div class="actions" style="margin-top:10px;">
+          <div class="actions" style="margin-top:10px; flex-wrap:wrap;">
             <button id="buy-season-pass-btn"${rewards.premium_pass_active ? ' disabled' : ''}>Купить премиум-пропуск за 1.49 TON</button>
+            <button class="secondary" id="buy-season-pass-web3-btn"${rewards.premium_pass_active ? ' disabled' : ''}>Купить за 100 WEB3</button>
           </div>
         </div>
       `;
@@ -12838,7 +12891,9 @@ PAGE_TEMPLATE = """
       }
       showPassLevel(Math.max(0, Math.min(track.length - 1, Number((state.seasonPassLevelIndex || 0)))));
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
+      const buySeasonPassWeb3Btn = document.getElementById('buy-season-pass-web3-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
+      if (buySeasonPassWeb3Btn && !buySeasonPassWeb3Btn.disabled) bindFunctionalControl(buySeasonPassWeb3Btn, buySeasonPassWithWeb3);
     }
 
     const GIFT_THEMES = {
@@ -14702,7 +14757,7 @@ PAGE_TEMPLATE = """
                   const roundOutcomeLabel = roundResult?.winner === 'player' ? 'WIN' : (roundResult?.winner === 'opponent' ? 'LOSE' : (roundResult ? 'DRAW' : 'Ждёт'));
                   const left = (arenaLanes[index] && arenaLanes[index].percent) || 50;
                   return `
-                    <div class="arena-round-choice-slot ${isActive ? 'active' : ''} ${isResolved ? 'resolved' : ''}" style="left:${left}%;">
+                    <div class="arena-round-choice-slot ${isActive ? 'active' : ''} ${isResolved ? 'resolved' : ''}" data-round-number="R${roundNumber}" style="left:${left}%;">
                       <div class="arena-round-marker"></div>
                       ${isActive ? '' : `<div class="arena-round-state ${isResolved ? roundOutcomeClass : ''}">${roundOutcomeLabel}</div>`}
                     </div>
@@ -16146,6 +16201,84 @@ PAGE_TEMPLATE = """
       }
     }
 
+    function jettonUnitsFromAmount(amount, decimals) {
+      const safeAmount = String(amount || '0').trim().replace(',', '.');
+      const safeDecimals = Math.max(0, Number(decimals || 0));
+      if (!/^\\d+(\\.\\d+)?$/.test(safeAmount)) {
+        throw new Error('Некорректное значение суммы jetton.');
+      }
+      const [wholeRaw, fractionRaw = ''] = safeAmount.split('.');
+      const whole = wholeRaw.replace(/^0+(?=\\d)/, '') || '0';
+      const fraction = `${fractionRaw}${'0'.repeat(safeDecimals)}`.slice(0, safeDecimals);
+      return `${whole}${fraction}`.replace(/^0+(?=\\d)/, '') || '0';
+    }
+
+    async function buySeasonPassWithWeb3() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet) return;
+      if (!tonConnectUI) {
+        setStatus(document.getElementById('pack-status'), 'TonConnect не инициализирован.', 'error');
+        return;
+      }
+      const tonWebReady = await ensureTonWebScript();
+      if (!tonWebReady || !window.TonWeb) {
+        setStatus(document.getElementById('pack-status'), 'TonWeb не загрузился. Повтори попытку без блокировщиков скриптов.', 'error');
+        return;
+      }
+      try {
+        setStatus(document.getElementById('pack-status'), 'Создаём платёж 100 WEB3 для премиум-пропуска...', 'warning');
+        const intent = await api('/api/pass/payment-intent', {
+          method: 'POST',
+          body: { wallet: state.wallet, method: 'web3' }
+        });
+        const TonWeb = window.TonWeb;
+        const tonweb = new TonWeb(new TonWeb.HttpProvider('https://toncenter.com/api/v2/jsonRPC'));
+        const ownerAddress = new TonWeb.utils.Address(state.wallet);
+        const receiverAddress = new TonWeb.utils.Address(intent.receiver_wallet);
+        const jettonMasterAddress = new TonWeb.utils.Address(intent.jetton_master);
+        const jettonMinter = new TonWeb.token.jetton.JettonMinter(tonweb.provider, {address: jettonMasterAddress});
+        const senderJettonWalletAddress = await jettonMinter.getJettonWalletAddress(ownerAddress);
+        const senderJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, {address: senderJettonWalletAddress});
+        const jettonDecimals = Number.isFinite(Number(intent.jetton_decimals)) ? Number(intent.jetton_decimals) : 3;
+        const jettonAmountUnits = jettonUnitsFromAmount(intent.amount_tokens, jettonDecimals);
+        const transferBody = await senderJettonWallet.createTransferBody({
+          jettonAmount: new TonWeb.utils.BN(jettonAmountUnits),
+          toAddress: receiverAddress,
+          forwardAmount: new TonWeb.utils.BN('1'),
+          forwardPayload: new TextEncoder().encode(intent.memo || 'season-pass'),
+          responseAddress: ownerAddress
+        });
+        const payloadBase64 = TonWeb.utils.bytesToBase64(await transferBody.toBoc(false));
+        const tx = await tonConnectUI.sendTransaction({
+          validUntil: intent.valid_until,
+          messages: [
+            {
+              address: senderJettonWalletAddress.toString(true, true, true),
+              amount: String(intent.ton_fee_nano || 50000000),
+              payload: payloadBase64
+            }
+          ]
+        });
+        const confirmed = await api('/api/pass/payment-confirm', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            payment_id: intent.payment_id,
+            payment_method: 'web3',
+            tx_hash: tx && tx.boc ? tx.boc.slice(0, 120) : ''
+          }
+        });
+        if (state.playerProfile) {
+          state.playerProfile.rewards = confirmed.rewards;
+        }
+        renderProfile();
+        updateButtons();
+        setStatus(document.getElementById('pack-status'), 'Премиум-пропуск активирован через WEB3 jetton.', 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
     async function loadCardCatalog() {
       try {
         const data = await api('/api/cards/catalog');
@@ -17519,6 +17652,10 @@ def init_db():
                 wallet TEXT NOT NULL,
                 amount_nano INTEGER NOT NULL,
                 memo TEXT NOT NULL,
+                payment_method TEXT NOT NULL DEFAULT 'ton',
+                asset_address TEXT,
+                asset_symbol TEXT,
+                asset_amount TEXT,
                 status TEXT NOT NULL,
                 tx_hash TEXT,
                 created_at TEXT NOT NULL,
@@ -17657,6 +17794,15 @@ def init_db():
             conn.execute('ALTER TABLE player_rewards ADD COLUMN premium_pass INTEGER NOT NULL DEFAULT 0')
         if 'cosmetic_packs' not in reward_columns:
             conn.execute('ALTER TABLE player_rewards ADD COLUMN cosmetic_packs INTEGER NOT NULL DEFAULT 0')
+        season_pass_payment_columns = {row['name'] for row in conn.execute("PRAGMA table_info(season_pass_payments)").fetchall()}
+        if 'payment_method' not in season_pass_payment_columns:
+            conn.execute("ALTER TABLE season_pass_payments ADD COLUMN payment_method TEXT NOT NULL DEFAULT 'ton'")
+        if 'asset_address' not in season_pass_payment_columns:
+            conn.execute('ALTER TABLE season_pass_payments ADD COLUMN asset_address TEXT')
+        if 'asset_symbol' not in season_pass_payment_columns:
+            conn.execute('ALTER TABLE season_pass_payments ADD COLUMN asset_symbol TEXT')
+        if 'asset_amount' not in season_pass_payment_columns:
+            conn.execute('ALTER TABLE season_pass_payments ADD COLUMN asset_amount TEXT')
         conn.commit()
 
 
@@ -17776,6 +17922,10 @@ def ensure_runtime_tables():
                 wallet TEXT NOT NULL,
                 amount_nano INTEGER NOT NULL,
                 memo TEXT NOT NULL,
+                payment_method TEXT NOT NULL DEFAULT 'ton',
+                asset_address TEXT,
+                asset_symbol TEXT,
+                asset_amount TEXT,
                 status TEXT NOT NULL,
                 tx_hash TEXT,
                 created_at TEXT NOT NULL,
@@ -17828,6 +17978,15 @@ def ensure_runtime_tables():
             conn.execute('ALTER TABLE player_rewards ADD COLUMN premium_pass INTEGER NOT NULL DEFAULT 0')
         if 'cosmetic_packs' not in reward_columns:
             conn.execute('ALTER TABLE player_rewards ADD COLUMN cosmetic_packs INTEGER NOT NULL DEFAULT 0')
+        season_pass_payment_columns = {row['name'] for row in conn.execute("PRAGMA table_info(season_pass_payments)").fetchall()}
+        if 'payment_method' not in season_pass_payment_columns:
+            conn.execute("ALTER TABLE season_pass_payments ADD COLUMN payment_method TEXT NOT NULL DEFAULT 'ton'")
+        if 'asset_address' not in season_pass_payment_columns:
+            conn.execute('ALTER TABLE season_pass_payments ADD COLUMN asset_address TEXT')
+        if 'asset_symbol' not in season_pass_payment_columns:
+            conn.execute('ALTER TABLE season_pass_payments ADD COLUMN asset_symbol TEXT')
+        if 'asset_amount' not in season_pass_payment_columns:
+            conn.execute('ALTER TABLE season_pass_payments ADD COLUMN asset_amount TEXT')
         cosmetic_columns = {row['name'] for row in conn.execute("PRAGMA table_info(player_cosmetics)").fetchall()}
         if 'cosmetic_type' not in cosmetic_columns:
             conn.execute('ALTER TABLE player_cosmetics ADD COLUMN cosmetic_type TEXT')
@@ -17853,6 +18012,13 @@ MANAGED_ENV_KEYS = {
     'TG_BOT_TOKEN': {'type': 'str', 'description': 'Telegram bot token'},
     'TG_BOT_USERNAME': {'type': 'str', 'description': 'Username Telegram-бота'},
     'PACK_RECEIVER_WALLET': {'type': 'str', 'description': 'Кошелек получателя оплаты пака'},
+    'SEASON_PASS_RECEIVER_WALLET': {'type': 'str', 'description': 'Кошелек получателя оплаты пропуска'},
+    'SEASON_PASS_WEB3_JETTON_MASTER': {'type': 'str', 'description': 'Jetton master для оплаты пропуска через WEB3'},
+    'SEASON_PASS_WEB3_SYMBOL': {'type': 'str', 'description': 'Символ jetton для оплаты пропуска'},
+    'SEASON_PASS_WEB3_NAME': {'type': 'str', 'description': 'Название jetton для оплаты пропуска'},
+    'SEASON_PASS_WEB3_DECIMALS': {'type': 'int', 'description': 'Decimals jetton для оплаты пропуска'},
+    'SEASON_PASS_WEB3_AMOUNT': {'type': 'str', 'description': 'Сумма оплаты пропуска в jetton'},
+    'SEASON_PASS_WEB3_GAS_NANO': {'type': 'int', 'description': 'TON gas для отправки jetton-платежа'},
     'PACK_PRICE_NANO': {'type': 'int', 'description': 'Цена пака в nanoTON'},
     'DAILY_FREE_PACKS': {'type': 'int', 'description': 'Лимит бесплатных паков в сутки'},
     'ALLOW_GUEST_WITHOUT_DOMAIN': {'type': 'bool', 'description': 'Разрешить игру без домена'},
@@ -17870,6 +18036,13 @@ ENV_DEFAULT_VALUES = {
     'TG_BOT_TOKEN': str(TG_BOT_TOKEN or ''),
     'TG_BOT_USERNAME': str(TG_BOT_USERNAME or ''),
     'PACK_RECEIVER_WALLET': str(PACK_RECEIVER_WALLET or ''),
+    'SEASON_PASS_RECEIVER_WALLET': str(SEASON_PASS_RECEIVER_WALLET or ''),
+    'SEASON_PASS_WEB3_JETTON_MASTER': str(SEASON_PASS_WEB3_JETTON_MASTER or ''),
+    'SEASON_PASS_WEB3_SYMBOL': str(SEASON_PASS_WEB3_SYMBOL or ''),
+    'SEASON_PASS_WEB3_NAME': str(SEASON_PASS_WEB3_NAME or ''),
+    'SEASON_PASS_WEB3_DECIMALS': str(SEASON_PASS_WEB3_DECIMALS),
+    'SEASON_PASS_WEB3_AMOUNT': str(SEASON_PASS_WEB3_AMOUNT),
+    'SEASON_PASS_WEB3_GAS_NANO': str(SEASON_PASS_WEB3_GAS_NANO),
     'PACK_PRICE_NANO': str(PACK_PRICE_NANO),
     'DAILY_FREE_PACKS': str(DAILY_FREE_PACKS),
     'ALLOW_GUEST_WITHOUT_DOMAIN': '1' if ALLOW_GUEST_WITHOUT_DOMAIN else '0',
@@ -19429,28 +19602,40 @@ def confirm_pack_payment(payment_id, wallet, tx_hash=None):
     return dict(updated)
 
 
-def create_season_pass_payment(wallet):
+def create_season_pass_payment(wallet, payment_method='ton'):
     payment_id = uuid.uuid4().hex
-    memo = f'PASS:{payment_id}:{wallet[:8]}'
+    method_key = str(payment_method or 'ton').strip().lower()
+    memo_prefix = 'PASSWEB3' if method_key == 'web3' else 'PASS'
+    memo = f'{memo_prefix}:{payment_id}:{wallet[:8]}'
+    amount_nano = SEASON_PASS_PRICE_NANO if method_key == 'ton' else 0
+    asset_address = SEASON_PASS_WEB3_JETTON_MASTER if method_key == 'web3' else None
+    asset_symbol = SEASON_PASS_WEB3_SYMBOL if method_key == 'web3' else 'TON'
+    asset_amount = SEASON_PASS_WEB3_AMOUNT if method_key == 'web3' else None
     with closing(get_db()) as conn:
         conn.execute(
             '''
-            INSERT INTO season_pass_payments (id, wallet, amount_nano, memo, status, tx_hash, created_at, confirmed_at)
-            VALUES (?, ?, ?, ?, 'pending', NULL, ?, NULL)
+            INSERT INTO season_pass_payments (
+                id, wallet, amount_nano, memo, payment_method, asset_address, asset_symbol, asset_amount, status, tx_hash, created_at, confirmed_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', NULL, ?, NULL)
             ''',
-            (payment_id, wallet, SEASON_PASS_PRICE_NANO, memo, now_iso()),
+            (payment_id, wallet, amount_nano, memo, method_key, asset_address, asset_symbol, asset_amount, now_iso()),
         )
         conn.commit()
     return payment_id, memo
 
 
-def confirm_season_pass_payment(payment_id, wallet, tx_hash=None):
+def confirm_season_pass_payment(payment_id, wallet, tx_hash=None, payment_method='ton'):
     with closing(get_db()) as conn:
         row = conn.execute('SELECT * FROM season_pass_payments WHERE id = ?', (payment_id,)).fetchone()
         if row is None:
             raise ValueError('Платёж пропуска не найден.')
         if row['wallet'] != wallet:
             raise ValueError('Платёж принадлежит другому кошельку.')
+        row_method = str(row['payment_method'] or 'ton').strip().lower()
+        requested_method = str(payment_method or 'ton').strip().lower()
+        if row_method != requested_method:
+            raise ValueError('Метод подтверждения не совпадает с созданным платежом.')
         if row['status'] != 'confirmed':
             conn.execute(
                 'UPDATE season_pass_payments SET status = ?, tx_hash = ?, confirmed_at = ? WHERE id = ?',
@@ -26524,26 +26709,44 @@ def api_pack_payment_confirm():
 def api_pass_payment_intent():
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
+    payment_method = str(payload.get('method') or 'ton').strip().lower()
     if not valid_wallet_address(wallet):
         return json_error('Сначала подключи TON-кошелёк.')
     if not SEASON_PASS_RECEIVER_WALLET:
         return json_error('Не настроен адрес получателя оплаты пропуска.', 500)
+    if payment_method not in {'ton', 'web3'}:
+        return json_error('Неизвестный метод оплаты пропуска.')
+    if payment_method == 'web3' and not SEASON_PASS_WEB3_JETTON_MASTER:
+        return json_error('Не настроен WEB3 jetton для оплаты пропуска.', 500)
     rewards = reward_summary(wallet)
     if rewards.get('premium_pass_active'):
         return json_error('Премиум-пропуск уже активен.')
-    payment_id, memo = create_season_pass_payment(wallet)
-    return jsonify(
-        {
-            'ok': True,
-            'payment_id': payment_id,
+    payment_id, memo = create_season_pass_payment(wallet, payment_method=payment_method)
+    response = {
+        'ok': True,
+        'payment_id': payment_id,
+        'payment_method': payment_method,
+        'receiver_wallet': SEASON_PASS_RECEIVER_WALLET,
+        'memo': memo,
+        'payload_base64': base64.b64encode(memo.encode()).decode(),
+        'valid_until': int(now_utc().timestamp()) + 600,
+    }
+    if payment_method == 'web3':
+        response.update({
+            'jetton_master': SEASON_PASS_WEB3_JETTON_MASTER,
+            'jetton_symbol': SEASON_PASS_WEB3_SYMBOL,
+            'jetton_name': SEASON_PASS_WEB3_NAME,
+            'jetton_decimals': SEASON_PASS_WEB3_DECIMALS,
+            'amount_tokens': SEASON_PASS_WEB3_AMOUNT,
+            'amount_units': str(SEASON_PASS_WEB3_AMOUNT_UNITS),
+            'ton_fee_nano': SEASON_PASS_WEB3_GAS_NANO,
+        })
+    else:
+        response.update({
             'amount_nano': SEASON_PASS_PRICE_NANO,
             'amount_ton': SEASON_PASS_PRICE_NANO / 1_000_000_000,
-            'receiver_wallet': SEASON_PASS_RECEIVER_WALLET,
-            'memo': memo,
-            'payload_base64': base64.b64encode(memo.encode()).decode(),
-            'valid_until': int(now_utc().timestamp()) + 600,
-        }
-    )
+        })
+    return jsonify(response)
 
 
 @app.route('/api/pass/payment-confirm', methods=['POST'])
@@ -26551,13 +26754,16 @@ def api_pass_payment_confirm():
     payload = request.get_json(silent=True) or {}
     wallet = (payload.get('wallet') or '').strip()
     payment_id = (payload.get('payment_id') or '').strip()
+    payment_method = str(payload.get('payment_method') or 'ton').strip().lower()
     tx_hash = (payload.get('tx_hash') or '').strip() or None
     if not valid_wallet_address(wallet):
         return json_error('Сначала подключи TON-кошелёк.')
     if not payment_id:
         return json_error('Не указан payment_id.')
+    if payment_method not in {'ton', 'web3'}:
+        return json_error('Неизвестный метод подтверждения оплаты.')
     try:
-        payment, rewards = confirm_season_pass_payment(payment_id, wallet, tx_hash=tx_hash)
+        payment, rewards = confirm_season_pass_payment(payment_id, wallet, tx_hash=tx_hash, payment_method=payment_method)
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'payment': payment, 'rewards': rewards})
