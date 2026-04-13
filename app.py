@@ -9178,7 +9178,18 @@ PAGE_TEMPLATE = """
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
     }
 
-    body.tma-app.tma-ios .mascot-widget,
+    html.tma-app.tma-ios,
+    body.tma-app.tma-ios,
+    body.tma-app.tma-ios .shell {
+      touch-action: auto;
+    }
+
+    body.tma-app.tma-ios .mascot-widget {
+      display: grid !important;
+      left: 8px;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+
     body.tma-app.tma-ios .battle-fx-layer,
     body.tma-app.tma-ios .final-climax,
     body.tma-app.tma-ios .final-chip,
@@ -10954,6 +10965,8 @@ PAGE_TEMPLATE = """
     let tmaSyncTimers = [];
     let tmaResizeObserver = null;
     let tmaMutationObserver = null;
+    let lastTmaViewportWidth = 0;
+    let lastTmaViewportHeight = 0;
 
     function clearScheduledTmaSyncs() {
       tmaSyncTimers.forEach((timer) => window.clearTimeout(timer));
@@ -10987,22 +11000,27 @@ PAGE_TEMPLATE = """
 
     function syncTmaViewport() {
       const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      const iosTma = isTelegramIosWebView();
       const stableHeight = tg && Number.isFinite(Number(tg.viewportStableHeight)) && Number(tg.viewportStableHeight) > 0
         ? Number(tg.viewportStableHeight)
         : 0;
       const dynamicHeight = tg && Number.isFinite(Number(tg.viewportHeight)) && Number(tg.viewportHeight) > 0
         ? Number(tg.viewportHeight)
         : 0;
-      const viewportHeight = Math.max(
-        stableHeight,
-        dynamicHeight,
-        Number(window.visualViewport && window.visualViewport.height) || 0,
-        window.innerHeight
-      );
+      const viewportHeight = iosTma
+        ? Math.max(stableHeight, Number(window.innerHeight) || 0, lastTmaViewportHeight || 0)
+        : Math.max(
+            stableHeight,
+            dynamicHeight,
+            Number(window.visualViewport && window.visualViewport.height) || 0,
+            window.innerHeight
+          );
       const viewportWidth = resolveTmaViewportWidth(tg);
       document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
       document.documentElement.style.setProperty('--app-width', `${viewportWidth}px`);
-      if (tg && typeof tg.expand === 'function') {
+      lastTmaViewportWidth = viewportWidth;
+      lastTmaViewportHeight = viewportHeight;
+      if (!iosTma && tg && typeof tg.expand === 'function') {
         try {
           tg.expand();
         } catch (error) {
@@ -11019,7 +11037,8 @@ PAGE_TEMPLATE = """
         tmaSyncRaf = null;
         clearScheduledTmaSyncs();
         performTmaSync();
-        [80, 220, 420, 900, 1500, 2400, 3600, 5200].forEach((delay) => {
+        const followUps = isTelegramIosWebView() ? [180, 900] : [80, 220, 420, 900, 1500, 2400, 3600, 5200];
+        followUps.forEach((delay) => {
           const timer = window.setTimeout(() => {
             performTmaSync();
             alignTmaShellToViewport();
@@ -11028,6 +11047,16 @@ PAGE_TEMPLATE = """
           tmaSyncTimers.push(timer);
         });
       });
+    }
+
+    function handleTmaWindowResize() {
+      if (isTelegramIosWebView()) {
+        const nextWidth = resolveTmaViewportWidth();
+        if (lastTmaViewportWidth && Math.abs(nextWidth - lastTmaViewportWidth) < 2) {
+          return;
+        }
+      }
+      queueTmaModeSync();
     }
 
     function resetHorizontalViewportDrift() {
@@ -17384,7 +17413,7 @@ PAGE_TEMPLATE = """
       resumeActiveDuelInvite({force: true}).catch(() => {});
     });
     window.addEventListener('orientationchange', queueTmaModeSync);
-    window.addEventListener('resize', queueTmaModeSync);
+    window.addEventListener('resize', handleTmaWindowResize);
     initTonConnect().catch((error) => {
       setStatus(walletStatus, `Ошибка TonConnect: ${error.message}`, 'error');
     });
