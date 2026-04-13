@@ -9153,22 +9153,27 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.tma-ios .mobile-nav {
-      position: relative;
-      left: auto;
-      right: auto;
-      bottom: auto;
-      margin: 14px 0 0;
-      width: 100%;
+      position: fixed;
+      left: 76px;
+      right: 6px;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+      margin: 0;
+      width: auto;
+      background: rgba(7, 16, 25, 0.98);
+      -webkit-backdrop-filter: none;
       backdrop-filter: none;
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
     }
 
     body.tma-app.tma-ios .currency-float {
-      position: relative;
-      top: auto;
-      right: auto;
+      position: fixed;
+      top: calc(8px + env(safe-area-inset-top));
+      right: 8px;
       left: auto;
-      margin: 0 0 12px auto;
+      margin: 0;
+      max-width: calc(100vw - 16px);
+      background: rgba(7, 16, 26, 0.98);
+      -webkit-backdrop-filter: none;
       backdrop-filter: none;
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
     }
