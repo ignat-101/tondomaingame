@@ -9152,6 +9152,45 @@ PAGE_TEMPLATE = """
       display: none;
     }
 
+    body.tma-app.tma-ios .mobile-nav {
+      position: relative;
+      left: auto;
+      right: auto;
+      bottom: auto;
+      margin: 14px 0 0;
+      width: 100%;
+      backdrop-filter: none;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+    }
+
+    body.tma-app.tma-ios .currency-float {
+      position: relative;
+      top: auto;
+      right: auto;
+      left: auto;
+      margin: 0 0 12px auto;
+      backdrop-filter: none;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    body.tma-app.tma-ios .mascot-widget,
+    body.tma-app.tma-ios .battle-fx-layer,
+    body.tma-app.tma-ios .final-climax,
+    body.tma-app.tma-ios .final-chip,
+    body.tma-app.tma-ios .final-core {
+      display: none !important;
+    }
+
+    body.tma-app.tma-ios .hero,
+    body.tma-app.tma-ios .panel,
+    body.tma-app.tma-ios .showdown-header,
+    body.tma-app.tma-ios .arena-choice-panel,
+    body.tma-app.tma-ios .interactive-battle-panel,
+    body.tma-app.tma-ios .mobile-nav,
+    body.tma-app.tma-ios .currency-float {
+      backdrop-filter: none !important;
+    }
+
     body.tma-app .startup-guide {
       padding:
         calc(6px + env(safe-area-inset-top))
@@ -10885,10 +10924,23 @@ PAGE_TEMPLATE = """
       );
     }
 
+    function isTelegramIosWebView() {
+      if (!isTelegramMiniApp()) return false;
+      const ua = String(navigator.userAgent || '').toLowerCase();
+      const platform = String((window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.platform) || '').toLowerCase();
+      const appleTouch = typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 1;
+      const iphoneLike = ua.includes('iphone') || ua.includes('ipod');
+      const ipadLike = ua.includes('ipad') || (ua.includes('macintosh') && appleTouch);
+      return platform === 'ios' || iphoneLike || ipadLike;
+    }
+
     function syncTmaMode() {
       const active = isTelegramMiniApp();
+      const iosTma = active && isTelegramIosWebView();
       document.body.classList.toggle('tma-app', active);
+      document.body.classList.toggle('tma-ios', iosTma);
       document.documentElement.classList.toggle('tma-app', active);
+      document.documentElement.classList.toggle('tma-ios', iosTma);
       document.body.dataset.appMode = active ? 'tma' : 'site';
       return active;
     }
