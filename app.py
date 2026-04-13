@@ -7460,7 +7460,7 @@ PAGE_TEMPLATE = """
       min-width: min(240px, calc(100vw - 132px));
       max-width: min(280px, calc(100vw - 132px));
       padding: 12px 14px;
-      border-radius: 18px 18px 18px 6px;
+      border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.22);
       background:
         radial-gradient(circle at top right, rgba(69, 215, 255, 0.16), transparent 38%),
@@ -7472,17 +7472,7 @@ PAGE_TEMPLATE = """
     }
 
     .pack-sequence-mascot-bubble::after {
-      content: "";
-      position: absolute;
-      left: -10px;
-      bottom: 16px;
-      width: 22px;
-      height: 22px;
-      border-radius: 0 0 0 12px;
-      border-left: 1px solid rgba(121, 217, 255, 0.22);
-      border-bottom: 1px solid rgba(121, 217, 255, 0.22);
-      background: linear-gradient(225deg, rgba(7, 19, 34, 0.96), rgba(5, 12, 22, 0.98));
-      transform: rotate(28deg);
+      display: none;
     }
 
     .pack-sequence-mascot-bubble strong {
@@ -7503,11 +7493,11 @@ PAGE_TEMPLATE = """
     }
 
     .pack-sequence-mascot.visible {
-      animation: packMascotIn 1080ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packMascotIn 1380ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .pack-sequence-mascot.fade-out {
-      animation: packMascotOut 300ms ease forwards;
+      animation: packMascotOut 520ms ease forwards;
     }
 
     .pack-preview-card {
@@ -10229,7 +10219,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .arena-core {
-      --arena-choice-center-y: 52%;
+      --arena-choice-center-y: 58%;
       min-height: 172px;
       display: grid;
       align-content: start;
@@ -10240,6 +10230,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.battle-live-lock .arena-core {
+      --arena-choice-center-y: 60%;
       min-height: 0;
       height: 100%;
       overflow: hidden;
@@ -10418,6 +10409,7 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       margin: 0;
       padding: 10px 10px 10px;
+      overflow: visible;
       background:
         linear-gradient(135deg, rgba(8, 23, 43, 0.62), rgba(10, 29, 34, 0.66)),
         radial-gradient(circle at top, rgba(69, 215, 255, 0.08), transparent 62%);
@@ -10499,6 +10491,21 @@ PAGE_TEMPLATE = """
       overflow: visible;
       line-height: 1.18;
       letter-spacing: 0.01em;
+    }
+
+    body.tma-app .arena-battle-dock .tutorial-live-panel .interactive-battle-head {
+      display: flex;
+    }
+
+    body.tma-app .arena-battle-dock .tutorial-live-panel .user-item,
+    body.tma-app .arena-battle-dock .tutorial-live-panel .tutorial-tip-badge {
+      display: none;
+    }
+
+    body.tma-app .arena-battle-dock .tutorial-live-panel .interactive-battle-prompt {
+      min-height: 14px;
+      margin: 0;
+      display: block;
     }
 
     body.tma-app .battle-stage.visible .arena-score-card {
@@ -12274,11 +12281,11 @@ PAGE_TEMPLATE = """
       });
       document.querySelectorAll('.arena-battle-dock').forEach((node) => {
         if (!node) return;
-        node.style.left = '8px';
-        node.style.right = '8px';
-        node.style.width = 'auto';
-        node.style.maxWidth = 'none';
-        node.style.transform = 'translateY(-50%)';
+        node.style.left = '';
+        node.style.right = '';
+        node.style.width = '';
+        node.style.maxWidth = '';
+        node.style.transform = '';
       });
       const currencyFloat = document.getElementById('global-currency-float');
       if (currencyFloat) {
@@ -15333,12 +15340,12 @@ PAGE_TEMPLATE = """
       layer.classList.add('finale');
       grid.classList.add('victory-fan');
       finaleMascot.classList.add('visible');
-      await sleep(1680);
+      await sleep(3400);
       finaleMascot.classList.add('fade-out');
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
       layer.classList.remove('finale');
-      await sleep(760);
+      await sleep(980);
       cleanupPackSequencePreview();
     }
 
