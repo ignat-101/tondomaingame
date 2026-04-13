@@ -7294,6 +7294,67 @@ PAGE_TEMPLATE = """
       animation: packFinaleBannerOut 300ms ease forwards;
     }
 
+    .pack-sequence-mascot {
+      position: fixed;
+      right: max(12px, env(safe-area-inset-right));
+      bottom: max(14px, calc(14px + env(safe-area-inset-bottom)));
+      z-index: 7327;
+      display: flex;
+      align-items: end;
+      gap: 10px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(20px) scale(0.88);
+      filter: blur(6px);
+    }
+
+    .pack-sequence-mascot img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.34));
+      animation: mascotFloat 2.6s ease-in-out infinite;
+    }
+
+    .pack-sequence-mascot-bubble {
+      min-width: min(240px, calc(100vw - 132px));
+      max-width: min(280px, calc(100vw - 132px));
+      padding: 12px 14px;
+      border-radius: 18px 18px 18px 6px;
+      border: 1px solid rgba(121, 217, 255, 0.22);
+      background:
+        radial-gradient(circle at top right, rgba(69, 215, 255, 0.16), transparent 38%),
+        linear-gradient(180deg, rgba(7, 19, 34, 0.96), rgba(5, 12, 22, 0.98));
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
+      text-align: left;
+      color: #eef8ff;
+    }
+
+    .pack-sequence-mascot-bubble strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.08;
+      color: rgba(255, 244, 209, 0.98);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pack-sequence-mascot-bubble span {
+      display: block;
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.25;
+      color: rgba(227, 241, 255, 0.84);
+    }
+
+    .pack-sequence-mascot.visible {
+      animation: packMascotIn 720ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .pack-sequence-mascot.fade-out {
+      animation: packMascotOut 300ms ease forwards;
+    }
+
     .pack-preview-card {
       position: fixed;
       width: min(430px, 88vw);
@@ -7831,6 +7892,35 @@ PAGE_TEMPLATE = """
       to {
         opacity: 0;
         transform: translate(-50%, 12px) scale(0.94);
+      }
+    }
+
+    @keyframes packMascotIn {
+      0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.88);
+        filter: blur(6px);
+      }
+      68% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.03);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes packMascotOut {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(12px) scale(0.94);
       }
     }
 
@@ -11000,6 +11090,9 @@ PAGE_TEMPLATE = """
     const globalPlayersList = document.getElementById('global-players-list');
     const packShowcase = document.getElementById('pack-showcase');
     const foilPack = document.getElementById('foil-pack');
+    const packFace = foilPack ? foilPack.querySelector('.pack-face') : null;
+    const packRipStrip = foilPack ? foilPack.querySelector('.pack-rip-strip') : null;
+    const packMouthGlow = foilPack ? foilPack.querySelector('.pack-mouth-glow') : null;
     const packCounter = document.getElementById('pack-counter');
     const packNote = document.getElementById('pack-note');
     const buyPackBtn = document.getElementById('buy-pack-btn');
@@ -11934,7 +12027,10 @@ PAGE_TEMPLATE = """
     }
 
     function setBattleLiveLock(active) {
-      const enabled = Boolean(active && isTelegramMiniApp());
+      const ua = String(navigator.userAgent || '').toLowerCase();
+      const touchCapable = Number(navigator.maxTouchPoints || 0) > 1 || /android|iphone|ipad|ipod/.test(ua);
+      const compactViewport = window.innerWidth <= 900 || window.innerHeight <= 940;
+      const enabled = Boolean(active && isTelegramMiniApp() && touchCapable && compactViewport);
       document.body.classList.toggle('battle-live-lock', enabled);
       document.documentElement.classList.toggle('battle-live-lock', enabled);
       if (!enabled) return;
@@ -12634,10 +12730,9 @@ PAGE_TEMPLATE = """
       state.pendingPackPaymentId = paymentId;
       state.pendingRewardPackType = packType || 'common';
       const meta = packTypeMeta(state.pendingRewardPackType);
-      packShowcase.classList.remove('opened', 'bursting', 'cinematic');
+      resetPackShowcaseIdleState({ preserveNote: true });
+      packShowcase.classList.remove('cinematic');
       packShowcase.classList.add('cinematic');
-      foilPack.classList.remove('opening');
-      foilPack.classList.remove('vanishing');
       packNote.textContent = `Нажми на пак, чтобы открыть ${meta ? meta.label.toLowerCase() : 'пак'}`;
       setStatus(document.getElementById('pack-status'), `${meta ? meta.label : 'Пак'} готов к открытию. Нажми на сам пак.`, 'warning');
     }
@@ -13292,6 +13387,14 @@ PAGE_TEMPLATE = """
       }
       if (name !== 'modes' && name !== 'battleflow') {
         resetBattleStage();
+      }
+      if (name === 'pack' && !state.packOpening) {
+        resetPackShowcaseIdleState({ preserveNote: Boolean(state.pendingPackSource) });
+        if (state.pendingPackSource && packNote) {
+          const meta = packTypeMeta(state.pendingRewardPackType || state.selectedPackType || 'common');
+          packShowcase.classList.add('cinematic');
+          packNote.textContent = `Нажми на пак, чтобы открыть ${meta ? meta.label.toLowerCase() : 'пак'}`;
+        }
       }
       resetHorizontalViewportDrift();
       syncTmaMode();
@@ -14790,6 +14893,38 @@ PAGE_TEMPLATE = """
       activePackSequenceLayer = null;
     }
 
+    function resetPackShowcaseIdleState(options = {}) {
+      const { preserveCinematic = false, preserveNote = false } = options;
+      cleanupPackSequencePreview();
+      if (packShowcase) {
+        packShowcase.classList.remove('opened', 'bursting');
+        if (!preserveCinematic) {
+          packShowcase.classList.remove('cinematic');
+        }
+      }
+      if (foilPack) {
+        foilPack.classList.remove('opening', 'vanishing');
+      }
+      [foilPack, packFace, packRipStrip, packMouthGlow].forEach((node) => {
+        if (!node) return;
+        node.style.animation = 'none';
+        node.style.transform = '';
+        node.style.opacity = '';
+        node.style.clipPath = '';
+        node.style.filter = '';
+      });
+      if (foilPack) {
+        void foilPack.offsetWidth;
+      }
+      [foilPack, packFace, packRipStrip, packMouthGlow].forEach((node) => {
+        if (!node) return;
+        node.style.animation = '';
+      });
+      if (packNote && !preserveNote) {
+        packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
+      }
+    }
+
     async function playPackSequence(cards = []) {
       cleanupPackSequencePreview();
       if (!Array.isArray(cards) || !cards.length) return;
@@ -14798,6 +14933,15 @@ PAGE_TEMPLATE = """
       const finaleBadge = document.createElement('div');
       finaleBadge.className = 'pack-sequence-finale';
       finaleBadge.innerHTML = '<strong>Новая пятёрка</strong><span>Карты добавлены в твою колоду</span>';
+      const finaleMascot = document.createElement('div');
+      finaleMascot.className = 'pack-sequence-mascot';
+      finaleMascot.innerHTML = `
+        <img src="/static/mascot-ton-bot.png" alt="">
+        <div class="pack-sequence-mascot-bubble">
+          <strong>Колода готова</strong>
+          <span>Я уже разложил карты. Проверь синергию и сразу заходи в бой.</span>
+        </div>
+      `;
       const grid = document.createElement('div');
       grid.className = 'pack-preview-grid';
       grid.innerHTML = cards.map((card, index) => `
@@ -14808,6 +14952,7 @@ PAGE_TEMPLATE = """
       document.body.appendChild(layer);
       document.body.appendChild(grid);
       layer.appendChild(finaleBadge);
+      layer.appendChild(finaleMascot);
       activePackSequenceLayer = layer;
       activePackPreviewGrid = grid;
       await nextFrame();
@@ -14839,8 +14984,10 @@ PAGE_TEMPLATE = """
       layer.classList.add('finale');
       grid.classList.add('victory-fan');
       finaleBadge.classList.add('visible');
+      finaleMascot.classList.add('visible');
       await sleep(960);
       finaleBadge.classList.add('fade-out');
+      finaleMascot.classList.add('fade-out');
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
       layer.classList.remove('finale');
@@ -16347,9 +16494,7 @@ PAGE_TEMPLATE = """
       state.lastResult = null;
       packCards.innerHTML = '';
       packScoreLabel.textContent = 'Вклад карт: -';
-      packShowcase.classList.remove('opened', 'bursting', 'cinematic');
-      foilPack.classList.remove('opening', 'vanishing');
-      packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
+      resetPackShowcaseIdleState();
       setBattleLiveLock(false);
       battleResult.style.display = 'none';
       battleResult.className = 'result-box';
@@ -17032,8 +17177,7 @@ PAGE_TEMPLATE = """
       state.pendingRewardPackType = null;
       state.packOpening = true;
       setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
-      foilPack.classList.remove('opening');
-      foilPack.classList.remove('vanishing');
+      resetPackShowcaseIdleState({ preserveCinematic: true, preserveNote: true });
       packShowcase.classList.remove('opened', 'bursting');
       packShowcase.classList.add('cinematic');
       requestAnimationFrame(() => foilPack.classList.add('opening'));
@@ -17065,7 +17209,8 @@ PAGE_TEMPLATE = """
         } else {
           await renderPack(data.cards, data.total_score);
         }
-        packShowcase.classList.remove('cinematic', 'bursting');
+        resetPackShowcaseIdleState({ preserveNote: true });
+        packNote.textContent = 'Открывай ещё';
         setStatus(
           document.getElementById('pack-status'),
           isCosmeticPack
@@ -17084,10 +17229,7 @@ PAGE_TEMPLATE = """
         loadAchievements();
         loadProfile();
       } catch (error) {
-        foilPack.classList.remove('opening');
-        foilPack.classList.remove('vanishing');
-        packShowcase.classList.remove('cinematic', 'bursting');
-        packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
+        resetPackShowcaseIdleState();
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       } finally {
         state.packOpening = false;
@@ -17787,9 +17929,7 @@ PAGE_TEMPLATE = """
         state.pendingPackSource = null;
         state.pendingPackPaymentId = null;
         state.packOpening = false;
-        packShowcase.classList.remove('opened', 'bursting', 'cinematic');
-        foilPack.classList.remove('opening', 'vanishing');
-        packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
+        resetPackShowcaseIdleState();
         renderProfile();
         renderDomains(state.domains);
         renderDeck({ wallet: state.wallet, domain: data.domain, deck: data.deck });
@@ -17915,9 +18055,7 @@ PAGE_TEMPLATE = """
           state.selectedBattleSlot = null;
           packCards.innerHTML = '';
           packScoreLabel.textContent = 'Вклад карт: -';
-          packShowcase.classList.remove('opened', 'bursting', 'cinematic');
-          foilPack.classList.remove('opening', 'vanishing');
-          packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
+          resetPackShowcaseIdleState();
           renderDomains([]);
           renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
         }
