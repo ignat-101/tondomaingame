@@ -536,6 +536,11 @@ PAGE_TEMPLATE = """
       align-items: center;
       gap: 12px;
       min-width: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
       color: #151b28;
       font-weight: 700;
       font-size: 16px;
@@ -607,6 +612,492 @@ PAGE_TEMPLATE = """
       height: 3px;
       border-radius: 999px;
       background: linear-gradient(90deg, rgba(69, 215, 255, 0.94), rgba(83, 246, 184, 0.94));
+    }
+
+    body.launcher-open {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    .app-launcher {
+      position: fixed;
+      inset: 0;
+      z-index: 8200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at top left, rgba(69, 215, 255, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 211, 110, 0.12), transparent 28%),
+        linear-gradient(160deg, rgba(3, 8, 20, 0.98), rgba(7, 19, 30, 0.98));
+      backdrop-filter: blur(18px);
+    }
+
+    .app-launcher.visible {
+      display: flex;
+    }
+
+    .app-launcher-device {
+      width: min(100%, 430px);
+      min-height: min(820px, calc(100vh - 36px));
+      padding: calc(22px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
+      border-radius: 38px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 42%),
+        linear-gradient(180deg, rgba(17, 32, 56, 0.92), rgba(8, 18, 34, 0.96));
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.46),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .app-launcher-device::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background:
+        radial-gradient(circle at 18% 24%, rgba(69, 215, 255, 0.14), transparent 22%),
+        radial-gradient(circle at 82% 18%, rgba(255, 211, 110, 0.12), transparent 24%),
+        radial-gradient(circle at 50% 76%, rgba(83, 246, 184, 0.1), transparent 28%);
+      pointer-events: none;
+      z-index: -1;
+      filter: blur(8px);
+    }
+
+    .app-launcher-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: rgba(239, 247, 255, 0.9);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .app-launcher-header {
+      display: grid;
+      gap: 8px;
+      color: #f4fbff;
+    }
+
+    .app-launcher-header strong {
+      font-size: clamp(28px, 6vw, 38px);
+      line-height: 0.94;
+      letter-spacing: -0.04em;
+    }
+
+    .app-launcher-header .tiny {
+      color: rgba(224, 238, 255, 0.72);
+    }
+
+    .app-launcher-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      align-content: start;
+    }
+
+    .app-launcher-app {
+      min-height: 164px;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      justify-items: start;
+      color: #f4fbff;
+      box-shadow:
+        0 18px 36px rgba(0, 0, 0, 0.24),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(18px);
+    }
+
+    .app-launcher-app:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    .app-launcher-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 22px;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 16px 28px rgba(0, 0, 0, 0.24),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .app-launcher-icon.domain {
+      background: linear-gradient(180deg, rgba(250,252,255,0.98), rgba(220,236,255,0.92));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-launcher-icon.domain img {
+      width: 62px;
+      height: 62px;
+      object-fit: contain;
+      transform: translateY(3px);
+    }
+
+    .app-launcher-icon.uno {
+      background:
+        radial-gradient(circle at 28% 22%, rgba(255,255,255,0.28), transparent 28%),
+        linear-gradient(135deg, #ff525c, #ffb12b 38%, #34c759 68%, #3d8cff);
+    }
+
+    .app-launcher-icon.uno::before {
+      content: "UNO";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .app-launcher-app strong {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .app-launcher-app span {
+      color: rgba(224, 238, 255, 0.74);
+      font-size: 12px;
+      line-height: 1.34;
+      text-align: left;
+    }
+
+    .app-launcher-dock {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 12px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .app-launcher-mini {
+      min-height: 54px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(6, 17, 31, 0.72);
+      color: #eff7ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .app-launcher-mini i {
+      display: inline-flex;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(69,215,255,0.94), rgba(83,246,184,0.94));
+    }
+
+    .app-launcher-mini.uno i {
+      background: linear-gradient(135deg, #ff525c, #ffb12b 34%, #34c759 66%, #3d8cff);
+    }
+
+    .app-launcher-hint {
+      color: rgba(224, 238, 255, 0.74);
+      font-size: 12px;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .uno-root {
+      display: grid;
+      gap: 14px;
+    }
+
+    .uno-shell {
+      display: grid;
+      gap: 14px;
+      padding: 14px;
+      border-radius: 28px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .uno-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.08), transparent 28%),
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 2px, rgba(0,0,0,0) 2px 28px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .uno-header {
+      display: grid;
+      gap: 10px;
+      color: #f3fbff;
+    }
+
+    .uno-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .uno-title {
+      display: grid;
+      gap: 4px;
+    }
+
+    .uno-banner {
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.18);
+      display: inline-flex;
+      align-items: center;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #f7fbff;
+      box-shadow: 0 12px 22px rgba(0, 0, 0, 0.18);
+    }
+
+    .uno-meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .uno-chip {
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(7, 16, 29, 0.72);
+      display: inline-flex;
+      align-items: center;
+      color: rgba(245, 250, 255, 0.9);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .uno-stage {
+      display: grid;
+      gap: 14px;
+    }
+
+    .uno-opponent-row,
+    .uno-player-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .uno-opponent-cards,
+    .uno-player-hand {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+
+    .uno-back-card,
+    .uno-card-btn {
+      position: relative;
+      flex: 0 0 auto;
+      width: 86px;
+      height: 132px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+    }
+
+    .uno-back-card {
+      background: rgba(8, 18, 33, 0.82);
+    }
+
+    .uno-card-btn {
+      padding: 0;
+      background: rgba(255,255,255,0.04);
+      text-align: left;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .uno-card-btn:hover:not(:disabled),
+    .uno-card-btn.playable {
+      transform: translateY(-4px);
+      border-color: rgba(255, 211, 110, 0.42);
+      box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 211, 110, 0.18);
+    }
+
+    .uno-card-face,
+    .uno-back-face {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 10px;
+      color: #ffffff;
+    }
+
+    .uno-card-face.red { background: linear-gradient(180deg, #f8535e, #aa1829); }
+    .uno-card-face.yellow { background: linear-gradient(180deg, #ffd45d, #c58b0b); color: #2b1d00; }
+    .uno-card-face.green { background: linear-gradient(180deg, #4fe487, #177e42); }
+    .uno-card-face.blue { background: linear-gradient(180deg, #5ea8ff, #1d59c9); }
+    .uno-card-face.wild {
+      background:
+        linear-gradient(135deg, #f8535e, #ffd45d 34%, #4fe487 66%, #5ea8ff);
+    }
+
+    .uno-back-face {
+      background: rgba(0,0,0,0.16);
+    }
+
+    .uno-card-face .mini,
+    .uno-back-face .mini {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .uno-card-face .value {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      text-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .uno-card-face .title,
+    .uno-back-face .title {
+      font-size: 11px;
+      font-weight: 800;
+      opacity: 0.94;
+      line-height: 1.2;
+    }
+
+    .uno-back-face .title {
+      color: rgba(255,255,255,0.9);
+    }
+
+    .uno-card-frame {
+      position: absolute;
+      inset: 4px;
+      width: calc(100% - 8px);
+      height: calc(100% - 8px);
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .uno-center {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 132px));
+      justify-content: center;
+      gap: 14px;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .uno-stack {
+      position: relative;
+      width: 132px;
+      height: 172px;
+      margin: 0 auto;
+    }
+
+    .uno-stack-card,
+    .uno-stack-top {
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+    }
+
+    .uno-stack-card:nth-child(1) { transform: translate(-8px, 8px) rotate(-6deg); }
+    .uno-stack-card:nth-child(2) { transform: translate(0px, 4px) rotate(-2deg); }
+    .uno-stack-card:nth-child(3) { transform: translate(8px, 0px) rotate(4deg); }
+
+    .uno-stack-label {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(224, 238, 255, 0.76);
+      margin-top: 184px;
+    }
+
+    .uno-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .uno-color-pick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .uno-color-btn {
+      min-width: 112px;
+    }
+
+    .uno-log,
+    .uno-result-box {
+      padding: 14px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(7, 16, 29, 0.72);
+      color: #eef8ff;
+    }
+
+    .uno-reward-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .uno-empty {
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background: rgba(7, 16, 29, 0.68);
+      display: grid;
+      gap: 12px;
     }
 
     .hero {
@@ -10988,16 +11479,17 @@ PAGE_TEMPLATE = """
 <body>
   <div class="shell">
     <div class="top-app-nav">
-      <div class="top-app-brand">
+      <button type="button" class="top-app-brand" id="app-launcher-home-btn">
         <div class="top-app-brand-badge">
           <img src="/static/mascot-ton-bot.png" alt="">
         </div>
         <span>tondomain game</span>
-      </div>
+      </button>
       <div class="top-app-nav-actions">
         <button type="button" class="top-app-nav-link active" id="top-nav-profile">Profile</button>
         <button type="button" class="top-app-nav-link" id="top-nav-pack">Cards</button>
         <button type="button" class="top-app-nav-link" id="top-nav-modes">Game</button>
+        <button type="button" class="top-app-nav-link" id="top-nav-uno">UNO</button>
         <button type="button" class="top-app-nav-link" id="top-nav-guilds">Clans</button>
         <button type="button" class="top-app-nav-link" id="top-nav-achievements">Pass</button>
       </div>
@@ -11253,6 +11745,13 @@ PAGE_TEMPLATE = """
           <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
         </section>
 
+        <section class="panel view" id="view-uno">
+          <h2>UNO Arena</h2>
+          <p class="muted">Отдельное приложение внутри mini app: быстрая партия UNO против бота на общей косметике, общем пропуске и общей системе наград.</p>
+          <div id="uno-root" class="uno-root"></div>
+          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
+        </section>
+
         <section class="panel view" id="view-battleflow">
           <h2>Ход боя</h2>
           <p class="muted">Подробный разбор раундов матча: какие карты сошлись, какие решения были выбраны и как сложился итог.</p>
@@ -11344,6 +11843,7 @@ PAGE_TEMPLATE = """
   <nav class="mobile-nav">
     <button id="nav-pack">Карты</button>
     <button id="nav-modes">Игра</button>
+    <button id="nav-uno">UNO</button>
     <button id="nav-guilds">Кланы</button>
     <button id="nav-achievements">Пропуск</button>
   </nav>
@@ -11352,6 +11852,38 @@ PAGE_TEMPLATE = """
     <span class="currency-float-chip">💠 <span id="global-currency-shards">0</span></span>
     <span class="currency-float-chip">🎟️ <span id="global-currency-rare">0</span></span>
     <span class="currency-float-chip">✨ <span id="global-currency-lucky">0</span></span>
+  </div>
+
+  <div class="app-launcher" id="app-launcher">
+    <div class="app-launcher-device">
+      <div class="app-launcher-status">
+        <span>09:41</span>
+        <span>Apps</span>
+      </div>
+      <div class="app-launcher-header">
+        <strong>Выбери игру</strong>
+        <div class="tiny">Один кошелёк, один пропуск, одна коллекция косметики. Выбирай приложение и играй в общем прогрессе.</div>
+      </div>
+      <div class="app-launcher-grid">
+        <button type="button" class="app-launcher-app" data-launch-app="domain">
+          <div class="app-launcher-icon domain">
+            <img src="/static/mascot-ton-bot.png" alt="">
+          </div>
+          <strong>Domain Game</strong>
+          <span>Основная карточная игра по твоему `.ton` домену с колодой, боями, кланами и пропуском.</span>
+        </button>
+        <button type="button" class="app-launcher-app" data-launch-app="uno">
+          <div class="app-launcher-icon uno"></div>
+          <strong>UNO Arena</strong>
+          <span>Быстрый UNO-режим на тех же скинах, том же домене и том же сезонном прогрессе.</span>
+        </button>
+      </div>
+      <div class="app-launcher-dock">
+        <button type="button" class="app-launcher-mini" data-launch-app="domain"><i></i>Domain</button>
+        <button type="button" class="app-launcher-mini uno" data-launch-app="uno"><i></i>UNO</button>
+      </div>
+      <div class="app-launcher-hint">Нажми на логотип сверху в любой момент, чтобы снова открыть этот экран и переключиться между приложениями.</div>
+    </div>
   </div>
 
   <div class="startup-guide" id="startup-guide">
@@ -11449,7 +11981,13 @@ PAGE_TEMPLATE = """
       telegramMiniLinkInFlight: false,
       pendingDuelLaunch: null,
       pendingDuelLaunchInFlight: false,
-      activeDuelInviteId: null
+      activeDuelInviteId: null,
+      unoSession: null,
+      unoPendingColorCardId: null,
+      unoRestoreInFlight: false,
+      activeApp: 'domain',
+      launcherOpen: false,
+      seasonPassLevelIndex: 0
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -11459,6 +11997,7 @@ PAGE_TEMPLATE = """
     const initialSearchParams = new URLSearchParams(window.location.search || '');
     const initialDuelInviteId = (initialSearchParams.get('duel_invite') || '').trim().toUpperCase();
     const initialDuelAction = (initialSearchParams.get('duel_action') || '').trim().toLowerCase();
+    const appLauncherStorageKey = 'tondomaingame_app_launcher_v1';
     if (initialDuelInviteId) {
       state.pendingDuelLaunch = {
         inviteId: initialDuelInviteId,
@@ -11536,8 +12075,12 @@ PAGE_TEMPLATE = """
     const topNavProfile = document.getElementById('top-nav-profile');
     const topNavPack = document.getElementById('top-nav-pack');
     const topNavModes = document.getElementById('top-nav-modes');
+    const topNavUno = document.getElementById('top-nav-uno');
     const topNavGuilds = document.getElementById('top-nav-guilds');
     const topNavAchievements = document.getElementById('top-nav-achievements');
+    const appLauncher = document.getElementById('app-launcher');
+    const appLauncherHomeBtn = document.getElementById('app-launcher-home-btn');
+    const unoRoot = document.getElementById('uno-root');
     const globalPlayersList = document.getElementById('global-players-list');
     const packShowcase = document.getElementById('pack-showcase');
     const foilPack = document.getElementById('foil-pack');
@@ -11833,7 +12376,7 @@ PAGE_TEMPLATE = """
     }
 
     function showStartupGuideIfNeeded() {
-      if (!startupGuide || !shouldShowStartupGuide()) return;
+      if (!startupGuide || state.launcherOpen || !shouldShowStartupGuide()) return;
       startupGuideStepIndex = 0;
       renderStartupGuideStep();
       startupGuide.classList.add('visible');
@@ -13896,12 +14439,20 @@ PAGE_TEMPLATE = """
         button.classList.toggle('active', button.id === `top-nav-${name}`);
       });
       document.body.dataset.activeView = name;
+      state.activeApp = name === 'uno' ? 'uno' : 'domain';
+      try {
+        window.localStorage.setItem(appLauncherStorageKey, state.activeApp);
+      } catch (_) {
+      }
       if (name === 'modes') {
         const preferredMode = refreshModeUsageUI();
         if (preferredMode) {
           const preferredCard = document.querySelector(`[data-mode-card="${preferredMode}"]`);
           softCameraFocus(preferredCard);
         }
+      }
+      if (name === 'uno') {
+        renderUnoPanel();
       }
       if (name === 'profile') {
         requestAnimationFrame(() => {
@@ -13914,6 +14465,36 @@ PAGE_TEMPLATE = """
           });
         });
       }
+    }
+
+    function openAppLauncher(initial = false) {
+      if (!appLauncher) return;
+      state.launcherOpen = true;
+      appLauncher.classList.add('visible');
+      document.body.classList.add('launcher-open');
+      if (initial) {
+        closeStartupGuide(false);
+      }
+    }
+
+    function closeAppLauncher() {
+      if (!appLauncher) return;
+      state.launcherOpen = false;
+      appLauncher.classList.remove('visible');
+      document.body.classList.remove('launcher-open');
+    }
+
+    function launchDesktopApp(appKey) {
+      const safeApp = appKey === 'uno' ? 'uno' : 'domain';
+      closeStartupGuide(false);
+      closeAppLauncher();
+      if (safeApp === 'uno') {
+        switchView('uno');
+        restoreUnoSession().catch(() => {});
+        return;
+      }
+      switchView(document.body.dataset.activeView === 'uno' ? 'profile' : (document.body.dataset.activeView || 'profile'));
+      showStartupGuideIfNeeded();
     }
 
     function setMascotOpen(open) {
@@ -14180,6 +14761,7 @@ PAGE_TEMPLATE = """
       renderPackEconomy();
       renderIdentityPanel();
       renderCosmeticsPanel();
+      renderUnoPanel();
       renderFaqPanel();
       renderSocialPanel();
       renderGuildPanel();
@@ -15068,6 +15650,371 @@ PAGE_TEMPLATE = """
       profileCosmeticsPanel.querySelectorAll('.equip-cosmetic-btn').forEach((button) => {
         bindFunctionalControl(button, () => equipCosmeticChoice(button.dataset.cosmeticKey));
       });
+    }
+
+    function unoCardMarkup(card, options = {}) {
+      const frameAsset = options.frameAsset || '';
+      const playable = Boolean(options.playable);
+      const buttonAttrs = options.asButton === false
+        ? 'type="button" tabindex="-1" disabled'
+        : `type="button" data-uno-play-card="${escapeHtml(card.id || '')}"`;
+      return `
+        <button class="uno-card-btn ${playable ? 'playable' : ''}" ${buttonAttrs}>
+          <div class="uno-card-face ${escapeHtml(card.color || 'wild')}">
+            <div class="mini">${escapeHtml(card.color_label || '')}</div>
+            <div class="value">${escapeHtml(card.value_label || card.value || '')}</div>
+            <div class="title">${escapeHtml(card.title || '')}</div>
+          </div>
+          ${frameAsset ? `<img class="uno-card-frame" src="${frameAsset}" alt="">` : ''}
+        </button>
+      `;
+    }
+
+    function unoBackCardMarkup(cardbackSurface, frameAsset = '', label = 'UNO') {
+      return `
+        <div class="uno-back-card">
+          <div class="uno-back-face" style="background:${cardbackSurface};">
+            <div class="mini">TON</div>
+            <div class="value">${escapeHtml(label)}</div>
+            <div class="title">Shared cosmetics</div>
+          </div>
+          ${frameAsset ? `<img class="uno-card-frame" src="${frameAsset}" alt="">` : ''}
+        </div>
+      `;
+    }
+
+    function unoSessionStorageKey(wallet = state.wallet, domain = state.selectedDomain) {
+      if (!wallet || !domain) return '';
+      return `tondomaingame_uno_session_v1:${String(wallet).toLowerCase()}:${String(domain).toLowerCase()}`;
+    }
+
+    function rememberUnoSession(session) {
+      const key = unoSessionStorageKey();
+      if (!key) return;
+      try {
+        if (session && session.session_id) {
+          window.localStorage.setItem(key, session.session_id);
+        } else {
+          window.localStorage.removeItem(key);
+        }
+      } catch (_) {
+      }
+    }
+
+    function rememberedUnoSessionId() {
+      const key = unoSessionStorageKey();
+      if (!key) return '';
+      try {
+        return window.localStorage.getItem(key) || '';
+      } catch (_) {
+        return '';
+      }
+    }
+
+    async function restoreUnoSession() {
+      if (!state.wallet || !state.selectedDomain || state.unoRestoreInFlight) return false;
+      const sessionId = rememberedUnoSessionId();
+      if (!sessionId) return false;
+      state.unoRestoreInFlight = true;
+      try {
+        const data = await api(`/api/uno/status?wallet=${encodeURIComponent(state.wallet)}&session_id=${encodeURIComponent(sessionId)}`);
+        state.unoSession = data.session || null;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+        }
+        renderProfile();
+        renderUnoPanel();
+        return Boolean(state.unoSession);
+      } catch (_) {
+        state.unoSession = null;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(null);
+        renderUnoPanel();
+        return false;
+      } finally {
+        state.unoRestoreInFlight = false;
+      }
+    }
+
+    function renderUnoPanel() {
+      if (!unoRoot) return;
+      const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
+      const cosmetics = rewards.equipped_cosmetics || {};
+      const arenaKey = ((cosmetics.arena || {}).key) || 'arena_stock_grid';
+      const backKey = ((cosmetics.cardback || {}).key) || 'cardback_stock_plain';
+      const frameKey = ((cosmetics.frame || {}).key) || '';
+      const guildKey = ((cosmetics.guild || {}).key) || '';
+      const emoji = cosmeticEmojiSymbol(cosmetics);
+      const frameAsset = cosmeticAssetUrl('frame', frameKey);
+      const tableSurface = giftArenaSurface(arenaKey, emoji);
+      const backSurface = giftCardbackSurface(backKey, emoji);
+      const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : '';
+      if (!state.wallet) {
+        unoRoot.innerHTML = `
+          <div class="uno-empty">
+            <strong>Подключи кошелёк</strong>
+            <div class="tiny">UNO использует тот же кошелёк, тот же домен и тот же сезонный прогресс, что и основная игра.</div>
+            <div class="actions">
+              <button type="button" id="uno-open-profile-btn">К профилю</button>
+            </div>
+          </div>
+        `;
+        const openProfileBtn = document.getElementById('uno-open-profile-btn');
+        if (openProfileBtn) bindFunctionalControl(openProfileBtn, () => switchView('profile'));
+        return;
+      }
+      if (!state.selectedDomain) {
+        unoRoot.innerHTML = `
+          <div class="uno-empty">
+            <strong>Сначала выбери домен</strong>
+            <div class="tiny">Один и тот же активный домен используется в Domain Game и в UNO, чтобы опыт, сезонные задачи и косметика были общими.</div>
+            <div class="actions">
+              <button type="button" id="uno-select-domain-btn">Выбрать домен</button>
+            </div>
+          </div>
+        `;
+        const selectDomainBtn = document.getElementById('uno-select-domain-btn');
+        if (selectDomainBtn) bindFunctionalControl(selectDomainBtn, () => switchView('profile'));
+        return;
+      }
+      const session = state.unoSession;
+      if (!session) {
+        const cachedSessionId = rememberedUnoSessionId();
+        if (cachedSessionId) {
+          unoRoot.innerHTML = `
+            <div class="uno-empty">
+              <strong>Восстанавливаем матч UNO</strong>
+              <div class="tiny">Проверяем последнюю активную сессию для ${escapeHtml(`${state.selectedDomain}.ton`)}.</div>
+            </div>
+          `;
+          restoreUnoSession().catch(() => {});
+          return;
+        }
+        unoRoot.innerHTML = `
+          <div class="uno-shell" style="background:${tableSurface};">
+            <div class="uno-header">
+              <div class="uno-header-top">
+                <div class="uno-title">
+                  <strong>UNO Arena</strong>
+                  <div class="tiny">Активный домен: ${escapeHtml(`${state.selectedDomain}.ton`)} • прогресс и награды засчитываются в общий сезон.</div>
+                </div>
+                ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">UNO Arena</div>` : ''}
+              </div>
+              <div class="uno-meta-strip">
+                <div class="uno-chip">💠 ${Number(rewards.pack_shards || 0)}</div>
+                <div class="uno-chip">🎟️ ${Number(rewards.rare_tokens || 0)}</div>
+                <div class="uno-chip">✨ ${Number(rewards.lucky_tokens || 0)}</div>
+                <div class="uno-chip">Сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 16)}</div>
+              </div>
+            </div>
+            <div class="uno-stage">
+              <div class="uno-opponent-row">
+                <div class="tiny">Все твои текущие скины сразу работают здесь: арена, рубашка, рамка и баннер.</div>
+                <div class="uno-opponent-cards">
+                  ${Array.from({length: 5}).map(() => unoBackCardMarkup(backSurface, frameAsset)).join('')}
+                </div>
+              </div>
+              <div class="uno-center">
+                <div>
+                  <div class="uno-stack">
+                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset)}</div>
+                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset)}</div>
+                    <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset)}</div>
+                  </div>
+                  <div class="uno-stack-label">Общая колода</div>
+                </div>
+                <div>
+                  <div class="uno-stack">
+                    <div class="uno-stack-top">${unoCardMarkup({color: 'wild', color_label: 'Wild', value: 'wild', value_label: 'UNO', title: 'Открой матч'}, {frameAsset, playable: true})}</div>
+                  </div>
+                  <div class="uno-stack-label">Старт партии</div>
+                </div>
+              </div>
+              <div class="uno-player-row">
+                <div class="uno-log">
+                  <strong>Общий пропуск и опыт</strong>
+                  <div class="tiny">Победы в UNO дают сезонные очки, осколки и прогресс по ежедневным задачам так же, как и основной режим.</div>
+                </div>
+                <div class="uno-controls">
+                  <button type="button" id="uno-start-btn">Запустить UNO</button>
+                  <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        const unoStartBtn = document.getElementById('uno-start-btn');
+        const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
+        if (unoStartBtn) bindFunctionalControl(unoStartBtn, startUnoMatch);
+        if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher());
+        return;
+      }
+      const playableIds = new Set(session.playable_card_ids || []);
+      const pendingWildCardId = state.unoPendingColorCardId || '';
+      unoRoot.innerHTML = `
+        <div class="uno-shell" style="background:${tableSurface};">
+          <div class="uno-header">
+            <div class="uno-header-top">
+              <div class="uno-title">
+                <strong>UNO Arena</strong>
+                <div class="tiny">${escapeHtml(session.bot_name || 'UNO Bot')} • домен ${escapeHtml(`${session.domain}.ton`)} • ходов ${Number(session.turn_index || 0)}</div>
+              </div>
+              ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">${escapeHtml(session.current_color_label || 'UNO')}</div>` : `<div class="uno-chip">Цвет: ${escapeHtml(session.current_color_label || '—')}</div>`}
+            </div>
+            <div class="uno-meta-strip">
+              <div class="uno-chip">Ход: ${session.turn === 'player' ? 'твой' : 'бота'}</div>
+              <div class="uno-chip">Бот: ${Number(session.bot_count || 0)} карт</div>
+              <div class="uno-chip">Колода: ${Number(session.draw_remaining || 0)}</div>
+              <div class="uno-chip">Сезон ${Number((session.reward_summary || rewards).season_level || 1)}</div>
+            </div>
+          </div>
+          <div class="uno-stage">
+            <div class="uno-opponent-row">
+              <div class="team-line"><strong>${escapeHtml(session.bot_name || 'UNO Bot')}</strong><strong>${Number(session.bot_count || 0)} карт</strong></div>
+              <div class="uno-opponent-cards">
+                ${Array.from({length: Math.max(1, Math.min(7, Number(session.bot_count || 0)))}).map(() => unoBackCardMarkup(backSurface, frameAsset)).join('')}
+              </div>
+            </div>
+            <div class="uno-center">
+              <div>
+                <div class="uno-stack">
+                  <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset)}</div>
+                  <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset)}</div>
+                  <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset)}</div>
+                </div>
+                <div class="uno-stack-label">Добор • ${Number(session.draw_remaining || 0)}</div>
+              </div>
+              <div>
+                <div class="uno-stack">
+                  <div class="uno-stack-top">${session.discard_top ? unoCardMarkup(session.discard_top, {frameAsset, asButton: false}) : ''}</div>
+                </div>
+                <div class="uno-stack-label">Сброс • цвет ${escapeHtml(session.current_color_label || '—')}</div>
+              </div>
+            </div>
+            <div class="uno-log">
+              <strong>Последний ход</strong>
+              <div class="tiny">${escapeHtml(session.last_action || 'Партия началась.')}</div>
+            </div>
+            ${pendingWildCardId ? `
+              <div class="uno-log">
+                <strong>Выбери цвет для Wild</strong>
+                <div class="uno-color-pick">
+                  ${['red', 'yellow', 'green', 'blue'].map((color) => `<button type="button" class="secondary uno-color-btn" data-uno-color="${color}" data-uno-card-id="${escapeHtml(pendingWildCardId)}">${escapeHtml({red: 'Красный', yellow: 'Жёлтый', green: 'Зелёный', blue: 'Синий'}[color])}</button>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+            ${session.complete ? `
+              <div class="uno-result-box">
+                <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
+                <div class="tiny">UNO завершён. Награды и сезонные очки уже засчитаны в общий прогресс аккаунта.</div>
+                <div class="uno-reward-line">
+                  <span class="summary-chip">💠 +${Number((session.reward_gain || {}).pack_shards || 0)}</span>
+                  <span class="summary-chip">Сезон +${Number((session.reward_gain || {}).season_points || 0)}</span>
+                </div>
+                <div class="actions" style="margin-top:12px;">
+                  <button type="button" id="uno-restart-btn">Сыграть ещё</button>
+                  <button type="button" class="secondary" id="uno-result-launcher-btn">Приложения</button>
+                </div>
+              </div>
+            ` : `
+              <div class="uno-controls">
+                <button type="button" id="uno-draw-btn"${session.can_draw ? '' : ' disabled'}>Взять карту</button>
+                <button type="button" class="secondary" id="uno-switch-app-btn">Приложения</button>
+              </div>
+            `}
+            <div class="uno-player-row">
+              <div class="team-line"><strong>Твоя рука</strong><strong>${Number((session.player_hand || []).length || 0)} карт</strong></div>
+              <div class="uno-player-hand">
+                ${(session.player_hand || []).map((card) => unoCardMarkup(card, {frameAsset, playable: playableIds.has(card.id)})).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      const unoDrawBtn = document.getElementById('uno-draw-btn');
+      const unoRestartBtn = document.getElementById('uno-restart-btn');
+      const unoSwitchAppBtn = document.getElementById('uno-switch-app-btn');
+      const unoResultLauncherBtn = document.getElementById('uno-result-launcher-btn');
+      if (unoDrawBtn && !unoDrawBtn.disabled) bindFunctionalControl(unoDrawBtn, () => runUnoAction('draw'));
+      if (unoRestartBtn) bindFunctionalControl(unoRestartBtn, startUnoMatch);
+      if (unoSwitchAppBtn) bindFunctionalControl(unoSwitchAppBtn, () => openAppLauncher());
+      if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher());
+      unoRoot.querySelectorAll('[data-uno-play-card]').forEach((button) => {
+        bindFunctionalControl(button, () => requestUnoCardPlay(button.dataset.unoPlayCard));
+      });
+      unoRoot.querySelectorAll('[data-uno-color]').forEach((button) => {
+        bindFunctionalControl(button, () => runUnoAction('play', button.dataset.unoCardId, button.dataset.unoColor));
+      });
+    }
+
+    async function startUnoMatch() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet || !state.selectedDomain) return;
+      bumpUsage('mode:uno');
+      try {
+        const data = await api('/api/uno/start', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            domain: state.selectedDomain
+          }
+        });
+        state.unoSession = data.session || null;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        }
+        switchView('uno');
+        renderUnoPanel();
+      } catch (error) {
+        unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
+      }
+    }
+
+    async function runUnoAction(action, cardId = '', chosenColor = '') {
+      await prepareFunctionalInteraction();
+      if (!state.wallet || !state.unoSession || !state.unoSession.session_id) return;
+      try {
+        const data = await api('/api/uno/action', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            session_id: state.unoSession.session_id,
+            action,
+            card_id: cardId,
+            chosen_color: chosenColor
+          }
+        });
+        state.unoSession = data.session || state.unoSession;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        }
+        renderUnoPanel();
+      } catch (error) {
+        if (unoRoot) {
+          unoRoot.insertAdjacentHTML('afterbegin', `<div class="uno-log"><strong class="error">${escapeHtml(error.message)}</strong></div>`);
+        }
+      }
+    }
+
+    function requestUnoCardPlay(cardId) {
+      const session = state.unoSession;
+      if (!session || !cardId) return;
+      const card = (session.player_hand || []).find((item) => item.id === cardId);
+      if (!card) return;
+      if (card.wild) {
+        state.unoPendingColorCardId = cardId;
+        renderUnoPanel();
+        return;
+      }
+      runUnoAction('play', cardId);
     }
 
     async function equipCosmeticChoice(cosmeticKey) {
@@ -18427,6 +19374,10 @@ PAGE_TEMPLATE = """
         state.selectedDomain = data.domain;
         state.playerProfile = data.player;
         state.cards = data.deck.cards || [];
+        if (state.unoSession && state.unoSession.domain !== data.domain) {
+          state.unoSession = null;
+          state.unoPendingColorCardId = null;
+        }
         state.canRestorePreviousDeck = false;
         state.pendingPackSource = null;
         state.pendingPackPaymentId = null;
@@ -18555,6 +19506,8 @@ PAGE_TEMPLATE = """
           state.pendingRewardPackType = null;
           state.packOpening = false;
           state.selectedBattleSlot = null;
+          state.unoSession = null;
+          state.unoPendingColorCardId = null;
           packCards.innerHTML = '';
           packScoreLabel.textContent = 'Вклад карт: -';
           resetPackShowcaseIdleState();
@@ -18589,6 +19542,8 @@ PAGE_TEMPLATE = """
           state.pendingRewardPackType = null;
           state.packOpening = false;
           state.selectedBattleSlot = null;
+          state.unoSession = null;
+          state.unoPendingColorCardId = null;
           renderDomains([]);
           renderProfile();
           renderDeck(null);
@@ -18724,8 +19679,10 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(document.getElementById('mobile-show-deck-btn'), showDeck);
     bindFunctionalControl(document.getElementById('nav-pack'), () => switchView('pack'));
     bindFunctionalControl(document.getElementById('nav-modes'), () => switchView('modes'));
+    bindFunctionalControl(document.getElementById('nav-uno'), () => switchView('uno'));
     bindFunctionalControl(topNavPack, () => switchView('pack'));
     bindFunctionalControl(topNavModes, () => switchView('modes'));
+    bindFunctionalControl(topNavUno, () => switchView('uno'));
     bindFunctionalControl(document.getElementById('nav-profile'), () => {
       switchView('profile');
     });
@@ -18736,6 +19693,14 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(document.getElementById('nav-achievements'), () => switchView('achievements'));
     bindFunctionalControl(topNavGuilds, () => switchView('guilds'));
     bindFunctionalControl(topNavAchievements, () => switchView('achievements'));
+    if (appLauncherHomeBtn) {
+      bindFunctionalControl(appLauncherHomeBtn, () => openAppLauncher());
+    }
+    if (appLauncher) {
+      appLauncher.querySelectorAll('[data-launch-app]').forEach((button) => {
+        bindFunctionalControl(button, () => launchDesktopApp(button.dataset.launchApp || 'domain'));
+      });
+    }
     if (mascotFab) {
       bindFunctionalControl(mascotFab, () => {
         if (mascotPopoverCopy) mascotPopoverCopy.textContent = mascotHintText();
@@ -18932,9 +19897,16 @@ PAGE_TEMPLATE = """
     renderOwnedDecks([], null);
     renderClanSeasonHub();
     refreshOneCardSelector();
-    switchView('profile');
+    const initialApp = (() => {
+      try {
+        return window.localStorage.getItem(appLauncherStorageKey) || 'domain';
+      } catch (_) {
+        return 'domain';
+      }
+    })();
+    switchView(initialApp === 'uno' ? 'uno' : 'profile');
     updateButtons();
-    window.setTimeout(showStartupGuideIfNeeded, 160);
+    window.setTimeout(() => openAppLauncher(true), 160);
     document.addEventListener('click', (event) => {
       if (!mascotWidget || !mascotWidget.classList.contains('open')) return;
       if (event.target.closest('#mascot-widget')) return;
@@ -19112,6 +20084,15 @@ def init_db():
                 id TEXT PRIMARY KEY,
                 wallet TEXT NOT NULL,
                 mode TEXT NOT NULL,
+                state_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS uno_sessions (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
                 state_json TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
@@ -19537,6 +20518,14 @@ def ensure_runtime_tables():
                 id TEXT PRIMARY KEY,
                 wallet TEXT NOT NULL,
                 mode TEXT NOT NULL,
+                state_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS uno_sessions (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                domain TEXT NOT NULL,
                 state_json TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
@@ -20434,7 +21423,7 @@ def season_task_progress(wallet):
     wins_today = 0
     for row in telemetry_rows:
         event_type = str(row['event_type'] or '')
-        if not event_type.endswith('_battle_complete'):
+        if not (event_type.endswith('_battle_complete') or event_type == 'uno_match_complete'):
             continue
         matches_today += 1
         try:
@@ -20782,6 +21771,480 @@ def claim_season_task_reward(wallet, task_key):
         )
         conn.commit()
     return reward_summary(wallet)
+
+
+UNO_COLORS = ('red', 'yellow', 'green', 'blue')
+UNO_COLOR_LABELS = {
+    'red': 'Красный',
+    'yellow': 'Жёлтый',
+    'green': 'Зелёный',
+    'blue': 'Синий',
+    'wild': 'Wild',
+}
+UNO_VALUE_LABELS = {
+    'skip': 'Пропуск',
+    'reverse': 'Реверс',
+    'draw2': '+2',
+    'wild': 'Wild',
+    'wild4': 'Wild +4',
+}
+UNO_VALUE_ORDER = {
+    '0': 0,
+    '1': 1,
+    '2': 2,
+    '3': 3,
+    '4': 4,
+    '5': 5,
+    '6': 6,
+    '7': 7,
+    '8': 8,
+    '9': 9,
+    'skip': 10,
+    'reverse': 11,
+    'draw2': 12,
+    'wild': 13,
+    'wild4': 14,
+}
+UNO_COLOR_ORDER = {key: index for index, key in enumerate(UNO_COLORS)}
+
+
+def uno_card_title(card):
+    color = str((card or {}).get('color') or 'wild')
+    value = str((card or {}).get('value') or '')
+    if color == 'wild':
+        return UNO_VALUE_LABELS.get(value, 'Wild')
+    return f'{UNO_COLOR_LABELS.get(color, color.capitalize())} {UNO_VALUE_LABELS.get(value, value)}'
+
+
+def uno_public_card(card):
+    if not card:
+        return None
+    color = str(card.get('color') or 'wild')
+    value = str(card.get('value') or '')
+    return {
+        'id': card.get('id'),
+        'color': color,
+        'color_label': UNO_COLOR_LABELS.get(color, color.capitalize()),
+        'value': value,
+        'value_label': UNO_VALUE_LABELS.get(value, value),
+        'title': uno_card_title(card),
+        'wild': color == 'wild',
+    }
+
+
+def uno_card_sort_key(card):
+    color = str((card or {}).get('color') or 'wild')
+    value = str((card or {}).get('value') or '')
+    return (UNO_COLOR_ORDER.get(color, 99), UNO_VALUE_ORDER.get(value, 99), str((card or {}).get('id') or ''))
+
+
+def uno_sort_hand(cards):
+    return sorted(list(cards or []), key=uno_card_sort_key)
+
+
+def build_uno_deck(seed_text):
+    rng = random.Random(hashlib.sha256(f'uno-deck:{seed_text}'.encode()).hexdigest())
+    deck = []
+    for color in UNO_COLORS:
+        deck.append({'color': color, 'value': '0'})
+        for value in [str(number) for number in range(1, 10)] + ['skip', 'reverse', 'draw2']:
+            deck.append({'color': color, 'value': value})
+            deck.append({'color': color, 'value': value})
+    for _ in range(4):
+        deck.append({'color': 'wild', 'value': 'wild'})
+        deck.append({'color': 'wild', 'value': 'wild4'})
+    rng.shuffle(deck)
+    digest = hashlib.sha256(str(seed_text).encode()).hexdigest()[:8]
+    for index, card in enumerate(deck):
+        card['id'] = f"{card['color']}-{card['value']}-{index}-{digest}"
+    return deck
+
+
+def uno_recycle_discard_into_draw(state):
+    discard = list(state.get('discard') or [])
+    if len(discard) <= 1:
+        return
+    top_card = discard[-1]
+    recycle = discard[:-1]
+    rng = random.Random(hashlib.sha256(f"uno-recycle:{state.get('id')}:{state.get('turn_index', 0)}:{len(recycle)}".encode()).hexdigest())
+    rng.shuffle(recycle)
+    state['draw_pile'] = recycle
+    state['discard'] = [top_card]
+
+
+def uno_draw_cards(state, count=1):
+    drawn = []
+    count = max(0, int(count or 0))
+    for _ in range(count):
+        if not state.get('draw_pile'):
+            uno_recycle_discard_into_draw(state)
+        if not state.get('draw_pile'):
+            break
+        drawn.append(state['draw_pile'].pop())
+    return drawn
+
+
+def uno_card_playable(card, top_card, current_color):
+    if not card or not top_card:
+        return False
+    color = str(card.get('color') or 'wild')
+    value = str(card.get('value') or '')
+    top_value = str(top_card.get('value') or '')
+    active_color = str(current_color or top_card.get('color') or '')
+    if color == 'wild':
+        return True
+    return color == active_color or value == top_value
+
+
+def uno_choose_best_color(cards):
+    counts = {color: 0 for color in UNO_COLORS}
+    for card in cards or []:
+        color = str(card.get('color') or '')
+        if color in counts:
+            counts[color] += 1
+    ranked = sorted(counts.items(), key=lambda item: (-item[1], UNO_COLOR_ORDER.get(item[0], 99)))
+    return ranked[0][0] if ranked else 'blue'
+
+
+def uno_find_hand_card(cards, card_id):
+    for card in cards or []:
+        if str(card.get('id') or '') == str(card_id or ''):
+            return card
+    return None
+
+
+def uno_remove_hand_card(cards, card_id):
+    remaining = []
+    removed = None
+    for card in cards or []:
+        if removed is None and str(card.get('id') or '') == str(card_id or ''):
+            removed = card
+            continue
+        remaining.append(card)
+    return removed, remaining
+
+
+def uno_bot_card_priority(card, hand_size):
+    value = str((card or {}).get('value') or '')
+    if hand_size <= 2 and value in {'wild4', 'draw2', 'skip', 'reverse', 'wild'}:
+        return 100
+    if value == 'wild4':
+        return 60
+    if value == 'draw2':
+        return 48
+    if value in {'skip', 'reverse'}:
+        return 42
+    if value == 'wild':
+        return 36
+    return 10 + int(UNO_VALUE_ORDER.get(value, 0))
+
+
+def uno_choose_bot_card(state):
+    hand = uno_sort_hand(state.get('bot_hand') or [])
+    top_card = (state.get('discard') or [None])[-1]
+    current_color = state.get('current_color')
+    playable = [card for card in hand if uno_card_playable(card, top_card, current_color)]
+    if not playable:
+        return None
+    preferred_color = uno_choose_best_color(hand)
+    playable.sort(
+        key=lambda card: (
+            -uno_bot_card_priority(card, len(hand)),
+            0 if str(card.get('color') or '') == preferred_color else 1,
+            uno_card_sort_key(card),
+        )
+    )
+    return playable[0]
+
+
+def record_uno_behavior(wallet, domain, result):
+    if not wallet:
+        return empty_player_behavior_stats()
+    stats = player_behavior_stats(wallet)
+    stats['matches_total'] = int(stats.get('matches_total', 0) or 0) + 1
+    result_key = str(result or '').strip().lower()
+    if result_key == 'win':
+        stats['wins_total'] = int(stats.get('wins_total', 0) or 0) + 1
+    elif result_key == 'loss':
+        stats['losses_total'] = int(stats.get('losses_total', 0) or 0) + 1
+    else:
+        stats['draws_total'] = int(stats.get('draws_total', 0) or 0) + 1
+    stats.setdefault('modes', {})
+    stats['modes']['uno'] = int(stats['modes'].get('uno', 0) or 0) + 1
+    normalized_domain = normalize_domain(domain)
+    if normalized_domain:
+        stats.setdefault('domains', {})
+        stats['domains'][normalized_domain] = int(stats['domains'].get(normalized_domain, 0) or 0) + 1
+    return save_player_behavior_stats(wallet, stats)
+
+
+def save_uno_session(state):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO uno_sessions (id, wallet, domain, state_json, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                state_json = excluded.state_json,
+                updated_at = excluded.updated_at
+            ''',
+            (
+                state['id'],
+                state['wallet'],
+                state['domain'],
+                json.dumps(state, ensure_ascii=False),
+                state.get('created_at') or now_iso(),
+                now_iso(),
+            ),
+        )
+        conn.commit()
+
+
+def load_uno_session(session_id):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM uno_sessions WHERE id = ?', (session_id,)).fetchone()
+    if row is None:
+        raise ValueError('UNO-сессия не найдена.')
+    try:
+        return json.loads(row['state_json'])
+    except json.JSONDecodeError as exc:
+        raise ValueError('Состояние UNO повреждено.') from exc
+
+
+def build_uno_session_payload(state):
+    player_hand = uno_sort_hand(state.get('player_hand') or [])
+    bot_hand = uno_sort_hand(state.get('bot_hand') or [])
+    discard = list(state.get('discard') or [])
+    top_card = discard[-1] if discard else None
+    current_color = str(state.get('current_color') or (top_card or {}).get('color') or 'blue')
+    playable_ids = {
+        card.get('id')
+        for card in player_hand
+        if uno_card_playable(card, top_card, current_color)
+    }
+    rewards_payload = state.get('reward_summary') or reward_summary(state['wallet'])
+    return {
+        'kind': 'uno',
+        'session_id': state['id'],
+        'domain': state['domain'],
+        'player_hand': [uno_public_card(card) for card in player_hand],
+        'bot_hand': [uno_public_card(card) for card in bot_hand] if state.get('complete') else [],
+        'bot_count': len(bot_hand),
+        'draw_remaining': len(state.get('draw_pile') or []),
+        'discard_top': uno_public_card(top_card),
+        'current_color': current_color,
+        'current_color_label': UNO_COLOR_LABELS.get(current_color, current_color.capitalize()),
+        'turn': state.get('turn') or 'player',
+        'turn_index': int(state.get('turn_index', 0) or 0),
+        'complete': bool(state.get('complete')),
+        'winner': state.get('winner'),
+        'winner_label': 'Победа' if state.get('winner') == 'player' else ('Поражение' if state.get('winner') == 'bot' else 'Ничья'),
+        'last_action': state.get('last_action') or '',
+        'playable_card_ids': list(playable_ids),
+        'can_draw': not bool(state.get('complete')) and state.get('turn') == 'player',
+        'available_colors': [{'key': color, 'label': UNO_COLOR_LABELS[color]} for color in UNO_COLORS],
+        'reward_summary': rewards_payload,
+        'reward_gain': state.get('reward_gain'),
+        'player_cosmetics': equipped_cosmetics(state['wallet']),
+        'bot_name': state.get('bot_name') or 'UNO Bot',
+    }
+
+
+def finalize_uno_session(state):
+    if state.get('rewards_applied'):
+        return state
+    state['complete'] = True
+    winner = state.get('winner')
+    result = 'win' if winner == 'player' else ('loss' if winner == 'bot' else 'draw')
+    before_rewards = ensure_player_rewards(state['wallet'])
+    premium_bonus = 1 if int(before_rewards.get('premium_pass', 0) or 0) else 0
+    state['reward_gain'] = {
+        'pack_shards': (2 if result == 'win' else 1) + premium_bonus,
+        'rare_tokens': 0,
+        'lucky_tokens': 0,
+        'season_points': 2 + (2 if result == 'win' else 0) + premium_bonus,
+    }
+    record_non_ranked_game(state['wallet'], state['domain'])
+    rewards_after = grant_match_rewards(state['wallet'], won=result == 'win', ranked=False)
+    grant_domain_experience(state['wallet'], state['domain'], 14 if result == 'win' else 10, won=result == 'win')
+    record_uno_behavior(state['wallet'], state['domain'], result)
+    metadata = get_domain_metadata_payload(state['domain'], wallet=state['wallet']) if state.get('domain') else None
+    log_domain_telemetry(
+        'uno_match_complete',
+        wallet=state['wallet'],
+        domain=state.get('domain'),
+        rarity_label=(metadata or {}).get('rarityLabel'),
+        payload={
+            'result': result,
+            'turns': int(state.get('turn_index', 0) or 0),
+            'player_cards_left': len(state.get('player_hand') or []),
+            'bot_cards_left': len(state.get('bot_hand') or []),
+        },
+    )
+    state['reward_summary'] = rewards_after
+    state['rewards_applied'] = True
+    return state
+
+
+def uno_apply_card_effect(state, actor, card, chosen_color=None):
+    hand_key = 'player_hand' if actor == 'player' else 'bot_hand'
+    opponent_key = 'bot_hand' if actor == 'player' else 'player_hand'
+    removed, remaining = uno_remove_hand_card(state.get(hand_key) or [], card.get('id'))
+    card = removed or card
+    state[hand_key] = uno_sort_hand(remaining)
+    discard = list(state.get('discard') or [])
+    discard.append(card)
+    state['discard'] = discard
+    state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
+    active_color = chosen_color if str(card.get('color') or '') == 'wild' else str(card.get('color') or 'blue')
+    if active_color not in UNO_COLORS:
+        active_color = uno_choose_best_color(state.get(hand_key) or [])
+    state['current_color'] = active_color
+    draw_count = 0
+    skip_turn = False
+    value = str(card.get('value') or '')
+    if value in {'skip', 'reverse'}:
+        skip_turn = True
+    elif value == 'draw2':
+        draw_count = 2
+        skip_turn = True
+    elif value == 'wild4':
+        draw_count = 4
+        skip_turn = True
+    actor_label = 'Ты' if actor == 'player' else (state.get('bot_name') or 'UNO Bot')
+    action_label = uno_card_title(card)
+    state['last_action'] = f'{actor_label} сыграл {action_label}.'
+    if not state[hand_key]:
+        state['winner'] = actor
+        return finalize_uno_session(state)
+    if draw_count:
+        penalty_cards = uno_draw_cards(state, draw_count)
+        state[opponent_key] = uno_sort_hand(list(state.get(opponent_key) or []) + penalty_cards)
+        state['last_action'] = f'{actor_label} сыграл {action_label} и отправил сопернику {draw_count} карт.'
+    state['turn'] = actor if skip_turn else ('bot' if actor == 'player' else 'player')
+    return state
+
+
+def uno_run_bot_turn(state):
+    safety = 0
+    while not state.get('complete') and state.get('turn') == 'bot' and safety < 12:
+        safety += 1
+        chosen = uno_choose_bot_card(state)
+        if chosen:
+            chosen_color = uno_choose_best_color([card for card in state.get('bot_hand') or [] if card.get('id') != chosen.get('id')])
+            uno_apply_card_effect(state, 'bot', chosen, chosen_color=chosen_color)
+            continue
+        drawn = uno_draw_cards(state, 1)
+        state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
+        if not drawn:
+            state['last_action'] = f"{state.get('bot_name') or 'UNO Bot'} пропустил ход: колода пуста."
+            state['turn'] = 'player'
+            break
+        state['bot_hand'] = uno_sort_hand(list(state.get('bot_hand') or []) + drawn)
+        drawn_card = drawn[0]
+        top_card = (state.get('discard') or [None])[-1]
+        if uno_card_playable(drawn_card, top_card, state.get('current_color')):
+            chosen_color = uno_choose_best_color([card for card in state.get('bot_hand') or [] if card.get('id') != drawn_card.get('id')])
+            uno_apply_card_effect(state, 'bot', drawn_card, chosen_color=chosen_color)
+            continue
+        state['last_action'] = f"{state.get('bot_name') or 'UNO Bot'} взял карту и передал ход."
+        state['turn'] = 'player'
+        break
+    if safety >= 12 and not state.get('complete'):
+        player_left = len(state.get('player_hand') or [])
+        bot_left = len(state.get('bot_hand') or [])
+        state['winner'] = 'player' if player_left < bot_left else ('bot' if bot_left < player_left else None)
+        finalize_uno_session(state)
+    return state
+
+
+def create_uno_session(wallet, domain):
+    ensure_runtime_tables()
+    session_id = uuid.uuid4().hex
+    deck = build_uno_deck(f'{wallet}:{domain}:{session_id}:{now_iso()}')
+    player_hand = [deck.pop() for _ in range(7)]
+    bot_hand = [deck.pop() for _ in range(7)]
+    top_card = deck.pop()
+    recycle_guard = 0
+    while (top_card.get('color') == 'wild' or top_card.get('value') in {'skip', 'reverse', 'draw2'}) and recycle_guard < 24:
+        deck.insert(0, top_card)
+        top_card = deck.pop()
+        recycle_guard += 1
+    state = {
+        'id': session_id,
+        'wallet': wallet,
+        'domain': domain,
+        'player_hand': uno_sort_hand(player_hand),
+        'bot_hand': uno_sort_hand(bot_hand),
+        'draw_pile': deck,
+        'discard': [top_card],
+        'current_color': top_card.get('color') or 'blue',
+        'turn': 'player',
+        'turn_index': 0,
+        'complete': False,
+        'winner': None,
+        'last_action': f'Стол открыт картой {uno_card_title(top_card)}. Твой ход.',
+        'bot_name': 'UNO Bot',
+        'reward_gain': None,
+        'reward_summary': None,
+        'rewards_applied': False,
+        'created_at': now_iso(),
+    }
+    save_uno_session(state)
+    return build_uno_session_payload(state)
+
+
+def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_color=None):
+    state = load_uno_session(session_id)
+    if wallet != state.get('wallet'):
+        raise ValueError('Нет доступа к этой UNO-сессии.')
+    if state.get('complete'):
+        return build_uno_session_payload(state)
+    if state.get('turn') != 'player':
+        state = uno_run_bot_turn(state)
+        save_uno_session(state)
+        return build_uno_session_payload(state)
+    action_key = str(action or '').strip().lower()
+    top_card = (state.get('discard') or [None])[-1]
+    if action_key == 'draw':
+        drawn = uno_draw_cards(state, 1)
+        state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
+        if not drawn:
+            state['last_action'] = 'Колода пуста. Ход переходит к боту.'
+            state['turn'] = 'bot'
+        else:
+            drawn_card = drawn[0]
+            state['player_hand'] = uno_sort_hand(list(state.get('player_hand') or []) + drawn)
+            if uno_card_playable(drawn_card, top_card, state.get('current_color')):
+                chosen = uno_choose_best_color([card for card in state.get('player_hand') or [] if card.get('id') != drawn_card.get('id')])
+                uno_apply_card_effect(state, 'player', drawn_card, chosen_color=chosen)
+            else:
+                state['last_action'] = 'Ты взял карту и передал ход.'
+                state['turn'] = 'bot'
+        if not state.get('complete') and state.get('turn') == 'bot':
+            state = uno_run_bot_turn(state)
+        save_uno_session(state)
+        return build_uno_session_payload(state)
+    if action_key != 'play':
+        raise ValueError('Неизвестное действие UNO.')
+    chosen_card = uno_find_hand_card(state.get('player_hand') or [], card_id)
+    if not chosen_card:
+        raise ValueError('Карта не найдена в руке.')
+    if not uno_card_playable(chosen_card, top_card, state.get('current_color')):
+        raise ValueError('Эту карту сейчас нельзя сыграть.')
+    if str(chosen_card.get('color') or '') == 'wild':
+        selected_color = str(chosen_color or '').strip().lower()
+        if selected_color not in UNO_COLORS:
+            raise ValueError('Для Wild-карты сначала выбери цвет.')
+    else:
+        selected_color = str(chosen_card.get('color') or 'blue')
+    uno_apply_card_effect(state, 'player', chosen_card, chosen_color=selected_color)
+    if not state.get('complete') and state.get('turn') == 'bot':
+        state = uno_run_bot_turn(state)
+    save_uno_session(state)
+    return build_uno_session_payload(state)
 
 
 def pack_costs(pack_type):
@@ -28845,6 +30308,61 @@ def api_match_bot():
             'player': get_player(wallet),
         }
     )
+
+
+@app.route('/api/uno/start', methods=['POST'])
+def api_uno_start():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not domain:
+        return json_error('Для UNO сначала выбери активный домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
+        ensure_player(wallet, domain, domain)
+        session = create_uno_session(wallet, domain)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
+    return jsonify({'ok': True, 'session': session, 'player': get_player(wallet)})
+
+
+@app.route('/api/uno/action', methods=['POST'])
+def api_uno_action():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    session_id = (payload.get('session_id') or '').strip()
+    action = (payload.get('action') or '').strip().lower()
+    card_id = (payload.get('card_id') or '').strip()
+    chosen_color = (payload.get('chosen_color') or '').strip().lower()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        session = apply_uno_session_action(session_id, wallet, action, card_id=card_id, chosen_color=chosen_color)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'session': session, 'player': get_player(wallet)})
+
+
+@app.route('/api/uno/status')
+def api_uno_status():
+    wallet = (request.args.get('wallet') or '').strip()
+    session_id = (request.args.get('session_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        state = load_uno_session(session_id)
+    except ValueError as exc:
+        return json_error(str(exc), 404)
+    if wallet != state.get('wallet'):
+        return json_error('Нет доступа к этой UNO-сессии.', 403)
+    return jsonify({'ok': True, 'session': build_uno_session_payload(state), 'player': get_player(wallet)})
 
 
 @app.route('/api/match/one-card', methods=['POST'])
