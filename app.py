@@ -377,7 +377,7 @@ PAGE_TEMPLATE = """
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>tondomaingame</title>
   <meta name="theme-color" content="#09111f">
   <meta name="description" content="TON 10K Club mini game with wallet connection, real domain checks and Telegram integration.">
@@ -6525,6 +6525,35 @@ PAGE_TEMPLATE = """
       100% { transform: translateX(0); }
     }
 
+    @keyframes liveArenaPulse {
+      0%, 100% {
+        opacity: 0.46;
+        transform: scale(0.94);
+      }
+      50% {
+        opacity: 0.92;
+        transform: scale(1.04);
+      }
+    }
+
+    @keyframes liveLanePulse {
+      0%, 100% {
+        opacity: 0.74;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes battleDockBreath {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+      }
+      50% {
+        transform: translateY(-1px) scale(1.01);
+      }
+    }
+
     @keyframes flashBoom {
       0% { opacity: 0; }
       25% { opacity: 1; }
@@ -7192,6 +7221,79 @@ PAGE_TEMPLATE = """
       background: rgba(3, 8, 14, 0.72);
     }
 
+    .pack-sequence-layer.finale {
+      background: rgba(3, 8, 14, 0.86);
+    }
+
+    .pack-sequence-layer.finale::before,
+    .pack-sequence-layer.finale::after {
+      content: "";
+      position: absolute;
+      inset: -16%;
+      pointer-events: none;
+    }
+
+    .pack-sequence-layer.finale::before {
+      background:
+        radial-gradient(circle at 50% 46%, rgba(255, 223, 142, 0.24), transparent 22%),
+        radial-gradient(circle at 50% 46%, rgba(69, 215, 255, 0.16), transparent 42%),
+        radial-gradient(circle at 50% 46%, rgba(83, 246, 184, 0.1), transparent 62%);
+      animation: packFinalePulse 1.8s ease-in-out infinite;
+    }
+
+    .pack-sequence-layer.finale::after {
+      background:
+        conic-gradient(from 0deg at 50% 46%, transparent, rgba(255, 223, 142, 0.14), transparent, rgba(69, 215, 255, 0.12), transparent);
+      filter: blur(10px);
+      animation: auroraRotate 9s linear infinite;
+      opacity: 0.92;
+    }
+
+    .pack-sequence-finale {
+      position: fixed;
+      left: 50%;
+      top: 79%;
+      z-index: 7326;
+      min-width: min(280px, calc(100vw - 28px));
+      padding: 14px 18px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(121, 217, 255, 0.28);
+      background:
+        linear-gradient(180deg, rgba(6, 17, 30, 0.94), rgba(4, 12, 22, 0.98)),
+        radial-gradient(circle at top, rgba(255, 223, 142, 0.18), transparent 56%);
+      box-shadow:
+        0 20px 48px rgba(0, 0, 0, 0.42),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+      color: #eef8ff;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, 22px) scale(0.88);
+    }
+
+    .pack-sequence-finale strong {
+      display: block;
+      font-size: 17px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(255, 244, 209, 0.98);
+    }
+
+    .pack-sequence-finale span {
+      display: block;
+      margin-top: 5px;
+      font-size: 12px;
+      color: rgba(225, 241, 255, 0.84);
+    }
+
+    .pack-sequence-finale.visible {
+      animation: packFinaleBannerIn 680ms cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .pack-sequence-finale.fade-out {
+      animation: packFinaleBannerOut 300ms ease forwards;
+    }
+
     .pack-preview-card {
       position: fixed;
       width: min(430px, 88vw);
@@ -7334,6 +7436,30 @@ PAGE_TEMPLATE = """
     .pack-preview-grid.departing {
       opacity: 0;
       transform: translate(-50%, calc(-50% + 180px)) scale(0.42);
+    }
+
+    .pack-preview-grid.victory-fan {
+      transform: translate(-50%, -46%) scale(1.06);
+    }
+
+    .pack-preview-grid.victory-fan .pack-preview-slot:nth-child(1) {
+      transform: translateY(14px) rotate(-18deg) scale(1.04);
+    }
+
+    .pack-preview-grid.victory-fan .pack-preview-slot:nth-child(2) {
+      transform: translateY(4px) rotate(-9deg) scale(1.08);
+    }
+
+    .pack-preview-grid.victory-fan .pack-preview-slot:nth-child(3) {
+      transform: translateY(-8px) rotate(0deg) scale(1.12);
+    }
+
+    .pack-preview-grid.victory-fan .pack-preview-slot:nth-child(4) {
+      transform: translateY(4px) rotate(9deg) scale(1.08);
+    }
+
+    .pack-preview-grid.victory-fan .pack-preview-slot:nth-child(5) {
+      transform: translateY(14px) rotate(18deg) scale(1.04);
     }
 
     .pack-preview-slot {
@@ -7665,6 +7791,46 @@ PAGE_TEMPLATE = """
       100% {
         opacity: 0;
         transform: translateX(130%) skewX(-14deg);
+      }
+    }
+
+    @keyframes packFinalePulse {
+      0%, 100% {
+        opacity: 0.54;
+        transform: scale(0.94);
+      }
+      50% {
+        opacity: 0.98;
+        transform: scale(1.06);
+      }
+    }
+
+    @keyframes packFinaleBannerIn {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 22px) scale(0.88);
+        filter: blur(8px);
+      }
+      62% {
+        opacity: 1;
+        transform: translate(-50%, -4px) scale(1.03);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes packFinaleBannerOut {
+      from {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translate(-50%, 12px) scale(0.94);
       }
     }
 
@@ -9410,6 +9576,12 @@ PAGE_TEMPLATE = """
       overscroll-behavior-y: auto;
     }
 
+    html.tma-app.battle-live-lock,
+    body.tma-app.battle-live-lock {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
     body.tma-app .showdown-fullscreen,
     body.tma-app .startup-guide {
       left: 8px;
@@ -9455,6 +9627,19 @@ PAGE_TEMPLATE = """
         calc(10px + env(safe-area-inset-bottom));
       gap: 6px;
       align-content: start;
+    }
+
+    body.tma-app.battle-live-lock .showdown-fullscreen.showdown-battle {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      min-height: var(--app-height, 100dvh);
+      height: var(--app-height, 100dvh);
+      padding:
+        calc(2px + env(safe-area-inset-top))
+        0
+        calc(8px + env(safe-area-inset-bottom));
+      overflow: hidden;
     }
 
     body.tma-app .showdown-fullscreen::before,
@@ -9652,9 +9837,30 @@ PAGE_TEMPLATE = """
       background-repeat: no-repeat !important;
     }
 
+    body.tma-app.battle-live-lock .showdown-main.arena-board {
+      height: calc(var(--app-height, 100dvh) - 8px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: 0;
+      max-height: none;
+      padding: 2px 4px 6px;
+      overflow: hidden;
+    }
+
     body.tma-app .arena-shell {
       gap: 6px;
       align-content: start;
+    }
+
+    body.tma-app.battle-live-lock .shell,
+    body.tma-app.battle-live-lock .layout,
+    body.tma-app.battle-live-lock #view-modes {
+      overflow: hidden !important;
+    }
+
+    body.tma-app.battle-live-lock .arena-shell {
+      height: 100%;
+      min-height: 0;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 4px;
     }
 
     body.tma-app .arena-rail {
@@ -9697,6 +9903,26 @@ PAGE_TEMPLATE = """
       overflow: visible;
     }
 
+    body.tma-app.battle-live-lock .arena-core {
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body.tma-app.battle-live-lock .arena-core::after {
+      content: "";
+      position: absolute;
+      inset: -16%;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 52%, rgba(69, 215, 255, 0.16), transparent 24%),
+        radial-gradient(circle at 50% 52%, rgba(83, 246, 184, 0.12), transparent 46%),
+        radial-gradient(circle at 50% 52%, rgba(255, 223, 142, 0.08), transparent 68%);
+      opacity: 0.72;
+      animation: liveArenaPulse 3.4s ease-in-out infinite;
+      z-index: 0;
+    }
+
     body.tma-app .arena-choice-hub {
       position: relative;
       top: auto;
@@ -9707,6 +9933,11 @@ PAGE_TEMPLATE = """
       overflow: visible;
       place-items: stretch;
       align-content: start;
+    }
+
+    body.tma-app.battle-live-lock .arena-choice-hub {
+      height: 100%;
+      padding: 0 2px;
     }
 
     body.tma-app .arena-choice-hub::before {
@@ -9738,6 +9969,13 @@ PAGE_TEMPLATE = """
       gap: 10px;
     }
 
+    body.tma-app.battle-live-lock .battle-stage.visible {
+      position: relative;
+      height: 100%;
+      min-height: 0;
+      gap: 0;
+    }
+
     body.tma-app .battle-stage.visible,
     body.tma-app #prebattle-stage:not(.hidden) {
       position: static;
@@ -9766,6 +10004,16 @@ PAGE_TEMPLATE = """
       margin: 0;
       padding: 0;
       z-index: 4;
+    }
+
+    body.tma-app.battle-live-lock .battle-stage.visible .arena-round-choice-strip {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 6px;
+      margin: 0;
+      padding: 0 1px;
+      z-index: 5;
     }
 
     body.tma-app .battle-stage.visible .arena-round-choice-slot {
@@ -9819,6 +10067,17 @@ PAGE_TEMPLATE = """
       pointer-events: auto;
     }
 
+    body.tma-app.battle-live-lock .battle-stage.visible .arena-battle-dock {
+      position: absolute;
+      left: 0 !important;
+      right: 0 !important;
+      top: 50%;
+      bottom: auto;
+      margin: 0;
+      transform: translateY(-50%) !important;
+      z-index: 6;
+    }
+
     body.tma-app .battle-stage.visible .arena-battle-dock .interactive-battle-panel {
       width: 100%;
       max-width: 100%;
@@ -9828,6 +10087,16 @@ PAGE_TEMPLATE = """
         linear-gradient(135deg, rgba(8, 23, 43, 0.62), rgba(10, 29, 34, 0.66)),
         radial-gradient(circle at top, rgba(69, 215, 255, 0.08), transparent 62%);
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    body.tma-app.battle-live-lock .battle-stage.visible .arena-battle-dock .interactive-battle-panel {
+      width: min(100%, 410px);
+      margin: 0 auto;
+      border-color: rgba(121, 217, 255, 0.26);
+      box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.28),
+        0 0 24px rgba(69, 215, 255, 0.12);
+      animation: battleDockBreath 3.2s ease-in-out infinite;
     }
 
     body.tma-app .battle-stage.visible .interactive-battle-panel::before,
@@ -9919,6 +10188,34 @@ PAGE_TEMPLATE = """
     body.tma-app .arena-shell.clash-live .arena-player-resource-bar {
       opacity: 0.76;
       transform: none;
+    }
+
+    body.tma-app.battle-live-lock .arena-route-path.active {
+      stroke-width: 3.4;
+      filter: drop-shadow(0 0 14px color-mix(in srgb, var(--arena-route-active) 38%, transparent));
+      animation:
+        arenaDashFlow 1.45s linear infinite,
+        liveLanePulse 1.18s ease-in-out infinite;
+    }
+
+    body.tma-app.battle-live-lock .arena-slot-card.active-slot {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow:
+        0 14px 26px rgba(0, 0, 0, 0.24),
+        0 0 0 1px rgba(83, 246, 184, 0.18),
+        0 0 24px rgba(69, 215, 255, 0.14);
+    }
+
+    body.tma-app.battle-live-lock .arena-score-card,
+    body.tma-app.battle-live-lock .post-actions {
+      display: none !important;
+    }
+
+    body.tma-app.battle-live-lock .mobile-nav {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(calc(100% + 20px));
     }
 
     body.tma-app #view-wallet,
@@ -11634,6 +11931,17 @@ PAGE_TEMPLATE = """
         const laneX = (percent / 100) * 1000;
         path.setAttribute('d', `M ${laneX.toFixed(2)} 0 L ${laneX.toFixed(2)} 440`);
       });
+    }
+
+    function setBattleLiveLock(active) {
+      const enabled = Boolean(active && isTelegramMiniApp());
+      document.body.classList.toggle('battle-live-lock', enabled);
+      document.documentElement.classList.toggle('battle-live-lock', enabled);
+      if (!enabled) return;
+      syncTmaMode();
+      syncTmaViewport();
+      resetHorizontalViewportDrift();
+      requestAnimationFrame(() => syncBattleLaneGeometry());
     }
 
     function setupTmaResizeWatchers() {
@@ -14487,6 +14795,9 @@ PAGE_TEMPLATE = """
       if (!Array.isArray(cards) || !cards.length) return;
       const layer = document.createElement('div');
       layer.className = 'pack-sequence-layer';
+      const finaleBadge = document.createElement('div');
+      finaleBadge.className = 'pack-sequence-finale';
+      finaleBadge.innerHTML = '<strong>Новая пятёрка</strong><span>Карты добавлены в твою колоду</span>';
       const grid = document.createElement('div');
       grid.className = 'pack-preview-grid';
       grid.innerHTML = cards.map((card, index) => `
@@ -14496,6 +14807,7 @@ PAGE_TEMPLATE = """
       `).join('');
       document.body.appendChild(layer);
       document.body.appendChild(grid);
+      layer.appendChild(finaleBadge);
       activePackSequenceLayer = layer;
       activePackPreviewGrid = grid;
       await nextFrame();
@@ -14523,9 +14835,15 @@ PAGE_TEMPLATE = """
         slot.classList.remove('impact');
         slots.forEach((node) => node.classList.remove('support-glow'));
       }
-      await sleep(460);
+      await sleep(180);
+      layer.classList.add('finale');
+      grid.classList.add('victory-fan');
+      finaleBadge.classList.add('visible');
+      await sleep(960);
+      finaleBadge.classList.add('fade-out');
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
+      layer.classList.remove('finale');
       await sleep(560);
       cleanupPackSequencePreview();
     }
@@ -15326,6 +15644,7 @@ PAGE_TEMPLATE = """
       clearInteractiveChoiceTimer();
       clearBattleAutostartTimer();
       clearFinalClimax();
+      setBattleLiveLock(false);
       battleResult.className = 'result-box';
       battleResult.style.display = 'none';
       battleResult.innerHTML = '';
@@ -15341,6 +15660,7 @@ PAGE_TEMPLATE = """
       clearBattleAutostartTimer();
       setBattleLaunchInFlight(false);
       state.lastReplayTapAt = 0;
+      setBattleLiveLock(false);
       battleResult.className = 'result-box';
       battleResult.style.display = 'block';
       battleResult.classList.add('duel-anim');
@@ -15631,6 +15951,9 @@ PAGE_TEMPLATE = """
         `;
         syncBattleLaneGeometry(battleResult);
         requestAnimationFrame(() => syncBattleLaneGeometry(battleResult));
+        if (result.autostart_battle && result.interactive_live && result.interactive_session_id) {
+          setBattleLiveLock(true);
+        }
         focusTmaShowdown();
 
         let liveResult = result;
@@ -15669,6 +15992,7 @@ PAGE_TEMPLATE = """
           animateScoreCounters(battleResult);
           setScoreCountersInstant(battleResult);
           if (!liveResult.interactive_live || !interactiveBattlePanel) {
+            setBattleLiveLock(false);
             if (!liveResult.interactive_live) {
               const showInteractiveOutcome = async () => {
                 await playFinalClimax(resultKey, result.result_label);
@@ -15682,6 +16006,7 @@ PAGE_TEMPLATE = """
             }
             return;
           }
+          setBattleLiveLock(true);
           state.interactiveActionInFlight = false;
           focusBattleChoiceMenu(interactiveBattlePanel);
           if (interactiveBattleStatus) {
@@ -15759,6 +16084,7 @@ PAGE_TEMPLATE = """
                 battleStage.classList.add('visible');
               }
               if (liveResult.interactive_session_id) {
+                setBattleLiveLock(true);
                 focusBattleChoiceMenu(interactiveBattlePanel);
                 wireInteractiveBattle();
                 return;
@@ -15950,6 +16276,7 @@ PAGE_TEMPLATE = """
       await prepareFunctionalInteraction();
       clearInteractiveChoiceTimer();
       clearFinalClimax();
+      setBattleLiveLock(false);
       document.body.classList.remove('showdown-open');
       battleResult.className = 'result-box';
       battleResult.style.display = 'none';
@@ -15961,6 +16288,7 @@ PAGE_TEMPLATE = """
     async function viewBattleFlow() {
       await prepareFunctionalInteraction();
       clearFinalClimax();
+      setBattleLiveLock(false);
       if (!state.lastResult) return;
       battleResult.className = 'result-box';
       battleResult.style.display = 'none';
@@ -16022,6 +16350,7 @@ PAGE_TEMPLATE = """
       packShowcase.classList.remove('opened', 'bursting', 'cinematic');
       foilPack.classList.remove('opening', 'vanishing');
       packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
+      setBattleLiveLock(false);
       battleResult.style.display = 'none';
       battleResult.className = 'result-box';
       document.body.classList.remove('showdown-open');
@@ -17875,6 +18204,33 @@ PAGE_TEMPLATE = """
       }
       tgWebApp.onEvent('themeChanged', queueTmaModeSync);
     }
+    let lastTouchEndAt = 0;
+    document.addEventListener('gesturestart', (event) => {
+      event.preventDefault();
+    }, { passive: false });
+    document.addEventListener('gesturechange', (event) => {
+      event.preventDefault();
+    }, { passive: false });
+    document.addEventListener('dblclick', (event) => {
+      event.preventDefault();
+    }, { passive: false });
+    document.addEventListener('touchstart', (event) => {
+      if (event.touches && event.touches.length > 1) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('touchmove', (event) => {
+      if ((event.touches && event.touches.length > 1) || (typeof event.scale === 'number' && event.scale !== 1)) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('touchend', (event) => {
+      const now = Date.now();
+      if (now - lastTouchEndAt < 320) {
+        event.preventDefault();
+      }
+      lastTouchEndAt = now;
+    }, { passive: false });
     document.addEventListener('click', (event) => {
       interceptDeckDomainAction(event).catch(() => {});
     }, true);
