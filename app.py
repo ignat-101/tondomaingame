@@ -7077,6 +7077,16 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
+    .pack-showcase.opened-once .pack-note {
+      opacity: 0;
+      margin-bottom: 0;
+      max-height: 0;
+      overflow: hidden;
+      pointer-events: none;
+      transform: translateY(-10px) scale(0.96);
+      filter: blur(6px);
+    }
+
     .cosmetic-roulette {
       position: relative;
       width: min(760px, 96vw);
@@ -10255,7 +10265,10 @@ PAGE_TEMPLATE = """
 
     body.tma-app.battle-live-lock .arena-choice-hub {
       height: 100%;
-      padding: 6px 2px 0;
+      padding: 0;
+      display: grid;
+      align-items: center;
+      justify-items: center;
     }
 
     body.tma-app .arena-choice-hub::before {
@@ -10284,22 +10297,31 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .battle-stage.visible {
-      gap: 10px;
+      gap: 0;
+      display: grid;
+      align-content: center;
+      align-items: center;
+      justify-items: center;
+      min-height: clamp(220px, 38vh, 360px);
+      padding: 22px 0 18px;
     }
 
     body.tma-app.battle-live-lock .battle-stage.visible {
       position: relative;
       height: 100%;
       min-height: 0;
-      gap: 0;
-      display: grid;
       align-content: stretch;
       align-items: center;
       justify-items: center;
-      padding: 18px 0 14px;
+      padding: 22px 0 18px;
     }
 
-    body.tma-app .battle-stage.visible,
+    body.tma-app .battle-stage.visible {
+      position: relative;
+      top: auto;
+      z-index: auto;
+    }
+
     body.tma-app #prebattle-stage:not(.hidden) {
       position: static;
       top: auto;
@@ -10317,8 +10339,10 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .battle-stage.visible .arena-round-choice-strip {
-      position: relative;
-      inset: auto;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 10px;
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       align-items: start;
@@ -10382,12 +10406,13 @@ PAGE_TEMPLATE = """
       right: auto !important;
       top: auto;
       bottom: auto;
-      width: 100% !important;
-      max-width: 100% !important;
-      margin: calc(30px + env(safe-area-inset-top)) 0 calc(76px + env(safe-area-inset-bottom));
+      width: min(100%, 360px) !important;
+      max-width: min(100%, 360px) !important;
+      margin: 0;
       transform: none !important;
       z-index: 4;
       pointer-events: auto;
+      align-self: center;
     }
 
     body.tma-app.battle-live-lock .battle-stage.visible .arena-battle-dock {
@@ -10408,7 +10433,7 @@ PAGE_TEMPLATE = """
       width: 100%;
       max-width: 100%;
       margin: 0;
-      padding: 6px 7px 7px;
+      padding: 10px 10px 10px;
       background:
         linear-gradient(135deg, rgba(8, 23, 43, 0.62), rgba(10, 29, 34, 0.66)),
         radial-gradient(circle at top, rgba(69, 215, 255, 0.08), transparent 62%);
@@ -10437,6 +10462,11 @@ PAGE_TEMPLATE = """
 
     body.tma-app .interactive-battle-title {
       font-size: 14px;
+      overflow: visible;
+      line-height: 1.18;
+      text-indent: 0.02em;
+      letter-spacing: 0.01em;
+      padding-left: 2px;
     }
 
     body.tma-app.battle-live-lock .interactive-battle-title,
@@ -10469,6 +10499,8 @@ PAGE_TEMPLATE = """
       min-height: 14px;
       font-size: 9px;
       line-height: 1.12;
+      overflow: visible;
+      text-indent: 0.02em;
     }
 
     body.tma-app .interactive-battle-actions {
@@ -10480,6 +10512,20 @@ PAGE_TEMPLATE = """
       border-radius: 10px;
       padding: 0 6px;
       font-size: 10px;
+      overflow: visible;
+      line-height: 1.18;
+      letter-spacing: 0.01em;
+    }
+
+    body.tma-app .battle-stage.visible .arena-score-card {
+      position: absolute;
+      left: 50%;
+      bottom: 6px;
+      width: min(100%, 280px);
+      padding: 10px 12px;
+      transform: translateX(-50%);
+      z-index: 4;
+      margin: 0;
     }
 
     body.tma-app .interactive-battle-panel::before,
@@ -17537,7 +17583,7 @@ PAGE_TEMPLATE = """
           await renderPack(data.cards, data.total_score);
         }
         resetPackShowcaseIdleState({ preserveNote: true });
-        packNote.textContent = 'Колода готова к бою';
+        packNote.textContent = '';
         setStatus(
           document.getElementById('pack-status'),
           isCosmeticPack
