@@ -4205,6 +4205,19 @@ PAGE_TEMPLATE = """
       background: linear-gradient(135deg, rgba(69, 215, 255, 0.2), rgba(83, 246, 184, 0.18));
     }
 
+    .support-footer {
+      margin-top: 18px;
+      padding: 10px 12px calc(4px + env(safe-area-inset-bottom));
+      text-align: center;
+      font-size: 12px;
+      color: rgba(196, 214, 229, 0.78);
+    }
+
+    .support-footer a {
+      color: rgba(126, 226, 255, 0.98);
+      text-decoration: none;
+    }
+
     .startup-guide {
       position: fixed;
       inset: 0;
@@ -9155,8 +9168,8 @@ PAGE_TEMPLATE = """
 
     body.tma-app .shell {
       overflow-x: hidden;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: auto;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
       width: calc(var(--app-width, 100vw) - 20px) !important;
@@ -9286,8 +9299,8 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .arena-choice-hub {
-      position: sticky;
-      top: 6px;
+      position: relative;
+      top: auto;
       z-index: 8;
       min-height: 0;
       padding: 4px 6px 8px;
@@ -9771,6 +9784,7 @@ PAGE_TEMPLATE = """
             <p class="muted">Можно купить 4-значный .ton на площадках и затем вернуться к игре с новым доменом.</p>
             <div class="links-row" id="marketplaces-links"></div>
           </div>
+          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
         </section>
 
         <section class="panel view" id="view-pack">
@@ -9872,6 +9886,7 @@ PAGE_TEMPLATE = """
           </div>
           <h3 style="margin-top:18px;">Редкости карт</h3>
           <div class="deck-list" id="card-catalog-list"></div>
+          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
         </section>
 
         <section class="panel view" id="view-modes">
@@ -9924,12 +9939,14 @@ PAGE_TEMPLATE = """
 
           <div class="result-box" id="battle-result" style="display:none;"></div>
           <div class="result-box" id="invite-result" style="display:none;"></div>
+          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
         </section>
 
         <section class="panel view" id="view-battleflow">
           <h2>Ход боя</h2>
           <p class="muted">Подробный разбор раундов матча: какие карты сошлись, какие решения были выбраны и как сложился итог.</p>
           <div id="battle-flow-view"></div>
+          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
         </section>
 
         <section class="panel view" id="view-profile">
@@ -9953,12 +9970,14 @@ PAGE_TEMPLATE = """
           <div id="mobile-leaderboard" class="leaderboard"></div>
           <h3 style="margin-top:20px;">Общая база игроков</h3>
           <div id="mobile-global-players-list" class="global-players-list"></div>
+          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
         </section>
 
         <section class="panel view" id="view-guilds">
           <h2>Кланы и клановые войны</h2>
           <p class="muted">Отдельный экран кланов: состав, заявки, чат, недельные цели, война недели и награда клана.</p>
           <div id="guild-panel" class="deck-list"></div>
+          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
         </section>
 
         <section class="panel view" id="view-achievements">
@@ -9968,6 +9987,7 @@ PAGE_TEMPLATE = """
             <button id="refresh-achievements-btn" disabled>Обновить пропуск</button>
           </div>
           <div class="deck-list" id="achievements-list"></div>
+          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
         </section>
       </main>
 
