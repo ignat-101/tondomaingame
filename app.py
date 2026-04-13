@@ -13,7 +13,7 @@ import uuid
 import calendar
 import base64
 from contextlib import closing
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -12006,6 +12006,7 @@ PAGE_TEMPLATE = """
     }
     let duelInvitePollTimer = null;
     let duelInvitePollId = null;
+    let unoStatusPollTimer = null;
 
     const walletBadge = document.getElementById('wallet-badge');
     const walletStatus = document.getElementById('wallet-status');
@@ -15655,9 +15656,10 @@ PAGE_TEMPLATE = """
     function unoCardMarkup(card, options = {}) {
       const frameAsset = options.frameAsset || '';
       const playable = Boolean(options.playable);
+      const disabled = Boolean(options.disabled);
       const buttonAttrs = options.asButton === false
         ? 'type="button" tabindex="-1" disabled'
-        : `type="button" data-uno-play-card="${escapeHtml(card.id || '')}"`;
+        : `type="button" data-uno-play-card="${escapeHtml(card.id || '')}"${disabled ? ' disabled' : ''}`;
       return `
         <button class="uno-card-btn ${playable ? 'playable' : ''}" ${buttonAttrs}>
           <div class="uno-card-face ${escapeHtml(card.color || 'wild')}">
@@ -15738,6 +15740,61 @@ PAGE_TEMPLATE = """
       }
     }
 
+    function stopUnoStatusPolling() {
+      if (unoStatusPollTimer) {
+        window.clearTimeout(unoStatusPollTimer);
+        unoStatusPollTimer = null;
+      }
+    }
+
+    async function pollUnoStatus() {
+      if (!state.wallet || !state.unoSession || !state.unoSession.session_id) {
+        stopUnoStatusPolling();
+        return;
+      }
+      try {
+        const data = await api(`/api/uno/status?wallet=${encodeURIComponent(state.wallet)}&session_id=${encodeURIComponent(state.unoSession.session_id)}`);
+        state.unoSession = data.session || null;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        } else {
+          renderUnoPanel();
+        }
+      } catch (error) {
+        stopUnoStatusPolling();
+        if (String(error.message || '').toLowerCase().includes('не найдена')) {
+          state.unoSession = null;
+          rememberUnoSession(null);
+          renderUnoPanel();
+        }
+      }
+    }
+
+    function scheduleUnoStatusPolling(immediate = false) {
+      stopUnoStatusPolling();
+      const session = state.unoSession;
+      if (!state.wallet || !session || !session.session_id) return;
+      const mode = String(session.mode || 'bot');
+      const status = String(session.status || (session.complete ? 'completed' : 'active'));
+      if (mode === 'bot' && status !== 'waiting') return;
+      if (status === 'completed') return;
+      const delay = immediate ? 900 : (status === 'waiting' ? 1800 : (session.your_turn ? 2600 : 1800));
+      unoStatusPollTimer = window.setTimeout(() => {
+        pollUnoStatus().catch(() => {});
+      }, delay);
+    }
+
+    function unoModeLabel(mode) {
+      return {
+        bot: 'Против бота',
+        friends: 'Комната с друзьями',
+        quick: 'Быстрый матч',
+      }[String(mode || 'bot')] || 'UNO';
+    }
+
     function renderUnoPanel() {
       if (!unoRoot) return;
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
@@ -15752,6 +15809,7 @@ PAGE_TEMPLATE = """
       const backSurface = giftCardbackSurface(backKey, emoji);
       const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : '';
       if (!state.wallet) {
+        stopUnoStatusPolling();
         unoRoot.innerHTML = `
           <div class="uno-empty">
             <strong>Подключи кошелёк</strong>
@@ -15766,6 +15824,7 @@ PAGE_TEMPLATE = """
         return;
       }
       if (!state.selectedDomain) {
+        stopUnoStatusPolling();
         unoRoot.innerHTML = `
           <div class="uno-empty">
             <strong>Сначала выбери домен</strong>
@@ -15781,6 +15840,7 @@ PAGE_TEMPLATE = """
       }
       const session = state.unoSession;
       if (!session) {
+        stopUnoStatusPolling();
         const cachedSessionId = rememberedUnoSessionId();
         if (cachedSessionId) {
           unoRoot.innerHTML = `
@@ -15798,9 +15858,9 @@ PAGE_TEMPLATE = """
               <div class="uno-header-top">
                 <div class="uno-title">
                   <strong>UNO Arena</strong>
-                  <div class="tiny">Активный домен: ${escapeHtml(`${state.selectedDomain}.ton`)} • прогресс и награды засчитываются в общий сезон.</div>
+                  <div class="tiny">Три обязательных режима: бот, приватная комната до 6 игроков и быстрый вход в любую свободную партию.</div>
                 </div>
-                ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">UNO Arena</div>` : ''}
+                ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">UNO</div>` : ''}
               </div>
               <div class="uno-meta-strip">
                 <div class="uno-chip">💠 ${Number(rewards.pack_shards || 0)}</div>
@@ -15809,74 +15869,145 @@ PAGE_TEMPLATE = """
                 <div class="uno-chip">Сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 16)}</div>
               </div>
             </div>
-            <div class="uno-stage">
-              <div class="uno-opponent-row">
-                <div class="tiny">Все твои текущие скины сразу работают здесь: арена, рубашка, рамка и баннер.</div>
-                <div class="uno-opponent-cards">
-                  ${Array.from({length: 5}).map(() => unoBackCardMarkup(backSurface, frameAsset)).join('')}
+            <div class="catalog-grid">
+              <article class="catalog-card skill-card">
+                <div class="catalog-kicker">UNO</div>
+                <strong>Против бота</strong>
+                <div class="tiny">Быстрый соло-матч. Идеален для фарма пропуска и практики карт.</div>
+                <div class="actions" style="margin-top:12px;">
+                  <button type="button" id="uno-start-btn">Играть с ботом</button>
                 </div>
-              </div>
-              <div class="uno-center">
-                <div>
-                  <div class="uno-stack">
-                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset)}</div>
-                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset)}</div>
-                    <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset)}</div>
-                  </div>
-                  <div class="uno-stack-label">Общая колода</div>
+              </article>
+              <article class="catalog-card skill-card">
+                <div class="catalog-kicker">UNO</div>
+                <strong>Быстрый матч</strong>
+                <div class="tiny">Поиск любой свободной публичной партии UNO. Подхватывает лобби с любым числом игроков до 6.</div>
+                <div class="actions" style="margin-top:12px;">
+                  <button type="button" id="uno-quick-search-btn">Найти свободную партию</button>
                 </div>
-                <div>
-                  <div class="uno-stack">
-                    <div class="uno-stack-top">${unoCardMarkup({color: 'wild', color_label: 'Wild', value: 'wild', value_label: 'UNO', title: 'Открой матч'}, {frameAsset, playable: true})}</div>
-                  </div>
-                  <div class="uno-stack-label">Старт партии</div>
+              </article>
+              <article class="catalog-card skill-card">
+                <div class="catalog-kicker">UNO</div>
+                <strong>Комната с друзьями</strong>
+                <div class="tiny">Приватная партия по коду. Выбираешь лимит от 2 до 6 игроков и расшариваешь room code.</div>
+                <div class="actions" style="margin-top:12px; gap:10px;">
+                  <select id="uno-room-size-select">
+                    ${[2,3,4,5,6].map((value) => `<option value="${value}"${value === 6 ? ' selected' : ''}>${value} игроков</option>`).join('')}
+                  </select>
+                  <button type="button" id="uno-create-room-btn">Создать комнату</button>
                 </div>
-              </div>
-              <div class="uno-player-row">
-                <div class="uno-log">
-                  <strong>Общий пропуск и опыт</strong>
-                  <div class="tiny">Победы в UNO дают сезонные очки, осколки и прогресс по ежедневным задачам так же, как и основной режим.</div>
+              </article>
+              <article class="catalog-card skill-card">
+                <div class="catalog-kicker">UNO</div>
+                <strong>Подключение по коду</strong>
+                <div class="tiny">Введи код друга и заходи прямо в приватное лобби.</div>
+                <div class="actions" style="margin-top:12px; gap:10px;">
+                  <input type="text" id="uno-room-code-input" placeholder="Код комнаты" style="text-transform:uppercase;">
+                  <button type="button" id="uno-join-room-btn">Войти</button>
                 </div>
-                <div class="uno-controls">
-                  <button type="button" id="uno-start-btn">Запустить UNO</button>
-                  <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
-                </div>
-              </div>
+              </article>
+            </div>
+            <div class="uno-log">
+              <strong>Общий прогресс</strong>
+              <div class="tiny">Все режимы UNO используют один домен, общую косметику, единый пропуск, одни и те же ежедневные задания и общий опыт аккаунта.</div>
             </div>
           </div>
         `;
         const unoStartBtn = document.getElementById('uno-start-btn');
-        const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
+        const unoQuickSearchBtn = document.getElementById('uno-quick-search-btn');
+        const unoCreateRoomBtn = document.getElementById('uno-create-room-btn');
+        const unoJoinRoomBtn = document.getElementById('uno-join-room-btn');
         if (unoStartBtn) bindFunctionalControl(unoStartBtn, startUnoMatch);
-        if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher());
+        if (unoQuickSearchBtn) bindFunctionalControl(unoQuickSearchBtn, searchUnoQuickMatch);
+        if (unoCreateRoomBtn) bindFunctionalControl(unoCreateRoomBtn, createUnoRoom);
+        if (unoJoinRoomBtn) bindFunctionalControl(unoJoinRoomBtn, joinUnoRoom);
         return;
       }
       const playableIds = new Set(session.playable_card_ids || []);
       const pendingWildCardId = state.unoPendingColorCardId || '';
+      const opponents = Array.isArray(session.opponents) ? session.opponents : [];
+      const participantCount = Number(session.participant_count || (Array.isArray(session.participants) ? session.participants.length : 0) || 0);
+      const waitingLobby = String(session.status || '') === 'waiting';
+      if (waitingLobby) {
+        scheduleUnoStatusPolling();
+        unoRoot.innerHTML = `
+          <div class="uno-shell" style="background:${tableSurface};">
+            <div class="uno-header">
+              <div class="uno-header-top">
+                <div class="uno-title">
+                  <strong>${escapeHtml(unoModeLabel(session.mode))}</strong>
+                  <div class="tiny">Код: ${escapeHtml(session.room_code || session.session_id || '—')} • ${participantCount}/${Number(session.max_players || 2)} игроков • домен ${escapeHtml(`${state.selectedDomain}.ton`)}</div>
+                </div>
+                ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">${session.mode === 'quick' ? 'MATCHMAKING' : 'FRIENDS'}</div>` : ''}
+              </div>
+              <div class="uno-meta-strip">
+                <div class="uno-chip">${session.mode === 'quick' ? 'Публичная партия' : 'Приватная комната'}</div>
+                <div class="uno-chip">${session.countdown_seconds ? `Автостарт через ${Number(session.countdown_seconds)} сек` : (session.can_start ? 'Можно стартовать' : 'Ждём игроков')}</div>
+                <div class="uno-chip">Лимит: ${Number(session.max_players || 2)}</div>
+              </div>
+            </div>
+            <div class="uno-stage">
+              <div class="user-item">
+                <strong>Состав лобби</strong>
+                <div style="display:grid; gap:8px; margin-top:10px;">
+                  ${(session.participants || []).map((item, index) => `
+                    <div class="team-line">
+                      <span>${index + 1}. ${escapeHtml(item.display_name || 'Игрок')}${item.is_owner ? ' • host' : ''}${item.is_viewer ? ' • ты' : ''}</span>
+                      <strong>${escapeHtml(item.domain ? `${item.domain}.ton` : '-')}</strong>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              <div class="uno-log">
+                <strong>Статус</strong>
+                <div class="tiny">${escapeHtml(session.last_action || 'Ждём игроков.')}</div>
+              </div>
+              <div class="uno-controls">
+                ${session.can_start ? '<button type="button" id="uno-room-start-btn">Стартовать</button>' : '<button type="button" class="secondary" disabled>Старт недоступен</button>'}
+                <button type="button" class="secondary" id="uno-room-refresh-btn">Обновить</button>
+                ${session.can_leave ? '<button type="button" class="secondary" id="uno-room-leave-btn">Выйти</button>' : ''}
+              </div>
+            </div>
+          </div>
+        `;
+        const unoRoomStartBtn = document.getElementById('uno-room-start-btn');
+        const unoRoomRefreshBtn = document.getElementById('uno-room-refresh-btn');
+        const unoRoomLeaveBtn = document.getElementById('uno-room-leave-btn');
+        if (unoRoomStartBtn) bindFunctionalControl(unoRoomStartBtn, startUnoRoom);
+        if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus());
+        if (unoRoomLeaveBtn) bindFunctionalControl(unoRoomLeaveBtn, leaveUnoSession);
+        return;
+      }
+      scheduleUnoStatusPolling();
       unoRoot.innerHTML = `
         <div class="uno-shell" style="background:${tableSurface};">
           <div class="uno-header">
             <div class="uno-header-top">
               <div class="uno-title">
                 <strong>UNO Arena</strong>
-                <div class="tiny">${escapeHtml(session.bot_name || 'UNO Bot')} • домен ${escapeHtml(`${session.domain}.ton`)} • ходов ${Number(session.turn_index || 0)}</div>
+                <div class="tiny">${escapeHtml(unoModeLabel(session.mode))} • ${participantCount} игроков • ходов ${Number(session.turn_index || 0)} • код ${escapeHtml(session.room_code || session.session_id || '—')}</div>
               </div>
               ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">${escapeHtml(session.current_color_label || 'UNO')}</div>` : `<div class="uno-chip">Цвет: ${escapeHtml(session.current_color_label || '—')}</div>`}
             </div>
             <div class="uno-meta-strip">
-              <div class="uno-chip">Ход: ${session.turn === 'player' ? 'твой' : 'бота'}</div>
-              <div class="uno-chip">Бот: ${Number(session.bot_count || 0)} карт</div>
+              <div class="uno-chip">Ход: ${escapeHtml(session.turn_display_name || (session.your_turn ? 'твой' : 'соперника'))}</div>
               <div class="uno-chip">Колода: ${Number(session.draw_remaining || 0)}</div>
+              <div class="uno-chip">Режим: ${escapeHtml(unoModeLabel(session.mode))}</div>
               <div class="uno-chip">Сезон ${Number((session.reward_summary || rewards).season_level || 1)}</div>
             </div>
           </div>
           <div class="uno-stage">
-            <div class="uno-opponent-row">
-              <div class="team-line"><strong>${escapeHtml(session.bot_name || 'UNO Bot')}</strong><strong>${Number(session.bot_count || 0)} карт</strong></div>
-              <div class="uno-opponent-cards">
-                ${Array.from({length: Math.max(1, Math.min(7, Number(session.bot_count || 0)))}).map(() => unoBackCardMarkup(backSurface, frameAsset)).join('')}
+            ${opponents.map((opponent) => `
+              <div class="uno-opponent-row">
+                <div class="team-line">
+                  <strong>${escapeHtml(opponent.display_name || 'Игрок')}</strong>
+                  <strong>${Number(opponent.card_count || 0)} карт${opponent.is_current_turn ? ' • ход' : ''}</strong>
+                </div>
+                <div class="uno-opponent-cards">
+                  ${Array.from({length: Math.max(1, Math.min(7, Number(opponent.card_count || 0)))}).map(() => unoBackCardMarkup(backSurface, frameAsset, 'UNO')).join('')}
+                </div>
               </div>
-            </div>
+            `).join('')}
             <div class="uno-center">
               <div>
                 <div class="uno-stack">
@@ -15910,36 +16041,36 @@ PAGE_TEMPLATE = """
                 <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
                 <div class="tiny">UNO завершён. Награды и сезонные очки уже засчитаны в общий прогресс аккаунта.</div>
                 <div class="uno-reward-line">
-                  <span class="summary-chip">💠 +${Number((session.reward_gain || {}).pack_shards || 0)}</span>
-                  <span class="summary-chip">Сезон +${Number((session.reward_gain || {}).season_points || 0)}</span>
+                  <span class="summary-chip">💠 +${Number(((session.reward_gain || {}).pack_shards) || 0)}</span>
+                  <span class="summary-chip">Сезон +${Number(((session.reward_gain || {}).season_points) || 0)}</span>
                 </div>
                 <div class="actions" style="margin-top:12px;">
-                  <button type="button" id="uno-restart-btn">Сыграть ещё</button>
+                  <button type="button" id="uno-after-bot-btn">${session.mode === 'bot' ? 'С ботом ещё раз' : 'Новая быстрая партия'}</button>
                   <button type="button" class="secondary" id="uno-result-launcher-btn">Приложения</button>
                 </div>
               </div>
             ` : `
               <div class="uno-controls">
-                <button type="button" id="uno-draw-btn"${session.can_draw ? '' : ' disabled'}>Взять карту</button>
-                <button type="button" class="secondary" id="uno-switch-app-btn">Приложения</button>
+                <button type="button" id="uno-draw-btn"${session.can_draw ? '' : ' disabled'}>${session.your_turn ? 'Взять карту' : 'Ждём ход соперника'}</button>
+                <button type="button" class="secondary" id="uno-room-refresh-btn">Обновить</button>
               </div>
             `}
             <div class="uno-player-row">
-              <div class="team-line"><strong>Твоя рука</strong><strong>${Number((session.player_hand || []).length || 0)} карт</strong></div>
+              <div class="team-line"><strong>Твоя рука</strong><strong>${Number((session.player_hand || []).length || 0)} карт${session.your_turn ? ' • твой ход' : ''}</strong></div>
               <div class="uno-player-hand">
-                ${(session.player_hand || []).map((card) => unoCardMarkup(card, {frameAsset, playable: playableIds.has(card.id)})).join('')}
+                ${(session.player_hand || []).map((card) => unoCardMarkup(card, {frameAsset, playable: playableIds.has(card.id) && Boolean(session.your_turn), disabled: !(playableIds.has(card.id) && Boolean(session.your_turn))})).join('')}
               </div>
             </div>
           </div>
         </div>
       `;
       const unoDrawBtn = document.getElementById('uno-draw-btn');
-      const unoRestartBtn = document.getElementById('uno-restart-btn');
-      const unoSwitchAppBtn = document.getElementById('uno-switch-app-btn');
+      const unoRoomRefreshBtn = document.getElementById('uno-room-refresh-btn');
+      const unoAfterBotBtn = document.getElementById('uno-after-bot-btn');
       const unoResultLauncherBtn = document.getElementById('uno-result-launcher-btn');
-      if (unoDrawBtn && !unoDrawBtn.disabled) bindFunctionalControl(unoDrawBtn, () => runUnoAction('draw'));
-      if (unoRestartBtn) bindFunctionalControl(unoRestartBtn, startUnoMatch);
-      if (unoSwitchAppBtn) bindFunctionalControl(unoSwitchAppBtn, () => openAppLauncher());
+      if (unoDrawBtn && !unoDrawBtn.disabled && session.can_draw) bindFunctionalControl(unoDrawBtn, () => runUnoAction('draw'));
+      if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus());
+      if (unoAfterBotBtn) bindFunctionalControl(unoAfterBotBtn, () => (session.mode === 'bot' ? startUnoMatch() : searchUnoQuickMatch()));
       if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher());
       unoRoot.querySelectorAll('[data-uno-play-card]').forEach((button) => {
         bindFunctionalControl(button, () => requestUnoCardPlay(button.dataset.unoPlayCard));
@@ -15970,6 +16101,129 @@ PAGE_TEMPLATE = """
         }
         switchView('uno');
         renderUnoPanel();
+        scheduleUnoStatusPolling();
+      } catch (error) {
+        unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
+      }
+    }
+
+    async function createUnoRoom() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet || !state.selectedDomain) return;
+      const sizeSelect = document.getElementById('uno-room-size-select');
+      const maxPlayers = Number(sizeSelect && sizeSelect.value ? sizeSelect.value : 6) || 6;
+      try {
+        const data = await api('/api/uno/room/create', {
+          method: 'POST',
+          body: { wallet: state.wallet, domain: state.selectedDomain, max_players: maxPlayers }
+        });
+        state.unoSession = data.session || null;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        } else {
+          renderUnoPanel();
+        }
+        scheduleUnoStatusPolling();
+      } catch (error) {
+        unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
+      }
+    }
+
+    async function joinUnoRoom() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet || !state.selectedDomain) return;
+      const roomInput = document.getElementById('uno-room-code-input');
+      const roomCode = String(roomInput && roomInput.value ? roomInput.value : '').trim().toUpperCase();
+      if (!roomCode) {
+        unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">Укажи код комнаты.</strong></div>`;
+        return;
+      }
+      try {
+        const data = await api('/api/uno/room/join', {
+          method: 'POST',
+          body: { wallet: state.wallet, domain: state.selectedDomain, room_code: roomCode }
+        });
+        state.unoSession = data.session || null;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        } else {
+          renderUnoPanel();
+        }
+        scheduleUnoStatusPolling();
+      } catch (error) {
+        unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
+      }
+    }
+
+    async function startUnoRoom() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet || !state.unoSession || !state.unoSession.session_id) return;
+      try {
+        const data = await api('/api/uno/room/start', {
+          method: 'POST',
+          body: { wallet: state.wallet, session_id: state.unoSession.session_id }
+        });
+        state.unoSession = data.session || null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        } else {
+          renderUnoPanel();
+        }
+        scheduleUnoStatusPolling(true);
+      } catch (error) {
+        unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
+      }
+    }
+
+    async function searchUnoQuickMatch() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet || !state.selectedDomain) return;
+      bumpUsage('mode:uno');
+      try {
+        const data = await api('/api/uno/quick/search', {
+          method: 'POST',
+          body: { wallet: state.wallet, domain: state.selectedDomain }
+        });
+        state.unoSession = data.session || null;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        } else {
+          renderUnoPanel();
+        }
+        scheduleUnoStatusPolling(true);
+      } catch (error) {
+        unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
+      }
+    }
+
+    async function leaveUnoSession() {
+      await prepareFunctionalInteraction();
+      if (!state.wallet || !state.unoSession || !state.unoSession.session_id) return;
+      try {
+        const data = await api('/api/uno/leave', {
+          method: 'POST',
+          body: { wallet: state.wallet, session_id: state.unoSession.session_id }
+        });
+        state.unoSession = data.session || null;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+          renderProfile();
+        } else {
+          renderUnoPanel();
+        }
       } catch (error) {
         unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
       }
@@ -15997,6 +16251,7 @@ PAGE_TEMPLATE = """
           renderProfile();
         }
         renderUnoPanel();
+        scheduleUnoStatusPolling();
       } catch (error) {
         if (unoRoot) {
           unoRoot.insertAdjacentHTML('afterbegin', `<div class="uno-log"><strong class="error">${escapeHtml(error.message)}</strong></div>`);
@@ -21978,14 +22233,23 @@ def record_uno_behavior(wallet, domain, result):
     return save_player_behavior_stats(wallet, stats)
 
 
+UNO_QUICK_AUTOSTART_SECONDS = 10
+
+
 def save_uno_session(state):
     ensure_runtime_tables()
+    created_at = state.get('created_at') or now_iso()
+    updated_at = now_iso()
+    state['created_at'] = created_at
+    state['updated_at'] = updated_at
     with closing(get_db()) as conn:
         conn.execute(
             '''
             INSERT INTO uno_sessions (id, wallet, domain, state_json, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
+                wallet = excluded.wallet,
+                domain = excluded.domain,
                 state_json = excluded.state_json,
                 updated_at = excluded.updated_at
             ''',
@@ -21994,10 +22258,16 @@ def save_uno_session(state):
                 state['wallet'],
                 state['domain'],
                 json.dumps(state, ensure_ascii=False),
-                state.get('created_at') or now_iso(),
-                now_iso(),
+                created_at,
+                updated_at,
             ),
         )
+        conn.commit()
+
+
+def delete_uno_session(session_id):
+    with closing(get_db()) as conn:
+        conn.execute('DELETE FROM uno_sessions WHERE id = ?', (session_id,))
         conn.commit()
 
 
@@ -22013,7 +22283,256 @@ def load_uno_session(session_id):
         raise ValueError('Состояние UNO повреждено.') from exc
 
 
-def build_uno_session_payload(state):
+def uno_player_name(participant):
+    participant = participant or {}
+    return participant.get('display_name') or display_name_for_wallet(participant.get('wallet'))
+
+
+def uno_state_mode(state):
+    return str((state or {}).get('mode') or 'bot').strip().lower() or 'bot'
+
+
+def uno_state_status(state):
+    state = state or {}
+    if bool(state.get('complete')):
+        return 'completed'
+    return str(state.get('status') or 'active').strip().lower() or 'active'
+
+
+def uno_participants(state):
+    return list((state or {}).get('participants') or [])
+
+
+def uno_find_participant_index(state, wallet):
+    normalized = str(wallet or '').strip()
+    for index, participant in enumerate(uno_participants(state)):
+        if str(participant.get('wallet') or '').strip() == normalized:
+            return index
+    return -1
+
+
+def uno_find_participant(state, wallet):
+    index = uno_find_participant_index(state, wallet)
+    if index < 0:
+        return None
+    return uno_participants(state)[index]
+
+
+def active_uno_sessions(limit=120):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        rows = conn.execute(
+            'SELECT state_json FROM uno_sessions ORDER BY updated_at DESC LIMIT ?',
+            (max(1, int(limit or 120)),),
+        ).fetchall()
+    result = []
+    for row in rows:
+        try:
+            state = json.loads(row['state_json'] or '{}')
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(state, dict):
+            continue
+        result.append(state)
+    return result
+
+
+def generate_uno_room_code():
+    for _ in range(24):
+        candidate = uuid.uuid4().hex[:6].upper()
+        try:
+            load_uno_session(candidate)
+        except ValueError:
+            return candidate
+    return uuid.uuid4().hex[:8].upper()
+
+
+def create_uno_participant(wallet, domain):
+    return {
+        'wallet': wallet,
+        'domain': normalize_domain(domain) or '',
+        'display_name': display_name_for_wallet(wallet),
+        'joined_at': now_iso(),
+    }
+
+
+def find_wallet_uno_session(wallet, *, modes=None, include_completed=False):
+    allowed_modes = {str(item).strip().lower() for item in (modes or []) if str(item).strip()} or None
+    for state in active_uno_sessions(limit=180):
+        mode = uno_state_mode(state)
+        if allowed_modes is not None and mode not in allowed_modes:
+            continue
+        status = uno_state_status(state)
+        if not include_completed and status == 'completed':
+            continue
+        if mode == 'bot':
+            if state.get('wallet') == wallet:
+                return state
+            continue
+        if uno_find_participant_index(state, wallet) >= 0:
+            return state
+    return None
+
+
+def create_uno_reward_payload(wallet, domain, result, *, turns, cards_left, total_players, mode):
+    before_rewards = ensure_player_rewards(wallet)
+    premium_bonus = 1 if int(before_rewards.get('premium_pass', 0) or 0) else 0
+    reward_gain = {
+        'pack_shards': (2 if result == 'win' else 1) + premium_bonus,
+        'rare_tokens': 0,
+        'lucky_tokens': 0,
+        'season_points': 2 + (2 if result == 'win' else 0) + premium_bonus,
+    }
+    record_non_ranked_game(wallet, domain)
+    rewards_after = grant_match_rewards(wallet, won=result == 'win', ranked=False)
+    grant_domain_experience(wallet, domain, 14 if result == 'win' else 10, won=result == 'win')
+    record_uno_behavior(wallet, domain, result)
+    metadata = get_domain_metadata_payload(domain, wallet=wallet) if domain else None
+    log_domain_telemetry(
+        'uno_match_complete',
+        wallet=wallet,
+        domain=domain,
+        rarity_label=(metadata or {}).get('rarityLabel'),
+        payload={
+            'result': result,
+            'mode': mode,
+            'turns': int(turns or 0),
+            'cards_left': int(cards_left or 0),
+            'players_total': int(total_players or 0),
+        },
+    )
+    return reward_gain, rewards_after
+
+
+def build_uno_waiting_payload(state, viewer_wallet):
+    participants = uno_participants(state)
+    countdown_seconds = 0
+    auto_start_at = state.get('auto_start_at')
+    if auto_start_at:
+        try:
+            countdown_seconds = max(0, int((parse_iso(auto_start_at) - now_utc()).total_seconds()))
+        except Exception:
+            countdown_seconds = 0
+    return {
+        'kind': 'uno',
+        'session_id': state['id'],
+        'room_code': state['id'],
+        'mode': uno_state_mode(state),
+        'status': 'waiting',
+        'visibility': state.get('visibility') or 'private',
+        'domain': state.get('domain') or '',
+        'max_players': int(state.get('max_players', 2) or 2),
+        'participant_count': len(participants),
+        'participants': [
+            {
+                'wallet': item.get('wallet'),
+                'display_name': uno_player_name(item),
+                'domain': item.get('domain') or '',
+                'is_owner': str(item.get('wallet') or '') == str(state.get('wallet') or ''),
+                'is_viewer': str(item.get('wallet') or '') == str(viewer_wallet or ''),
+            }
+            for item in participants
+        ],
+        'is_owner': str(state.get('wallet') or '') == str(viewer_wallet or ''),
+        'can_start': uno_state_mode(state) == 'friends' and str(state.get('wallet') or '') == str(viewer_wallet or '') and len(participants) >= 2,
+        'can_leave': uno_find_participant_index(state, viewer_wallet) >= 0,
+        'auto_start_at': auto_start_at,
+        'countdown_seconds': countdown_seconds,
+        'last_action': state.get('last_action') or '',
+        'reward_summary': reward_summary(viewer_wallet),
+        'player_cosmetics': equipped_cosmetics(viewer_wallet),
+    }
+
+
+def build_uno_multiplayer_payload(state, viewer_wallet):
+    participants = uno_participants(state)
+    viewer_index = uno_find_participant_index(state, viewer_wallet)
+    if viewer_index < 0:
+        raise ValueError('Нет доступа к этой UNO-сессии.')
+    hands = dict(state.get('hands') or {})
+    player_hand = uno_sort_hand(hands.get(viewer_wallet) or [])
+    discard = list(state.get('discard') or [])
+    top_card = discard[-1] if discard else None
+    current_color = str(state.get('current_color') or (top_card or {}).get('color') or 'blue')
+    current_index = int(state.get('current_player_index', 0) or 0) % max(1, len(participants))
+    current_wallet = participants[current_index]['wallet'] if participants else ''
+    playable_ids = {
+        card.get('id')
+        for card in player_hand
+        if uno_card_playable(card, top_card, current_color)
+    }
+    reward_map = dict(state.get('reward_gain_by_wallet') or {})
+    summary_map = dict(state.get('reward_summary_by_wallet') or {})
+    opponents = []
+    total = len(participants)
+    for offset in range(1, total):
+        item = participants[(viewer_index + offset) % total]
+        wallet = item.get('wallet')
+        opponents.append(
+            {
+                'wallet': wallet,
+                'display_name': uno_player_name(item),
+                'domain': item.get('domain') or '',
+                'card_count': len(hands.get(wallet) or []),
+                'is_current_turn': str(wallet or '') == str(current_wallet or ''),
+            }
+        )
+    winner_wallet = state.get('winner_wallet') or state.get('winner')
+    winner_participant = uno_find_participant(state, winner_wallet) if winner_wallet else None
+    return {
+        'kind': 'uno',
+        'session_id': state['id'],
+        'room_code': state['id'],
+        'mode': uno_state_mode(state),
+        'status': uno_state_status(state),
+        'visibility': state.get('visibility') or 'private',
+        'domain': state.get('domain') or '',
+        'max_players': int(state.get('max_players', len(participants)) or len(participants) or 2),
+        'participant_count': len(participants),
+        'participants': [
+            {
+                'wallet': item.get('wallet'),
+                'display_name': uno_player_name(item),
+                'domain': item.get('domain') or '',
+                'is_owner': str(item.get('wallet') or '') == str(state.get('wallet') or ''),
+                'is_viewer': str(item.get('wallet') or '') == str(viewer_wallet or ''),
+                'card_count': len(hands.get(item.get('wallet')) or []),
+                'is_current_turn': str(item.get('wallet') or '') == str(current_wallet or ''),
+            }
+            for item in participants
+        ],
+        'player_hand': [uno_public_card(card) for card in player_hand],
+        'opponents': opponents,
+        'draw_remaining': len(state.get('draw_pile') or []),
+        'discard_top': uno_public_card(top_card),
+        'current_color': current_color,
+        'current_color_label': UNO_COLOR_LABELS.get(current_color, current_color.capitalize()),
+        'turn_index': int(state.get('turn_index', 0) or 0),
+        'turn_wallet': current_wallet,
+        'turn_display_name': uno_player_name(participants[current_index]) if participants else '',
+        'your_turn': str(current_wallet or '') == str(viewer_wallet or ''),
+        'complete': bool(state.get('complete')),
+        'winner': winner_wallet,
+        'winner_label': uno_player_name(winner_participant) if winner_participant else 'Матч завершён',
+        'last_action': state.get('last_action') or '',
+        'playable_card_ids': list(playable_ids),
+        'can_draw': not bool(state.get('complete')) and str(current_wallet or '') == str(viewer_wallet or ''),
+        'available_colors': [{'key': color, 'label': UNO_COLOR_LABELS[color]} for color in UNO_COLORS],
+        'reward_summary': summary_map.get(viewer_wallet) or reward_summary(viewer_wallet),
+        'reward_gain': reward_map.get(viewer_wallet),
+        'player_cosmetics': equipped_cosmetics(viewer_wallet),
+        'is_owner': str(state.get('wallet') or '') == str(viewer_wallet or ''),
+    }
+
+
+def build_uno_session_payload(state, viewer_wallet=None):
+    viewer_wallet = viewer_wallet or state.get('wallet')
+    mode = uno_state_mode(state)
+    if mode != 'bot':
+        status = uno_state_status(state)
+        if status == 'waiting':
+            return build_uno_waiting_payload(state, viewer_wallet)
+        return build_uno_multiplayer_payload(state, viewer_wallet)
     player_hand = uno_sort_hand(state.get('player_hand') or [])
     bot_hand = uno_sort_hand(state.get('bot_hand') or [])
     discard = list(state.get('discard') or [])
@@ -22028,15 +22547,29 @@ def build_uno_session_payload(state):
     return {
         'kind': 'uno',
         'session_id': state['id'],
+        'room_code': state['id'],
+        'mode': 'bot',
+        'status': 'completed' if state.get('complete') else 'active',
+        'visibility': 'bot',
         'domain': state['domain'],
+        'max_players': 2,
+        'participant_count': 2,
+        'participants': [
+            {'wallet': state['wallet'], 'display_name': display_name_for_wallet(state['wallet']), 'domain': state['domain'], 'is_owner': True, 'is_viewer': True, 'card_count': len(player_hand), 'is_current_turn': state.get('turn') == 'player'},
+            {'wallet': 'bot', 'display_name': state.get('bot_name') or 'UNO Bot', 'domain': 'bot', 'is_owner': False, 'is_viewer': False, 'card_count': len(bot_hand), 'is_current_turn': state.get('turn') == 'bot'},
+        ],
         'player_hand': [uno_public_card(card) for card in player_hand],
         'bot_hand': [uno_public_card(card) for card in bot_hand] if state.get('complete') else [],
         'bot_count': len(bot_hand),
+        'opponents': [{'wallet': 'bot', 'display_name': state.get('bot_name') or 'UNO Bot', 'domain': 'bot', 'card_count': len(bot_hand), 'is_current_turn': state.get('turn') == 'bot'}],
         'draw_remaining': len(state.get('draw_pile') or []),
         'discard_top': uno_public_card(top_card),
         'current_color': current_color,
         'current_color_label': UNO_COLOR_LABELS.get(current_color, current_color.capitalize()),
         'turn': state.get('turn') or 'player',
+        'turn_wallet': state['wallet'] if state.get('turn') == 'player' else 'bot',
+        'turn_display_name': 'Ты' if state.get('turn') == 'player' else (state.get('bot_name') or 'UNO Bot'),
+        'your_turn': state.get('turn') == 'player',
         'turn_index': int(state.get('turn_index', 0) or 0),
         'complete': bool(state.get('complete')),
         'winner': state.get('winner'),
@@ -22049,43 +22582,248 @@ def build_uno_session_payload(state):
         'reward_gain': state.get('reward_gain'),
         'player_cosmetics': equipped_cosmetics(state['wallet']),
         'bot_name': state.get('bot_name') or 'UNO Bot',
+        'is_owner': True,
     }
 
 
 def finalize_uno_session(state):
+    mode = uno_state_mode(state)
+    if mode != 'bot':
+        if state.get('rewards_applied'):
+            return state
+        participants = uno_participants(state)
+        hands = dict(state.get('hands') or {})
+        winner_wallet = state.get('winner_wallet') or state.get('winner')
+        if not winner_wallet and participants:
+            ranking = sorted(
+                participants,
+                key=lambda item: (len(hands.get(item.get('wallet')) or []), uno_find_participant_index(state, item.get('wallet'))),
+            )
+            winner_wallet = ranking[0]['wallet']
+            state['winner_wallet'] = winner_wallet
+        state['winner'] = winner_wallet
+        state['complete'] = True
+        state['status'] = 'completed'
+        reward_gain_by_wallet = {}
+        reward_summary_by_wallet = {}
+        for participant in participants:
+            participant_wallet = participant.get('wallet')
+            participant_domain = participant.get('domain') or ''
+            result = 'win' if str(participant_wallet or '') == str(winner_wallet or '') else 'loss'
+            gain, summary = create_uno_reward_payload(
+                participant_wallet,
+                participant_domain,
+                result,
+                turns=int(state.get('turn_index', 0) or 0),
+                cards_left=len(hands.get(participant_wallet) or []),
+                total_players=len(participants),
+                mode=mode,
+            )
+            reward_gain_by_wallet[participant_wallet] = gain
+            reward_summary_by_wallet[participant_wallet] = summary
+        state['reward_gain_by_wallet'] = reward_gain_by_wallet
+        state['reward_summary_by_wallet'] = reward_summary_by_wallet
+        state['rewards_applied'] = True
+        return state
     if state.get('rewards_applied'):
         return state
     state['complete'] = True
+    state['status'] = 'completed'
     winner = state.get('winner')
     result = 'win' if winner == 'player' else ('loss' if winner == 'bot' else 'draw')
-    before_rewards = ensure_player_rewards(state['wallet'])
-    premium_bonus = 1 if int(before_rewards.get('premium_pass', 0) or 0) else 0
-    state['reward_gain'] = {
-        'pack_shards': (2 if result == 'win' else 1) + premium_bonus,
-        'rare_tokens': 0,
-        'lucky_tokens': 0,
-        'season_points': 2 + (2 if result == 'win' else 0) + premium_bonus,
-    }
-    record_non_ranked_game(state['wallet'], state['domain'])
-    rewards_after = grant_match_rewards(state['wallet'], won=result == 'win', ranked=False)
-    grant_domain_experience(state['wallet'], state['domain'], 14 if result == 'win' else 10, won=result == 'win')
-    record_uno_behavior(state['wallet'], state['domain'], result)
-    metadata = get_domain_metadata_payload(state['domain'], wallet=state['wallet']) if state.get('domain') else None
-    log_domain_telemetry(
-        'uno_match_complete',
-        wallet=state['wallet'],
-        domain=state.get('domain'),
-        rarity_label=(metadata or {}).get('rarityLabel'),
-        payload={
-            'result': result,
-            'turns': int(state.get('turn_index', 0) or 0),
-            'player_cards_left': len(state.get('player_hand') or []),
-            'bot_cards_left': len(state.get('bot_hand') or []),
-        },
+    reward_gain, rewards_after = create_uno_reward_payload(
+        state['wallet'],
+        state['domain'],
+        result,
+        turns=int(state.get('turn_index', 0) or 0),
+        cards_left=len(state.get('player_hand') or []),
+        total_players=2,
+        mode='bot',
     )
+    state['reward_gain'] = reward_gain
     state['reward_summary'] = rewards_after
     state['rewards_applied'] = True
     return state
+
+
+def uno_next_player_index(state, start_index=None, steps=1):
+    participants = uno_participants(state)
+    if not participants:
+        return 0
+    total = len(participants)
+    direction = -1 if int(state.get('direction', 1) or 1) < 0 else 1
+    index = int(state.get('current_player_index', 0) or 0) if start_index is None else int(start_index or 0)
+    for _ in range(max(1, int(steps or 1))):
+        index = (index + direction) % total
+    return index
+
+
+def uno_start_multiplayer_session(state):
+    participants = uno_participants(state)
+    if len(participants) < 2:
+        raise ValueError('Для старта UNO нужно минимум 2 игрока.')
+    deck = build_uno_deck(f"{state['id']}:{','.join(item['wallet'] for item in participants)}:{state.get('created_at') or now_iso()}")
+    hands = {}
+    for participant in participants:
+        hands[participant['wallet']] = uno_sort_hand([deck.pop() for _ in range(7)])
+    top_card = deck.pop()
+    recycle_guard = 0
+    while (top_card.get('color') == 'wild' or top_card.get('value') in {'skip', 'reverse', 'draw2'}) and recycle_guard < 24:
+        deck.insert(0, top_card)
+        top_card = deck.pop()
+        recycle_guard += 1
+    state['hands'] = hands
+    state['draw_pile'] = deck
+    state['discard'] = [top_card]
+    state['current_color'] = top_card.get('color') or 'blue'
+    state['current_player_index'] = 0
+    state['direction'] = 1
+    state['turn_index'] = 0
+    state['complete'] = False
+    state['status'] = 'active'
+    state['winner'] = None
+    state['winner_wallet'] = None
+    state['reward_gain_by_wallet'] = {}
+    state['reward_summary_by_wallet'] = {}
+    state['rewards_applied'] = False
+    state['auto_start_at'] = None
+    state['started_at'] = now_iso()
+    state['last_action'] = f"Стол открыт картой {uno_card_title(top_card)}. Первый ход у {uno_player_name(participants[0])}."
+    return state
+
+
+def refresh_uno_quick_session(state):
+    changed = False
+    if uno_state_mode(state) != 'quick' or uno_state_status(state) != 'waiting':
+        return state, changed
+    participants = uno_participants(state)
+    if len(participants) < 2:
+        if state.get('auto_start_at'):
+            state['auto_start_at'] = None
+            changed = True
+        return state, changed
+    max_players = max(2, min(6, int(state.get('max_players', 6) or 6)))
+    auto_start_at = state.get('auto_start_at')
+    if not auto_start_at:
+        state['auto_start_at'] = (now_utc() + timedelta(seconds=UNO_QUICK_AUTOSTART_SECONDS)).isoformat()
+        changed = True
+        return state, changed
+    should_start = False
+    try:
+        should_start = parse_iso(auto_start_at) <= now_utc()
+    except Exception:
+        should_start = True
+    if len(participants) >= max_players:
+        should_start = True
+    if should_start:
+        state = uno_start_multiplayer_session(state)
+        changed = True
+    return state, changed
+
+
+def create_uno_multiplayer_room(wallet, domain, *, mode='friends', visibility='private', max_players=6):
+    existing = find_wallet_uno_session(wallet, modes={'friends', 'quick'})
+    if existing and uno_state_status(existing) != 'completed':
+        return build_uno_session_payload(existing, wallet)
+    room_id = generate_uno_room_code()
+    state = {
+        'id': room_id,
+        'wallet': wallet,
+        'domain': domain,
+        'mode': mode,
+        'visibility': visibility,
+        'status': 'waiting',
+        'max_players': max(2, min(6, int(max_players or 6))),
+        'participants': [create_uno_participant(wallet, domain)],
+        'draw_pile': [],
+        'discard': [],
+        'current_color': '',
+        'last_action': 'Лобби создано. Ждём игроков.',
+        'complete': False,
+        'created_at': now_iso(),
+        'auto_start_at': None,
+    }
+    if mode == 'quick':
+        state['last_action'] = 'Поиск свободной партии запущен. Можно подхватывать игроков до старта.'
+    save_uno_session(state)
+    return build_uno_session_payload(state, wallet)
+
+
+def join_uno_multiplayer_room(session_id, wallet, domain):
+    state = load_uno_session(session_id)
+    if uno_state_mode(state) == 'bot':
+        raise ValueError('К этой UNO-сессии нельзя подключиться.')
+    if uno_state_status(state) != 'waiting':
+        raise ValueError('Эта UNO-партия уже началась.')
+    participants = uno_participants(state)
+    if uno_find_participant_index(state, wallet) >= 0:
+        return build_uno_session_payload(state, wallet)
+    if len(participants) >= max(2, min(6, int(state.get('max_players', 6) or 6))):
+        raise ValueError('Лобби UNO уже заполнено.')
+    participants.append(create_uno_participant(wallet, domain))
+    state['participants'] = participants
+    state['last_action'] = f'{display_name_for_wallet(wallet)} подключился к лобби.'
+    state, _ = refresh_uno_quick_session(state)
+    save_uno_session(state)
+    return build_uno_session_payload(state, wallet)
+
+
+def leave_uno_multiplayer_room(session_id, wallet):
+    state = load_uno_session(session_id)
+    if uno_state_mode(state) == 'bot':
+        raise ValueError('Для матча с ботом выход не нужен.')
+    if uno_state_status(state) != 'waiting':
+        raise ValueError('После старта покинуть лобби через этот экран нельзя.')
+    participants = [item for item in uno_participants(state) if str(item.get('wallet') or '') != str(wallet or '')]
+    if len(participants) == len(uno_participants(state)):
+        raise ValueError('Игрок не найден в этом лобби.')
+    if not participants:
+        delete_uno_session(session_id)
+        return None
+    state['participants'] = participants
+    state['wallet'] = participants[0]['wallet']
+    state['domain'] = participants[0]['domain']
+    state['last_action'] = f'{display_name_for_wallet(wallet)} покинул лобби.'
+    state, _ = refresh_uno_quick_session(state)
+    save_uno_session(state)
+    return None
+
+
+def start_uno_multiplayer_room(session_id, wallet):
+    state = load_uno_session(session_id)
+    if uno_state_mode(state) not in {'friends', 'quick'}:
+        raise ValueError('Такой режим UNO нельзя стартовать вручную.')
+    if uno_state_status(state) != 'waiting':
+        return build_uno_session_payload(state, wallet)
+    if uno_state_mode(state) == 'friends' and str(state.get('wallet') or '') != str(wallet or ''):
+        raise ValueError('Стартовать приватную комнату может только создатель.')
+    state = uno_start_multiplayer_session(state)
+    save_uno_session(state)
+    return build_uno_session_payload(state, wallet)
+
+
+def find_or_create_uno_quick_room(wallet, domain):
+    existing = find_wallet_uno_session(wallet, modes={'quick'})
+    if existing and uno_state_status(existing) != 'completed':
+        existing, changed = refresh_uno_quick_session(existing)
+        if changed:
+            save_uno_session(existing)
+        return build_uno_session_payload(existing, wallet)
+    candidates = []
+    for session in active_uno_sessions(limit=180):
+        if uno_state_mode(session) != 'quick' or uno_state_status(session) != 'waiting':
+            continue
+        if uno_find_participant_index(session, wallet) >= 0:
+            return build_uno_session_payload(session, wallet)
+        participant_count = len(uno_participants(session))
+        max_players = max(2, min(6, int(session.get('max_players', 6) or 6)))
+        if participant_count >= max_players:
+            continue
+        candidates.append((participant_count, session.get('updated_at') or '', session))
+    if candidates:
+        candidates.sort(key=lambda item: (-item[0], item[1]))
+        return join_uno_multiplayer_room(candidates[0][2]['id'], wallet, domain)
+    return create_uno_multiplayer_room(wallet, domain, mode='quick', visibility='public', max_players=6)
 
 
 def uno_apply_card_effect(state, actor, card, chosen_color=None):
@@ -22143,12 +22881,6 @@ def uno_run_bot_turn(state):
             state['turn'] = 'player'
             break
         state['bot_hand'] = uno_sort_hand(list(state.get('bot_hand') or []) + drawn)
-        drawn_card = drawn[0]
-        top_card = (state.get('discard') or [None])[-1]
-        if uno_card_playable(drawn_card, top_card, state.get('current_color')):
-            chosen_color = uno_choose_best_color([card for card in state.get('bot_hand') or [] if card.get('id') != drawn_card.get('id')])
-            uno_apply_card_effect(state, 'bot', drawn_card, chosen_color=chosen_color)
-            continue
         state['last_action'] = f"{state.get('bot_name') or 'UNO Bot'} взял карту и передал ход."
         state['turn'] = 'player'
         break
@@ -22160,7 +22892,65 @@ def uno_run_bot_turn(state):
     return state
 
 
+def uno_apply_multiplayer_card_effect(state, wallet, card, chosen_color=None):
+    participants = uno_participants(state)
+    actor_index = uno_find_participant_index(state, wallet)
+    if actor_index < 0:
+        raise ValueError('Игрок не найден в этой UNO-партии.')
+    hands = dict(state.get('hands') or {})
+    removed, remaining = uno_remove_hand_card(hands.get(wallet) or [], card.get('id'))
+    if removed is None:
+        raise ValueError('Карта не найдена в руке.')
+    card = removed
+    hands[wallet] = uno_sort_hand(remaining)
+    discard = list(state.get('discard') or [])
+    discard.append(card)
+    state['discard'] = discard
+    state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
+    active_color = chosen_color if str(card.get('color') or '') == 'wild' else str(card.get('color') or 'blue')
+    if active_color not in UNO_COLORS:
+        active_color = uno_choose_best_color(hands.get(wallet) or [])
+    state['current_color'] = active_color
+    state['hands'] = hands
+    draw_count = 0
+    skip_steps = 0
+    value = str(card.get('value') or '')
+    if value == 'skip':
+        skip_steps = 1
+    elif value == 'reverse':
+        if len(participants) == 2:
+            skip_steps = 1
+        else:
+            state['direction'] = -1 if int(state.get('direction', 1) or 1) > 0 else 1
+    elif value == 'draw2':
+        draw_count = 2
+        skip_steps = 1
+    elif value == 'wild4':
+        draw_count = 4
+        skip_steps = 1
+    actor_label = uno_player_name(participants[actor_index])
+    action_label = uno_card_title(card)
+    state['last_action'] = f'{actor_label} сыграл {action_label}.'
+    if not hands.get(wallet):
+        state['winner_wallet'] = wallet
+        state['winner'] = wallet
+        return finalize_uno_session(state)
+    if draw_count:
+        penalty_index = uno_next_player_index(state, actor_index, 1)
+        penalty_participant = participants[penalty_index]
+        penalty_wallet = penalty_participant['wallet']
+        penalty_cards = uno_draw_cards(state, draw_count)
+        hands[penalty_wallet] = uno_sort_hand(list(hands.get(penalty_wallet) or []) + penalty_cards)
+        state['hands'] = hands
+        state['last_action'] = f'{actor_label} сыграл {action_label} и отправил {draw_count} карт игроку {uno_player_name(penalty_participant)}.'
+    state['current_player_index'] = uno_next_player_index(state, actor_index, 1 + skip_steps)
+    return state
+
+
 def create_uno_session(wallet, domain):
+    existing = find_wallet_uno_session(wallet, modes={'bot'})
+    if existing and uno_state_status(existing) != 'completed' and normalize_domain(existing.get('domain')) == normalize_domain(domain):
+        return build_uno_session_payload(existing, wallet)
     ensure_runtime_tables()
     session_id = uuid.uuid4().hex
     deck = build_uno_deck(f'{wallet}:{domain}:{session_id}:{now_iso()}')
@@ -22176,6 +22966,10 @@ def create_uno_session(wallet, domain):
         'id': session_id,
         'wallet': wallet,
         'domain': domain,
+        'mode': 'bot',
+        'status': 'active',
+        'visibility': 'bot',
+        'max_players': 2,
         'player_hand': uno_sort_hand(player_hand),
         'bot_hand': uno_sort_hand(bot_hand),
         'draw_pile': deck,
@@ -22193,19 +22987,67 @@ def create_uno_session(wallet, domain):
         'created_at': now_iso(),
     }
     save_uno_session(state)
-    return build_uno_session_payload(state)
+    return build_uno_session_payload(state, wallet)
 
 
 def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_color=None):
     state = load_uno_session(session_id)
+    mode = uno_state_mode(state)
+    if mode != 'bot':
+        if uno_find_participant_index(state, wallet) < 0:
+            raise ValueError('Нет доступа к этой UNO-сессии.')
+        if uno_state_status(state) == 'waiting':
+            state, changed = refresh_uno_quick_session(state)
+            if changed:
+                save_uno_session(state)
+            return build_uno_session_payload(state, wallet)
+        if state.get('complete'):
+            return build_uno_session_payload(state, wallet)
+        participants = uno_participants(state)
+        current_index = int(state.get('current_player_index', 0) or 0) % max(1, len(participants))
+        current_wallet = participants[current_index]['wallet'] if participants else ''
+        if str(current_wallet or '') != str(wallet or ''):
+            raise ValueError(f'Сейчас ход игрока {uno_player_name(participants[current_index])}.')
+        action_key = str(action or '').strip().lower()
+        top_card = (state.get('discard') or [None])[-1]
+        hands = dict(state.get('hands') or {})
+        player_hand = uno_sort_hand(hands.get(wallet) or [])
+        if action_key == 'draw':
+            drawn = uno_draw_cards(state, 1)
+            state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
+            if drawn:
+                hands[wallet] = uno_sort_hand(player_hand + drawn)
+                state['hands'] = hands
+                state['last_action'] = f'{display_name_for_wallet(wallet)} взял карту и передал ход.'
+            else:
+                state['last_action'] = f'{display_name_for_wallet(wallet)} хотел взять карту, но колода пуста.'
+            state['current_player_index'] = uno_next_player_index(state, current_index, 1)
+            save_uno_session(state)
+            return build_uno_session_payload(state, wallet)
+        if action_key != 'play':
+            raise ValueError('Неизвестное действие UNO.')
+        chosen_card = uno_find_hand_card(player_hand, card_id)
+        if not chosen_card:
+            raise ValueError('Карта не найдена в руке.')
+        if not uno_card_playable(chosen_card, top_card, state.get('current_color')):
+            raise ValueError('Эту карту сейчас нельзя сыграть.')
+        if str(chosen_card.get('color') or '') == 'wild':
+            selected_color = str(chosen_color or '').strip().lower()
+            if selected_color not in UNO_COLORS:
+                raise ValueError('Для Wild-карты сначала выбери цвет.')
+        else:
+            selected_color = str(chosen_card.get('color') or 'blue')
+        state = uno_apply_multiplayer_card_effect(state, wallet, chosen_card, chosen_color=selected_color)
+        save_uno_session(state)
+        return build_uno_session_payload(state, wallet)
     if wallet != state.get('wallet'):
         raise ValueError('Нет доступа к этой UNO-сессии.')
     if state.get('complete'):
-        return build_uno_session_payload(state)
+        return build_uno_session_payload(state, wallet)
     if state.get('turn') != 'player':
         state = uno_run_bot_turn(state)
         save_uno_session(state)
-        return build_uno_session_payload(state)
+        return build_uno_session_payload(state, wallet)
     action_key = str(action or '').strip().lower()
     top_card = (state.get('discard') or [None])[-1]
     if action_key == 'draw':
@@ -22215,18 +23057,13 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
             state['last_action'] = 'Колода пуста. Ход переходит к боту.'
             state['turn'] = 'bot'
         else:
-            drawn_card = drawn[0]
             state['player_hand'] = uno_sort_hand(list(state.get('player_hand') or []) + drawn)
-            if uno_card_playable(drawn_card, top_card, state.get('current_color')):
-                chosen = uno_choose_best_color([card for card in state.get('player_hand') or [] if card.get('id') != drawn_card.get('id')])
-                uno_apply_card_effect(state, 'player', drawn_card, chosen_color=chosen)
-            else:
-                state['last_action'] = 'Ты взял карту и передал ход.'
-                state['turn'] = 'bot'
+            state['last_action'] = 'Ты взял карту и передал ход.'
+            state['turn'] = 'bot'
         if not state.get('complete') and state.get('turn') == 'bot':
             state = uno_run_bot_turn(state)
         save_uno_session(state)
-        return build_uno_session_payload(state)
+        return build_uno_session_payload(state, wallet)
     if action_key != 'play':
         raise ValueError('Неизвестное действие UNO.')
     chosen_card = uno_find_hand_card(state.get('player_hand') or [], card_id)
@@ -22244,7 +23081,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
     if not state.get('complete') and state.get('turn') == 'bot':
         state = uno_run_bot_turn(state)
     save_uno_session(state)
-    return build_uno_session_payload(state)
+    return build_uno_session_payload(state, wallet)
 
 
 def pack_costs(pack_type):
@@ -30329,6 +31166,102 @@ def api_uno_start():
     return jsonify({'ok': True, 'session': session, 'player': get_player(wallet)})
 
 
+@app.route('/api/uno/room/create', methods=['POST'])
+def api_uno_room_create():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    try:
+        max_players = int(payload.get('max_players') or 6)
+    except (TypeError, ValueError):
+        max_players = 6
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not domain:
+        return json_error('Для UNO сначала выбери активный домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
+        ensure_player(wallet, domain, domain)
+        session = create_uno_multiplayer_room(wallet, domain, mode='friends', visibility='private', max_players=max_players)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
+    return jsonify({'ok': True, 'session': session, 'player': get_player(wallet)})
+
+
+@app.route('/api/uno/room/join', methods=['POST'])
+def api_uno_room_join():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    room_code = (payload.get('room_code') or '').strip().upper()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not domain:
+        return json_error('Для UNO сначала выбери активный домен.')
+    if not room_code:
+        return json_error('Укажи код комнаты.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
+        ensure_player(wallet, domain, domain)
+        session = join_uno_multiplayer_room(room_code, wallet, domain)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
+    return jsonify({'ok': True, 'session': session, 'player': get_player(wallet)})
+
+
+@app.route('/api/uno/room/start', methods=['POST'])
+def api_uno_room_start():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    session_id = (payload.get('session_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        session = start_uno_multiplayer_room(session_id, wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'session': session, 'player': get_player(wallet)})
+
+
+@app.route('/api/uno/quick/search', methods=['POST'])
+def api_uno_quick_search():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    domain = normalize_domain(payload.get('domain'))
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not domain:
+        return json_error('Для UNO сначала выбери активный домен.')
+    try:
+        if not validate_wallet_owns_domain(wallet, domain):
+            return json_error('Этот домен не принадлежит подключённому кошельку.', 403)
+        ensure_player(wallet, domain, domain)
+        session = find_or_create_uno_quick_room(wallet, domain)
+    except (RuntimeError, ValueError) as exc:
+        return json_error(str(exc), 502 if isinstance(exc, RuntimeError) else 400)
+    return jsonify({'ok': True, 'session': session, 'player': get_player(wallet)})
+
+
+@app.route('/api/uno/leave', methods=['POST'])
+def api_uno_leave():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    session_id = (payload.get('session_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        session = leave_uno_multiplayer_room(session_id, wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'session': session, 'player': get_player(wallet)})
+
+
 @app.route('/api/uno/action', methods=['POST'])
 def api_uno_action():
     payload = request.get_json(silent=True) or {}
@@ -30360,9 +31293,14 @@ def api_uno_status():
         state = load_uno_session(session_id)
     except ValueError as exc:
         return json_error(str(exc), 404)
-    if wallet != state.get('wallet'):
+    if uno_state_mode(state) == 'bot' and wallet != state.get('wallet'):
         return json_error('Нет доступа к этой UNO-сессии.', 403)
-    return jsonify({'ok': True, 'session': build_uno_session_payload(state), 'player': get_player(wallet)})
+    if uno_state_mode(state) != 'bot' and uno_find_participant_index(state, wallet) < 0:
+        return json_error('Нет доступа к этой UNO-сессии.', 403)
+    state, changed = refresh_uno_quick_session(state)
+    if changed:
+        save_uno_session(state)
+    return jsonify({'ok': True, 'session': build_uno_session_payload(state, wallet), 'player': get_player(wallet)})
 
 
 @app.route('/api/match/one-card', methods=['POST'])
