@@ -1396,8 +1396,8 @@ PAGE_TEMPLATE = """
     }
 
     .player-card.profile-preview {
-      min-height: 124px;
-      padding: 14px;
+      min-height: 132px;
+      padding: 14px 14px 12px;
     }
 
     .player-card-banner {
@@ -1418,15 +1418,15 @@ PAGE_TEMPLATE = """
     .player-card.profile-preview .player-card-banner {
       width: 112px;
       height: 24px;
-      top: 14px;
+      top: 12px;
       border-radius: 9px;
     }
 
     .player-card.profile-preview .player-card-domain {
       left: 84px;
-      top: 12px;
-      min-height: 28px;
-      padding: 0 12px;
+      top: 42px;
+      min-height: 26px;
+      padding: 0 11px;
       font-size: 11px;
       max-width: calc(100% - 98px);
       z-index: 6;
@@ -1571,8 +1571,8 @@ PAGE_TEMPLATE = """
 
     .player-card.profile-preview .player-card-content {
       margin-left: 78px;
-      margin-top: 46px;
-      min-height: 72px;
+      margin-top: 72px;
+      min-height: 48px;
       gap: 6px;
     }
 
@@ -1789,7 +1789,7 @@ PAGE_TEMPLATE = """
       }
 
       .player-card.profile-preview {
-        min-height: 118px;
+        min-height: 124px;
       }
 
       .player-card.profile-preview .player-card-back {
@@ -1807,10 +1807,14 @@ PAGE_TEMPLATE = """
         margin-left: 72px;
       }
 
+      .player-card.profile-preview .player-card-content {
+        margin-top: 64px;
+      }
+
       .player-card.profile-preview .player-card-domain {
         left: 76px;
-        top: 12px;
-        max-width: calc(100% - 86px);
+        top: 38px;
+        max-width: calc(100% - 90px);
       }
 
       .player-card-title {
@@ -9858,6 +9862,105 @@ PAGE_TEMPLATE = """
       max-width: 100%;
     }
 
+    html.battle-live-lock,
+    body.battle-live-lock {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body.battle-live-lock .showdown-fullscreen.showdown-battle {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: clamp(6px, 1vh, 12px);
+      overflow: hidden;
+    }
+
+    body.battle-live-lock .showdown-main.arena-board {
+      height: 100%;
+      min-height: 0;
+      max-height: none;
+      overflow: hidden;
+    }
+
+    body.battle-live-lock .arena-shell {
+      height: 100%;
+      min-height: 0;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      align-content: stretch;
+    }
+
+    body.battle-live-lock .arena-core {
+      --arena-choice-center-y: 52%;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body.battle-live-lock .arena-core::after {
+      content: "";
+      position: absolute;
+      inset: -16%;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 52%, rgba(69, 215, 255, 0.16), transparent 24%),
+        radial-gradient(circle at 50% 52%, rgba(83, 246, 184, 0.12), transparent 46%),
+        radial-gradient(circle at 50% 52%, rgba(255, 223, 142, 0.08), transparent 68%);
+      opacity: 0.72;
+      animation: liveArenaPulse 3.4s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    body.battle-live-lock .arena-choice-hub {
+      height: 100%;
+      min-height: 0;
+      padding: 0;
+      display: grid;
+      align-items: center;
+      justify-items: center;
+    }
+
+    body.battle-live-lock .battle-stage.visible .arena-round-choice-strip {
+      top: 10px;
+      z-index: 5;
+    }
+
+    body.battle-live-lock .battle-stage.visible .arena-battle-dock {
+      position: absolute;
+      left: 50% !important;
+      right: auto !important;
+      top: var(--arena-choice-center-y, 50%);
+      bottom: auto;
+      width: min(calc(100% - 18px), 430px) !important;
+      max-width: calc(100% - 18px) !important;
+      transform: translate(-50%, -50%) !important;
+      z-index: 6;
+    }
+
+    body.battle-live-lock .arena-score-card,
+    body.battle-live-lock .post-actions {
+      display: none !important;
+    }
+
+    body.battle-live-lock .mobile-nav {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(calc(100% + 20px));
+    }
+
+    body.battle-live-lock .currency-float {
+      top: calc(8px + env(safe-area-inset-top));
+      right: 10px;
+      left: auto !important;
+      z-index: 38;
+    }
+
+    body.battle-live-lock .mascot-widget {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
     body.tma-app.showdown-open {
       overflow-y: auto;
       overscroll-behavior-y: auto;
@@ -12377,7 +12480,6 @@ PAGE_TEMPLATE = """
     }
 
     function syncBattleChoiceDockPosition(root = battleResult) {
-      if (!document.body.classList.contains('tma-app')) return;
       const scope = root && typeof root.querySelector === 'function' ? root : battleResult;
       if (!scope) return;
       const arenaCore = scope.querySelector('.arena-core');
@@ -12404,16 +12506,15 @@ PAGE_TEMPLATE = """
     }
 
     function setBattleLiveLock(active) {
-      const ua = String(navigator.userAgent || '').toLowerCase();
-      const touchCapable = Number(navigator.maxTouchPoints || 0) > 1 || /android|iphone|ipad|ipod/.test(ua);
-      const compactViewport = window.innerWidth <= 900 || window.innerHeight <= 940;
-      const enabled = Boolean(active && isTelegramMiniApp() && touchCapable && compactViewport);
+      const enabled = Boolean(active);
       document.body.classList.toggle('battle-live-lock', enabled);
       document.documentElement.classList.toggle('battle-live-lock', enabled);
       if (!enabled) return;
-      syncTmaMode();
-      syncTmaViewport();
-      resetHorizontalViewportDrift();
+      if (isTelegramMiniApp()) {
+        syncTmaMode();
+        syncTmaViewport();
+        resetHorizontalViewportDrift();
+      }
       requestAnimationFrame(() => {
         syncBattleLaneGeometry();
         syncBattleChoiceDockPosition();
@@ -17567,6 +17668,7 @@ PAGE_TEMPLATE = """
       const resolvedPackType = packType || (source === 'paid' ? 'lucky' : 'common');
       const hadPreviousDeck = Array.isArray(state.cards) && state.cards.length === 5;
       const isCosmeticPack = resolvedPackType === 'cosmetic';
+      const canRestorePreviousDeck = Boolean(hadPreviousDeck && !isCosmeticPack);
       state.pendingRewardPackType = null;
       state.packOpening = true;
       setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
@@ -17583,7 +17685,8 @@ PAGE_TEMPLATE = """
         if (!isCosmeticPack) {
           state.cards = data.cards;
         }
-        state.canRestorePreviousDeck = hadPreviousDeck;
+        state.canRestorePreviousDeck = canRestorePreviousDeck;
+        updatePreviousDeckRestoreButton();
         state.pendingPackSource = null;
         state.pendingPackPaymentId = null;
         if (state.playerProfile && data.rewards) {
@@ -17606,6 +17709,7 @@ PAGE_TEMPLATE = """
         } else {
           await renderPack(data.cards, data.total_score);
         }
+        updatePreviousDeckRestoreButton();
         resetPackShowcaseIdleState({ preserveNote: true });
         packNote.textContent = '';
         setStatus(
@@ -17625,6 +17729,7 @@ PAGE_TEMPLATE = """
         loadGlobalPlayers();
         loadAchievements();
         loadProfile();
+        updatePreviousDeckRestoreButton();
       } catch (error) {
         resetPackShowcaseIdleState();
         setStatus(document.getElementById('pack-status'), error.message, 'error');
