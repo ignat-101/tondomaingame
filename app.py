@@ -7364,14 +7364,14 @@ PAGE_TEMPLATE = """
     }
 
     .pack-reel-head strong {
-      font-size: 22px;
+      font-size: 20px;
       line-height: 1.04;
       color: rgba(244, 250, 255, 0.98);
     }
 
     .pack-reel-head span {
-      font-size: 12px;
-      line-height: 1.35;
+      font-size: 11px;
+      line-height: 1.28;
       color: rgba(216, 232, 246, 0.78);
     }
 
@@ -7439,9 +7439,11 @@ PAGE_TEMPLATE = """
     }
 
     .pack-reel-track {
-      display: flex;
+      display: inline-flex;
       align-items: stretch;
+      flex-wrap: nowrap;
       gap: 10px;
+      width: max-content;
       padding: 10px 16px;
       transform: translateX(0);
       will-change: transform;
@@ -7455,8 +7457,8 @@ PAGE_TEMPLATE = """
       position: relative;
       width: 128px;
       min-width: 128px;
-      min-height: 88px;
-      padding: 10px 10px 12px;
+      min-height: 72px;
+      padding: 9px 10px 10px;
       border-radius: 14px;
       border: 1px solid rgba(121, 217, 255, 0.18);
       background:
@@ -7464,7 +7466,7 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 48%);
       color: #f0f7ff;
       display: grid;
-      gap: 7px;
+      gap: 5px;
       align-content: start;
       box-shadow: 0 12px 26px rgba(0, 0, 0, 0.2);
       transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease, filter 240ms ease;
@@ -7479,16 +7481,12 @@ PAGE_TEMPLATE = """
 
     .pack-reel-card strong {
       font-size: 13px;
-      line-height: 1.08;
+      line-height: 1.05;
       color: rgba(248, 251, 255, 0.98);
     }
 
     .pack-reel-card-meta {
-      display: grid;
-      gap: 2px;
-      font-size: 10px;
-      line-height: 1.18;
-      color: rgba(214, 230, 245, 0.78);
+      display: none;
     }
 
     .pack-reel-card-beam {
@@ -7618,9 +7616,9 @@ PAGE_TEMPLATE = """
       .pack-reel-card {
         width: 88px;
         min-width: 88px;
-        min-height: 68px;
-        padding: 7px 7px 8px;
-        gap: 4px;
+        min-height: 58px;
+        padding: 6px 7px 7px;
+        gap: 3px;
         border-radius: 11px;
       }
 
@@ -7629,12 +7627,7 @@ PAGE_TEMPLATE = """
       }
 
       .pack-reel-card strong {
-        font-size: 10px;
-      }
-
-      .pack-reel-card-meta {
-        font-size: 8px;
-        line-height: 1.08;
+        font-size: 9px;
       }
 
       .pack-reel-mascot-bar {
@@ -15684,16 +15677,10 @@ PAGE_TEMPLATE = """
       const rarityKey = String(card.rarity_key || card.rarity || 'basic').toLowerCase();
       const title = escapeHtml(card.title || 'Карта');
       const rarity = escapeHtml(card.rarity || 'Basic');
-      const power = escapeHtml(String(card.pool_value || card.base_power || card.score || 0));
-      const skill = escapeHtml(String(card.skill_name || 'Без навыка'));
       return `
         <article class="pack-reel-card ${rarityKey}" data-reel-index="${itemIndex}" data-lane-index="${laneIndex}">
           <div class="pack-reel-card-kicker">${rarity}</div>
           <strong>${title}</strong>
-          <div class="pack-reel-card-meta">
-            <span>Сила ${power}</span>
-            <span>${skill}</span>
-          </div>
           <div class="pack-reel-card-beam"></div>
         </article>
       `;
@@ -15724,23 +15711,6 @@ PAGE_TEMPLATE = """
       return Boolean(controller && controller.skipRequested);
     }
 
-    async function runPackReelTickLoop(totalMs, controller) {
-      const start = performance.now();
-      while (performance.now() - start < totalMs) {
-        if (controller && controller.skipRequested) return;
-        const progress = Math.min(1, (performance.now() - start) / totalMs);
-        const power = progress < 0.65 ? 0.62 : (progress < 0.88 ? 0.54 : 0.46);
-        const pitch = progress < 0.65
-          ? 1360 - progress * 520
-          : progress < 0.88
-            ? 920 - progress * 260
-            : 540 - progress * 120;
-        playRouletteTickSound(power, pitch);
-        const pause = progress < 0.6 ? 68 : (progress < 0.86 ? 104 : 152);
-        await sleep(pause);
-      }
-    }
-
     function setPackReelMascotMessage(node, title, body) {
       if (!node) return;
       const titleNode = node.querySelector('[data-pack-mascot-title]');
@@ -15758,25 +15728,27 @@ PAGE_TEMPLATE = """
       const cardStep = cardRect.width + gap;
       const centerOffset = windowEl.clientWidth / 2 - cardRect.width / 2;
       const target = Math.max(0, winnerIndex * cardStep - centerOffset);
-      const fastTarget = Math.max(0, target - cardStep * (4 + (laneIndex % 3)));
-      const fastDuration = 1680 + laneIndex * 180;
-      const slowDuration = 1220 + laneIndex * 160;
+      const fastTarget = Math.max(0, target - cardStep * (8 + laneIndex * 2));
+      const fastDuration = 2100 + laneIndex * 220;
+      const slowDuration = 1460 + laneIndex * 180;
 
       track.style.transition = 'none';
-      track.style.transform = 'translateX(0px)';
+      track.style.transform = 'translate3d(0px, 0, 0)';
+      void track.offsetWidth;
+      await nextFrame();
       await nextFrame();
 
       if (controller.skipRequested) {
         track.style.transition = 'transform 180ms ease-out';
-        track.style.transform = `translateX(-${target.toFixed(2)}px)`;
+        track.style.transform = `translate3d(-${target.toFixed(2)}px, 0, 0)`;
         await sleep(190);
       } else {
         track.classList.add('spinning');
         track.style.transition = `transform ${fastDuration}ms cubic-bezier(.12,.86,.18,1)`;
-        track.style.transform = `translateX(-${fastTarget.toFixed(2)}px)`;
+        track.style.transform = `translate3d(-${fastTarget.toFixed(2)}px, 0, 0)`;
         const skippedFast = await waitWithPackSkip(fastDuration + 40, controller);
         track.style.transition = `transform ${skippedFast ? 180 : slowDuration}ms cubic-bezier(.06,.96,.12,1)`;
-        track.style.transform = `translateX(-${target.toFixed(2)}px)`;
+        track.style.transform = `translate3d(-${target.toFixed(2)}px, 0, 0)`;
         await waitWithPackSkip((skippedFast ? 180 : slowDuration) + 40, controller);
       }
 
@@ -15788,7 +15760,6 @@ PAGE_TEMPLATE = """
       if (laneMeta.laneEl) {
         laneMeta.laneEl.classList.add('locked');
       }
-      playRouletteTickSound(0.66, 420 - laneIndex * 24);
       if (typeof onStop === 'function') {
         onStop(laneMeta, winnerCard);
       }
@@ -15797,7 +15768,6 @@ PAGE_TEMPLATE = """
     async function playPackSequence(cards = []) {
       cleanupPackSequencePreview();
       if (!Array.isArray(cards) || !cards.length) return;
-      await resumeRouletteAudioContext();
       const controller = { skipRequested: false };
       activePackSequenceController = controller;
 
@@ -15810,15 +15780,15 @@ PAGE_TEMPLATE = """
         <button type="button" class="secondary pack-sequence-skip">Пропустить</button>
         <div class="pack-reel-head">
           <div class="pack-reel-kicker">Pack Opening</div>
-          <strong>5 дорожек раскрывают колоду</strong>
-          <span>Ощущение case-opening reel, но в собственной подаче Ton Domain.</span>
+          <strong>Пять дорожек. Пять карт.</strong>
+          <span>Смотри на центр каждой линии. Там фиксируется итог.</span>
         </div>
         <div class="pack-reel-grid"></div>
         <div class="pack-reel-mascot-bar">
           <img src="/static/mascot-ton-bot.png" alt="">
           <div class="pack-reel-mascot-copy">
             <strong data-pack-mascot-title>Пошёл прокрут</strong>
-            <span data-pack-mascot-body>Смотрим, где остановится каждая дорожка. Если всё ясно, жми «Пропустить».</span>
+            <span data-pack-mascot-body>Смотри в центр линии. Если всё уже понятно, жми «Пропустить».</span>
           </div>
         </div>
       `;
@@ -15868,24 +15838,20 @@ PAGE_TEMPLATE = """
 
       await nextFrame();
       shell.classList.add('live');
-      const longestTimeline = 1680 + (laneModels.length - 1) * 180 + 1220 + (laneModels.length - 1) * 160;
-      const tickLoop = runPackReelTickLoop(longestTimeline, controller).catch(() => {});
 
       await Promise.all(laneModels.map((laneMeta) => animatePackReelLane(laneMeta, controller, (_lane, winnerCard) => {
         setPackReelMascotMessage(
           mascotBar,
           `Линия ${laneMeta.laneIndex + 1} зафиксирована`,
-          `${winnerCard.title || 'Карта'} остановилась по центру. Добираем оставшиеся дорожки.`
+          `${winnerCard.title || 'Карта'} встала по центру. Добираем остальные линии.`
         );
       })));
 
-      await tickLoop;
-      playRouletteDropSound();
       shell.classList.add('complete');
       setPackReelMascotMessage(
         mascotBar,
         'Пятёрка собрана',
-        'Колода готова. Смотри итоговый состав ниже и сразу проверяй синергию.'
+        'Колода готова. Итоговый состав уже ниже.'
       );
       if (skipBtn) {
         skipBtn.disabled = true;
