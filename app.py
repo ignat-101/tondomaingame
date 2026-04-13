@@ -11037,7 +11037,7 @@ PAGE_TEMPLATE = """
         tmaSyncRaf = null;
         clearScheduledTmaSyncs();
         performTmaSync();
-        const followUps = isTelegramIosWebView() ? [180, 900] : [80, 220, 420, 900, 1500, 2400, 3600, 5200];
+        const followUps = isTelegramIosWebView() ? [] : [80, 220, 420, 900, 1500, 2400, 3600, 5200];
         followUps.forEach((delay) => {
           const timer = window.setTimeout(() => {
             performTmaSync();
@@ -11177,6 +11177,16 @@ PAGE_TEMPLATE = """
     }
 
     function setupTmaResizeWatchers() {
+      if (isTelegramIosWebView()) {
+        if (tmaResizeObserver) {
+          try {
+            tmaResizeObserver.disconnect();
+          } catch (_) {
+          }
+        }
+        tmaResizeObserver = null;
+        return;
+      }
       if (!('ResizeObserver' in window)) return;
       if (tmaResizeObserver) {
         try {
@@ -11197,6 +11207,16 @@ PAGE_TEMPLATE = """
     }
 
     function setupTmaMutationWatchers() {
+      if (isTelegramIosWebView()) {
+        if (tmaMutationObserver) {
+          try {
+            tmaMutationObserver.disconnect();
+          } catch (_) {
+          }
+        }
+        tmaMutationObserver = null;
+        return;
+      }
       if (!('MutationObserver' in window)) return;
       if (tmaMutationObserver) {
         try {
@@ -11359,6 +11379,9 @@ PAGE_TEMPLATE = """
     }
 
     function syncTmaModeForFunctionalAction(event) {
+      if (isTelegramIosWebView() && event && (event.type === 'pointerdown' || event.type === 'touchstart' || event.type === 'focusin')) {
+        return;
+      }
       if (shouldSyncForFunctionalTarget(event.target)) {
         queueTmaModeSync();
       }
@@ -17368,7 +17391,9 @@ PAGE_TEMPLATE = """
     setupTmaMutationWatchers();
     const tgWebApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tgWebApp && typeof tgWebApp.onEvent === 'function') {
-      tgWebApp.onEvent('viewportChanged', queueTmaModeSync);
+      if (!isTelegramIosWebView()) {
+        tgWebApp.onEvent('viewportChanged', queueTmaModeSync);
+      }
       tgWebApp.onEvent('themeChanged', queueTmaModeSync);
     }
     document.addEventListener('click', (event) => {
