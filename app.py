@@ -7331,15 +7331,6 @@ PAGE_TEMPLATE = """
       transform: translate(-50%, -50%) scale(1.08);
     }
 
-    .pack-preview-grid.spotlighting .pack-preview-slot:not(.spotlight-anchor) {
-      opacity: 0.18;
-      filter: blur(2px) saturate(0.7);
-    }
-
-    .pack-preview-grid.spotlighting .pack-preview-slot.spotlight-anchor {
-      z-index: 14;
-    }
-
     .pack-preview-grid.departing {
       opacity: 0;
       transform: translate(-50%, calc(-50% + 180px)) scale(0.42);
@@ -7418,6 +7409,11 @@ PAGE_TEMPLATE = """
       filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.42));
     }
 
+    .pack-preview-slot.spotlight-anchor {
+      z-index: 18 !important;
+      filter: drop-shadow(0 28px 52px rgba(0, 0, 0, 0.48));
+    }
+
     .pack-preview-slot.support-glow::before {
       opacity: 0.36;
       transform: scale(0.98);
@@ -7425,6 +7421,11 @@ PAGE_TEMPLATE = """
 
     .pack-preview-slot.impact::after {
       animation: packPreviewImpact 820ms cubic-bezier(.12,.88,.16,1) both;
+    }
+
+    .pack-preview-slot.spotlight-anchor::before {
+      opacity: 0.84;
+      transform: scale(1.06);
     }
 
     .pack-preview-slot.revealing::before,
@@ -9652,12 +9653,42 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .arena-shell {
-      gap: 8px;
+      gap: 6px;
       align-content: start;
     }
 
+    body.tma-app .arena-rail {
+      gap: 5px;
+      padding: 5px 6px;
+    }
+
+    body.tma-app .arena-rail .tiny {
+      font-size: 10px;
+      line-height: 1.12;
+    }
+
+    body.tma-app .arena-deck-grid {
+      gap: 5px;
+      --arena-gap: 5px;
+    }
+
+    body.tma-app .arena-slot-card {
+      padding: 6px 5px 5px;
+      border-radius: 11px;
+    }
+
+    body.tma-app .arena-slot-card strong {
+      font-size: 8px;
+      margin-bottom: 3px;
+    }
+
+    body.tma-app .arena-slot-meta {
+      font-size: 7px;
+      line-height: 1.12;
+    }
+
     body.tma-app .arena-core {
-      min-height: 200px;
+      min-height: 172px;
       display: grid;
       align-content: start;
       background-position: center center !important;
@@ -9671,7 +9702,7 @@ PAGE_TEMPLATE = """
       top: auto;
       z-index: 8;
       min-height: 0;
-      padding: 4px 6px 8px;
+      padding: 2px 4px 6px;
       margin: 0;
       overflow: visible;
       place-items: stretch;
@@ -9730,10 +9761,10 @@ PAGE_TEMPLATE = """
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       align-items: start;
-      gap: 6px;
+      gap: 4px;
       width: 100%;
-      margin: 0 0 2px;
-      padding: 0 2px;
+      margin: 0;
+      padding: 0;
       z-index: 4;
     }
 
@@ -9752,16 +9783,16 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .battle-stage.visible .arena-round-state {
-      min-height: 18px;
-      padding: 0 5px;
-      font-size: 8px;
+      min-height: 14px;
+      padding: 0 4px;
+      font-size: 7px;
       letter-spacing: 0.03em;
     }
 
     body.tma-app .battle-stage.visible .arena-round-choice-slot.active::before {
       content: attr(data-round-number);
-      min-height: 18px;
-      padding: 0 6px;
+      min-height: 14px;
+      padding: 0 4px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
@@ -9769,7 +9800,7 @@ PAGE_TEMPLATE = """
       border: 1px solid color-mix(in srgb, var(--arena-route-active) 44%, transparent);
       background: color-mix(in srgb, var(--arena-route-active) 16%, transparent);
       color: var(--arena-overlay-text);
-      font-size: 8px;
+      font-size: 7px;
       letter-spacing: 0.03em;
       white-space: nowrap;
     }
@@ -9782,7 +9813,7 @@ PAGE_TEMPLATE = """
       bottom: auto;
       width: 100% !important;
       max-width: 100% !important;
-      margin: calc(42px + env(safe-area-inset-top)) 0 calc(88px + env(safe-area-inset-bottom));
+      margin: calc(30px + env(safe-area-inset-top)) 0 calc(76px + env(safe-area-inset-bottom));
       transform: none !important;
       z-index: 4;
       pointer-events: auto;
@@ -9792,6 +9823,7 @@ PAGE_TEMPLATE = """
       width: 100%;
       max-width: 100%;
       margin: 0;
+      padding: 6px 7px 7px;
       background:
         linear-gradient(135deg, rgba(8, 23, 43, 0.62), rgba(10, 29, 34, 0.66)),
         radial-gradient(circle at top, rgba(69, 215, 255, 0.08), transparent 62%);
@@ -9807,6 +9839,34 @@ PAGE_TEMPLATE = """
       transform: translateY(10px) !important;
     }
 
+    body.tma-app .interactive-battle-title {
+      font-size: 14px;
+    }
+
+    body.tma-app .interactive-timer {
+      min-width: 50px;
+      min-height: 24px;
+      padding: 0 7px;
+      font-size: 10px;
+    }
+
+    body.tma-app .interactive-battle-prompt {
+      min-height: 14px;
+      font-size: 9px;
+      line-height: 1.12;
+    }
+
+    body.tma-app .interactive-battle-actions {
+      gap: 5px;
+    }
+
+    body.tma-app .interactive-action-btn {
+      min-height: 36px;
+      border-radius: 10px;
+      padding: 0 6px;
+      font-size: 10px;
+    }
+
     body.tma-app .interactive-battle-panel::before,
     body.tma-app .interactive-battle-panel::after {
       border-radius: inherit;
@@ -9820,6 +9880,45 @@ PAGE_TEMPLATE = """
     body.tma-app .interactive-battle-panel::after {
       inset: -1%;
       filter: blur(1px);
+    }
+
+    body.tma-app .arena-player-resource-bar {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    body.tma-app .arena-resource-pill {
+      border-radius: 10px;
+      padding: 4px 5px;
+      gap: 2px;
+    }
+
+    body.tma-app .arena-resource-topline {
+      gap: 4px;
+      font-size: 7px;
+      letter-spacing: 0.03em;
+    }
+
+    body.tma-app .arena-resource-topline strong {
+      font-size: 9px;
+    }
+
+    body.tma-app .arena-resource-barline {
+      height: 3px;
+    }
+
+    body.tma-app .arena-resource-caption {
+      font-size: 7px;
+      line-height: 1.08;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    body.tma-app .arena-shell.clash-live .arena-player-resource-bar {
+      opacity: 0.76;
+      transform: none;
     }
 
     body.tma-app #view-wallet,
@@ -11315,6 +11414,7 @@ PAGE_TEMPLATE = """
       syncTmaViewport();
       resetHorizontalViewportDrift();
       alignTmaShellToViewport();
+      syncBattleLaneGeometry();
     }
 
     function syncTmaViewport() {
@@ -11492,6 +11592,47 @@ PAGE_TEMPLATE = """
             scrollingElement.scrollTop = top;
           }
         }
+      });
+    }
+
+    function syncBattleLaneGeometry(root = battleResult) {
+      const scope = root && typeof root.querySelector === 'function' ? root : battleResult;
+      if (!scope) return;
+      const arenaCore = scope.querySelector('.arena-core');
+      if (!arenaCore) return;
+      const coreRect = arenaCore.getBoundingClientRect();
+      if (!coreRect.width) return;
+      const laneSlots = Array.from(scope.querySelectorAll('.arena-round-choice-slot'));
+      const routePaths = Array.from(scope.querySelectorAll('.arena-route-path'));
+      if (!laneSlots.length && !routePaths.length) return;
+      const lanePercents = [];
+      for (let slotNumber = 1; slotNumber <= Math.max(laneSlots.length, routePaths.length, 5); slotNumber += 1) {
+        const sourceCards = Array.from(scope.querySelectorAll(`.arena-slot-card[data-slot="${slotNumber}"]`));
+        const centers = sourceCards
+          .map((card) => {
+            const rect = card.getBoundingClientRect();
+            if (!rect.width) return null;
+            return rect.left + rect.width / 2 - coreRect.left;
+          })
+          .filter((value) => Number.isFinite(value));
+        if (!centers.length) {
+          lanePercents.push(null);
+          continue;
+        }
+        const avgCenter = centers.reduce((sum, value) => sum + value, 0) / centers.length;
+        const percent = Math.max(8, Math.min(92, (avgCenter / coreRect.width) * 100));
+        lanePercents.push(percent);
+      }
+      laneSlots.forEach((laneSlot, index) => {
+        const percent = lanePercents[index];
+        if (!Number.isFinite(percent)) return;
+        laneSlot.style.left = `${percent.toFixed(2)}%`;
+      });
+      routePaths.forEach((path, index) => {
+        const percent = lanePercents[index];
+        if (!Number.isFinite(percent)) return;
+        const laneX = (percent / 100) * 1000;
+        path.setAttribute('d', `M ${laneX.toFixed(2)} 0 L ${laneX.toFixed(2)} 440`);
       });
     }
 
@@ -14328,58 +14469,17 @@ PAGE_TEMPLATE = """
     }
 
     let activePackSequenceLayer = null;
-    let activePackPreviewCard = null;
     let activePackPreviewGrid = null;
 
     function cleanupPackSequencePreview() {
-      if (activePackPreviewCard && activePackPreviewCard.parentNode) {
-        activePackPreviewCard.parentNode.removeChild(activePackPreviewCard);
-      }
       if (activePackPreviewGrid && activePackPreviewGrid.parentNode) {
         activePackPreviewGrid.parentNode.removeChild(activePackPreviewGrid);
       }
       if (activePackSequenceLayer && activePackSequenceLayer.parentNode) {
         activePackSequenceLayer.parentNode.removeChild(activePackSequenceLayer);
       }
-      activePackPreviewCard = null;
       activePackPreviewGrid = null;
       activePackSequenceLayer = null;
-    }
-
-    async function spotlightPackRevealCard(card, sourceSlot = null) {
-      if (!card) return;
-      if (activePackPreviewCard && activePackPreviewCard.parentNode) {
-        activePackPreviewCard.parentNode.removeChild(activePackPreviewCard);
-      }
-      const previewCard = document.createElement('div');
-      previewCard.className = 'pack-preview-card';
-      previewCard.innerHTML = packLootFlipMarkup(card, 0);
-      const flipCard = previewCard.querySelector('.pack-flip-card');
-      if (flipCard) {
-        flipCard.classList.add('sequence-visible', 'final-face-lock');
-      }
-      const slotRect = sourceSlot && typeof sourceSlot.getBoundingClientRect === 'function'
-        ? sourceSlot.getBoundingClientRect()
-        : null;
-      previewCard.style.left = slotRect ? `${slotRect.left + (slotRect.width / 2)}px` : '50%';
-      previewCard.style.top = slotRect ? `${slotRect.top + (slotRect.height / 2)}px` : '50%';
-      document.body.appendChild(previewCard);
-      activePackPreviewCard = previewCard;
-      await nextFrame();
-      previewCard.classList.add('focused');
-      previewCard.style.left = '50%';
-      previewCard.style.top = '50%';
-      previewCard.classList.add('arrived');
-      await sleep(880);
-      previewCard.style.opacity = '0';
-      previewCard.style.transform = 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(0.82)';
-      await sleep(240);
-      if (activePackPreviewCard === previewCard) {
-        activePackPreviewCard = null;
-      }
-      if (previewCard.parentNode) {
-        previewCard.parentNode.removeChild(previewCard);
-      }
     }
 
     async function playPackSequence(cards = []) {
@@ -14408,21 +14508,18 @@ PAGE_TEMPLATE = """
         slots.forEach((node, index) => {
           node.classList.toggle('support-glow', Math.abs(index - slotIndex) === 1);
         });
+        slot.classList.add('spotlight-anchor');
         slot.classList.add('revealing');
         slot.classList.add('impact');
         await sleep(slotIndex === 2 ? 520 : 460);
         slot.classList.add('front-visible');
         await sleep(360);
         slot.classList.add('face-locked');
-        slot.classList.add('spotlight-anchor');
-        grid.classList.add('spotlighting');
-        await spotlightPackRevealCard(cards[slotIndex], slot);
-        grid.classList.remove('spotlighting');
-        slot.classList.remove('spotlight-anchor');
         await sleep(280);
         slot.classList.remove('revealing');
         slot.classList.add('revealed');
         await sleep(slotIndex === 2 ? 240 : 150);
+        slot.classList.remove('spotlight-anchor');
         slot.classList.remove('impact');
         slots.forEach((node) => node.classList.remove('support-glow'));
       }
@@ -14647,6 +14744,7 @@ PAGE_TEMPLATE = """
     }
 
     async function playRoundClashReveal(currentResult, nextResult, playerActionKey) {
+      syncBattleLaneGeometry(battleResult);
       const activeLane = battleResult.querySelector('.arena-round-choice-slot.active');
       const arenaCore = battleResult.querySelector('.arena-core');
       if (!activeLane || !arenaCore) {
@@ -14692,12 +14790,12 @@ PAGE_TEMPLATE = """
       const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
       const playerCosmetics = (currentResult && currentResult.player_cosmetics) || {};
       const opponentCosmetics = (currentResult && currentResult.opponent_cosmetics) || {};
-      const clashCardWidth = compactClash ? 56 : 138;
-      const clashCardHeight = compactClash ? 82 : 196;
-      const clashGap = compactClash ? 12 : 22;
+      const clashCardWidth = compactClash ? 52 : 138;
+      const clashCardHeight = compactClash ? 76 : 196;
+      const clashGap = compactClash ? 10 : 22;
       const clashLanePadding = compactClash ? 6 : 10;
-      const laneTop = compactClash ? 18 : 24;
-      const laneHeight = Math.max(140, coreRect.height - (compactClash ? 36 : 48));
+      const laneTop = compactClash ? 14 : 24;
+      const laneHeight = Math.max(compactClash ? 118 : 140, coreRect.height - (compactClash ? 28 : 48));
       const laneTopBound = laneTop + (compactClash ? 6 : 10);
       const laneBottomBound = laneTop + laneHeight - (compactClash ? 6 : 10);
       const laneCenterY = laneTop + laneHeight / 2;
@@ -15307,6 +15405,14 @@ PAGE_TEMPLATE = """
         const energyFill = `${Math.max(0, Math.min(100, (energyNow / 3) * 100))}%`;
         const cooldownFill = `${Math.max(0, Math.min(100, (activeAbilityCooldownNow / activeAbilityCooldownMax) * 100))}%`;
         const chargesFill = `${Math.max(0, Math.min(100, (activeAbilityChargesNow / activeAbilityChargesMax) * 100))}%`;
+        const compactResourcePills = isTelegramMiniApp() || window.innerWidth <= 430;
+        const energyCaption = compactResourcePills
+          ? `Действий: ${interactiveActionKeys.length}`
+          : `Доступно действий: ${interactiveActionKeys.length}`;
+        const cooldownCaption = compactResourcePills
+          ? (activeAbilityCooldownNow > 0 ? `${activeAbilityCooldownNow} ход.` : 'Готова')
+          : (activeAbilityCooldownNow > 0 ? `Осталось ходов: ${activeAbilityCooldownNow}` : 'Способность готова');
+        const chargesCaption = activeAbilityName;
         const rewardSummary = result.reward_summary || (state.playerProfile && state.playerProfile.rewards) || null;
         const playerCosmetics = result.player_cosmetics || (rewardSummary && rewardSummary.equipped_cosmetics) || {};
         const opponentCosmetics = result.opponent_cosmetics || {};
@@ -15386,17 +15492,17 @@ PAGE_TEMPLATE = """
             <div class="arena-resource-pill mana" style="--fill:${energyFill};">
               <div class="arena-resource-topline"><span>Мана</span><strong>${energyNow}/3</strong></div>
               <div class="arena-resource-barline"></div>
-              <div class="arena-resource-caption">Доступно действий: ${interactiveActionKeys.length}</div>
+              <div class="arena-resource-caption">${energyCaption}</div>
             </div>
             <div class="arena-resource-pill cooldown" style="--fill:${cooldownFill};">
               <div class="arena-resource-topline"><span>КД</span><strong>${activeAbilityCooldownNow}</strong></div>
               <div class="arena-resource-barline"></div>
-              <div class="arena-resource-caption">${activeAbilityCooldownNow > 0 ? `Осталось ходов: ${activeAbilityCooldownNow}` : 'Способность готова'}</div>
+              <div class="arena-resource-caption">${cooldownCaption}</div>
             </div>
             <div class="arena-resource-pill ability" style="--fill:${chargesFill};">
               <div class="arena-resource-topline"><span>Заряды</span><strong>${activeAbilityChargesNow}</strong></div>
               <div class="arena-resource-barline"></div>
-              <div class="arena-resource-caption">${activeAbilityName}</div>
+              <div class="arena-resource-caption">${chargesCaption}</div>
             </div>
           </div>
         ` : '';
@@ -15523,6 +15629,8 @@ PAGE_TEMPLATE = """
             <button class="secondary" onclick="openModes()">К режимам</button>
           </div>
         `;
+        syncBattleLaneGeometry(battleResult);
+        requestAnimationFrame(() => syncBattleLaneGeometry(battleResult));
         focusTmaShowdown();
 
         let liveResult = result;
