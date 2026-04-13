@@ -6793,7 +6793,7 @@ PAGE_TEMPLATE = """
     }
 
     .pack-showcase.bursting .pack-showcase-flare {
-      animation: packShockwave 820ms cubic-bezier(.12,.88,.16,1) both;
+      animation: packShockwave 1180ms cubic-bezier(.12,.88,.16,1) both;
     }
 
     .pack-note {
@@ -6803,6 +6803,7 @@ PAGE_TEMPLATE = """
       letter-spacing: 0.16em;
       text-transform: uppercase;
       font-family: Georgia, "Times New Roman", serif;
+      transition: opacity 260ms ease, transform 420ms cubic-bezier(.16,.84,.2,1), filter 260ms ease;
     }
 
     .foil-pack {
@@ -6821,7 +6822,7 @@ PAGE_TEMPLATE = """
       overflow: visible;
       isolation: isolate;
       transform-origin: center center;
-      transition: transform 420ms ease, opacity 420ms ease, filter 420ms ease;
+      transition: transform 560ms ease, opacity 560ms ease, filter 560ms ease;
     }
 
     .foil-pack::before,
@@ -6954,7 +6955,7 @@ PAGE_TEMPLATE = """
     }
 
     .foil-pack.opening {
-      animation: packLunge 1680ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packLunge 2280ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .pack-showcase.opened .foil-pack {
@@ -6998,19 +6999,19 @@ PAGE_TEMPLATE = """
     }
 
     .foil-pack.vanishing {
-      animation: packVanish 920ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packVanish 1280ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .foil-pack.opening .pack-rip-strip {
-      animation: packRipAway 1600ms cubic-bezier(.15,.86,.2,1) forwards;
+      animation: packRipAway 2140ms cubic-bezier(.15,.86,.2,1) forwards;
     }
 
     .foil-pack.opening .pack-face {
-      animation: packBodyOpen 1600ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packBodyOpen 2140ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .foil-pack.opening .pack-mouth-glow {
-      animation: packMouthGlow 1600ms ease forwards;
+      animation: packMouthGlow 2140ms ease forwards;
     }
 
     .pack-tap {
@@ -7021,6 +7022,23 @@ PAGE_TEMPLATE = """
       font-weight: 700;
       text-transform: uppercase;
       font-family: Georgia, "Times New Roman", serif;
+      transition: opacity 260ms ease, transform 420ms cubic-bezier(.16,.84,.2,1), filter 260ms ease, margin 260ms ease;
+    }
+
+    .pack-showcase.reveal-live .pack-note,
+    .pack-showcase.reveal-live .pack-tap {
+      opacity: 0;
+      transform: translateY(-10px) scale(0.96);
+      filter: blur(6px);
+      pointer-events: none;
+    }
+
+    .pack-showcase.opened-once .pack-tap {
+      opacity: 0;
+      margin-top: 0;
+      max-height: 0;
+      overflow: hidden;
+      pointer-events: none;
     }
 
     .cosmetic-roulette {
@@ -7287,7 +7305,7 @@ PAGE_TEMPLATE = """
     }
 
     .pack-sequence-finale.visible {
-      animation: packFinaleBannerIn 680ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packFinaleBannerIn 860ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .pack-sequence-finale.fade-out {
@@ -7308,12 +7326,81 @@ PAGE_TEMPLATE = """
       filter: blur(6px);
     }
 
+    .pack-sequence-mascot-core {
+      position: relative;
+      width: 108px;
+      height: 108px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      isolation: isolate;
+    }
+
+    .pack-sequence-mascot-core::before,
+    .pack-sequence-mascot-core::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .pack-sequence-mascot-core::before {
+      background:
+        radial-gradient(circle at 50% 48%, rgba(69, 215, 255, 0.3), transparent 56%),
+        radial-gradient(circle at 50% 62%, rgba(255, 223, 142, 0.18), transparent 72%);
+      filter: blur(12px);
+      animation: packMascotCorePulse 2.2s ease-in-out infinite;
+    }
+
+    .pack-sequence-mascot-core::after {
+      inset: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.26);
+      box-shadow: 0 0 22px rgba(69, 215, 255, 0.18);
+      animation: packMascotOrbit 6.8s linear infinite;
+    }
+
     .pack-sequence-mascot img {
       width: 96px;
       height: 96px;
       object-fit: contain;
       filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.34));
-      animation: mascotFloat 2.6s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+      animation: packMascotHover 2.6s ease-in-out infinite;
+    }
+
+    .pack-sequence-mascot-ring,
+    .pack-sequence-mascot-spark {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: 50%;
+    }
+
+    .pack-sequence-mascot-ring {
+      border: 1px solid rgba(255, 223, 142, 0.28);
+      box-shadow:
+        0 0 28px rgba(255, 223, 142, 0.18),
+        inset 0 0 18px rgba(69, 215, 255, 0.1);
+      animation: packMascotRingPulse 1.9s ease-in-out infinite;
+    }
+
+    .pack-sequence-mascot-spark {
+      inset: 10px;
+      background:
+        conic-gradient(from 0deg, transparent, rgba(255, 223, 142, 0.42), transparent 28%, transparent 52%, rgba(69, 215, 255, 0.34), transparent 76%, transparent);
+      filter: blur(1px);
+      animation: packMascotSparkSpin 4.6s linear infinite;
+      opacity: 0.92;
+    }
+
+    .pack-sequence-mascot-spark.alt {
+      inset: 18px;
+      animation-duration: 6.2s;
+      animation-direction: reverse;
+      opacity: 0.68;
+      transform: rotate(24deg);
     }
 
     .pack-sequence-mascot-bubble {
@@ -7328,6 +7415,21 @@ PAGE_TEMPLATE = """
       box-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
       text-align: left;
       color: #eef8ff;
+      position: relative;
+    }
+
+    .pack-sequence-mascot-bubble::after {
+      content: "";
+      position: absolute;
+      left: -10px;
+      bottom: 16px;
+      width: 22px;
+      height: 22px;
+      border-radius: 0 0 0 12px;
+      border-left: 1px solid rgba(121, 217, 255, 0.22);
+      border-bottom: 1px solid rgba(121, 217, 255, 0.22);
+      background: linear-gradient(225deg, rgba(7, 19, 34, 0.96), rgba(5, 12, 22, 0.98));
+      transform: rotate(28deg);
     }
 
     .pack-sequence-mascot-bubble strong {
@@ -7348,7 +7450,7 @@ PAGE_TEMPLATE = """
     }
 
     .pack-sequence-mascot.visible {
-      animation: packMascotIn 720ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packMascotIn 1080ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .pack-sequence-mascot.fade-out {
@@ -7898,17 +8000,20 @@ PAGE_TEMPLATE = """
     @keyframes packMascotIn {
       0% {
         opacity: 0;
-        transform: translateY(20px) scale(0.88);
-        filter: blur(6px);
+        transform: translate3d(58px, 26px, 0) scale(0.78) rotate(-14deg);
+        filter: blur(10px);
       }
-      68% {
+      58% {
         opacity: 1;
-        transform: translateY(-4px) scale(1.03);
+        transform: translate3d(-8px, -8px, 0) scale(1.05) rotate(4deg);
         filter: blur(0);
+      }
+      78% {
+        transform: translate3d(0, 2px, 0) scale(0.98) rotate(-2deg);
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
         filter: blur(0);
       }
     }
@@ -7921,6 +8026,55 @@ PAGE_TEMPLATE = """
       to {
         opacity: 0;
         transform: translateY(12px) scale(0.94);
+      }
+    }
+
+    @keyframes packMascotHover {
+      0%, 100% {
+        transform: translateY(0) rotate(-1deg) scale(1);
+      }
+      50% {
+        transform: translateY(-7px) rotate(1.5deg) scale(1.02);
+      }
+    }
+
+    @keyframes packMascotCorePulse {
+      0%, 100% {
+        opacity: 0.72;
+        transform: scale(0.94);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.08);
+      }
+    }
+
+    @keyframes packMascotOrbit {
+      from {
+        transform: rotate(0deg) scale(0.94);
+      }
+      to {
+        transform: rotate(360deg) scale(1.06);
+      }
+    }
+
+    @keyframes packMascotRingPulse {
+      0%, 100% {
+        opacity: 0.48;
+        transform: scale(0.92);
+      }
+      50% {
+        opacity: 0.94;
+        transform: scale(1.04);
+      }
+    }
+
+    @keyframes packMascotSparkSpin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
       }
     }
 
@@ -9725,6 +9879,9 @@ PAGE_TEMPLATE = """
       z-index: 30;
       min-height: var(--app-height, 100dvh);
       height: var(--app-height, 100dvh);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 4px;
       padding:
         calc(2px + env(safe-area-inset-top))
         0
@@ -9928,10 +10085,10 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.battle-live-lock .showdown-main.arena-board {
-      height: calc(var(--app-height, 100dvh) - 8px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: 100%;
       min-height: 0;
       max-height: none;
-      padding: 2px 4px 6px;
+      padding: 4px 4px 8px;
       overflow: hidden;
     }
 
@@ -9950,7 +10107,42 @@ PAGE_TEMPLATE = """
       height: 100%;
       min-height: 0;
       grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 3px;
+      align-content: stretch;
+    }
+
+    body.tma-app.battle-live-lock .arena-rail {
       gap: 4px;
+      padding: 4px 5px;
+    }
+
+    body.tma-app.battle-live-lock .arena-rail.enemy {
+      padding-top: 34px;
+    }
+
+    body.tma-app.battle-live-lock .arena-rail .tiny {
+      font-size: 9px;
+      line-height: 1.04;
+    }
+
+    body.tma-app.battle-live-lock .arena-deck-grid {
+      gap: 4px;
+      --arena-gap: 4px;
+    }
+
+    body.tma-app.battle-live-lock .arena-slot-card {
+      padding: 5px 4px 4px;
+      border-radius: 10px;
+    }
+
+    body.tma-app.battle-live-lock .arena-slot-card strong {
+      font-size: 7px;
+      margin-bottom: 2px;
+    }
+
+    body.tma-app.battle-live-lock .arena-slot-meta {
+      font-size: 6px;
+      line-height: 1.06;
     }
 
     body.tma-app .arena-rail {
@@ -10027,7 +10219,7 @@ PAGE_TEMPLATE = """
 
     body.tma-app.battle-live-lock .arena-choice-hub {
       height: 100%;
-      padding: 0 2px;
+      padding: 6px 2px 0;
     }
 
     body.tma-app .arena-choice-hub::before {
@@ -10064,6 +10256,7 @@ PAGE_TEMPLATE = """
       height: 100%;
       min-height: 0;
       gap: 0;
+      align-content: stretch;
     }
 
     body.tma-app .battle-stage.visible,
@@ -10100,7 +10293,7 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 0;
       right: 0;
-      top: 6px;
+      top: 12px;
       margin: 0;
       padding: 0 1px;
       z-index: 5;
@@ -10161,10 +10354,10 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 0 !important;
       right: 0 !important;
-      top: 50%;
+      top: 54%;
       bottom: auto;
       margin: 0;
-      transform: translateY(-50%) !important;
+      transform: translateY(-46%) !important;
       z-index: 6;
     }
 
@@ -10180,8 +10373,9 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.battle-live-lock .battle-stage.visible .arena-battle-dock .interactive-battle-panel {
-      width: min(100%, 410px);
+      width: min(100%, 336px);
       margin: 0 auto;
+      padding: 8px 9px 9px;
       border-color: rgba(121, 217, 255, 0.26);
       box-shadow:
         0 18px 34px rgba(0, 0, 0, 0.28),
@@ -10247,10 +10441,21 @@ PAGE_TEMPLATE = """
       margin-top: 4px;
     }
 
+    body.tma-app.battle-live-lock .arena-player-resource-bar {
+      gap: 3px;
+      margin-top: 3px;
+    }
+
     body.tma-app .arena-resource-pill {
       border-radius: 10px;
       padding: 4px 5px;
       gap: 2px;
+    }
+
+    body.tma-app.battle-live-lock .arena-resource-pill {
+      border-radius: 8px;
+      padding: 3px 4px;
+      gap: 1px;
     }
 
     body.tma-app .arena-resource-topline {
@@ -10263,8 +10468,21 @@ PAGE_TEMPLATE = """
       font-size: 9px;
     }
 
+    body.tma-app.battle-live-lock .arena-resource-topline {
+      gap: 3px;
+      font-size: 6px;
+    }
+
+    body.tma-app.battle-live-lock .arena-resource-topline strong {
+      font-size: 8px;
+    }
+
     body.tma-app .arena-resource-barline {
       height: 3px;
+    }
+
+    body.tma-app.battle-live-lock .arena-resource-barline {
+      height: 2px;
     }
 
     body.tma-app .arena-resource-caption {
@@ -10273,6 +10491,11 @@ PAGE_TEMPLATE = """
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    body.tma-app.battle-live-lock .arena-resource-caption {
+      font-size: 6px;
+      line-height: 1.04;
     }
 
     body.tma-app .arena-shell.clash-live .arena-player-resource-bar {
@@ -10306,6 +10529,32 @@ PAGE_TEMPLATE = """
       visibility: hidden;
       pointer-events: none;
       transform: translateY(calc(100% + 20px));
+    }
+
+    body.tma-app.battle-live-lock .currency-float {
+      top: calc(4px + env(safe-area-inset-top));
+      right: 6px;
+      left: auto !important;
+      gap: 4px;
+      padding: 5px 6px;
+      border-radius: 14px;
+      transform: scale(0.86);
+      transform-origin: top right;
+      max-width: calc(100vw - 12px);
+      z-index: 38;
+    }
+
+    body.tma-app.battle-live-lock .currency-float-chip {
+      min-height: 20px;
+      padding: 0 6px;
+      gap: 4px;
+      font-size: 10px;
+    }
+
+    body.tma-app.battle-live-lock .mascot-widget {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
     }
 
     body.tma-app #view-wallet,
@@ -11095,6 +11344,7 @@ PAGE_TEMPLATE = """
     const packMouthGlow = foilPack ? foilPack.querySelector('.pack-mouth-glow') : null;
     const packCounter = document.getElementById('pack-counter');
     const packNote = document.getElementById('pack-note');
+    const packTap = packShowcase ? packShowcase.querySelector('.pack-tap') : null;
     const buyPackBtn = document.getElementById('buy-pack-btn');
     const packTypePicker = document.getElementById('pack-type-picker');
     const packRewardsSummary = document.getElementById('pack-rewards-summary');
@@ -13958,17 +14208,17 @@ PAGE_TEMPLATE = """
         showPassLevel(next);
       };
       if (passPrevBtn) {
-        bindFunctionalControl(passPrevBtn, () => showPassLevel((state.seasonPassLevelIndex || 0) - 1));
+        bindFunctionalControl(passPrevBtn, () => showPassLevel((state.seasonPassLevelIndex || 0) - 1), 'click', {skipPrepare: true});
       }
       if (passNextBtn) {
-        bindFunctionalControl(passNextBtn, () => showPassLevel((state.seasonPassLevelIndex || 0) + 1));
+        bindFunctionalControl(passNextBtn, () => showPassLevel((state.seasonPassLevelIndex || 0) + 1), 'click', {skipPrepare: true});
       }
       if (toggleSeasonTasksBtn && seasonTasksPanel) {
         bindFunctionalControl(toggleSeasonTasksBtn, () => {
           const expanded = seasonTasksPanel.style.display !== 'none';
           seasonTasksPanel.style.display = expanded ? 'none' : 'block';
           toggleSeasonTasksBtn.textContent = expanded ? 'Показать задания пропуска' : 'Скрыть задания пропуска';
-        });
+        }, 'click', {skipPrepare: true});
       }
       showPassLevel(Math.max(0, Math.min(track.length - 1, Number((state.seasonPassLevelIndex || 0)))));
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
@@ -14897,7 +15147,7 @@ PAGE_TEMPLATE = """
       const { preserveCinematic = false, preserveNote = false } = options;
       cleanupPackSequencePreview();
       if (packShowcase) {
-        packShowcase.classList.remove('opened', 'bursting');
+        packShowcase.classList.remove('opened', 'bursting', 'reveal-live');
         if (!preserveCinematic) {
           packShowcase.classList.remove('cinematic');
         }
@@ -14923,6 +15173,9 @@ PAGE_TEMPLATE = """
       if (packNote && !preserveNote) {
         packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
       }
+      if (packTap && !(packShowcase && packShowcase.classList.contains('opened-once'))) {
+        packTap.textContent = 'Нажми, чтобы открыть';
+      }
     }
 
     async function playPackSequence(cards = []) {
@@ -14936,10 +15189,15 @@ PAGE_TEMPLATE = """
       const finaleMascot = document.createElement('div');
       finaleMascot.className = 'pack-sequence-mascot';
       finaleMascot.innerHTML = `
-        <img src="/static/mascot-ton-bot.png" alt="">
+        <div class="pack-sequence-mascot-core">
+          <span class="pack-sequence-mascot-ring"></span>
+          <span class="pack-sequence-mascot-spark"></span>
+          <span class="pack-sequence-mascot-spark alt"></span>
+          <img src="/static/mascot-ton-bot.png" alt="">
+        </div>
         <div class="pack-sequence-mascot-bubble">
           <strong>Колода готова</strong>
-          <span>Я уже разложил карты. Проверь синергию и сразу заходи в бой.</span>
+          <span>Я вывел лучшие карты вперёд. Проверь синергию и сразу заходи в бой.</span>
         </div>
       `;
       const grid = document.createElement('div');
@@ -14968,30 +15226,30 @@ PAGE_TEMPLATE = """
         slot.classList.add('spotlight-anchor');
         slot.classList.add('revealing');
         slot.classList.add('impact');
-        await sleep(slotIndex === 2 ? 520 : 460);
+        await sleep(slotIndex === 2 ? 760 : 680);
         slot.classList.add('front-visible');
-        await sleep(360);
+        await sleep(520);
         slot.classList.add('face-locked');
-        await sleep(280);
+        await sleep(380);
         slot.classList.remove('revealing');
         slot.classList.add('revealed');
-        await sleep(slotIndex === 2 ? 240 : 150);
+        await sleep(slotIndex === 2 ? 300 : 220);
         slot.classList.remove('spotlight-anchor');
         slot.classList.remove('impact');
         slots.forEach((node) => node.classList.remove('support-glow'));
       }
-      await sleep(180);
+      await sleep(260);
       layer.classList.add('finale');
       grid.classList.add('victory-fan');
       finaleBadge.classList.add('visible');
       finaleMascot.classList.add('visible');
-      await sleep(960);
+      await sleep(1680);
       finaleBadge.classList.add('fade-out');
       finaleMascot.classList.add('fade-out');
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
       layer.classList.remove('finale');
-      await sleep(560);
+      await sleep(760);
       cleanupPackSequencePreview();
     }
 
@@ -17179,7 +17437,7 @@ PAGE_TEMPLATE = """
       setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
       resetPackShowcaseIdleState({ preserveCinematic: true, preserveNote: true });
       packShowcase.classList.remove('opened', 'bursting');
-      packShowcase.classList.add('cinematic');
+      packShowcase.classList.add('cinematic', 'reveal-live');
       requestAnimationFrame(() => foilPack.classList.add('opening'));
       packNote.textContent = 'Открываем...';
       try {
@@ -17196,12 +17454,16 @@ PAGE_TEMPLATE = """
         if (state.playerProfile && data.rewards) {
           state.playerProfile.rewards = data.rewards;
         }
-        await sleep(1420);
+        await sleep(1820);
         foilPack.classList.remove('opening');
         foilPack.classList.add('vanishing');
         packShowcase.classList.add('opened', 'bursting');
+        packShowcase.classList.add('opened-once');
         packNote.textContent = 'Смотри, что внутри';
-        await sleep(420);
+        if (packTap) {
+          packTap.textContent = ' ';
+        }
+        await sleep(620);
         if (isCosmeticPack) {
           const cosmetic = data.cosmetic_reward || {};
           await playCosmeticRouletteReveal(cosmetic);
@@ -17210,7 +17472,7 @@ PAGE_TEMPLATE = """
           await renderPack(data.cards, data.total_score);
         }
         resetPackShowcaseIdleState({ preserveNote: true });
-        packNote.textContent = 'Открывай ещё';
+        packNote.textContent = 'Колода готова к бою';
         setStatus(
           document.getElementById('pack-status'),
           isCosmeticPack
@@ -18364,7 +18626,10 @@ PAGE_TEMPLATE = """
     }, { passive: false });
     document.addEventListener('touchend', (event) => {
       const now = Date.now();
-      if (now - lastTouchEndAt < 320) {
+      const interactiveTarget = event.target && typeof event.target.closest === 'function'
+        ? event.target.closest('button, a, input, select, textarea, label, summary, [role="button"], .season-pass-stage-card, .season-pass-claim-btn, .reward-pack-btn, .interactive-action-btn, .mobile-nav button')
+        : null;
+      if (!interactiveTarget && now - lastTouchEndAt < 320 && event.cancelable) {
         event.preventDefault();
       }
       lastTouchEndAt = now;
