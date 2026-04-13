@@ -657,7 +657,6 @@ PAGE_TEMPLATE = """
       pointer-events: none;
     }
 
-    body[data-active-view="pack"] .mascot-widget,
     body.pack-sequence-active .mascot-widget {
       opacity: 0;
       visibility: hidden;
@@ -10230,6 +10229,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .arena-core {
+      --arena-choice-center-y: 52%;
       min-height: 172px;
       display: grid;
       align-content: start;
@@ -10398,7 +10398,7 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 50% !important;
       right: auto !important;
-      top: 50%;
+      top: var(--arena-choice-center-y, 50%);
       bottom: auto;
       width: min(calc(100% - 18px), 360px) !important;
       max-width: calc(100% - 18px) !important;
@@ -15277,9 +15277,6 @@ PAGE_TEMPLATE = """
       if (!Array.isArray(cards) || !cards.length) return;
       const layer = document.createElement('div');
       layer.className = 'pack-sequence-layer';
-      const finaleBadge = document.createElement('div');
-      finaleBadge.className = 'pack-sequence-finale';
-      finaleBadge.innerHTML = '<strong>Новая пятёрка</strong><span>Карты добавлены в твою колоду</span>';
       const finaleMascot = document.createElement('div');
       finaleMascot.className = 'pack-sequence-mascot';
       finaleMascot.innerHTML = `
@@ -15291,7 +15288,7 @@ PAGE_TEMPLATE = """
         </div>
         <div class="pack-sequence-mascot-bubble">
           <strong>Колода готова</strong>
-          <span>Я вывел лучшие карты вперёд. Проверь синергию и сразу заходи в бой.</span>
+          <span>Лучшие карты уже впереди. Проверь синергию и сразу заходи в бой.</span>
         </div>
       `;
       const grid = document.createElement('div');
@@ -15303,7 +15300,6 @@ PAGE_TEMPLATE = """
       `).join('');
       document.body.appendChild(layer);
       document.body.appendChild(grid);
-      layer.appendChild(finaleBadge);
       layer.appendChild(finaleMascot);
       activePackSequenceLayer = layer;
       activePackPreviewGrid = grid;
@@ -15336,10 +15332,8 @@ PAGE_TEMPLATE = """
       await sleep(260);
       layer.classList.add('finale');
       grid.classList.add('victory-fan');
-      finaleBadge.classList.add('visible');
       finaleMascot.classList.add('visible');
       await sleep(1680);
-      finaleBadge.classList.add('fade-out');
       finaleMascot.classList.add('fade-out');
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
