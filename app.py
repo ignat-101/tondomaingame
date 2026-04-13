@@ -7087,6 +7087,14 @@ PAGE_TEMPLATE = """
       filter: blur(6px);
     }
 
+    body.pack-sequence-active #pack-showcase {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.94);
+      filter: blur(16px);
+    }
+
     .cosmetic-roulette {
       position: relative;
       width: min(760px, 96vw);
@@ -10297,29 +10305,15 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .battle-stage.visible {
-      gap: 0;
-      display: grid;
-      align-content: center;
-      align-items: center;
-      justify-items: center;
-      min-height: clamp(220px, 38vh, 360px);
-      padding: 22px 0 18px;
-    }
-
-    body.tma-app.battle-live-lock .battle-stage.visible {
-      position: relative;
-      height: 100%;
+      position: absolute;
+      inset: 0;
+      display: block;
       min-height: 0;
-      align-content: stretch;
-      align-items: center;
-      justify-items: center;
-      padding: 22px 0 18px;
-    }
-
-    body.tma-app .battle-stage.visible {
-      position: relative;
-      top: auto;
-      z-index: auto;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      z-index: 4;
+      pointer-events: none;
     }
 
     body.tma-app #prebattle-stage:not(.hidden) {
@@ -10401,32 +10395,22 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .battle-stage.visible .arena-battle-dock {
-      position: relative;
-      left: auto !important;
+      position: absolute;
+      left: 50% !important;
       right: auto !important;
-      top: auto;
+      top: 50%;
       bottom: auto;
-      width: min(100%, 360px) !important;
-      max-width: min(100%, 360px) !important;
+      width: min(calc(100% - 18px), 360px) !important;
+      max-width: calc(100% - 18px) !important;
       margin: 0;
-      transform: none !important;
-      z-index: 4;
-      pointer-events: auto;
-      align-self: center;
+      transform: translate(-50%, -50%) !important;
+      z-index: 6;
+      pointer-events: none;
     }
 
     body.tma-app.battle-live-lock .battle-stage.visible .arena-battle-dock {
-      position: relative;
-      left: auto !important;
-      right: auto !important;
-      top: auto;
-      bottom: auto;
-      width: min(100%, 336px) !important;
-      max-width: min(100%, 336px) !important;
-      margin: 0;
-      transform: none !important;
-      align-self: center;
-      z-index: 6;
+      width: min(calc(100% - 18px), 336px) !important;
+      max-width: calc(100% - 18px) !important;
     }
 
     body.tma-app .battle-stage.visible .arena-battle-dock .interactive-battle-panel {
