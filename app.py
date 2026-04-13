@@ -19,7 +19,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, Response, jsonify, render_template_string, request
+from flask import Flask, Response, jsonify, redirect, render_template_string, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -41,6 +41,20 @@ from tenkclub_service import explainDomainUniqueness, getDomainMetadata
 
 load_dotenv()
 
+
+def normalize_public_app_url(raw_url):
+    raw = str(raw_url or '').strip()
+    if not raw or raw == 'https://yourdomain.com':
+        raw = 'https://www.tondomaingame.online'
+    if '://' not in raw:
+        raw = f'https://{raw}'
+    parts = urlsplit(raw)
+    host = (parts.netloc or '').strip().lower()
+    if host == 'tondomaingame.online':
+        parts = parts._replace(netloc='www.tondomaingame.online')
+    return urlunsplit(parts).rstrip('/')
+
+
 app = Flask(__name__)
 RATELIMIT_STORAGE_URI = os.getenv('RATELIMIT_STORAGE_URI', 'memory://').strip()
 
@@ -51,12 +65,24 @@ limiter = Limiter(
     storage_uri=RATELIMIT_STORAGE_URI,
 )
 
+
+@app.before_request
+def enforce_canonical_public_host():
+    if request.method not in {'GET', 'HEAD'}:
+        return None
+    host = (request.host or '').split(':', 1)[0].strip().lower()
+    if host != 'tondomaingame.online' or CANONICAL_WEBAPP_HOST != 'www.tondomaingame.online':
+        return None
+    parts = list(urlsplit(request.url))
+    parts[1] = 'www.tondomaingame.online'
+    return redirect(urlunsplit(parts), code=308)
+
 HTTP = requests.Session()
 HTTP.headers.update({'User-Agent': 'tondomaingame/1.0'})
 
-APP_ROOT = os.getenv('APP_ROOT_URL', TG_WEBAPP_URL).rstrip('/')
+APP_ROOT = normalize_public_app_url(os.getenv('APP_ROOT_URL', TG_WEBAPP_URL))
 TONAPI_KEY = os.getenv('TONAPI_KEY', TONAPI_KEY)
-TG_WEBAPP_URL = os.getenv('TG_WEBAPP_URL', TG_WEBAPP_URL).rstrip('/')
+TG_WEBAPP_URL = normalize_public_app_url(os.getenv('TG_WEBAPP_URL', TG_WEBAPP_URL))
 TG_BOT_TOKEN = os.getenv('TG_BOT_TOKEN', '').strip()
 TG_BOT_USERNAME = os.getenv('TG_BOT_USERNAME', '').lstrip('@').strip()
 TG_WEBHOOK_SECRET = os.getenv('TG_WEBHOOK_SECRET', '').strip()
@@ -112,6 +138,8 @@ TONCONNECT_MANIFEST = {
     'termsOfUseUrl': 'https://ton.org',
     'privacyPolicyUrl': 'https://ton.org',
 }
+
+CANONICAL_WEBAPP_HOST = (urlsplit(TG_WEBAPP_URL).netloc or '').split('@')[-1].lower()
 
 MARKETPLACE_LINKS = [
     {'label': 'Getgems', 'url': 'https://getgems.io/'},
@@ -627,6 +655,14 @@ PAGE_TEMPLATE = """
       align-items: end;
       justify-items: start;
       pointer-events: none;
+    }
+
+    body[data-active-view="pack"] .mascot-widget,
+    body.pack-sequence-active .mascot-widget {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(10px) scale(0.92);
     }
 
     .mascot-widget.open .mascot-popover {
@@ -10256,7 +10292,11 @@ PAGE_TEMPLATE = """
       height: 100%;
       min-height: 0;
       gap: 0;
+      display: grid;
       align-content: stretch;
+      align-items: center;
+      justify-items: center;
+      padding: 18px 0 14px;
     }
 
     body.tma-app .battle-stage.visible,
@@ -10293,7 +10333,7 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 0;
       right: 0;
-      top: 12px;
+      top: 10px;
       margin: 0;
       padding: 0 1px;
       z-index: 5;
@@ -10351,13 +10391,16 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.battle-live-lock .battle-stage.visible .arena-battle-dock {
-      position: absolute;
-      left: 0 !important;
-      right: 0 !important;
-      top: 54%;
+      position: relative;
+      left: auto !important;
+      right: auto !important;
+      top: auto;
       bottom: auto;
+      width: min(100%, 336px) !important;
+      max-width: min(100%, 336px) !important;
       margin: 0;
-      transform: translateY(-46%) !important;
+      transform: none !important;
+      align-self: center;
       z-index: 6;
     }
 
@@ -10373,9 +10416,9 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.battle-live-lock .battle-stage.visible .arena-battle-dock .interactive-battle-panel {
-      width: min(100%, 336px);
+      width: 100%;
       margin: 0 auto;
-      padding: 8px 9px 9px;
+      padding: 10px 10px 10px;
       border-color: rgba(121, 217, 255, 0.26);
       box-shadow:
         0 18px 34px rgba(0, 0, 0, 0.28),
@@ -10389,11 +10432,30 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .arena-core.clash-live .arena-battle-dock {
-      transform: translateY(10px) !important;
+      transform: none !important;
     }
 
     body.tma-app .interactive-battle-title {
       font-size: 14px;
+    }
+
+    body.tma-app.battle-live-lock .interactive-battle-title,
+    body.tma-app.battle-live-lock .interactive-battle-prompt,
+    body.tma-app.battle-live-lock .interactive-action-btn {
+      overflow: visible;
+      line-height: 1.18;
+      text-indent: 0.02em;
+      letter-spacing: 0.01em;
+    }
+
+    body.tma-app.battle-live-lock .interactive-battle-title {
+      font-size: 15px;
+      padding-left: 2px;
+    }
+
+    body.tma-app.battle-live-lock .interactive-battle-prompt {
+      min-height: 16px;
+      padding: 0 2px;
     }
 
     body.tma-app .interactive-timer {
@@ -13664,6 +13726,7 @@ PAGE_TEMPLATE = """
       document.querySelectorAll('.top-app-nav-link').forEach((button) => {
         button.classList.toggle('active', button.id === `top-nav-${name}`);
       });
+      document.body.dataset.activeView = name;
       if (name === 'modes') {
         const preferredMode = refreshModeUsageUI();
         if (preferredMode) {
@@ -15141,6 +15204,7 @@ PAGE_TEMPLATE = """
       }
       activePackPreviewGrid = null;
       activePackSequenceLayer = null;
+      document.body.classList.remove('pack-sequence-active');
     }
 
     function resetPackShowcaseIdleState(options = {}) {
@@ -15213,6 +15277,7 @@ PAGE_TEMPLATE = """
       layer.appendChild(finaleMascot);
       activePackSequenceLayer = layer;
       activePackPreviewGrid = grid;
+      document.body.classList.add('pack-sequence-active');
       await nextFrame();
       layer.classList.add('dimmed');
       grid.classList.add('focused');

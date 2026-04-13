@@ -42,4 +42,4 @@ DEBUG = False
 RATE_LIMIT = '60 per minute'
 
 # Telegram Mini App / Bot
-TG_WEBAPP_URL = 'https://yourdomain.com'
+TG_WEBAPP_URL = 'https://www.tondomaingame.online'
