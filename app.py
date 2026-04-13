@@ -1387,6 +1387,16 @@ PAGE_TEMPLATE = """
       border-radius: 9px;
     }
 
+    .player-card.profile-preview .player-card-domain {
+      left: 84px;
+      top: 12px;
+      min-height: 28px;
+      padding: 0 12px;
+      font-size: 11px;
+      max-width: calc(100% - 98px);
+      z-index: 6;
+    }
+
     .player-card-domain {
       position: absolute;
       left: 16px;
@@ -1760,6 +1770,12 @@ PAGE_TEMPLATE = """
       .player-card.profile-preview .player-card-content,
       .player-card.profile-preview .player-card-actions {
         margin-left: 72px;
+      }
+
+      .player-card.profile-preview .player-card-domain {
+        left: 76px;
+        top: 12px;
+        max-width: calc(100% - 86px);
       }
 
       .player-card-title {
@@ -6570,6 +6586,23 @@ PAGE_TEMPLATE = """
       text-align: center;
       overflow: hidden;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.44);
+      isolation: isolate;
+    }
+
+    .pack-showcase::before {
+      content: "";
+      position: absolute;
+      inset: -30% -18%;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255, 238, 176, 0.24), transparent 28%),
+        radial-gradient(circle at 24% 72%, rgba(69, 215, 255, 0.12), transparent 22%),
+        radial-gradient(circle at 76% 70%, rgba(255, 211, 110, 0.12), transparent 24%);
+      filter: blur(34px);
+      opacity: 0.42;
+      transform: scale(0.9) translateY(6%);
+      transition: opacity 420ms ease, transform 900ms cubic-bezier(.16,.84,.2,1);
+      pointer-events: none;
+      z-index: -1;
     }
 
     .pack-showcase::after {
@@ -6584,6 +6617,11 @@ PAGE_TEMPLATE = """
 
     .pack-showcase.cinematic::after {
       background: rgba(3, 9, 18, 0.36);
+    }
+
+    .pack-showcase.cinematic::before {
+      opacity: 0.76;
+      transform: scale(1.06) translateY(0);
     }
 
     .pack-showcase.pack-type-common {
@@ -6628,6 +6666,107 @@ PAGE_TEMPLATE = """
       text-transform: uppercase;
     }
 
+    .pack-showcase-aurora,
+    .pack-showcase-sigil,
+    .pack-showcase-flare,
+    .pack-showcase-stardust {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .pack-showcase-aurora {
+      inset: -24% -14%;
+      background:
+        conic-gradient(from 0deg, rgba(255, 211, 110, 0), rgba(255, 211, 110, 0.16), rgba(69, 215, 255, 0.14), rgba(188, 126, 255, 0.18), rgba(255, 211, 110, 0));
+      filter: blur(26px);
+      opacity: 0;
+      transform: scale(0.8) rotate(0deg);
+      transition: opacity 320ms ease, transform 1600ms cubic-bezier(.16,.84,.2,1);
+      mix-blend-mode: screen;
+      z-index: 0;
+    }
+
+    .pack-showcase-sigil {
+      left: 50%;
+      top: 48%;
+      width: min(520px, 90vw);
+      aspect-ratio: 1 / 1;
+      transform: translate(-50%, -50%) scale(0.42) rotate(0deg);
+      opacity: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, rgba(255, 245, 204, 0.12), transparent 26%),
+        radial-gradient(circle at center, transparent 43%, rgba(255, 211, 110, 0.24) 44%, transparent 46%),
+        radial-gradient(circle at center, transparent 58%, rgba(69, 215, 255, 0.2) 59%, transparent 61%),
+        conic-gradient(from 0deg, rgba(255, 211, 110, 0), rgba(255, 211, 110, 0.28), rgba(69, 215, 255, 0.18), rgba(255, 211, 110, 0.3), rgba(255, 211, 110, 0));
+      filter: blur(1px);
+      transition: opacity 260ms ease, transform 900ms cubic-bezier(.16,.84,.2,1);
+      z-index: 0;
+    }
+
+    .pack-showcase-flare {
+      left: 50%;
+      top: 49%;
+      width: min(560px, 94vw);
+      aspect-ratio: 1 / 1;
+      transform: translate(-50%, -50%) scale(0.16);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, rgba(255, 251, 231, 0.88), rgba(255, 220, 126, 0.46) 28%, rgba(255, 183, 80, 0.16) 46%, transparent 68%);
+      filter: blur(8px);
+      opacity: 0;
+      z-index: 1;
+    }
+
+    .pack-showcase-stardust {
+      inset: 0;
+      z-index: 1;
+    }
+
+    .pack-showcase-stardust i {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.98), rgba(255, 223, 142, 0.82) 42%, rgba(255, 211, 110, 0) 72%);
+      box-shadow: 0 0 18px rgba(255, 223, 142, 0.28);
+      opacity: 0;
+      transform: translate3d(0, 12px, 0) scale(0.2);
+    }
+
+    .pack-showcase-stardust i:nth-child(1) { left: 12%; top: 18%; animation-delay: 0.05s; }
+    .pack-showcase-stardust i:nth-child(2) { left: 20%; top: 28%; animation-delay: 0.2s; }
+    .pack-showcase-stardust i:nth-child(3) { left: 28%; top: 12%; animation-delay: 0.35s; }
+    .pack-showcase-stardust i:nth-child(4) { left: 38%; top: 24%; animation-delay: 0.12s; }
+    .pack-showcase-stardust i:nth-child(5) { left: 50%; top: 10%; animation-delay: 0.48s; }
+    .pack-showcase-stardust i:nth-child(6) { left: 63%; top: 20%; animation-delay: 0.18s; }
+    .pack-showcase-stardust i:nth-child(7) { left: 74%; top: 12%; animation-delay: 0.56s; }
+    .pack-showcase-stardust i:nth-child(8) { left: 84%; top: 24%; animation-delay: 0.28s; }
+    .pack-showcase-stardust i:nth-child(9) { left: 16%; top: 58%; animation-delay: 0.42s; }
+    .pack-showcase-stardust i:nth-child(10) { left: 32%; top: 72%; animation-delay: 0.08s; }
+    .pack-showcase-stardust i:nth-child(11) { left: 50%; top: 78%; animation-delay: 0.5s; }
+    .pack-showcase-stardust i:nth-child(12) { left: 68%; top: 68%; animation-delay: 0.16s; }
+
+    .pack-showcase.cinematic .pack-showcase-aurora {
+      opacity: 0.9;
+      transform: scale(1.06) rotate(18deg);
+      animation: packAuroraSpin 11s linear infinite;
+    }
+
+    .pack-showcase.cinematic .pack-showcase-sigil {
+      opacity: 0.7;
+      transform: translate(-50%, -50%) scale(1) rotate(0deg);
+      animation: packSigilPulse 2.4s ease-in-out infinite;
+    }
+
+    .pack-showcase.cinematic .pack-showcase-stardust i {
+      animation: packStardustFloat 3.2s ease-in-out infinite;
+    }
+
+    .pack-showcase.bursting .pack-showcase-flare {
+      animation: packShockwave 820ms cubic-bezier(.12,.88,.16,1) both;
+    }
+
     .pack-note {
       color: rgba(255, 220, 126, 0.82);
       margin: 0 0 12px;
@@ -6651,8 +6790,37 @@ PAGE_TEMPLATE = """
         inset 0 0 0 1px rgba(255, 220, 120, 0.08),
         0 34px 52px rgba(0, 0, 0, 0.52);
       overflow: visible;
+      isolation: isolate;
       transform-origin: center center;
       transition: transform 420ms ease, opacity 420ms ease, filter 420ms ease;
+    }
+
+    .foil-pack::before,
+    .foil-pack::after {
+      content: "";
+      position: absolute;
+      inset: -8%;
+      border-radius: 30px;
+      pointer-events: none;
+    }
+
+    .foil-pack::before {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255, 223, 142, 0.14), transparent 36%),
+        conic-gradient(from 180deg, rgba(255, 211, 110, 0), rgba(255, 211, 110, 0.26), rgba(69, 215, 255, 0.18), rgba(255, 211, 110, 0));
+      filter: blur(16px);
+      opacity: 0.22;
+      z-index: -1;
+      transform: scale(0.92);
+      transition: opacity 320ms ease, transform 800ms cubic-bezier(.16,.84,.2,1);
+    }
+
+    .foil-pack::after {
+      inset: 0;
+      background: linear-gradient(112deg, transparent 0%, rgba(255,255,255,0) 26%, rgba(255, 239, 190, 0.34) 48%, rgba(255,255,255,0) 66%, transparent 100%);
+      transform: translateX(-130%) skewX(-16deg);
+      opacity: 0;
+      z-index: 5;
     }
 
     .pack-showcase.cinematic .foil-pack {
@@ -6662,6 +6830,17 @@ PAGE_TEMPLATE = """
       width: min(380px, 92vw);
       transform: scale(1);
       z-index: 7100;
+      animation: packIdleFloat 2.8s ease-in-out infinite;
+    }
+
+    .pack-showcase.cinematic .foil-pack::before {
+      opacity: 0.58;
+      transform: scale(1.08);
+    }
+
+    .pack-showcase.cinematic .foil-pack::after {
+      opacity: 1;
+      animation: packFoilSweep 2.6s ease-in-out infinite;
     }
 
     .foil-pack-frame {
@@ -6746,7 +6925,7 @@ PAGE_TEMPLATE = """
     }
 
     .foil-pack.opening {
-      animation: packLunge 1400ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packLunge 1680ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .pack-showcase.opened .foil-pack {
@@ -6790,19 +6969,19 @@ PAGE_TEMPLATE = """
     }
 
     .foil-pack.vanishing {
-      animation: packVanish 1.5s cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packVanish 920ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .foil-pack.opening .pack-rip-strip {
-      animation: packRipAway 1400ms cubic-bezier(.15,.86,.2,1) forwards;
+      animation: packRipAway 1600ms cubic-bezier(.15,.86,.2,1) forwards;
     }
 
     .foil-pack.opening .pack-face {
-      animation: packBodyOpen 1400ms cubic-bezier(.16,.84,.2,1) forwards;
+      animation: packBodyOpen 1600ms cubic-bezier(.16,.84,.2,1) forwards;
     }
 
     .foil-pack.opening .pack-mouth-glow {
-      animation: packMouthGlow 1400ms ease forwards;
+      animation: packMouthGlow 1600ms ease forwards;
     }
 
     .pack-tap {
@@ -7116,15 +7295,39 @@ PAGE_TEMPLATE = """
       pointer-events: none;
       opacity: 0;
       overflow: visible;
+      isolation: isolate;
       transform: translate(-50%, -50%) scale(0.76);
       transition:
         transform 820ms cubic-bezier(.16,.84,.2,1),
         opacity 260ms ease;
     }
 
+    .pack-preview-grid::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(820px, 82vw);
+      height: min(420px, 56vw);
+      transform: translate(-50%, -50%) scale(0.84);
+      background:
+        radial-gradient(circle at center, rgba(255, 223, 142, 0.18), transparent 54%),
+        radial-gradient(circle at center, rgba(69, 215, 255, 0.14), transparent 70%);
+      filter: blur(24px);
+      opacity: 0;
+      transition: opacity 260ms ease, transform 820ms cubic-bezier(.16,.84,.2,1);
+      pointer-events: none;
+      z-index: -1;
+    }
+
     .pack-preview-grid.focused {
       opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
+      transform: translate(-50%, -50%) scale(1.03);
+    }
+
+    .pack-preview-grid.focused::before {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.08);
     }
 
     .pack-preview-grid.departing {
@@ -7153,6 +7356,20 @@ PAGE_TEMPLATE = """
       opacity: 0;
       transform: scale(0.92);
       transition: opacity 240ms ease, transform 320ms ease;
+      pointer-events: none;
+    }
+
+    .pack-preview-slot::after {
+      content: "";
+      position: absolute;
+      inset: -18px -14px;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at center, rgba(255, 243, 202, 0.28), transparent 32%),
+        conic-gradient(from 180deg, rgba(255, 211, 110, 0), rgba(255, 211, 110, 0.36), rgba(69, 215, 255, 0.18), rgba(255, 211, 110, 0));
+      filter: blur(10px);
+      opacity: 0;
+      transform: scale(0.6);
       pointer-events: none;
     }
 
@@ -7189,6 +7406,15 @@ PAGE_TEMPLATE = """
     .pack-preview-slot.revealed {
       z-index: 9;
       filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.42));
+    }
+
+    .pack-preview-slot.support-glow::before {
+      opacity: 0.36;
+      transform: scale(0.98);
+    }
+
+    .pack-preview-slot.impact::after {
+      animation: packPreviewImpact 820ms cubic-bezier(.12,.88,.16,1) both;
     }
 
     .pack-preview-slot.revealing::before,
@@ -7727,16 +7953,16 @@ PAGE_TEMPLATE = """
 
     @keyframes packLunge {
       0% {
-        transform: scale(1);
+        transform: perspective(1200px) translateY(0) scale(0.94) rotateX(0deg) rotateZ(0deg);
       }
-      18% {
-        transform: scale(1.02);
+      16% {
+        transform: perspective(1200px) translateY(-10px) scale(1.02) rotateX(4deg) rotateZ(-1.2deg);
       }
-      52% {
-        transform: scale(1.08);
+      42% {
+        transform: perspective(1200px) translateY(-22px) scale(1.11) rotateX(8deg) rotateZ(1.4deg);
       }
       100% {
-        transform: scale(1.14);
+        transform: perspective(1200px) translateY(-34px) scale(1.18) rotateX(12deg) rotateZ(0deg);
       }
     }
 
@@ -7749,12 +7975,12 @@ PAGE_TEMPLATE = """
         transform: translateX(-50%) translate3d(0, 0, 0) rotate(0deg);
         opacity: 1;
       }
-      28% {
-        transform: translateX(-50%) translate3d(-10px, -8px, 0) rotate(-5deg);
+      26% {
+        transform: translateX(-50%) translate3d(-16px, -14px, 0) rotate(-8deg);
         opacity: 1;
       }
       100% {
-        transform: translateX(-50%) translate3d(-280px, -220px, 0) rotate(-34deg);
+        transform: translateX(-50%) translate3d(-340px, -280px, 0) rotate(-42deg) scale(0.92);
         opacity: 0;
       }
     }
@@ -7764,13 +7990,13 @@ PAGE_TEMPLATE = """
         clip-path: inset(0 0 0 0 round 26px);
         transform: translateX(-50%) perspective(1200px) rotateX(0deg) scaleY(1);
       }
-      54% {
-        clip-path: inset(2.8% 0 0 0 round 0 0 26px 26px);
-        transform: translateX(-50%) perspective(1200px) rotateX(-12deg) scaleY(1.01);
+      52% {
+        clip-path: inset(3.2% 0 0 0 round 0 0 26px 26px);
+        transform: translateX(-50%) perspective(1200px) rotateX(-14deg) scaleY(1.02);
       }
       100% {
-        clip-path: inset(6.5% 0 0 0 round 0 0 26px 26px);
-        transform: translateX(-50%) perspective(1200px) rotateX(-18deg) scaleY(1.02);
+        clip-path: inset(8.5% 0 0 0 round 0 0 26px 26px);
+        transform: translateX(-50%) perspective(1200px) rotateX(-24deg) scaleY(1.04);
       }
     }
 
@@ -7779,19 +8005,102 @@ PAGE_TEMPLATE = """
         opacity: 0;
         transform: translateY(-10px) scaleY(0.3);
       }
-      58% {
-        opacity: 0.9;
-        transform: translateY(0) scaleY(1.15);
+      52% {
+        opacity: 1;
+        transform: translateY(0) scaleY(1.22);
       }
       100% {
-        opacity: 0.5;
-        transform: translateY(12px) scaleY(1.45);
+        opacity: 0.58;
+        transform: translateY(22px) scaleY(1.72);
       }
     }
 
     @keyframes packVanish {
-      0% { opacity: 1; transform: scale(1.14); }
-      100% { opacity: 0; transform: scale(1.02); }
+      0% { opacity: 1; transform: perspective(1200px) translateY(-34px) scale(1.18) rotateX(12deg); }
+      100% { opacity: 0; transform: perspective(1200px) translateY(-124px) scale(0.84) rotateX(22deg); }
+    }
+
+    @keyframes packIdleFloat {
+      0%, 100% {
+        transform: translateY(0) scale(1) rotateZ(0deg);
+      }
+      50% {
+        transform: translateY(-8px) scale(1.012) rotateZ(0.4deg);
+      }
+    }
+
+    @keyframes packFoilSweep {
+      0%, 100% {
+        transform: translateX(-130%) skewX(-16deg);
+      }
+      56% {
+        transform: translateX(128%) skewX(-16deg);
+      }
+    }
+
+    @keyframes packAuroraSpin {
+      from {
+        transform: scale(1.06) rotate(0deg);
+      }
+      to {
+        transform: scale(1.06) rotate(360deg);
+      }
+    }
+
+    @keyframes packSigilPulse {
+      0%, 100% {
+        opacity: 0.52;
+        transform: translate(-50%, -50%) scale(0.96) rotate(0deg);
+      }
+      50% {
+        opacity: 0.82;
+        transform: translate(-50%, -50%) scale(1.04) rotate(18deg);
+      }
+    }
+
+    @keyframes packShockwave {
+      0% {
+        opacity: 0.12;
+        transform: translate(-50%, -50%) scale(0.16);
+      }
+      32% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.72);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.22);
+      }
+    }
+
+    @keyframes packStardustFloat {
+      0%, 100% {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0) scale(0.2);
+      }
+      24% {
+        opacity: 0.92;
+        transform: translate3d(0, -4px, 0) scale(0.88);
+      }
+      60% {
+        opacity: 0.44;
+        transform: translate3d(0, -22px, 0) scale(0.44);
+      }
+    }
+
+    @keyframes packPreviewImpact {
+      0% {
+        opacity: 0;
+        transform: scale(0.46);
+      }
+      38% {
+        opacity: 0.92;
+        transform: scale(1.04);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.26);
+      }
     }
 
     @media (max-width: 920px) {
@@ -9886,6 +10195,12 @@ PAGE_TEMPLATE = """
           </div>
 
           <div class="pack-showcase" id="pack-showcase">
+            <div class="pack-showcase-aurora" aria-hidden="true"></div>
+            <div class="pack-showcase-sigil" aria-hidden="true"></div>
+            <div class="pack-showcase-flare" aria-hidden="true"></div>
+            <div class="pack-showcase-stardust" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
             <div class="pack-counter" id="pack-counter" style="display:none;"></div>
             <p class="pack-note" id="pack-note">НАЖМИ, ЧТОБЫ ОТКРЫТЬ</p>
             <div class="foil-pack" id="foil-pack">
@@ -11866,7 +12181,7 @@ PAGE_TEMPLATE = """
       state.pendingPackPaymentId = paymentId;
       state.pendingRewardPackType = packType || 'common';
       const meta = packTypeMeta(state.pendingRewardPackType);
-      packShowcase.classList.remove('opened');
+      packShowcase.classList.remove('opened', 'bursting', 'cinematic');
       packShowcase.classList.add('cinematic');
       foilPack.classList.remove('opening');
       foilPack.classList.remove('vanishing');
@@ -14047,18 +14362,26 @@ PAGE_TEMPLATE = """
       layer.classList.add('dimmed');
       grid.classList.add('focused');
       const slots = Array.from(grid.querySelectorAll('.pack-preview-slot'));
-      for (const slot of slots) {
+      const revealOrder = [2, 1, 3, 0, 4].filter((index) => index < slots.length);
+      for (const slotIndex of revealOrder) {
+        const slot = slots[slotIndex];
+        slots.forEach((node, index) => {
+          node.classList.toggle('support-glow', Math.abs(index - slotIndex) === 1);
+        });
         slot.classList.add('revealing');
-        await sleep(720);
+        slot.classList.add('impact');
+        await sleep(slotIndex === 2 ? 520 : 460);
         slot.classList.add('front-visible');
-        await sleep(820);
+        await sleep(360);
         slot.classList.add('face-locked');
-        await sleep(560);
+        await sleep(280);
         slot.classList.remove('revealing');
         slot.classList.add('revealed');
-        await sleep(180);
+        await sleep(slotIndex === 2 ? 240 : 150);
+        slot.classList.remove('impact');
+        slots.forEach((node) => node.classList.remove('support-glow'));
       }
-      await sleep(360);
+      await sleep(460);
       grid.classList.add('departing');
       layer.classList.remove('dimmed');
       await sleep(560);
@@ -15543,8 +15866,8 @@ PAGE_TEMPLATE = """
       state.lastResult = null;
       packCards.innerHTML = '';
       packScoreLabel.textContent = 'Вклад карт: -';
-      packShowcase.classList.remove('opened');
-      foilPack.classList.remove('opening');
+      packShowcase.classList.remove('opened', 'bursting', 'cinematic');
+      foilPack.classList.remove('opening', 'vanishing');
       packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
       battleResult.style.display = 'none';
       battleResult.className = 'result-box';
@@ -16229,7 +16552,7 @@ PAGE_TEMPLATE = """
       setStatus(document.getElementById('pack-status'), `Распаковываем ${packTypeMeta(resolvedPackType)?.label || resolvedPackType}...`, 'warning');
       foilPack.classList.remove('opening');
       foilPack.classList.remove('vanishing');
-      packShowcase.classList.remove('opened');
+      packShowcase.classList.remove('opened', 'bursting');
       packShowcase.classList.add('cinematic');
       requestAnimationFrame(() => foilPack.classList.add('opening'));
       packNote.textContent = 'Открываем...';
@@ -16247,9 +16570,12 @@ PAGE_TEMPLATE = """
         if (state.playerProfile && data.rewards) {
           state.playerProfile.rewards = data.rewards;
         }
-        await sleep(1300);
-        packShowcase.classList.add('opened');
-        packNote.textContent = 'Карты уже летят';
+        await sleep(1420);
+        foilPack.classList.remove('opening');
+        foilPack.classList.add('vanishing');
+        packShowcase.classList.add('opened', 'bursting');
+        packNote.textContent = 'Смотри, что внутри';
+        await sleep(420);
         if (isCosmeticPack) {
           const cosmetic = data.cosmetic_reward || {};
           await playCosmeticRouletteReveal(cosmetic);
@@ -16257,7 +16583,7 @@ PAGE_TEMPLATE = """
         } else {
           await renderPack(data.cards, data.total_score);
         }
-        packShowcase.classList.remove('cinematic');
+        packShowcase.classList.remove('cinematic', 'bursting');
         setStatus(
           document.getElementById('pack-status'),
           isCosmeticPack
@@ -16278,7 +16604,7 @@ PAGE_TEMPLATE = """
       } catch (error) {
         foilPack.classList.remove('opening');
         foilPack.classList.remove('vanishing');
-        packShowcase.classList.remove('cinematic');
+        packShowcase.classList.remove('cinematic', 'bursting');
         packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       } finally {
@@ -16979,8 +17305,8 @@ PAGE_TEMPLATE = """
         state.pendingPackSource = null;
         state.pendingPackPaymentId = null;
         state.packOpening = false;
-        packShowcase.classList.remove('opened');
-        foilPack.classList.remove('opening');
+        packShowcase.classList.remove('opened', 'bursting', 'cinematic');
+        foilPack.classList.remove('opening', 'vanishing');
         packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
         renderProfile();
         renderDomains(state.domains);
@@ -17107,8 +17433,8 @@ PAGE_TEMPLATE = """
           state.selectedBattleSlot = null;
           packCards.innerHTML = '';
           packScoreLabel.textContent = 'Вклад карт: -';
-          packShowcase.classList.remove('opened');
-          foilPack.classList.remove('opening');
+          packShowcase.classList.remove('opened', 'bursting', 'cinematic');
+          foilPack.classList.remove('opening', 'vanishing');
           packNote.textContent = 'НАЖМИ, ЧТОБЫ ОТКРЫТЬ';
           renderDomains([]);
           renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
