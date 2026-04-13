@@ -7296,364 +7296,6 @@ PAGE_TEMPLATE = """
       background: rgba(3, 8, 14, 0.86);
     }
 
-    .pack-reel-layer {
-      pointer-events: auto;
-    }
-
-    .pack-reel-shell {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      z-index: 7322;
-      width: min(1120px, calc(100vw - 28px));
-      max-height: calc(100vh - 24px);
-      padding: 18px 18px 124px;
-      border-radius: 26px;
-      border: 1px solid rgba(121, 217, 255, 0.26);
-      background:
-        linear-gradient(180deg, rgba(6, 16, 30, 0.96), rgba(4, 10, 22, 0.98)),
-        radial-gradient(circle at top, rgba(69, 215, 255, 0.12), transparent 56%);
-      box-shadow:
-        0 30px 72px rgba(0, 0, 0, 0.48),
-        0 0 0 1px rgba(255, 255, 255, 0.04);
-      transform: translate(-50%, -50%) scale(0.94);
-      opacity: 0;
-      overflow: hidden;
-      pointer-events: auto;
-      transition: opacity 260ms ease, transform 560ms cubic-bezier(.16,.84,.2,1);
-    }
-
-    .pack-reel-shell.live {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    .pack-reel-shell.complete {
-      box-shadow:
-        0 34px 82px rgba(0, 0, 0, 0.56),
-        0 0 0 1px rgba(255, 223, 142, 0.12),
-        0 0 42px rgba(69, 215, 255, 0.12);
-    }
-
-    .pack-reel-shell.skip-fast .pack-reel-track {
-      transition-duration: 180ms !important;
-    }
-
-    .pack-sequence-skip {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      min-height: 36px;
-      padding: 0 14px;
-      z-index: 3;
-    }
-
-    .pack-reel-head {
-      display: grid;
-      gap: 4px;
-      padding-right: 108px;
-      margin-bottom: 14px;
-      text-align: left;
-    }
-
-    .pack-reel-kicker {
-      font-size: 11px;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: rgba(125, 233, 255, 0.72);
-    }
-
-    .pack-reel-head strong {
-      font-size: 20px;
-      line-height: 1.04;
-      color: rgba(244, 250, 255, 0.98);
-    }
-
-    .pack-reel-head span {
-      font-size: 11px;
-      line-height: 1.28;
-      color: rgba(216, 232, 246, 0.78);
-    }
-
-    .pack-reel-grid {
-      display: grid;
-      gap: 10px;
-    }
-
-    .pack-reel-lane {
-      position: relative;
-      border-radius: 18px;
-    }
-
-    .pack-reel-lane.locked .pack-reel-window {
-      border-color: rgba(255, 223, 142, 0.34);
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 223, 142, 0.1),
-        0 16px 32px rgba(0, 0, 0, 0.22);
-    }
-
-    .pack-reel-window {
-      position: relative;
-      overflow: hidden;
-      border-radius: 18px;
-      border: 1px solid rgba(121, 217, 255, 0.16);
-      background:
-        linear-gradient(180deg, rgba(7, 16, 30, 0.98), rgba(4, 11, 22, 1)),
-        radial-gradient(circle at center, rgba(69, 215, 255, 0.06), transparent 52%);
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-    }
-
-    .pack-reel-window::before,
-    .pack-reel-window::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 86px;
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .pack-reel-window::before {
-      left: 0;
-      background: linear-gradient(90deg, rgba(4, 11, 22, 0.98), rgba(4, 11, 22, 0));
-    }
-
-    .pack-reel-window::after {
-      right: 0;
-      background: linear-gradient(270deg, rgba(4, 11, 22, 0.98), rgba(4, 11, 22, 0));
-    }
-
-    .pack-reel-centerline {
-      position: absolute;
-      left: 50%;
-      top: 8px;
-      bottom: 8px;
-      width: 2px;
-      transform: translateX(-50%);
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255, 223, 142, 0.14), rgba(255, 223, 142, 0.88), rgba(255, 223, 142, 0.14));
-      box-shadow: 0 0 22px rgba(255, 223, 142, 0.3);
-      z-index: 3;
-      pointer-events: none;
-    }
-
-    .pack-reel-track {
-      display: inline-flex;
-      align-items: stretch;
-      flex-wrap: nowrap;
-      gap: 10px;
-      width: max-content;
-      padding: 10px 16px;
-      transform: translateX(0);
-      will-change: transform;
-    }
-
-    .pack-reel-track.spinning .pack-reel-card {
-      filter: saturate(1.12) contrast(1.04);
-    }
-
-    .pack-reel-card {
-      position: relative;
-      width: 128px;
-      min-width: 128px;
-      min-height: 72px;
-      padding: 9px 10px 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(121, 217, 255, 0.18);
-      background:
-        linear-gradient(180deg, rgba(11, 21, 36, 0.96), rgba(7, 14, 26, 0.99)),
-        radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 48%);
-      color: #f0f7ff;
-      display: grid;
-      gap: 5px;
-      align-content: start;
-      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.2);
-      transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease, filter 240ms ease;
-    }
-
-    .pack-reel-card-kicker {
-      font-size: 9px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(216, 228, 240, 0.76);
-    }
-
-    .pack-reel-card strong {
-      font-size: 13px;
-      line-height: 1.05;
-      color: rgba(248, 251, 255, 0.98);
-    }
-
-    .pack-reel-card-meta {
-      display: none;
-    }
-
-    .pack-reel-card-beam {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 4px;
-      opacity: 0.92;
-    }
-
-    .pack-reel-card.basic { border-color: rgba(214, 223, 236, 0.22); }
-    .pack-reel-card.rare { border-color: rgba(125, 233, 255, 0.32); }
-    .pack-reel-card.epic { border-color: rgba(255, 150, 176, 0.36); }
-    .pack-reel-card.mythic { border-color: rgba(210, 168, 255, 0.42); }
-    .pack-reel-card.legendary { border-color: rgba(255, 223, 142, 0.48); }
-
-    .pack-reel-card.basic .pack-reel-card-beam { background: linear-gradient(90deg, rgba(214,223,236,0), rgba(214,223,236,0.9), rgba(214,223,236,0)); }
-    .pack-reel-card.rare .pack-reel-card-beam { background: linear-gradient(90deg, rgba(125,233,255,0), rgba(125,233,255,0.96), rgba(125,233,255,0)); }
-    .pack-reel-card.epic .pack-reel-card-beam { background: linear-gradient(90deg, rgba(255,150,176,0), rgba(255,150,176,0.96), rgba(255,150,176,0)); }
-    .pack-reel-card.mythic .pack-reel-card-beam { background: linear-gradient(90deg, rgba(210,168,255,0), rgba(210,168,255,0.98), rgba(210,168,255,0)); }
-    .pack-reel-card.legendary .pack-reel-card-beam { background: linear-gradient(90deg, rgba(255,223,142,0), rgba(255,223,142,1), rgba(255,223,142,0)); }
-
-    .pack-reel-card.winner-card,
-    .pack-reel-card.locked {
-      transform: translateY(-2px) scale(1.04);
-      border-color: rgba(255, 223, 142, 0.54);
-      box-shadow:
-        0 0 0 1px rgba(255, 223, 142, 0.18),
-        0 20px 32px rgba(0, 0, 0, 0.28),
-        0 0 28px rgba(69, 215, 255, 0.14);
-      filter: saturate(1.08) brightness(1.06);
-    }
-
-    .pack-reel-mascot-bar {
-      position: absolute;
-      left: 18px;
-      right: 18px;
-      bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 12px 14px;
-      border-radius: 20px;
-      border: 1px solid rgba(121, 217, 255, 0.18);
-      background:
-        linear-gradient(180deg, rgba(7, 18, 32, 0.98), rgba(5, 12, 22, 0.98)),
-        radial-gradient(circle at top right, rgba(69, 215, 255, 0.14), transparent 42%);
-      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.32);
-    }
-
-    .pack-reel-mascot-bar img {
-      width: 78px;
-      height: 78px;
-      object-fit: contain;
-      filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.28));
-      flex: 0 0 auto;
-    }
-
-    .pack-reel-mascot-copy {
-      display: grid;
-      gap: 4px;
-      min-width: 0;
-    }
-
-    .pack-reel-mascot-copy strong {
-      font-size: 15px;
-      line-height: 1.06;
-      color: rgba(255, 244, 209, 0.98);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .pack-reel-mascot-copy span {
-      font-size: 12px;
-      line-height: 1.32;
-      color: rgba(225, 241, 255, 0.84);
-    }
-
-    @media (max-width: 760px) {
-      .pack-reel-shell {
-        width: calc(100vw - 14px);
-        padding: 14px 10px 98px;
-        border-radius: 18px;
-      }
-
-      .pack-sequence-skip {
-        top: 10px;
-        right: 10px;
-        min-height: 32px;
-        padding: 0 10px;
-        font-size: 11px;
-      }
-
-      .pack-reel-head {
-        padding-right: 82px;
-        margin-bottom: 10px;
-      }
-
-      .pack-reel-kicker {
-        font-size: 9px;
-      }
-
-      .pack-reel-head strong {
-        font-size: 16px;
-      }
-
-      .pack-reel-head span {
-        font-size: 10px;
-        line-height: 1.26;
-      }
-
-      .pack-reel-grid {
-        gap: 7px;
-      }
-
-      .pack-reel-window::before,
-      .pack-reel-window::after {
-        width: 34px;
-      }
-
-      .pack-reel-track {
-        gap: 7px;
-        padding: 7px 10px;
-      }
-
-      .pack-reel-card {
-        width: 88px;
-        min-width: 88px;
-        min-height: 58px;
-        padding: 6px 7px 7px;
-        gap: 3px;
-        border-radius: 11px;
-      }
-
-      .pack-reel-card-kicker {
-        font-size: 7px;
-      }
-
-      .pack-reel-card strong {
-        font-size: 9px;
-      }
-
-      .pack-reel-mascot-bar {
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
-        gap: 10px;
-        padding: 8px 10px;
-        border-radius: 14px;
-      }
-
-      .pack-reel-mascot-bar img {
-        width: 54px;
-        height: 54px;
-      }
-
-      .pack-reel-mascot-copy strong {
-        font-size: 11px;
-      }
-
-      .pack-reel-mascot-copy span {
-        font-size: 9px;
-        line-height: 1.22;
-      }
-    }
-
     .pack-sequence-layer.finale::before,
     .pack-sequence-layer.finale::after {
       content: "";
@@ -15620,12 +15262,8 @@ PAGE_TEMPLATE = """
 
     let activePackSequenceLayer = null;
     let activePackPreviewGrid = null;
-    let activePackSequenceController = null;
 
     function cleanupPackSequencePreview() {
-      if (activePackSequenceController) {
-        activePackSequenceController.skipRequested = true;
-      }
       if (activePackPreviewGrid && activePackPreviewGrid.parentNode) {
         activePackPreviewGrid.parentNode.removeChild(activePackPreviewGrid);
       }
@@ -15634,7 +15272,6 @@ PAGE_TEMPLATE = """
       }
       activePackPreviewGrid = null;
       activePackSequenceLayer = null;
-      activePackSequenceController = null;
       document.body.classList.remove('pack-sequence-active');
     }
 
@@ -15673,191 +15310,73 @@ PAGE_TEMPLATE = """
       }
     }
 
-    function packReelCardMarkup(card, laneIndex, itemIndex) {
-      const rarityKey = String(card.rarity_key || card.rarity || 'basic').toLowerCase();
-      const title = escapeHtml(card.title || 'Карта');
-      const rarity = escapeHtml(card.rarity || 'Basic');
-      return `
-        <article class="pack-reel-card ${rarityKey}" data-reel-index="${itemIndex}" data-lane-index="${laneIndex}">
-          <div class="pack-reel-card-kicker">${rarity}</div>
-          <strong>${title}</strong>
-          <div class="pack-reel-card-beam"></div>
-        </article>
-      `;
-    }
-
-    function buildPackReelLanePool(cards, winnerCard, laneIndex) {
-      const safeCards = Array.isArray(cards) && cards.length ? cards : [winnerCard];
-      const totalItems = 26 + laneIndex * 2;
-      const winnerIndex = Math.min(totalItems - 6, 15 + laneIndex * 2);
-      const items = [];
-      for (let index = 0; index < totalItems; index += 1) {
-        if (index === winnerIndex) {
-          items.push(winnerCard);
-          continue;
-        }
-        const sourceIndex = (index + laneIndex * 3 + Math.floor(index / 2)) % safeCards.length;
-        items.push(safeCards[sourceIndex]);
-      }
-      return { items, winnerIndex };
-    }
-
-    async function waitWithPackSkip(durationMs, controller) {
-      const startedAt = performance.now();
-      while (performance.now() - startedAt < durationMs) {
-        if (controller && controller.skipRequested) return true;
-        await sleep(50);
-      }
-      return Boolean(controller && controller.skipRequested);
-    }
-
-    function setPackReelMascotMessage(node, title, body) {
-      if (!node) return;
-      const titleNode = node.querySelector('[data-pack-mascot-title]');
-      const bodyNode = node.querySelector('[data-pack-mascot-body]');
-      if (titleNode) titleNode.textContent = title;
-      if (bodyNode) bodyNode.textContent = body;
-    }
-
-    async function animatePackReelLane(laneMeta, controller, onStop) {
-      const { laneIndex, track, windowEl, winnerIndex, winnerCard } = laneMeta;
-      const firstCard = track.querySelector('.pack-reel-card');
-      if (!firstCard) return;
-      const cardRect = firstCard.getBoundingClientRect();
-      const gap = parseFloat(window.getComputedStyle(track).gap || '10') || 10;
-      const cardStep = cardRect.width + gap;
-      const centerOffset = windowEl.clientWidth / 2 - cardRect.width / 2;
-      const target = Math.max(0, winnerIndex * cardStep - centerOffset);
-      const fastTarget = Math.max(0, target - cardStep * (8 + laneIndex * 2));
-      const fastDuration = 2100 + laneIndex * 220;
-      const slowDuration = 1460 + laneIndex * 180;
-
-      track.style.transition = 'none';
-      track.style.transform = 'translate3d(0px, 0, 0)';
-      void track.offsetWidth;
-      await nextFrame();
-      await nextFrame();
-
-      if (controller.skipRequested) {
-        track.style.transition = 'transform 180ms ease-out';
-        track.style.transform = `translate3d(-${target.toFixed(2)}px, 0, 0)`;
-        await sleep(190);
-      } else {
-        track.classList.add('spinning');
-        track.style.transition = `transform ${fastDuration}ms cubic-bezier(.12,.86,.18,1)`;
-        track.style.transform = `translate3d(-${fastTarget.toFixed(2)}px, 0, 0)`;
-        const skippedFast = await waitWithPackSkip(fastDuration + 40, controller);
-        track.style.transition = `transform ${skippedFast ? 180 : slowDuration}ms cubic-bezier(.06,.96,.12,1)`;
-        track.style.transform = `translate3d(-${target.toFixed(2)}px, 0, 0)`;
-        await waitWithPackSkip((skippedFast ? 180 : slowDuration) + 40, controller);
-      }
-
-      track.classList.remove('spinning');
-      const winnerNode = track.querySelector(`.pack-reel-card[data-reel-index="${winnerIndex}"]`);
-      if (winnerNode) {
-        winnerNode.classList.add('locked');
-      }
-      if (laneMeta.laneEl) {
-        laneMeta.laneEl.classList.add('locked');
-      }
-      if (typeof onStop === 'function') {
-        onStop(laneMeta, winnerCard);
-      }
-    }
-
     async function playPackSequence(cards = []) {
       cleanupPackSequencePreview();
       if (!Array.isArray(cards) || !cards.length) return;
-      const controller = { skipRequested: false };
-      activePackSequenceController = controller;
-
       const layer = document.createElement('div');
-      layer.className = 'pack-sequence-layer pack-reel-layer dimmed';
-
-      const shell = document.createElement('div');
-      shell.className = 'pack-reel-shell';
-      shell.innerHTML = `
-        <button type="button" class="secondary pack-sequence-skip">Пропустить</button>
-        <div class="pack-reel-head">
-          <div class="pack-reel-kicker">Pack Opening</div>
-          <strong>Пять дорожек. Пять карт.</strong>
-          <span>Смотри на центр каждой линии. Там фиксируется итог.</span>
-        </div>
-        <div class="pack-reel-grid"></div>
-        <div class="pack-reel-mascot-bar">
+      layer.className = 'pack-sequence-layer';
+      const finaleMascot = document.createElement('div');
+      finaleMascot.className = 'pack-sequence-mascot';
+      finaleMascot.innerHTML = `
+        <div class="pack-sequence-mascot-core">
+          <span class="pack-sequence-mascot-ring"></span>
+          <span class="pack-sequence-mascot-spark"></span>
+          <span class="pack-sequence-mascot-spark alt"></span>
           <img src="/static/mascot-ton-bot.png" alt="">
-          <div class="pack-reel-mascot-copy">
-            <strong data-pack-mascot-title>Пошёл прокрут</strong>
-            <span data-pack-mascot-body>Смотри в центр линии. Если всё уже понятно, жми «Пропустить».</span>
-          </div>
+        </div>
+        <div class="pack-sequence-mascot-bubble">
+          <strong>Колода готова</strong>
+          <span>Лучшие карты уже впереди. Проверь синергию и сразу заходи в бой.</span>
         </div>
       `;
-
-      const skipBtn = shell.querySelector('.pack-sequence-skip');
-      const reelGrid = shell.querySelector('.pack-reel-grid');
-      const mascotBar = shell.querySelector('.pack-reel-mascot-copy');
-      if (skipBtn) {
-        skipBtn.addEventListener('click', () => {
-          controller.skipRequested = true;
-          shell.classList.add('skip-fast');
-          if (skipBtn) {
-            skipBtn.disabled = true;
-            skipBtn.textContent = 'Финишируем...';
-          }
-        });
-      }
-
-      const laneModels = cards.map((winnerCard, laneIndex) => {
-        const { items, winnerIndex } = buildPackReelLanePool(cards, winnerCard, laneIndex);
-        const laneEl = document.createElement('div');
-        laneEl.className = 'pack-reel-lane';
-        laneEl.innerHTML = `
-          <div class="pack-reel-window">
-            <div class="pack-reel-centerline" aria-hidden="true"></div>
-            <div class="pack-reel-track">
-              ${items.map((item, itemIndex) => packReelCardMarkup(item, laneIndex, itemIndex)).join('')}
-            </div>
-          </div>
-        `;
-        reelGrid.appendChild(laneEl);
-        return {
-          laneIndex,
-          laneEl,
-          windowEl: laneEl.querySelector('.pack-reel-window'),
-          track: laneEl.querySelector('.pack-reel-track'),
-          winnerIndex,
-          winnerCard
-        };
-      });
-
+      const grid = document.createElement('div');
+      grid.className = 'pack-preview-grid';
+      grid.innerHTML = cards.map((card, index) => `
+        <div class="pack-preview-slot" style="--pack-slot-index:${index};">
+          ${packLootFlipMarkup(card, index)}
+        </div>
+      `).join('');
       document.body.appendChild(layer);
-      layer.appendChild(shell);
+      document.body.appendChild(grid);
+      layer.appendChild(finaleMascot);
       activePackSequenceLayer = layer;
-      activePackPreviewGrid = null;
+      activePackPreviewGrid = grid;
       document.body.classList.add('pack-sequence-active');
-
       await nextFrame();
-      shell.classList.add('live');
-
-      await Promise.all(laneModels.map((laneMeta) => animatePackReelLane(laneMeta, controller, (_lane, winnerCard) => {
-        setPackReelMascotMessage(
-          mascotBar,
-          `Линия ${laneMeta.laneIndex + 1} зафиксирована`,
-          `${winnerCard.title || 'Карта'} встала по центру. Добираем остальные линии.`
-        );
-      })));
-
-      shell.classList.add('complete');
-      setPackReelMascotMessage(
-        mascotBar,
-        'Пятёрка собрана',
-        'Колода готова. Итоговый состав уже ниже.'
-      );
-      if (skipBtn) {
-        skipBtn.disabled = true;
-        skipBtn.textContent = 'Готово';
+      layer.classList.add('dimmed');
+      grid.classList.add('focused');
+      const slots = Array.from(grid.querySelectorAll('.pack-preview-slot'));
+      const revealOrder = [2, 1, 3, 0, 4].filter((index) => index < slots.length);
+      for (const slotIndex of revealOrder) {
+        const slot = slots[slotIndex];
+        slots.forEach((node, index) => {
+          node.classList.toggle('support-glow', Math.abs(index - slotIndex) === 1);
+        });
+        slot.classList.add('spotlight-anchor');
+        slot.classList.add('revealing');
+        slot.classList.add('impact');
+        await sleep(slotIndex === 2 ? 760 : 680);
+        slot.classList.add('front-visible');
+        await sleep(520);
+        slot.classList.add('face-locked');
+        await sleep(380);
+        slot.classList.remove('revealing');
+        slot.classList.add('revealed');
+        await sleep(slotIndex === 2 ? 300 : 220);
+        slot.classList.remove('spotlight-anchor');
+        slot.classList.remove('impact');
+        slots.forEach((node) => node.classList.remove('support-glow'));
       }
-      await waitWithPackSkip(controller.skipRequested ? 240 : 1600, controller);
+      await sleep(260);
+      layer.classList.add('finale');
+      grid.classList.add('victory-fan');
+      finaleMascot.classList.add('visible');
+      await sleep(3400);
+      finaleMascot.classList.add('fade-out');
+      grid.classList.add('departing');
+      layer.classList.remove('dimmed');
+      layer.classList.remove('finale');
+      await sleep(980);
       cleanupPackSequencePreview();
     }
 
