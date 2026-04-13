@@ -7213,6 +7213,7 @@ PAGE_TEMPLATE = """
         transform 820ms cubic-bezier(.16,.84,.2,1),
         opacity 260ms ease;
       overflow: hidden;
+      pointer-events: none;
     }
 
     .pack-preview-card .game-card {
@@ -7279,7 +7280,7 @@ PAGE_TEMPLATE = """
     }
 
     .pack-preview-card.arrived {
-      transform: perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1);
+      transform: perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(1.04);
     }
 
     .pack-preview-grid {
@@ -7328,6 +7329,15 @@ PAGE_TEMPLATE = """
     .pack-preview-grid.focused::before {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1.08);
+    }
+
+    .pack-preview-grid.spotlighting .pack-preview-slot:not(.spotlight-anchor) {
+      opacity: 0.18;
+      filter: blur(2px) saturate(0.7);
+    }
+
+    .pack-preview-grid.spotlighting .pack-preview-slot.spotlight-anchor {
+      z-index: 14;
     }
 
     .pack-preview-grid.departing {
@@ -9411,6 +9421,7 @@ PAGE_TEMPLATE = """
 
     body.tma-app .showdown-fullscreen {
       position: relative;
+      z-index: 1;
       inset: auto;
       top: auto;
       bottom: auto;
@@ -9497,13 +9508,6 @@ PAGE_TEMPLATE = """
       display: grid !important;
       left: 8px;
       bottom: calc(8px + env(safe-area-inset-bottom));
-    }
-
-    body.tma-app.tma-ios .battle-fx-layer,
-    body.tma-app.tma-ios .final-climax,
-    body.tma-app.tma-ios .final-chip,
-    body.tma-app.tma-ios .final-core {
-      display: none !important;
     }
 
     body.tma-app.tma-ios .hero,
@@ -9675,17 +9679,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .arena-choice-hub::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: -18px;
-      border-radius: 18px 18px 26px 26px;
-      background:
-        linear-gradient(180deg, rgba(4, 14, 27, 0.97) 0%, rgba(4, 14, 27, 0.9) 74%, rgba(4, 14, 27, 0) 100%);
-      pointer-events: none;
-      z-index: -1;
+      display: none;
     }
 
     body.tma-app .arena-choice-panel {
@@ -9693,6 +9687,12 @@ PAGE_TEMPLATE = """
       margin: 0;
       width: 100%;
       max-width: 100%;
+      background:
+        linear-gradient(180deg, rgba(8, 21, 37, 0.76), rgba(8, 17, 29, 0.8)),
+        radial-gradient(circle at top, rgba(69, 215, 255, 0.08), transparent 62%);
+      box-shadow:
+        0 12px 24px rgba(0, 0, 0, 0.18),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.02);
     }
 
     body.tma-app .arena-battle-dock {
@@ -9782,7 +9782,7 @@ PAGE_TEMPLATE = """
       bottom: auto;
       width: 100% !important;
       max-width: 100% !important;
-      margin: 0;
+      margin: calc(42px + env(safe-area-inset-top)) 0 calc(88px + env(safe-area-inset-bottom));
       transform: none !important;
       z-index: 4;
       pointer-events: auto;
@@ -9792,6 +9792,10 @@ PAGE_TEMPLATE = """
       width: 100%;
       max-width: 100%;
       margin: 0;
+      background:
+        linear-gradient(135deg, rgba(8, 23, 43, 0.62), rgba(10, 29, 34, 0.66)),
+        radial-gradient(circle at top, rgba(69, 215, 255, 0.08), transparent 62%);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
     }
 
     body.tma-app .battle-stage.visible .interactive-battle-panel::before,
@@ -14342,6 +14346,42 @@ PAGE_TEMPLATE = """
       activePackSequenceLayer = null;
     }
 
+    async function spotlightPackRevealCard(card, sourceSlot = null) {
+      if (!card) return;
+      if (activePackPreviewCard && activePackPreviewCard.parentNode) {
+        activePackPreviewCard.parentNode.removeChild(activePackPreviewCard);
+      }
+      const previewCard = document.createElement('div');
+      previewCard.className = 'pack-preview-card';
+      previewCard.innerHTML = packLootFlipMarkup(card, 0);
+      const flipCard = previewCard.querySelector('.pack-flip-card');
+      if (flipCard) {
+        flipCard.classList.add('sequence-visible', 'final-face-lock');
+      }
+      const slotRect = sourceSlot && typeof sourceSlot.getBoundingClientRect === 'function'
+        ? sourceSlot.getBoundingClientRect()
+        : null;
+      previewCard.style.left = slotRect ? `${slotRect.left + (slotRect.width / 2)}px` : '50%';
+      previewCard.style.top = slotRect ? `${slotRect.top + (slotRect.height / 2)}px` : '50%';
+      document.body.appendChild(previewCard);
+      activePackPreviewCard = previewCard;
+      await nextFrame();
+      previewCard.classList.add('focused');
+      previewCard.style.left = '50%';
+      previewCard.style.top = '50%';
+      previewCard.classList.add('arrived');
+      await sleep(880);
+      previewCard.style.opacity = '0';
+      previewCard.style.transform = 'perspective(1400px) translate(-50%, -50%) rotateY(0deg) scale(0.82)';
+      await sleep(240);
+      if (activePackPreviewCard === previewCard) {
+        activePackPreviewCard = null;
+      }
+      if (previewCard.parentNode) {
+        previewCard.parentNode.removeChild(previewCard);
+      }
+    }
+
     async function playPackSequence(cards = []) {
       cleanupPackSequencePreview();
       if (!Array.isArray(cards) || !cards.length) return;
@@ -14374,6 +14414,11 @@ PAGE_TEMPLATE = """
         slot.classList.add('front-visible');
         await sleep(360);
         slot.classList.add('face-locked');
+        slot.classList.add('spotlight-anchor');
+        grid.classList.add('spotlighting');
+        await spotlightPackRevealCard(cards[slotIndex], slot);
+        grid.classList.remove('spotlighting');
+        slot.classList.remove('spotlight-anchor');
         await sleep(280);
         slot.classList.remove('revealing');
         slot.classList.add('revealed');
