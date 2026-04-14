@@ -125,6 +125,24 @@ ENV_FILE_PATH = Path(os.getenv('ENV_FILE_PATH', '.env'))
 PACK_PITY_THRESHOLD = int(os.getenv('PACK_PITY_THRESHOLD', '20'))
 TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS = int(os.getenv('TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS', '300'))
 
+
+def parse_env_csv_set(name, default=''):
+    raw = os.getenv(name, default)
+    return {item.strip().lower() for item in str(raw or '').split(',') if item and item.strip()}
+
+
+def normalize_domain_token(value):
+    token = str(value or '').strip().lower()
+    if token.endswith('.ton'):
+        token = token[:-4]
+    return token
+
+
+UNO_PRIVATE_MODE = os.getenv('UNO_PRIVATE_MODE', '1').strip().lower() in {'1', 'true', 'yes', 'on'}
+UNO_TESTER_USERNAMES = parse_env_csv_set('UNO_TESTER_USERNAMES', 'ignat_101')
+UNO_TESTER_DOMAINS = {normalize_domain_token(item) for item in parse_env_csv_set('UNO_TESTER_DOMAINS', '7288') if normalize_domain_token(item)}
+UNO_TESTER_WALLETS = parse_env_csv_set('UNO_TESTER_WALLETS', '')
+
 DOMAIN_CACHE = {}
 TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
 TONCONNECT_SCRIPT_CACHE = {'body': None, 'content_type': 'application/javascript; charset=utf-8'}
@@ -12636,7 +12654,7 @@ PAGE_TEMPLATE = """
           <strong>Domain Game</strong>
           <span>Основная карточная игра по твоему `.ton` домену с колодой, боями, кланами и пропуском.</span>
         </button>
-        <button type="button" class="app-launcher-app" data-launch-app="uno">
+        <button type="button" class="app-launcher-app" data-launch-app="uno" data-uno-entry="1" hidden>
           <div class="app-launcher-icon uno"></div>
           <strong>UNO Arena</strong>
           <span>Быстрый UNO-режим на тех же скинах, том же домене и том же сезонном прогрессе.</span>
@@ -12644,7 +12662,7 @@ PAGE_TEMPLATE = """
       </div>
       <div class="app-launcher-dock">
         <button type="button" class="app-launcher-mini" data-launch-app="domain"><i></i>Domain</button>
-        <button type="button" class="app-launcher-mini uno" data-launch-app="uno"><i></i>UNO</button>
+        <button type="button" class="app-launcher-mini uno" data-launch-app="uno" data-uno-entry="1" hidden><i></i>UNO</button>
       </div>
       <div class="app-launcher-hint">Нажми на логотип сверху в любой момент, чтобы снова открыть этот экран и переключиться между приложениями.</div>
     </div>
@@ -12686,7 +12704,7 @@ PAGE_TEMPLATE = """
         <button type="button" id="mascot-open-profile-btn">Профиль</button>
         <button type="button" id="mascot-open-pack-btn">Карты</button>
         <button type="button" id="mascot-open-battle-btn">Игра</button>
-        <button type="button" id="mascot-open-uno-btn">UNO</button>
+        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>UNO</button>
         <button type="button" class="secondary" id="mascot-open-guide-btn">Гайд</button>
       </div>
       <div class="mascot-popover-actions" id="mascot-uno-actions" hidden>
@@ -12766,6 +12784,10 @@ PAGE_TEMPLATE = """
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
     const telegramWebappUrl = {{ telegram_webapp_url|tojson }};
+    const unoPrivateMode = Boolean({{ uno_private_mode|tojson }});
+    const unoTesterUsernames = new Set(({{ uno_tester_usernames|tojson }} || []).map((item) => String(item || '').trim().toLowerCase()).filter(Boolean));
+    const unoTesterDomains = new Set(({{ uno_tester_domains|tojson }} || []).map((item) => String(item || '').trim().toLowerCase()).filter(Boolean));
+    const unoTesterWallets = new Set(({{ uno_tester_wallets|tojson }} || []).map((item) => String(item || '').trim().toLowerCase()).filter(Boolean));
     const marketplaceLinks = {{ marketplace_links|tojson }};
     const activeDuelInviteStoragePrefix = 'active_duel_invite:';
     const initialSearchParams = new URLSearchParams(window.location.search || '');
@@ -15202,8 +15224,79 @@ PAGE_TEMPLATE = """
       modeGrid.classList.toggle('matchmaking-live', Boolean(state.matchmakingMode));
     }
 
+    function normalizeTesterWallet(value) {
+      return String(value || '').trim().toLowerCase();
+    }
+
+    function normalizeTesterDomain(value) {
+      return String(value || '').trim().toLowerCase().replace(/\\.ton$/i, '');
+    }
+
+    function normalizeTesterUsername(value) {
+      return String(value || '').trim().toLowerCase().replace(/^@+/, '');
+    }
+
+    function hasUnoTesterAccess() {
+      if (!unoPrivateMode) {
+        return true;
+      }
+      const wallet = normalizeTesterWallet(state.wallet);
+      const domain = normalizeTesterDomain(
+        state.selectedDomain
+        || (state.playerProfile && (state.playerProfile.current_domain || state.playerProfile.best_domain))
+        || ''
+      );
+      const telegramUsername = normalizeTesterUsername(
+        state.playerProfile
+        && state.playerProfile.telegram
+        && state.playerProfile.telegram.username
+      );
+      if (wallet && unoTesterWallets.has(wallet)) {
+        return true;
+      }
+      if (domain && unoTesterDomains.has(domain)) {
+        return true;
+      }
+      if (telegramUsername && unoTesterUsernames.has(telegramUsername)) {
+        return true;
+      }
+      return false;
+    }
+
+    function applyUnoTesterVisibility() {
+      const allowed = hasUnoTesterAccess();
+      const hideUno = unoPrivateMode && !allowed;
+      if (appLauncher) {
+        appLauncher.querySelectorAll('[data-uno-entry]').forEach((node) => {
+          node.hidden = hideUno;
+          if ('disabled' in node) {
+            node.disabled = hideUno;
+          }
+        });
+      }
+      if (mascotOpenUnoBtn) {
+        mascotOpenUnoBtn.hidden = hideUno;
+        mascotOpenUnoBtn.disabled = hideUno;
+      }
+      if (hideUno && mascotUnoActions) {
+        mascotUnoActions.hidden = true;
+      }
+      return allowed;
+    }
+
+    function unoTesterGuard() {
+      if (hasUnoTesterAccess()) {
+        return true;
+      }
+      setStatus(walletStatus, 'UNO скрыт: это закрытый тестовый режим.', 'warning');
+      return false;
+    }
+
     function switchView(name) {
       if (name === 'wallet') {
+        name = 'profile';
+      }
+      if (name === 'uno' && !hasUnoTesterAccess()) {
         name = 'profile';
       }
       if (name !== 'uno') {
@@ -15240,6 +15333,7 @@ PAGE_TEMPLATE = """
       });
       document.body.dataset.activeView = name;
       state.activeApp = name === 'uno' ? 'uno' : 'domain';
+      applyUnoTesterVisibility();
       syncMascotPopover();
       try {
         window.localStorage.setItem(appLauncherStorageKey, state.activeApp);
@@ -15290,6 +15384,10 @@ PAGE_TEMPLATE = """
       closeStartupGuide(false);
       closeAppLauncher();
       if (safeApp === 'uno') {
+        if (!hasUnoTesterAccess()) {
+          switchView('profile');
+          return;
+        }
         clearCompletedUnoSession();
         switchView('uno');
         restoreUnoSession().catch(() => {});
@@ -15310,6 +15408,13 @@ PAGE_TEMPLATE = """
 
     function openUnoHub(options = {}) {
       const {closePopover = true} = options;
+      if (!hasUnoTesterAccess()) {
+        if (closePopover) {
+          setMascotOpen(false);
+        }
+        switchView('profile');
+        return;
+      }
       clearCompletedUnoSession();
       switchView('uno');
       renderUnoPanel();
@@ -15336,7 +15441,8 @@ PAGE_TEMPLATE = """
     }
 
     function syncMascotPopover() {
-      const unoContext = document.body.dataset.activeView === 'uno' || state.activeApp === 'uno';
+      const unoEnabled = hasUnoTesterAccess();
+      const unoContext = unoEnabled && (document.body.dataset.activeView === 'uno' || state.activeApp === 'uno');
       if (mascotPopoverTitle) {
         mascotPopoverTitle.textContent = unoContext ? 'UNO Arena' : 'Помощник Ton Domain';
       }
@@ -15347,7 +15453,7 @@ PAGE_TEMPLATE = """
         mascotDomainActions.hidden = Boolean(unoContext);
       }
       if (mascotUnoActions) {
-        mascotUnoActions.hidden = !unoContext;
+        mascotUnoActions.hidden = !unoContext || !unoEnabled;
       }
     }
 
@@ -15615,6 +15721,7 @@ PAGE_TEMPLATE = """
       renderPackEconomy();
       renderIdentityPanel();
       renderCosmeticsPanel();
+      applyUnoTesterVisibility();
       renderUnoPanel();
       renderFaqPanel();
       renderSocialPanel();
@@ -16680,6 +16787,7 @@ PAGE_TEMPLATE = """
     }
 
     async function restoreUnoSession() {
+      if (!hasUnoTesterAccess()) return false;
       const identity = unoActiveIdentity();
       if ((!identity.wallet && !identity.guest_id) || state.unoRestoreInFlight) return false;
       const sessionId = rememberedUnoSessionId();
@@ -16725,6 +16833,10 @@ PAGE_TEMPLATE = """
     }
 
     async function pollUnoStatus() {
+      if (!hasUnoTesterAccess()) {
+        stopUnoStatusPolling();
+        return;
+      }
       const identity = unoActiveIdentity();
       if ((!identity.wallet && !identity.guest_id) || !state.unoSession || !state.unoSession.session_id) {
         stopUnoStatusPolling();
@@ -16779,6 +16891,12 @@ PAGE_TEMPLATE = """
 
     function renderUnoPanel() {
       if (!unoRoot) return;
+      if (!hasUnoTesterAccess()) {
+        stopUnoStatusPolling();
+        setUnoLiveLock(false);
+        unoRoot.innerHTML = '<div class="uno-empty"><strong>Режим UNO недоступен.</strong><div class="tiny">Сейчас это закрытый тестовый режим.</div></div>';
+        return;
+      }
       syncMascotPopover();
       const identity = unoActiveIdentity();
       const rewards = unoProgressEnabled()
@@ -17134,6 +17252,7 @@ PAGE_TEMPLATE = """
     }
 
     async function startUnoMatch() {
+      if (!unoTesterGuard()) return;
       await prepareFunctionalInteraction();
       const payload = unoActorPayload();
       if (!payload.wallet && !payload.guest_id) return;
@@ -17161,6 +17280,7 @@ PAGE_TEMPLATE = """
     }
 
     async function createUnoRoom() {
+      if (!unoTesterGuard()) return;
       await prepareFunctionalInteraction();
       const actor = unoActorPayload();
       if (!actor.wallet && !actor.guest_id) return;
@@ -17188,6 +17308,7 @@ PAGE_TEMPLATE = """
     }
 
     async function joinUnoRoom() {
+      if (!unoTesterGuard()) return;
       await prepareFunctionalInteraction();
       const actor = unoActorPayload();
       if (!actor.wallet && !actor.guest_id) return;
@@ -17219,6 +17340,7 @@ PAGE_TEMPLATE = """
     }
 
     async function startUnoRoom() {
+      if (!unoTesterGuard()) return;
       await prepareFunctionalInteraction();
       if (!state.unoSession || !state.unoSession.session_id) return;
       try {
@@ -17241,6 +17363,7 @@ PAGE_TEMPLATE = """
     }
 
     async function searchUnoQuickMatch() {
+      if (!unoTesterGuard()) return;
       await prepareFunctionalInteraction();
       const payload = unoActorPayload();
       if (!payload.wallet && !payload.guest_id) return;
@@ -17267,6 +17390,7 @@ PAGE_TEMPLATE = """
     }
 
     async function leaveUnoSession() {
+      if (!unoTesterGuard()) return;
       await prepareFunctionalInteraction();
       if (!state.unoSession || !state.unoSession.session_id) return;
       try {
@@ -17289,6 +17413,7 @@ PAGE_TEMPLATE = """
     }
 
     async function runUnoAction(action, cardId = '', chosenColor = '') {
+      if (!unoTesterGuard()) return;
       await prepareFunctionalInteraction();
       if (!state.unoSession || !state.unoSession.session_id) return;
       try {
@@ -21241,6 +21366,7 @@ PAGE_TEMPLATE = """
     renderOwnedDecks([], null);
     renderClanSeasonHub();
     refreshOneCardSelector();
+    applyUnoTesterVisibility();
     syncMascotPopover();
     const initialApp = (() => {
       try {
@@ -21249,7 +21375,7 @@ PAGE_TEMPLATE = """
         return 'domain';
       }
     })();
-    switchView(initialApp === 'uno' ? 'uno' : 'profile');
+    switchView(initialApp === 'uno' && hasUnoTesterAccess() ? 'uno' : 'profile');
     updateButtons();
     window.setTimeout(() => openAppLauncher(true), 160);
     document.addEventListener('click', (event) => {
@@ -30801,6 +30927,10 @@ def index():
         marketplace_links=MARKETPLACE_LINKS,
         telegram_bot_username=TG_BOT_USERNAME,
         telegram_webapp_url=TG_WEBAPP_URL,
+        uno_private_mode=UNO_PRIVATE_MODE,
+        uno_tester_usernames=sorted(UNO_TESTER_USERNAMES),
+        uno_tester_domains=sorted(UNO_TESTER_DOMAINS),
+        uno_tester_wallets=sorted(UNO_TESTER_WALLETS),
     )
 
 
@@ -32306,6 +32436,42 @@ def api_match_bot():
     )
 
 
+def uno_private_access_allowed(wallet='', domain='', guest_id=''):
+    if not UNO_PRIVATE_MODE:
+        return True
+    wallet_value = str(wallet or '').strip()
+    wallet_key = wallet_value.lower()
+    domain_value = normalize_domain(domain)
+    guest_value = normalize_uno_guest_id(guest_id)
+
+    if guest_value and not valid_wallet_address(wallet_value):
+        return False
+    if wallet_key and wallet_key in UNO_TESTER_WALLETS:
+        return True
+    if domain_value and domain_value in UNO_TESTER_DOMAINS:
+        return True
+    if not valid_wallet_address(wallet_value):
+        return False
+
+    try:
+        player = ensure_player(wallet_value)
+    except Exception:
+        player = None
+    if player:
+        current_domain = normalize_domain(player.get('current_domain'))
+        best_domain = normalize_domain(player.get('best_domain'))
+        if current_domain and current_domain in UNO_TESTER_DOMAINS:
+            return True
+        if best_domain and best_domain in UNO_TESTER_DOMAINS:
+            return True
+
+    telegram_link = telegram_wallet_link(wallet_value)
+    username = str((telegram_link or {}).get('username') or '').strip().lstrip('@').lower()
+    if username and username in UNO_TESTER_USERNAMES:
+        return True
+    return False
+
+
 @app.route('/api/uno/start', methods=['POST'])
 def api_uno_start():
     payload = request.get_json(silent=True) or {}
@@ -32316,6 +32482,8 @@ def api_uno_start():
     domain = normalize_domain(payload.get('domain')) if valid_wallet_address(wallet) else ''
     if not actor_id:
         return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, domain=domain, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
     if valid_wallet_address(wallet) and not domain:
         return json_error('Для прогресса UNO сначала выбери активный домен.')
     try:
@@ -32343,6 +32511,8 @@ def api_uno_room_create():
         max_players = 6
     if not actor_id:
         return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, domain=domain, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
     if valid_wallet_address(wallet) and not domain:
         return json_error('Для UNO сначала выбери активный домен.')
     try:
@@ -32367,6 +32537,8 @@ def api_uno_room_join():
     room_code = (payload.get('room_code') or '').strip().upper()
     if not actor_id:
         return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, domain=domain, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
     if valid_wallet_address(wallet) and not domain:
         return json_error('Для UNO сначала выбери активный домен.')
     if not room_code:
@@ -32391,6 +32563,8 @@ def api_uno_room_start():
     session_id = (payload.get('session_id') or '').strip()
     if not actor_id:
         return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
     if not session_id:
         return json_error('Не указан session_id.')
     try:
@@ -32410,6 +32584,8 @@ def api_uno_quick_search():
     domain = normalize_domain(payload.get('domain')) if valid_wallet_address(wallet) else ''
     if not actor_id:
         return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, domain=domain, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
     if valid_wallet_address(wallet) and not domain:
         return json_error('Для UNO сначала выбери активный домен.')
     try:
@@ -32432,6 +32608,8 @@ def api_uno_leave():
     session_id = (payload.get('session_id') or '').strip()
     if not actor_id:
         return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
     if not session_id:
         return json_error('Не указан session_id.')
     try:
@@ -32453,6 +32631,8 @@ def api_uno_action():
     chosen_color = (payload.get('chosen_color') or '').strip().lower()
     if not actor_id:
         return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
     if not session_id:
         return json_error('Не указан session_id.')
     try:
@@ -32470,6 +32650,8 @@ def api_uno_status():
     session_id = (request.args.get('session_id') or '').strip()
     if not actor_id:
         return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
     if not session_id:
         return json_error('Не указан session_id.')
     try:
