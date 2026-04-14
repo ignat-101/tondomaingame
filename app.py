@@ -1458,6 +1458,10 @@ PAGE_TEMPLATE = """
       margin-top: 12px;
     }
 
+    .mascot-popover-actions[hidden] {
+      display: none !important;
+    }
+
     .mascot-popover-actions button {
       min-height: 42px;
       padding: 10px 12px;
@@ -12215,15 +12219,23 @@ PAGE_TEMPLATE = """
       <div class="mascot-popover-head">
         <img src="/static/mascot-ton-bot.png" alt="">
         <div>
-          <div class="mascot-popover-title">Помощник Ton Domain</div>
+          <div class="mascot-popover-title" id="mascot-popover-title">Помощник Ton Domain</div>
           <div class="mascot-popover-copy" id="mascot-popover-copy">Быстрый доступ к основным разделам и гайду.</div>
         </div>
       </div>
-      <div class="mascot-popover-actions">
+      <div class="mascot-popover-actions" id="mascot-domain-actions">
         <button type="button" id="mascot-open-profile-btn">Профиль</button>
         <button type="button" id="mascot-open-pack-btn">Карты</button>
         <button type="button" id="mascot-open-battle-btn">Игра</button>
+        <button type="button" id="mascot-open-uno-btn">UNO</button>
         <button type="button" class="secondary" id="mascot-open-guide-btn">Гайд</button>
+      </div>
+      <div class="mascot-popover-actions" id="mascot-uno-actions" hidden>
+        <button type="button" id="mascot-uno-home-btn">UNO меню</button>
+        <button type="button" id="mascot-uno-bot-btn">С ботом</button>
+        <button type="button" id="mascot-uno-quick-btn">Быстрый матч</button>
+        <button type="button" id="mascot-uno-room-btn">Комната</button>
+        <button type="button" class="secondary" id="mascot-uno-back-btn">Domain</button>
       </div>
     </div>
     <button type="button" class="mascot-fab" id="mascot-fab" aria-label="Открыть помощника">
@@ -12338,11 +12350,20 @@ PAGE_TEMPLATE = """
     const tutorialPanel = document.getElementById('tutorial-panel');
     const mascotWidget = document.getElementById('mascot-widget');
     const mascotFab = document.getElementById('mascot-fab');
+    const mascotPopoverTitle = document.getElementById('mascot-popover-title');
     const mascotOpenProfileBtn = document.getElementById('mascot-open-profile-btn');
     const mascotOpenPackBtn = document.getElementById('mascot-open-pack-btn');
     const mascotOpenBattleBtn = document.getElementById('mascot-open-battle-btn');
+    const mascotOpenUnoBtn = document.getElementById('mascot-open-uno-btn');
     const mascotOpenGuideBtn = document.getElementById('mascot-open-guide-btn');
     const mascotPopoverCopy = document.getElementById('mascot-popover-copy');
+    const mascotDomainActions = document.getElementById('mascot-domain-actions');
+    const mascotUnoActions = document.getElementById('mascot-uno-actions');
+    const mascotUnoHomeBtn = document.getElementById('mascot-uno-home-btn');
+    const mascotUnoBotBtn = document.getElementById('mascot-uno-bot-btn');
+    const mascotUnoQuickBtn = document.getElementById('mascot-uno-quick-btn');
+    const mascotUnoRoomBtn = document.getElementById('mascot-uno-room-btn');
+    const mascotUnoBackBtn = document.getElementById('mascot-uno-back-btn');
     const battleFlowView = document.getElementById('battle-flow-view');
     const leaderboard = document.getElementById('leaderboard');
     const marketplacesBox = document.getElementById('marketplaces-box');
@@ -14745,6 +14766,7 @@ PAGE_TEMPLATE = """
       });
       document.body.dataset.activeView = name;
       state.activeApp = name === 'uno' ? 'uno' : 'domain';
+      syncMascotPopover();
       try {
         window.localStorage.setItem(appLauncherStorageKey, state.activeApp);
       } catch (_) {
@@ -14794,12 +14816,65 @@ PAGE_TEMPLATE = """
       closeStartupGuide(false);
       closeAppLauncher();
       if (safeApp === 'uno') {
+        clearCompletedUnoSession();
         switchView('uno');
         restoreUnoSession().catch(() => {});
         return;
       }
       switchView(document.body.dataset.activeView === 'uno' ? 'profile' : (document.body.dataset.activeView || 'profile'));
       showStartupGuideIfNeeded();
+    }
+
+    function clearCompletedUnoSession() {
+      const session = state.unoSession;
+      if (!session || !session.complete) return false;
+      state.unoSession = null;
+      state.unoPendingColorCardId = null;
+      rememberUnoSession(null);
+      return true;
+    }
+
+    function openUnoHub(options = {}) {
+      const {closePopover = true} = options;
+      clearCompletedUnoSession();
+      switchView('uno');
+      renderUnoPanel();
+      if (closePopover) {
+        setMascotOpen(false);
+      }
+    }
+
+    function mascotUnoHintText() {
+      const session = state.unoSession;
+      if (!session) {
+        return 'Компактное меню UNO: бот, быстрый матч и комната с друзьями.';
+      }
+      if (session.complete) {
+        return 'Прошлый матч уже завершён. Можно сразу открыть новое меню UNO и начать заново.';
+      }
+      if (String(session.status || '') === 'waiting') {
+        return 'Лобби UNO собрано не до конца. Можно вернуться, обновить комнату или стартовать матч.';
+      }
+      if (session.your_turn) {
+        return 'В UNO сейчас твой ход. Вернись в матч или запусти новую партию.';
+      }
+      return `В UNO сейчас ходит ${session.turn_display_name || 'соперник'}. Можно открыть матч или выбрать другой режим.`;
+    }
+
+    function syncMascotPopover() {
+      const unoContext = document.body.dataset.activeView === 'uno' || state.activeApp === 'uno';
+      if (mascotPopoverTitle) {
+        mascotPopoverTitle.textContent = unoContext ? 'UNO Arena' : 'Помощник Ton Domain';
+      }
+      if (mascotPopoverCopy) {
+        mascotPopoverCopy.textContent = unoContext ? mascotUnoHintText() : mascotHintText();
+      }
+      if (mascotDomainActions) {
+        mascotDomainActions.hidden = Boolean(unoContext);
+      }
+      if (mascotUnoActions) {
+        mascotUnoActions.hidden = !unoContext;
+      }
     }
 
     function setMascotOpen(open) {
@@ -16107,6 +16182,13 @@ PAGE_TEMPLATE = """
           ? `wallet=${encodeURIComponent(identity.wallet)}`
           : `guest_id=${encodeURIComponent(identity.guest_id)}`;
         const data = await api(`/api/uno/status?${query}&session_id=${encodeURIComponent(sessionId)}`);
+        if (data.session && data.session.complete) {
+          state.unoSession = null;
+          state.unoPendingColorCardId = null;
+          rememberUnoSession(null);
+          renderUnoPanel();
+          return false;
+        }
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
@@ -16189,6 +16271,7 @@ PAGE_TEMPLATE = """
 
     function renderUnoPanel() {
       if (!unoRoot) return;
+      syncMascotPopover();
       const identity = unoActiveIdentity();
       const rewards = unoProgressEnabled()
         ? (((state.playerProfile && state.playerProfile.rewards) || {}))
@@ -20409,7 +20492,7 @@ PAGE_TEMPLATE = """
     }
     if (mascotFab) {
       bindFunctionalControl(mascotFab, () => {
-        if (mascotPopoverCopy) mascotPopoverCopy.textContent = mascotHintText();
+        syncMascotPopover();
         setMascotOpen(!(mascotWidget && mascotWidget.classList.contains('open')));
       });
     }
@@ -20431,6 +20514,11 @@ PAGE_TEMPLATE = """
         switchView('modes');
       });
     }
+    if (mascotOpenUnoBtn) {
+      bindFunctionalControl(mascotOpenUnoBtn, () => {
+        openUnoHub();
+      });
+    }
     if (mascotOpenGuideBtn) {
       bindFunctionalControl(mascotOpenGuideBtn, () => {
         setMascotOpen(false);
@@ -20439,6 +20527,34 @@ PAGE_TEMPLATE = """
         } catch (_) {
         }
         showStartupGuideIfNeeded();
+      });
+    }
+    if (mascotUnoHomeBtn) {
+      bindFunctionalControl(mascotUnoHomeBtn, () => {
+        openUnoHub();
+      });
+    }
+    if (mascotUnoBotBtn) {
+      bindFunctionalControl(mascotUnoBotBtn, async () => {
+        setMascotOpen(false);
+        await startUnoMatch();
+      });
+    }
+    if (mascotUnoQuickBtn) {
+      bindFunctionalControl(mascotUnoQuickBtn, async () => {
+        setMascotOpen(false);
+        await searchUnoQuickMatch();
+      });
+    }
+    if (mascotUnoRoomBtn) {
+      bindFunctionalControl(mascotUnoRoomBtn, () => {
+        openUnoHub();
+      });
+    }
+    if (mascotUnoBackBtn) {
+      bindFunctionalControl(mascotUnoBackBtn, () => {
+        setMascotOpen(false);
+        switchView('profile');
       });
     }
     [buildAttack, buildDefense, buildLuck, buildSpeed, buildMagic].forEach((node) => {
@@ -20603,6 +20719,7 @@ PAGE_TEMPLATE = """
     renderOwnedDecks([], null);
     renderClanSeasonHub();
     refreshOneCardSelector();
+    syncMascotPopover();
     const initialApp = (() => {
       try {
         return window.localStorage.getItem(appLauncherStorageKey) || 'domain';
