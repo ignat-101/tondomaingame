@@ -922,6 +922,7 @@ PAGE_TEMPLATE = """
     .uno-player-hand {
       display: flex;
       gap: 10px;
+      align-items: flex-end;
       overflow-x: auto;
       padding-bottom: 6px;
       -webkit-overflow-scrolling: touch;
@@ -932,21 +933,21 @@ PAGE_TEMPLATE = """
     .uno-card-btn {
       position: relative;
       flex: 0 0 auto;
-      width: 86px;
-      height: 132px;
+      width: 82px;
+      height: 126px;
       border-radius: 20px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.18);
+      overflow: visible;
+      border: 0;
       box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+      background: transparent;
     }
 
     .uno-back-card {
-      background: rgba(8, 18, 33, 0.82);
+      pointer-events: none;
     }
 
     .uno-card-btn {
       padding: 0;
-      background: rgba(255,255,255,0.04);
       text-align: left;
       transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
     }
@@ -964,77 +965,292 @@ PAGE_TEMPLATE = """
     .uno-back-face {
       position: absolute;
       inset: 0;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      padding: 10px;
+      border-radius: 20px;
+      overflow: hidden;
       color: #ffffff;
+      isolation: isolate;
     }
 
-    .uno-card-face.red { background: linear-gradient(180deg, #f8535e, #aa1829); }
-    .uno-card-face.yellow { background: linear-gradient(180deg, #ffd45d, #c58b0b); color: #2b1d00; }
-    .uno-card-face.green { background: linear-gradient(180deg, #4fe487, #177e42); }
-    .uno-card-face.blue { background: linear-gradient(180deg, #5ea8ff, #1d59c9); }
+    .uno-card-face::before,
+    .uno-back-face::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 16px;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.16),
+        inset 0 12px 18px rgba(255,255,255,0.06),
+        inset 0 -18px 28px rgba(0,0,0,0.16);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .uno-card-face.red {
+      --uno-face-ink: #18191d;
+      background: linear-gradient(180deg, #ff5a57, #de1f2c 52%, #b50e17);
+    }
+
+    .uno-card-face.yellow {
+      --uno-face-ink: #191200;
+      background: linear-gradient(180deg, #ffe64f, #ffd117 54%, #e0a800);
+      color: #171209;
+    }
+
+    .uno-card-face.green {
+      --uno-face-ink: #101612;
+      background: linear-gradient(180deg, #37d77c, #11a455 54%, #08793c);
+    }
+
+    .uno-card-face.blue {
+      --uno-face-ink: #10161d;
+      background: linear-gradient(180deg, #4ebaff, #1f95f1 54%, #176dcc);
+    }
+
     .uno-card-face.wild {
+      --uno-face-ink: #12151a;
       background:
-        linear-gradient(135deg, #f8535e, #ffd45d 34%, #4fe487 66%, #5ea8ff);
+        linear-gradient(135deg, #ff5a57 0 24%, #ffe64f 24% 48%, #37d77c 48% 72%, #4ebaff 72% 100%);
     }
 
     .uno-back-face {
-      background: rgba(0,0,0,0.16);
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.12), transparent 30%),
+        linear-gradient(180deg, rgba(24, 28, 35, 0.98), rgba(7, 11, 18, 0.98));
     }
 
-    .uno-card-face .mini,
-    .uno-back-face .mini {
+    .uno-card-oval,
+    .uno-back-oval {
+      position: absolute;
+      left: 10%;
+      top: 12%;
+      width: 80%;
+      height: 76%;
+      border-radius: 50% / 46%;
+      transform: rotate(-18deg);
+      z-index: 0;
+    }
+
+    .uno-card-oval {
+      background: rgba(255,255,255,0.98);
+      box-shadow:
+        inset 0 0 0 2px rgba(255,255,255,0.78),
+        0 10px 14px rgba(0,0,0,0.12);
+    }
+
+    .uno-back-oval {
+      background: var(--uno-cardback-surface);
+      box-shadow:
+        inset 0 0 0 3px rgba(255,255,255,0.88),
+        0 10px 16px rgba(0,0,0,0.18);
+    }
+
+    .uno-card-corner,
+    .uno-back-corner {
+      position: absolute;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      line-height: 1;
+    }
+
+    .uno-card-corner.top,
+    .uno-back-corner.top {
+      top: 8px;
+      left: 8px;
+    }
+
+    .uno-card-corner.bottom,
+    .uno-back-corner.bottom {
+      right: 8px;
+      bottom: 8px;
+      transform: rotate(180deg);
+    }
+
+    .uno-card-corner-value {
       font-size: 12px;
       font-weight: 900;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      color: var(--uno-face-ink, #16181d);
+      -webkit-text-stroke: 0.7px rgba(255,255,255,0.74);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.52);
     }
 
-    .uno-card-face .value {
+    .uno-card-corner-glyph {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--uno-face-ink, #16181d);
+      -webkit-text-stroke: 0.6px rgba(255,255,255,0.72);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.46);
+    }
+
+    .uno-card-main {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 34px;
+      padding: 18px;
+    }
+
+    .uno-card-main-value {
+      font-size: 52px;
+      line-height: 0.86;
       font-weight: 900;
-      letter-spacing: -0.04em;
-      text-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      letter-spacing: -0.09em;
+      color: var(--uno-face-ink, #16181d);
+      -webkit-text-stroke: 1.35px rgba(255,255,255,0.84);
+      text-shadow:
+        0 2px 0 rgba(255,255,255,0.48),
+        0 8px 14px rgba(0,0,0,0.14);
+      transform: rotate(-18deg);
     }
 
-    .uno-card-face .title,
-    .uno-back-face .title {
+    .uno-card-main-value.action {
+      font-size: 44px;
+      letter-spacing: -0.03em;
+    }
+
+    .uno-card-main-value.draw {
+      font-size: 38px;
+      letter-spacing: -0.02em;
+    }
+
+    .uno-card-main-value.word {
+      font-size: 24px;
+      letter-spacing: 0.02em;
+      transform: rotate(-18deg);
+    }
+
+    .uno-card-wild-badge {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.98);
+      box-shadow: 0 8px 14px rgba(0,0,0,0.14);
+      transform: rotate(-18deg);
+      display: grid;
+      place-items: center;
+    }
+
+    .uno-card-wild-grid {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+    }
+
+    .uno-card-wild-grid i:nth-child(1) { background: #ff5a57; }
+    .uno-card-wild-grid i:nth-child(2) { background: #ffe64f; }
+    .uno-card-wild-grid i:nth-child(3) { background: #37d77c; }
+    .uno-card-wild-grid i:nth-child(4) { background: #4ebaff; }
+
+    .uno-card-wild-grid i {
+      border-radius: 4px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+    }
+
+    .uno-card-wild-plus {
+      position: absolute;
+      right: -8px;
+      bottom: -10px;
+      min-width: 32px;
+      height: 24px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.92);
+      color: #f7fbff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font-size: 11px;
-      font-weight: 800;
-      opacity: 0.94;
-      line-height: 1.2;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      transform: rotate(12deg);
+      box-shadow: 0 8px 14px rgba(0,0,0,0.22);
     }
 
-    .uno-back-face .title {
-      color: rgba(255,255,255,0.9);
+    .uno-back-brand {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .uno-back-brand-mark {
+      min-width: 54px;
+      min-height: 54px;
+      padding: 0 14px;
+      border-radius: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--uno-cardback-surface);
+      color: #eef8ff;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      transform: rotate(-18deg);
+      box-shadow:
+        inset 0 0 0 3px rgba(255,255,255,0.86),
+        0 10px 16px rgba(0,0,0,0.18);
+    }
+
+    .uno-back-corner-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--uno-cardback-surface);
+      box-shadow:
+        inset 0 0 0 2px rgba(255,255,255,0.84),
+        0 4px 8px rgba(0,0,0,0.16);
     }
 
     .uno-card-frame {
       position: absolute;
-      inset: 4px;
-      width: calc(100% - 8px);
-      height: calc(100% - 8px);
-      object-fit: contain;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
       pointer-events: none;
+      z-index: 4;
+    }
+
+    .uno-opponent-cards .uno-back-card {
+      width: 60px;
+      height: 92px;
+      border-radius: 16px;
+      margin-left: -18px;
+    }
+
+    .uno-opponent-cards .uno-back-card:first-child {
+      margin-left: 0;
+    }
+
+    .uno-player-hand .uno-card-btn {
+      scroll-snap-align: start;
     }
 
     .uno-center {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 132px));
+      grid-template-columns: repeat(2, minmax(0, 112px));
       justify-content: center;
-      gap: 14px;
+      gap: 10px;
       align-items: center;
-      padding: 8px 0;
+      padding: 2px 0;
     }
 
     .uno-stack {
       position: relative;
-      width: 132px;
-      height: 172px;
+      width: 112px;
+      height: 156px;
       margin: 0 auto;
     }
 
@@ -1051,9 +1267,9 @@ PAGE_TEMPLATE = """
 
     .uno-stack-label {
       text-align: center;
-      font-size: 12px;
+      font-size: 11px;
       color: rgba(224, 238, 255, 0.76);
-      margin-top: 184px;
+      margin-top: 166px;
     }
 
     .uno-controls {
@@ -1262,6 +1478,50 @@ PAGE_TEMPLATE = """
       line-height: 1.38;
     }
 
+    .uno-live-summary {
+      gap: 6px;
+    }
+
+    .uno-live-summary-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .uno-live-summary-main {
+      font-size: 17px;
+      line-height: 1.22;
+      color: #f5fbff;
+    }
+
+    .uno-live-summary-sub {
+      font-size: 12px;
+      line-height: 1.34;
+      color: rgba(224, 238, 255, 0.74);
+    }
+
+    .uno-live-board {
+      align-content: start;
+    }
+
+    .uno-opponent-zone {
+      align-content: start;
+      gap: 8px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     @media (max-width: 720px) {
       .uno-shell {
         padding: 12px;
@@ -1287,33 +1547,55 @@ PAGE_TEMPLATE = """
 
       .uno-back-card,
       .uno-card-btn {
-        width: 70px;
-        height: 108px;
+        width: 72px;
+        height: 110px;
         border-radius: 18px;
       }
 
-      .uno-card-face .value {
-        font-size: 28px;
+      .uno-card-main-value {
+        font-size: 42px;
       }
 
-      .uno-card-face .title,
-      .uno-back-face .title {
-        font-size: 10px;
+      .uno-card-main-value.action {
+        font-size: 34px;
+      }
+
+      .uno-card-main-value.draw {
+        font-size: 30px;
+      }
+
+      .uno-card-main-value.word {
+        font-size: 20px;
+      }
+
+      .uno-card-corner-value {
+        font-size: 11px;
+      }
+
+      .uno-card-corner-glyph {
+        font-size: 9px;
+      }
+
+      .uno-opponent-cards .uno-back-card {
+        width: 48px;
+        height: 72px;
+        border-radius: 14px;
+        margin-left: -14px;
       }
 
       .uno-center {
-        grid-template-columns: repeat(2, minmax(0, 112px));
-        gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 92px));
+        gap: 8px;
       }
 
       .uno-stack {
-        width: 112px;
-        height: 148px;
+        width: 92px;
+        height: 128px;
       }
 
       .uno-stack-label {
-        margin-top: 158px;
-        font-size: 11px;
+        margin-top: 136px;
+        font-size: 10px;
       }
 
       .uno-color-btn {
@@ -10661,6 +10943,164 @@ PAGE_TEMPLATE = """
       grid-template-rows: auto minmax(0, 1fr) auto;
     }
 
+    body.tma-app.uno-live-lock .uno-shell.playing {
+      padding: 8px;
+      gap: 6px;
+    }
+
+    body.tma-app.uno-live-lock .uno-header {
+      gap: 4px;
+    }
+
+    body.tma-app.uno-live-lock .uno-header-top {
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    body.tma-app.uno-live-lock .uno-title strong {
+      font-size: 18px;
+    }
+
+    body.tma-app.uno-live-lock .uno-title .tiny {
+      font-size: 10px;
+      line-height: 1.18;
+    }
+
+    body.tma-app.uno-live-lock .uno-meta-strip {
+      gap: 5px;
+    }
+
+    body.tma-app.uno-live-lock .uno-chip {
+      min-height: 24px;
+      padding: 0 9px;
+      font-size: 9px;
+    }
+
+    body.tma-app.uno-live-lock .uno-status-banner,
+    body.tma-app.uno-live-lock .uno-log,
+    body.tma-app.uno-live-lock .uno-result-box {
+      padding: 8px 10px;
+      gap: 4px;
+    }
+
+    body.tma-app.uno-live-lock .uno-turn-pill {
+      min-height: 24px;
+      padding: 0 10px;
+      font-size: 9px;
+    }
+
+    body.tma-app.uno-live-lock .uno-live-summary {
+      padding: 8px 10px;
+      gap: 4px;
+    }
+
+    body.tma-app.uno-live-lock .uno-live-summary-line {
+      gap: 8px;
+    }
+
+    body.tma-app.uno-live-lock .uno-live-summary-main {
+      font-size: 13px;
+      line-height: 1.18;
+    }
+
+    body.tma-app.uno-live-lock .uno-live-summary-sub {
+      font-size: 10px;
+      line-height: 1.22;
+    }
+
+    body.tma-app.uno-live-lock .uno-opponent-zone {
+      gap: 6px;
+      max-height: clamp(72px, 14vh, 104px);
+      overflow: hidden;
+    }
+
+    body.tma-app.uno-live-lock .uno-opponent-row {
+      gap: 4px;
+    }
+
+    body.tma-app.uno-live-lock .uno-opponent-row .team-line {
+      font-size: 12px;
+      line-height: 1.1;
+    }
+
+    body.tma-app.uno-live-lock .uno-opponent-row .team-line strong:last-child {
+      font-size: 11px;
+    }
+
+    body.tma-app.uno-live-lock .uno-opponent-cards .uno-back-card {
+      width: clamp(38px, 7.2vh, 46px);
+      height: clamp(58px, 10.6vh, 70px);
+      border-radius: 14px;
+      margin-left: -12px;
+    }
+
+    body.tma-app.uno-live-lock .uno-live-board {
+      gap: 6px;
+    }
+
+    body.tma-app.uno-live-lock .uno-center {
+      grid-template-columns: repeat(2, minmax(0, clamp(68px, 13vh, 84px)));
+      gap: 6px;
+    }
+
+    body.tma-app.uno-live-lock .uno-stack {
+      width: clamp(68px, 13vh, 84px);
+      height: clamp(94px, 17vh, 116px);
+    }
+
+    body.tma-app.uno-live-lock .uno-stack-label {
+      margin-top: clamp(100px, 18.2vh, 124px);
+      font-size: 9px;
+    }
+
+    body.tma-app.uno-live-lock .uno-player-row {
+      gap: 6px;
+    }
+
+    body.tma-app.uno-live-lock .uno-player-meta {
+      font-size: 12px;
+      line-height: 1.1;
+    }
+
+    body.tma-app.uno-live-lock .uno-player-hand {
+      gap: 0;
+      padding-left: 12px;
+      padding-bottom: 2px;
+      scroll-snap-type: x proximity;
+    }
+
+    body.tma-app.uno-live-lock .uno-player-hand .uno-card-btn {
+      width: clamp(54px, 9.8vh, 64px);
+      height: clamp(80px, 14.8vh, 98px);
+      border-radius: 16px;
+      margin-left: -16px;
+    }
+
+    body.tma-app.uno-live-lock .uno-player-hand .uno-card-btn:first-child {
+      margin-left: 0;
+    }
+
+    body.tma-app.uno-live-lock .uno-player-hand .uno-card-main-value {
+      font-size: clamp(30px, 5.8vh, 36px);
+    }
+
+    body.tma-app.uno-live-lock .uno-player-hand .uno-card-main-value.action {
+      font-size: clamp(24px, 4.8vh, 30px);
+    }
+
+    body.tma-app.uno-live-lock .uno-player-hand .uno-card-main-value.draw {
+      font-size: clamp(22px, 4.2vh, 26px);
+    }
+
+    body.tma-app.uno-live-lock .uno-player-hand .uno-card-main-value.word {
+      font-size: clamp(14px, 3vh, 18px);
+    }
+
+    body.tma-app.uno-live-lock .uno-live-feed {
+      display: none;
+    }
+
     body.tma-app.uno-live-lock .uno-opponent-zone,
     body.tma-app.uno-live-lock .uno-live-board,
     body.tma-app.uno-live-lock .uno-player-row {
@@ -15933,8 +16373,6 @@ PAGE_TEMPLATE = """
           <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
             <rect x="12" y="12" width="488" height="744" rx="42" stroke="${theme.accent}" stroke-width="16"/>
             <rect x="28" y="28" width="456" height="712" rx="30" stroke="${theme.secondary}" stroke-width="6"/>
-            <circle cx="96" cy="96" r="20" fill="${theme.accent}" fill-opacity="0.55"/>
-            <circle cx="416" cy="672" r="20" fill="${theme.accent}" fill-opacity="0.55"/>
           </svg>
         `);
       }
@@ -16070,28 +16508,64 @@ PAGE_TEMPLATE = """
       const frameAsset = options.frameAsset || '';
       const playable = Boolean(options.playable);
       const disabled = Boolean(options.disabled);
+      const value = String((card && card.value) || '').toLowerCase();
+      const cornerGlyph = ({
+        skip: '⊘',
+        reverse: '↺',
+        draw2: '+2',
+        wild: 'W',
+        wild4: '+4',
+      })[value] || String(card && (card.value_label || card.value) || '');
+      const centerGlyph = ({
+        skip: '⊘',
+        reverse: '↺',
+        draw2: '+2',
+      })[value] || String(card && (card.value_label || card.value) || '');
+      const centerClass = value === 'draw2'
+        ? 'draw'
+        : (value === 'skip' || value === 'reverse' ? 'action' : '');
+      const isWild = value === 'wild' || value === 'wild4';
       const buttonAttrs = options.asButton === false
         ? 'type="button" tabindex="-1" disabled'
         : `type="button" data-uno-play-card="${escapeHtml(card.id || '')}"${disabled ? ' disabled' : ''}`;
       return `
         <button class="uno-card-btn ${playable ? 'playable' : ''}" ${buttonAttrs}>
           <div class="uno-card-face ${escapeHtml(card.color || 'wild')}">
-            <div class="mini">${escapeHtml(card.color_label || '')}</div>
-            <div class="value">${escapeHtml(card.value_label || card.value || '')}</div>
-            <div class="title">${escapeHtml(card.title || '')}</div>
+            <span class="uno-card-oval" aria-hidden="true"></span>
+            <span class="uno-card-corner top" aria-hidden="true">
+              <span class="uno-card-corner-value">${escapeHtml(cornerGlyph)}</span>
+              <span class="uno-card-corner-glyph">${escapeHtml(cornerGlyph)}</span>
+            </span>
+            <span class="uno-card-corner bottom" aria-hidden="true">
+              <span class="uno-card-corner-value">${escapeHtml(cornerGlyph)}</span>
+              <span class="uno-card-corner-glyph">${escapeHtml(cornerGlyph)}</span>
+            </span>
+            <span class="uno-card-main">
+              ${isWild ? `
+                <span class="uno-card-wild-badge" aria-hidden="true">
+                  <span class="uno-card-wild-grid"><i></i><i></i><i></i><i></i></span>
+                  ${value === 'wild4' ? '<span class="uno-card-wild-plus">+4</span>' : ''}
+                </span>
+              ` : `
+                <span class="uno-card-main-value ${centerClass}">${escapeHtml(centerGlyph)}</span>
+              `}
+            </span>
+            <span class="sr-only">${escapeHtml(card.title || '')}</span>
           </div>
           ${frameAsset ? `<img class="uno-card-frame" src="${frameAsset}" alt="">` : ''}
         </button>
       `;
     }
 
-    function unoBackCardMarkup(cardbackSurface, frameAsset = '', label = 'UNO') {
+    function unoBackCardMarkup(cardbackSurface, frameAsset = '', label = 'TDG') {
+      const mark = String(label || 'TDG').trim() || 'TDG';
       return `
         <div class="uno-back-card">
-          <div class="uno-back-face" style="background:${cardbackSurface};">
-            <div class="mini">TON</div>
-            <div class="value">${escapeHtml(label)}</div>
-            <div class="title">Shared cosmetics</div>
+          <div class="uno-back-face" style="--uno-cardback-surface:${escapeHtml(cardbackSurface)};">
+            <span class="uno-back-oval" aria-hidden="true"></span>
+            <span class="uno-back-corner top" aria-hidden="true"><span class="uno-back-corner-dot"></span></span>
+            <span class="uno-back-corner bottom" aria-hidden="true"><span class="uno-back-corner-dot"></span></span>
+            <span class="uno-back-brand" aria-hidden="true"><span class="uno-back-brand-mark">${escapeHtml(mark)}</span></span>
           </div>
           ${frameAsset ? `<img class="uno-card-frame" src="${frameAsset}" alt="">` : ''}
         </div>
@@ -16321,6 +16795,7 @@ PAGE_TEMPLATE = """
       const backSurface = giftCardbackSurface(backKey, emoji);
       const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : '';
       const session = state.unoSession;
+      const backMark = String(emoji || 'TDG').trim() || 'TDG';
       const sessionStatus = String((session && session.status) || '');
       const unoLiveScreen = Boolean(
         document.body.dataset.activeView === 'uno'
@@ -16328,6 +16803,7 @@ PAGE_TEMPLATE = """
         && !session.complete
         && sessionStatus !== 'waiting'
       );
+      const compactUnoLive = Boolean(document.body.classList.contains('tma-app') && unoLiveScreen);
       setUnoLiveLock(unoLiveScreen);
       const identityLabel = identity.progressEnabled
         ? `${state.selectedDomain}.ton`
@@ -16533,13 +17009,15 @@ PAGE_TEMPLATE = """
         ? 'Партия закончилась. Можно начать следующую.'
         : 'Подсвеченные карты в руке доступны для хода по текущим правилам UNO.';
       unoRoot.innerHTML = `
-        <div class="uno-shell playing" style="background:${tableSurface};">
+        <div class="uno-shell ${session.complete ? 'completed' : 'playing'}" style="background:${tableSurface};">
           <div class="uno-header">
             <div class="uno-header-top">
-              <div class="uno-title">
-                <strong>UNO Arena</strong>
-                <div class="tiny">${escapeHtml(unoModeLabel(session.mode))} • ${participantCount} игроков • код ${escapeHtml(session.room_code || session.session_id || '—')} • профиль ${escapeHtml(identityLabel)}</div>
-              </div>
+              ${compactUnoLive ? '' : `
+                <div class="uno-title">
+                  <strong>UNO Arena</strong>
+                  <div class="tiny">${escapeHtml(unoModeLabel(session.mode))} • ${participantCount} игроков • код ${escapeHtml(session.room_code || session.session_id || '—')} • профиль ${escapeHtml(identityLabel)}</div>
+                </div>
+              `}
               <div class="actions" style="margin-left:auto;">
                 ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">${escapeHtml(session.current_color_label || 'UNO')}</div>` : `<div class="uno-chip">Цвет: ${escapeHtml(session.current_color_label || '—')}</div>`}
                 <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
@@ -16549,13 +17027,15 @@ PAGE_TEMPLATE = """
               <div class="uno-chip">Ход: ${escapeHtml(session.turn_display_name || (session.your_turn ? 'твой' : 'соперника'))}</div>
               <div class="uno-chip">Колода: ${Number(session.draw_remaining || 0)}</div>
               <div class="uno-chip">Режим: ${escapeHtml(unoModeLabel(session.mode))}</div>
-              <div class="uno-chip">Сезон ${Number((session.reward_summary || rewards).season_level || 1)}</div>
+              ${compactUnoLive ? `<div class="uno-chip">Рука: ${Number((session.player_hand || []).length || 0)}</div>` : `<div class="uno-chip">Сезон ${Number((session.reward_summary || rewards).season_level || 1)}</div>`}
             </div>
           </div>
-          <div class="uno-status-banner ${turnToneClass}">
-            <span class="uno-turn-pill ${turnToneClass}">${session.complete ? 'Финиш' : (session.your_turn ? 'Твой ход' : 'Ожидание')}</span>
-            <strong>${escapeHtml(topStatusText)}</strong>
-            <div class="tiny">${escapeHtml(session.last_action || resultSummary)}</div>
+          <div class="uno-status-banner uno-live-summary ${turnToneClass}">
+            <div class="uno-live-summary-line">
+              <span class="uno-turn-pill ${turnToneClass}">${session.complete ? 'Финиш' : (session.your_turn ? 'Твой ход' : 'Ожидание')}</span>
+              <strong class="uno-live-summary-main">${escapeHtml(topStatusText)}</strong>
+            </div>
+            <div class="uno-live-summary-sub">${escapeHtml(session.last_action || resultSummary)}</div>
           </div>
           <div class="uno-stage">
             <div class="uno-opponent-zone">
@@ -16566,7 +17046,7 @@ PAGE_TEMPLATE = """
                     <strong>${Number(opponent.card_count || 0)} карт${opponent.is_current_turn ? ' • ход' : ''}</strong>
                   </div>
                   <div class="uno-opponent-cards">
-                    ${Array.from({length: Math.max(1, Math.min(7, Number(opponent.card_count || 0)))}).map(() => unoBackCardMarkup(backSurface, frameAsset, 'UNO')).join('')}
+                    ${Array.from({length: Math.max(1, Math.min(7, Number(opponent.card_count || 0)))}).map(() => unoBackCardMarkup(backSurface, frameAsset, backMark)).join('')}
                   </div>
                 </div>
               `).join('')}
@@ -16575,9 +17055,9 @@ PAGE_TEMPLATE = """
               <div class="uno-center">
                 <div>
                   <div class="uno-stack">
-                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset)}</div>
-                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset)}</div>
-                    <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset)}</div>
+                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+                    <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
                   </div>
                   <div class="uno-stack-label">Добор • ${Number(session.draw_remaining || 0)}</div>
                 </div>
@@ -16588,7 +17068,7 @@ PAGE_TEMPLATE = """
                   <div class="uno-stack-label">Сброс • цвет ${escapeHtml(session.current_color_label || '—')}</div>
                 </div>
               </div>
-              <div class="uno-log">
+              <div class="uno-log uno-live-feed">
                 <div class="uno-turn-line">
                   <strong>${session.complete ? 'Матч завершён' : (session.your_turn ? 'Твоя очередь' : `Очередь: ${escapeHtml(session.turn_display_name || 'игрок')}`)}</strong>
                   <strong>Сверху: ${escapeHtml((session.discard_top && session.discard_top.title) || '—')}</strong>
@@ -16619,7 +17099,7 @@ PAGE_TEMPLATE = """
               ` : `
                 <div class="uno-controls">
                   <button type="button" id="uno-draw-btn"${session.can_draw ? '' : ' disabled'}>${session.your_turn ? 'Взять карту' : 'Ждём ход соперника'}</button>
-                  <button type="button" class="secondary" id="uno-room-refresh-btn">Обновить</button>
+                  ${compactUnoLive ? '' : '<button type="button" class="secondary" id="uno-room-refresh-btn">Обновить</button>'}
                 </div>
               `}
             </div>
