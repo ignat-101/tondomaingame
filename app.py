@@ -10578,35 +10578,54 @@ PAGE_TEMPLATE = """
       max-width: 100%;
     }
 
-    body.tma-app[data-active-view="uno"] {
-      padding-bottom: 0;
-      overflow: hidden;
-      overscroll-behavior: none;
-      touch-action: manipulation;
-    }
-
-    body.tma-app[data-active-view="uno"] .shell {
-      height: var(--app-height, 100vh);
-      min-height: var(--app-height, 100vh);
-      overflow: hidden;
-      padding-bottom: 0;
+    body.tma-app[data-active-view="uno"]:not(.uno-live-lock) #view-uno {
+      padding: 12px;
+      border-radius: 20px;
     }
 
     body.tma-app[data-active-view="uno"] .hero {
       display: none;
     }
 
-    body.tma-app[data-active-view="uno"] .layout,
-    body.tma-app[data-active-view="uno"] .stack {
+    body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing,
+    body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting,
+    body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
+      width: min(100%, 460px);
+      margin: 0 auto;
+      padding: 12px;
+      border-radius: 22px;
+      gap: 12px;
+    }
+
+    body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
+      gap: 12px;
+    }
+
+    body.tma-app.uno-live-lock {
+      padding-bottom: 0;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: manipulation;
+    }
+
+    body.tma-app.uno-live-lock .shell {
+      height: var(--app-height, 100vh);
+      min-height: var(--app-height, 100vh);
+      overflow: hidden;
+      padding-bottom: 0;
+    }
+
+    body.tma-app.uno-live-lock .layout,
+    body.tma-app.uno-live-lock .stack {
       height: 100%;
       min-height: 0;
     }
 
-    body.tma-app[data-active-view="uno"] .stack {
+    body.tma-app.uno-live-lock .stack {
       gap: 0;
     }
 
-    body.tma-app[data-active-view="uno"] #view-uno.active {
+    body.tma-app.uno-live-lock #view-uno.active {
       display: grid;
       grid-template-rows: minmax(0, 1fr);
       gap: 0;
@@ -10621,42 +10640,42 @@ PAGE_TEMPLATE = """
       overflow: hidden;
     }
 
-    body.tma-app[data-active-view="uno"] #view-uno.active > h2,
-    body.tma-app[data-active-view="uno"] #view-uno.active > p,
-    body.tma-app[data-active-view="uno"] #view-uno.active > .support-footer {
+    body.tma-app.uno-live-lock #view-uno.active > h2,
+    body.tma-app.uno-live-lock #view-uno.active > p,
+    body.tma-app.uno-live-lock #view-uno.active > .support-footer {
       display: none !important;
     }
 
-    body.tma-app[data-active-view="uno"] .uno-root,
-    body.tma-app[data-active-view="uno"] .uno-shell,
-    body.tma-app[data-active-view="uno"] .uno-stage {
+    body.tma-app.uno-live-lock .uno-root,
+    body.tma-app.uno-live-lock .uno-shell,
+    body.tma-app.uno-live-lock .uno-stage {
       min-height: 0;
       height: 100%;
     }
 
-    body.tma-app[data-active-view="uno"] .uno-shell {
+    body.tma-app.uno-live-lock .uno-shell {
       border-radius: 26px;
     }
 
-    body.tma-app[data-active-view="uno"] .uno-shell.playing .uno-stage {
+    body.tma-app.uno-live-lock .uno-shell.playing .uno-stage {
       grid-template-rows: auto minmax(0, 1fr) auto;
     }
 
-    body.tma-app[data-active-view="uno"] .uno-opponent-zone,
-    body.tma-app[data-active-view="uno"] .uno-live-board,
-    body.tma-app[data-active-view="uno"] .uno-player-row {
+    body.tma-app.uno-live-lock .uno-opponent-zone,
+    body.tma-app.uno-live-lock .uno-live-board,
+    body.tma-app.uno-live-lock .uno-player-row {
       min-height: 0;
     }
 
-    body.tma-app[data-active-view="uno"] .uno-player-hand,
-    body.tma-app[data-active-view="uno"] .uno-opponent-cards {
+    body.tma-app.uno-live-lock .uno-player-hand,
+    body.tma-app.uno-live-lock .uno-opponent-cards {
       overflow-y: hidden;
       touch-action: pan-x;
     }
 
-    body.tma-app[data-active-view="uno"] .mobile-nav,
-    body.tma-app[data-active-view="uno"] .currency-float,
-    body.tma-app[data-active-view="uno"] .mascot-widget {
+    body.tma-app.uno-live-lock .mobile-nav,
+    body.tma-app.uno-live-lock .currency-float,
+    body.tma-app.uno-live-lock .mascot-widget {
       display: none !important;
     }
 
@@ -13390,6 +13409,18 @@ PAGE_TEMPLATE = """
       });
     }
 
+    function setUnoLiveLock(active) {
+      const enabled = Boolean(active);
+      document.body.classList.toggle('uno-live-lock', enabled);
+      document.documentElement.classList.toggle('uno-live-lock', enabled);
+      if (!enabled) return;
+      if (isTelegramMiniApp()) {
+        syncTmaMode();
+        syncTmaViewport();
+        resetHorizontalViewportDrift();
+      }
+    }
+
     function setupTmaResizeWatchers() {
       if (isTelegramIosWebView()) {
         if (tmaResizeObserver) {
@@ -14734,6 +14765,9 @@ PAGE_TEMPLATE = """
     function switchView(name) {
       if (name === 'wallet') {
         name = 'profile';
+      }
+      if (name !== 'uno') {
+        setUnoLiveLock(false);
       }
       if (name !== 'modes' && name !== 'battleflow') {
         resetBattleStage();
@@ -16287,6 +16321,14 @@ PAGE_TEMPLATE = """
       const backSurface = giftCardbackSurface(backKey, emoji);
       const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : '';
       const session = state.unoSession;
+      const sessionStatus = String((session && session.status) || '');
+      const unoLiveScreen = Boolean(
+        document.body.dataset.activeView === 'uno'
+        && session
+        && !session.complete
+        && sessionStatus !== 'waiting'
+      );
+      setUnoLiveLock(unoLiveScreen);
       const identityLabel = identity.progressEnabled
         ? `${state.selectedDomain}.ton`
         : identity.displayName;
