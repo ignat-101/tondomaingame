@@ -1003,6 +1003,36 @@ PAGE_TEMPLATE = """
       z-index: 1;
     }
 
+    .uno-card-face.photo {
+      background: linear-gradient(180deg, rgba(8, 11, 17, 0.92), rgba(3, 5, 9, 0.98));
+    }
+
+    .uno-card-face.photo::before {
+      inset: 2px;
+      border-radius: 18px;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.24),
+        0 10px 14px rgba(0,0,0,0.2);
+    }
+
+    .uno-photo-face {
+      position: absolute;
+      inset: 5px;
+      border-radius: 15px;
+      overflow: hidden;
+      z-index: 2;
+      background: #0f1117;
+    }
+
+    .uno-photo-face img {
+      position: absolute;
+      max-width: none;
+      image-rendering: auto;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
     .uno-card-face.red {
       --uno-face-ink: #18191d;
       background: linear-gradient(180deg, #ff5a57, #de1f2c 52%, #b50e17);
@@ -10911,7 +10941,8 @@ PAGE_TEMPLATE = """
     body.tma-app.uno-live-lock .shell {
       height: var(--app-height, 100vh);
       min-height: var(--app-height, 100vh);
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
       padding-bottom: 0;
     }
 
@@ -10937,7 +10968,9 @@ PAGE_TEMPLATE = """
       border-radius: 0;
       background: transparent;
       box-shadow: none;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     body.tma-app.uno-live-lock #view-uno.active > h2,
@@ -10946,11 +10979,15 @@ PAGE_TEMPLATE = """
       display: none !important;
     }
 
-    body.tma-app.uno-live-lock .uno-root,
+    body.tma-app.uno-live-lock .uno-root {
+      min-height: 100%;
+      height: auto;
+    }
+
     body.tma-app.uno-live-lock .uno-shell,
     body.tma-app.uno-live-lock .uno-stage {
       min-height: 0;
-      height: 100%;
+      height: auto;
     }
 
     body.tma-app.uno-live-lock .uno-shell {
@@ -10958,7 +10995,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.uno-live-lock .uno-shell.playing .uno-stage {
-      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-rows: auto auto auto;
     }
 
     body.tma-app.uno-live-lock .uno-shell.playing {
@@ -11029,8 +11066,8 @@ PAGE_TEMPLATE = """
 
     body.tma-app.uno-live-lock .uno-opponent-zone {
       gap: 6px;
-      max-height: clamp(72px, 14vh, 104px);
-      overflow: hidden;
+      max-height: none;
+      overflow: visible;
     }
 
     body.tma-app.uno-live-lock .uno-opponent-row {
@@ -11074,6 +11111,7 @@ PAGE_TEMPLATE = """
 
     body.tma-app.uno-live-lock .uno-player-row {
       gap: 6px;
+      padding-bottom: calc(4px + env(safe-area-inset-bottom));
     }
 
     body.tma-app.uno-live-lock .uno-player-meta {
@@ -11129,6 +11167,35 @@ PAGE_TEMPLATE = """
     body.tma-app.uno-live-lock .uno-opponent-cards {
       overflow-y: hidden;
       touch-action: pan-x;
+    }
+
+    @media (max-height: 760px) {
+      body.tma-app.uno-live-lock .uno-shell.playing {
+        padding: 6px;
+        gap: 5px;
+      }
+
+      body.tma-app.uno-live-lock .uno-status-banner,
+      body.tma-app.uno-live-lock .uno-log,
+      body.tma-app.uno-live-lock .uno-result-box,
+      body.tma-app.uno-live-lock .uno-live-summary {
+        padding: 6px 8px;
+      }
+
+      body.tma-app.uno-live-lock .uno-opponent-cards .uno-back-card {
+        width: clamp(34px, 6.8vh, 42px);
+        height: clamp(52px, 10vh, 64px);
+      }
+
+      body.tma-app.uno-live-lock .uno-player-hand .uno-card-btn {
+        width: clamp(50px, 9.2vh, 60px);
+        height: clamp(74px, 13.8vh, 92px);
+        margin-left: -15px;
+      }
+
+      body.tma-app.uno-live-lock .uno-meta-strip {
+        display: none;
+      }
     }
 
     body.tma-app.uno-live-lock .mobile-nav,
@@ -15229,7 +15296,7 @@ PAGE_TEMPLATE = """
     }
 
     function normalizeTesterDomain(value) {
-      return String(value || '').trim().toLowerCase().replace(/\\.ton$/i, '');
+      return String(value || '').trim().toLowerCase().replace(/[.]ton$/i, '');
     }
 
     function normalizeTesterUsername(value) {
@@ -16478,8 +16545,8 @@ PAGE_TEMPLATE = """
       if (type === 'frame') {
         return svgDataUrl(`
           <svg width="512" height="768" viewBox="0 0 512 768" xmlns="http://www.w3.org/2000/svg">
-            <rect x="12" y="12" width="488" height="744" rx="42" stroke="${theme.accent}" stroke-width="16"/>
-            <rect x="28" y="28" width="456" height="712" rx="30" stroke="${theme.secondary}" stroke-width="6"/>
+            <rect x="12" y="12" width="488" height="744" rx="42" fill="none" stroke="${theme.accent}" stroke-width="16"/>
+            <rect x="28" y="28" width="456" height="712" rx="30" fill="none" stroke="${theme.secondary}" stroke-width="6"/>
           </svg>
         `);
       }
@@ -16611,10 +16678,86 @@ PAGE_TEMPLATE = """
       });
     }
 
+    const UNO_PHOTO_SPRITE_URL = '/static/uno-reference.webp?v=20260414';
+    const UNO_PHOTO_SPRITE = Object.freeze({
+      imageW: 900,
+      imageH: 1200,
+      cardW: 50,
+      cardH: 76,
+      startX: 44,
+      stepX: 53,
+      zeroX: 781,
+      wildX: 156,
+      wild4X: 422,
+      wildY: 1036,
+      rows: Object.freeze({
+        red: 167,
+        yellow: 355,
+        green: 543,
+        blue: 731,
+      }),
+    });
+    const UNO_PHOTO_VALUE_INDEX = Object.freeze({
+      '1': 0,
+      '2': 1,
+      '3': 2,
+      '4': 3,
+      '5': 4,
+      '6': 5,
+      '7': 6,
+      '8': 7,
+      '9': 8,
+      skip: 9,
+      reverse: 10,
+      draw2: 11,
+    });
+
+    function unoCardPhotoCoords(card) {
+      const value = String((card && card.value) || '').toLowerCase();
+      const color = String((card && card.color) || '').toLowerCase();
+      const cfg = UNO_PHOTO_SPRITE;
+      if (value === 'wild' || value === 'wild4' || color === 'wild') {
+        return {
+          x: value === 'wild4' ? cfg.wild4X : cfg.wildX,
+          y: cfg.wildY,
+        };
+      }
+      if (!Object.prototype.hasOwnProperty.call(cfg.rows, color)) {
+        return null;
+      }
+      if (value === '0') {
+        return {x: cfg.zeroX, y: cfg.rows[color]};
+      }
+      if (!Object.prototype.hasOwnProperty.call(UNO_PHOTO_VALUE_INDEX, value)) {
+        return null;
+      }
+      return {
+        x: cfg.startX + cfg.stepX * UNO_PHOTO_VALUE_INDEX[value],
+        y: cfg.rows[color],
+      };
+    }
+
+    function unoCardPhotoMarkup(card) {
+      const coords = unoCardPhotoCoords(card);
+      if (!coords) return '';
+      const cfg = UNO_PHOTO_SPRITE;
+      const widthPct = ((cfg.imageW / cfg.cardW) * 100).toFixed(4);
+      const heightPct = ((cfg.imageH / cfg.cardH) * 100).toFixed(4);
+      const leftPct = ((-coords.x / cfg.cardW) * 100).toFixed(4);
+      const topPct = ((-coords.y / cfg.cardH) * 100).toFixed(4);
+      return `
+        <span class="uno-photo-face" aria-hidden="true">
+          <img src="${UNO_PHOTO_SPRITE_URL}" alt="" style="width:${widthPct}%;height:${heightPct}%;left:${leftPct}%;top:${topPct};">
+        </span>
+      `;
+    }
+
     function unoCardMarkup(card, options = {}) {
       const frameAsset = options.frameAsset || '';
       const playable = Boolean(options.playable);
       const disabled = Boolean(options.disabled);
+      const photoMarkup = unoCardPhotoMarkup(card);
+      const usePhoto = Boolean(photoMarkup);
       const value = String((card && card.value) || '').toLowerCase();
       const cornerGlyph = ({
         skip: '⊘',
@@ -16637,26 +16780,28 @@ PAGE_TEMPLATE = """
         : `type="button" data-uno-play-card="${escapeHtml(card.id || '')}"${disabled ? ' disabled' : ''}`;
       return `
         <button class="uno-card-btn ${playable ? 'playable' : ''}" ${buttonAttrs}>
-          <div class="uno-card-face ${escapeHtml(card.color || 'wild')}">
-            <span class="uno-card-oval" aria-hidden="true"></span>
-            <span class="uno-card-corner top" aria-hidden="true">
-              <span class="uno-card-corner-value">${escapeHtml(cornerGlyph)}</span>
-              <span class="uno-card-corner-glyph">${escapeHtml(cornerGlyph)}</span>
-            </span>
-            <span class="uno-card-corner bottom" aria-hidden="true">
-              <span class="uno-card-corner-value">${escapeHtml(cornerGlyph)}</span>
-              <span class="uno-card-corner-glyph">${escapeHtml(cornerGlyph)}</span>
-            </span>
-            <span class="uno-card-main">
-              ${isWild ? `
-                <span class="uno-card-wild-badge" aria-hidden="true">
-                  <span class="uno-card-wild-grid"><i></i><i></i><i></i><i></i></span>
-                  ${value === 'wild4' ? '<span class="uno-card-wild-plus">+4</span>' : ''}
-                </span>
-              ` : `
-                <span class="uno-card-main-value ${centerClass}">${escapeHtml(centerGlyph)}</span>
-              `}
-            </span>
+          <div class="uno-card-face ${escapeHtml(card.color || 'wild')} ${usePhoto ? 'photo' : ''}">
+            ${usePhoto ? photoMarkup : `
+              <span class="uno-card-oval" aria-hidden="true"></span>
+              <span class="uno-card-corner top" aria-hidden="true">
+                <span class="uno-card-corner-value">${escapeHtml(cornerGlyph)}</span>
+                <span class="uno-card-corner-glyph">${escapeHtml(cornerGlyph)}</span>
+              </span>
+              <span class="uno-card-corner bottom" aria-hidden="true">
+                <span class="uno-card-corner-value">${escapeHtml(cornerGlyph)}</span>
+                <span class="uno-card-corner-glyph">${escapeHtml(cornerGlyph)}</span>
+              </span>
+              <span class="uno-card-main">
+                ${isWild ? `
+                  <span class="uno-card-wild-badge" aria-hidden="true">
+                    <span class="uno-card-wild-grid"><i></i><i></i><i></i><i></i></span>
+                    ${value === 'wild4' ? '<span class="uno-card-wild-plus">+4</span>' : ''}
+                  </span>
+                ` : `
+                  <span class="uno-card-main-value ${centerClass}">${escapeHtml(centerGlyph)}</span>
+                `}
+              </span>
+            `}
             <span class="sr-only">${escapeHtml(card.title || '')}</span>
           </div>
           ${frameAsset ? `<img class="uno-card-frame" src="${frameAsset}" alt="">` : ''}
