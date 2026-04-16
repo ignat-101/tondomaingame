@@ -11550,15 +11550,45 @@ PAGE_TEMPLATE = """
       align-content: stretch;
     }
 
+    body.tma-app.tma-desktop.showdown-open .showdown-fullscreen.showdown-battle {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      width: 100%;
+      max-width: 100%;
+      min-height: var(--app-height, 100dvh);
+      height: var(--app-height, 100dvh);
+      margin: 0;
+      padding:
+        calc(6px + env(safe-area-inset-top))
+        0
+        calc(10px + env(safe-area-inset-bottom));
+      overflow: hidden;
+    }
+
     body.tma-app.tma-desktop .showdown-main.arena-board {
       min-height: 620px;
       padding: 8px 8px 14px;
+    }
+
+    body.tma-app.tma-desktop.showdown-open .showdown-main.arena-board {
+      height: 100%;
+      min-height: 0;
+      max-height: none;
+      padding: 8px 8px 10px;
+      overflow: hidden;
     }
 
     body.tma-app.tma-desktop .arena-shell {
       grid-template-rows: auto minmax(360px, 1fr) auto;
       gap: 8px;
       align-content: stretch;
+    }
+
+    body.tma-app.tma-desktop.showdown-open .arena-shell {
+      height: 100%;
+      min-height: 0;
+      grid-template-rows: auto minmax(360px, 1fr) auto;
     }
 
     body.tma-app.tma-desktop .arena-rail.enemy {
@@ -11569,6 +11599,17 @@ PAGE_TEMPLATE = """
       --arena-choice-center-y: 50%;
       min-height: 340px;
       overflow: hidden;
+    }
+
+    body.tma-app.tma-desktop.showdown-open .arena-core {
+      min-height: 0;
+      height: 100%;
+    }
+
+    body.tma-app.tma-desktop.showdown-open .mobile-nav,
+    body.tma-app.tma-desktop.showdown-open .currency-float,
+    body.tma-app.tma-desktop.showdown-open .mascot-widget {
+      display: none !important;
     }
 
     body.tma-app.tma-desktop .battle-stage.visible .arena-round-choice-strip {
