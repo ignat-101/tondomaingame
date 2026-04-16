@@ -906,6 +906,14 @@ PAGE_TEMPLATE = """
       box-shadow: 0 12px 22px rgba(0, 0, 0, 0.18);
     }
 
+    .uno-banner img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      margin-right: 10px;
+      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.24));
+    }
+
     .uno-meta-strip {
       display: flex;
       flex-wrap: wrap;
@@ -1003,16 +1011,14 @@ PAGE_TEMPLATE = """
       z-index: 1;
     }
 
-    .uno-card-face.photo {
-      background: linear-gradient(180deg, rgba(8, 11, 17, 0.92), rgba(3, 5, 9, 0.98));
+    .uno-card-face.photo,
+    .uno-back-face.photo {
+      background: transparent;
     }
 
-    .uno-card-face.photo::before {
-      inset: 2px;
-      border-radius: 18px;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.24),
-        0 10px 14px rgba(0,0,0,0.2);
+    .uno-card-face.photo::before,
+    .uno-back-face.photo::before {
+      display: none;
     }
 
     .uno-photo-face {
@@ -1031,6 +1037,26 @@ PAGE_TEMPLATE = """
       user-select: none;
       -webkit-user-drag: none;
       pointer-events: none;
+    }
+
+    .uno-photo-face.asset {
+      inset: 2px;
+      border-radius: 16px;
+      background: #090e17;
+    }
+
+    .uno-photo-face.asset img {
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    .uno-photo-face.asset.back {
+      inset: 1px;
+      border-radius: 19px;
+      background: #080d16;
     }
 
     .uno-card-face.red {
@@ -10931,6 +10957,46 @@ PAGE_TEMPLATE = """
       gap: 12px;
     }
 
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) #view-uno {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) #view-uno > h2,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) #view-uno > p,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) #view-uno > .support-footer {
+      display: none !important;
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
+      min-height: max(700px, calc(var(--app-height, 100dvh) - 86px));
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .mobile-nav,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .currency-float,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .mascot-widget {
+      display: none !important;
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .shell {
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell {
+      min-height: max(700px, calc(var(--app-height, 100dvh) - 86px));
+      width: 100%;
+      padding: 18px;
+      border-radius: 30px;
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.playing .uno-stage {
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      align-content: stretch;
+    }
+
     body.tma-app.uno-live-lock {
       padding-bottom: 0;
       overflow: hidden;
@@ -11439,6 +11505,85 @@ PAGE_TEMPLATE = """
     body.tma-app.tma-ios .mobile-nav,
     body.tma-app.tma-ios .currency-float {
       backdrop-filter: none !important;
+    }
+
+    body.tma-app.tma-desktop .shell {
+      padding: 14px 12px calc(98px + env(safe-area-inset-bottom));
+      width: min(calc(var(--app-width, 100vw) - 24px), 1120px) !important;
+      max-width: min(calc(var(--app-width, 100vw) - 24px), 1120px) !important;
+    }
+
+    body.tma-app.tma-desktop .mobile-nav {
+      position: fixed;
+      left: 86px;
+      right: 12px;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      margin: 0;
+      width: auto;
+    }
+
+    body.tma-app.tma-desktop .currency-float {
+      position: fixed;
+      top: calc(10px + env(safe-area-inset-top));
+      right: 12px;
+      left: auto;
+      margin: 0;
+      max-width: min(520px, calc(100vw - 24px));
+    }
+
+    body.tma-app.tma-desktop .mascot-widget {
+      display: grid !important;
+      left: 12px;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app.tma-desktop .showdown-fullscreen {
+      min-height: max(680px, calc(var(--app-height, 100dvh) - 26px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+      padding:
+        calc(6px + env(safe-area-inset-top))
+        0
+        calc(12px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app.tma-desktop .showdown-fullscreen.showdown-battle {
+      gap: 10px;
+      align-content: stretch;
+    }
+
+    body.tma-app.tma-desktop .showdown-main.arena-board {
+      min-height: 620px;
+      padding: 8px 8px 14px;
+    }
+
+    body.tma-app.tma-desktop .arena-shell {
+      grid-template-rows: auto minmax(360px, 1fr) auto;
+      gap: 8px;
+      align-content: stretch;
+    }
+
+    body.tma-app.tma-desktop .arena-rail.enemy {
+      padding-top: 8px;
+    }
+
+    body.tma-app.tma-desktop .arena-core {
+      --arena-choice-center-y: 50%;
+      min-height: 340px;
+      overflow: hidden;
+    }
+
+    body.tma-app.tma-desktop .battle-stage.visible .arena-round-choice-strip {
+      top: 14px;
+      gap: 8px;
+      padding: 0 10px;
+    }
+
+    body.tma-app.tma-desktop .battle-stage.visible .arena-battle-dock {
+      width: min(calc(100% - 36px), 520px) !important;
+      max-width: calc(100% - 36px) !important;
+    }
+
+    body.tma-app.tma-desktop .battle-stage.visible .arena-battle-dock .interactive-battle-panel {
+      padding: 12px 14px 12px;
     }
 
     body.tma-app .startup-guide {
@@ -12595,7 +12740,7 @@ PAGE_TEMPLATE = """
           <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
         </section>
 
-        <section class="panel view" id="view-uno">
+        <section class="panel view" id="view-uno" hidden>
           <h2>UNO Arena</h2>
           <p class="muted">Классический UNO-режим внутри mini app: бот, друзья до 6 игроков и быстрый матч. Можно играть как guest без кошелька или с общим прогрессом через домен.</p>
           <div id="uno-root" class="uno-root"></div>
@@ -12954,6 +13099,7 @@ PAGE_TEMPLATE = """
     const topNavAchievements = document.getElementById('top-nav-achievements');
     const appLauncher = document.getElementById('app-launcher');
     const appLauncherHomeBtn = document.getElementById('app-launcher-home-btn');
+    const viewUno = document.getElementById('view-uno');
     const unoRoot = document.getElementById('uno-root');
     const globalPlayersList = document.getElementById('global-players-list');
     const packShowcase = document.getElementById('pack-showcase');
@@ -13627,13 +13773,34 @@ PAGE_TEMPLATE = """
       return platform === 'ios' || iphoneLike || ipadLike;
     }
 
+    function isTouchLikeDevice() {
+      if (typeof navigator !== 'undefined' && Number(navigator.maxTouchPoints || 0) > 0) {
+        return true;
+      }
+      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        try {
+          return window.matchMedia('(pointer: coarse)').matches;
+        } catch (_) {
+          return false;
+        }
+      }
+      return false;
+    }
+
+    function isCompactTmaLayout() {
+      return document.body.classList.contains('tma-app') && !document.body.classList.contains('tma-desktop');
+    }
+
     function syncTmaMode() {
       const active = isTelegramMiniApp();
       const iosTma = active && isTelegramIosWebView();
+      const desktopTma = active && !iosTma && !isTouchLikeDevice();
       document.body.classList.toggle('tma-app', active);
       document.body.classList.toggle('tma-ios', iosTma);
+      document.body.classList.toggle('tma-desktop', desktopTma);
       document.documentElement.classList.toggle('tma-app', active);
       document.documentElement.classList.toggle('tma-ios', iosTma);
+      document.documentElement.classList.toggle('tma-desktop', desktopTma);
       document.body.dataset.appMode = active ? 'tma' : 'site';
       return active;
     }
@@ -13923,7 +14090,9 @@ PAGE_TEMPLATE = """
     }
 
     function setBattleLiveLock(active) {
-      const enabled = Boolean(active);
+      const requested = Boolean(active);
+      const desktopTma = isTelegramMiniApp() && !isTelegramIosWebView() && !isTouchLikeDevice();
+      const enabled = requested && !desktopTma;
       document.body.classList.toggle('battle-live-lock', enabled);
       document.documentElement.classList.toggle('battle-live-lock', enabled);
       if (!enabled) return;
@@ -13939,7 +14108,9 @@ PAGE_TEMPLATE = """
     }
 
     function setUnoLiveLock(active) {
-      const enabled = Boolean(active);
+      const requested = Boolean(active);
+      const desktopTma = isTelegramMiniApp() && !isTelegramIosWebView() && !isTouchLikeDevice();
+      const enabled = requested && !desktopTma;
       document.body.classList.toggle('uno-live-lock', enabled);
       document.documentElement.classList.toggle('uno-live-lock', enabled);
       if (!enabled) return;
@@ -15333,6 +15504,9 @@ PAGE_TEMPLATE = """
     function applyUnoTesterVisibility() {
       const allowed = hasUnoTesterAccess();
       const hideUno = unoPrivateMode && !allowed;
+      if (viewUno) {
+        viewUno.hidden = hideUno;
+      }
       if (appLauncher) {
         appLauncher.querySelectorAll('[data-uno-entry]').forEach((node) => {
           node.hidden = hideUno;
@@ -15348,6 +15522,20 @@ PAGE_TEMPLATE = """
       if (hideUno && mascotUnoActions) {
         mascotUnoActions.hidden = true;
       }
+      if (hideUno) {
+        if (state.activeApp === 'uno') {
+          state.activeApp = 'domain';
+        }
+        if (document.body.dataset.activeView === 'uno') {
+          document.body.dataset.activeView = 'profile';
+        }
+        try {
+          window.localStorage.setItem(appLauncherStorageKey, 'domain');
+        } catch (_) {
+        }
+      } else if (viewUno) {
+        viewUno.hidden = false;
+      }
       return allowed;
     }
 
@@ -15355,7 +15543,7 @@ PAGE_TEMPLATE = """
       if (hasUnoTesterAccess()) {
         return true;
       }
-      setStatus(walletStatus, 'UNO скрыт: это закрытый тестовый режим.', 'warning');
+      setStatus(walletStatus, 'Раздел недоступен.', 'warning');
       return false;
     }
 
@@ -16593,7 +16781,7 @@ PAGE_TEMPLATE = """
       const featuredBack = (catalogByType.cardback || []).find((item) => item.key === (equipped.cardback && equipped.cardback.key)) || cosmetics.find((item) => item.type === 'cardback') || (catalogByType.cardback || [])[0] || null;
       const featuredGuild = (catalogByType.guild || []).find((item) => item.key === (equipped.guild && equipped.guild.key)) || cosmetics.find((item) => item.type === 'guild') || (catalogByType.guild || [])[0] || null;
       const featuredEmoji = (catalogByType.emoji || []).find((item) => item.key === (equipped.emoji && equipped.emoji.key)) || cosmetics.find((item) => item.type === 'emoji') || (catalogByType.emoji || [])[0] || null;
-      const compactPreview = document.body.classList.contains('tma-app') || window.innerWidth <= 760;
+      const compactPreview = isCompactTmaLayout() || window.innerWidth <= 760;
       const featuredEmojiValue = featuredEmoji ? (featuredEmoji.emoji || '') : '';
       const frameAsset = cosmeticAssetUrl('frame', featuredFrame && featuredFrame.key);
       const visibleCatalogByType = Object.fromEntries(Object.entries(catalogByType).map(([type, items]) => [
@@ -16678,6 +16866,22 @@ PAGE_TEMPLATE = """
       });
     }
 
+    const UNO_OPEN_ASSET_VERSION = '20260414';
+    const UNO_OPEN_CARD_BASE = '/static/uno-open/cards-front';
+    const UNO_OPEN_CARD_BACK_URL = `/static/uno-open/card-back.png?v=${UNO_OPEN_ASSET_VERSION}`;
+    const UNO_OPEN_LOGO_URL = `/static/uno-open/logo.png?v=${UNO_OPEN_ASSET_VERSION}`;
+    const UNO_OPEN_BG_BY_COLOR = Object.freeze({
+      red: `/static/uno-open/backgrounds/bgR.png?v=${UNO_OPEN_ASSET_VERSION}`,
+      yellow: `/static/uno-open/backgrounds/bgY.png?v=${UNO_OPEN_ASSET_VERSION}`,
+      green: `/static/uno-open/backgrounds/bgG.png?v=${UNO_OPEN_ASSET_VERSION}`,
+      blue: `/static/uno-open/backgrounds/bgB.png?v=${UNO_OPEN_ASSET_VERSION}`,
+    });
+    const UNO_OPEN_COLOR_CODE = Object.freeze({
+      red: 'R',
+      yellow: 'Y',
+      green: 'G',
+      blue: 'B',
+    });
     const UNO_PHOTO_SPRITE_URL = '/static/uno-reference.webp?v=20260414';
     const UNO_PHOTO_SPRITE = Object.freeze({
       imageW: 900,
@@ -16711,6 +16915,75 @@ PAGE_TEMPLATE = """
       reverse: 10,
       draw2: 11,
     });
+
+    function unoOpenCardAssetName(card) {
+      const rawValue = String((card && card.value) || '').trim().toLowerCase();
+      const value = rawValue.replace(/[\\s_-]+/g, '');
+      const color = String((card && card.color) || '').trim().toLowerCase();
+      if (value === 'wild4' || value === 'draw4' || value === '+4') {
+        return 'D4W.png';
+      }
+      if (value === 'wild' || color === 'wild') {
+        return 'W.png';
+      }
+      const colorCode = UNO_OPEN_COLOR_CODE[color];
+      if (!colorCode) {
+        return '';
+      }
+      if (/^[0-9]$/.test(value)) {
+        return `${value}${colorCode}.png`;
+      }
+      if (value === 'skip') {
+        return `skip${colorCode}.png`;
+      }
+      if (value === 'reverse') {
+        return `_${colorCode}.png`;
+      }
+      if (value === 'draw2' || value === 'plus2' || value === '+2') {
+        return `D2${colorCode}.png`;
+      }
+      return '';
+    }
+
+    function unoOpenCardAssetUrl(card) {
+      const filename = unoOpenCardAssetName(card);
+      if (!filename) return '';
+      return `${UNO_OPEN_CARD_BASE}/${filename}?v=${UNO_OPEN_ASSET_VERSION}`;
+    }
+
+    function unoReferenceBackgroundUrl(color) {
+      return UNO_OPEN_BG_BY_COLOR[String(color || '').trim().toLowerCase()] || UNO_OPEN_BG_BY_COLOR.blue;
+    }
+
+    function unoReferenceSurface(color, fallbackSurface = '') {
+      const base = String(fallbackSurface || '').trim() || 'linear-gradient(180deg, rgba(8, 14, 24, 0.96), rgba(5, 9, 15, 0.98))';
+      const backgroundUrl = unoReferenceBackgroundUrl(color);
+      return [
+        'linear-gradient(180deg, rgba(3, 7, 12, 0.46), rgba(3, 7, 12, 0.72))',
+        `url("${backgroundUrl}") center/cover no-repeat`,
+        base,
+      ].join(',');
+    }
+
+    function unoBrandBadge(label, cosmeticSurface = '') {
+      const background = String(cosmeticSurface || '').trim() || 'linear-gradient(135deg, rgba(21, 34, 58, 0.96), rgba(10, 18, 30, 0.94))';
+      return `
+        <div class="uno-banner" style="background:${background};">
+          <img src="${UNO_OPEN_LOGO_URL}" alt="">
+          <span>${escapeHtml(label || 'UNO')}</span>
+        </div>
+      `;
+    }
+
+    function unoCardAssetMarkup(card) {
+      const assetUrl = unoOpenCardAssetUrl(card);
+      if (!assetUrl) return '';
+      return `
+        <span class="uno-photo-face asset" aria-hidden="true">
+          <img src="${assetUrl}" alt="">
+        </span>
+      `;
+    }
 
     function unoCardPhotoCoords(card) {
       const value = String((card && card.value) || '').toLowerCase();
@@ -16756,7 +17029,7 @@ PAGE_TEMPLATE = """
       const frameAsset = options.frameAsset || '';
       const playable = Boolean(options.playable);
       const disabled = Boolean(options.disabled);
-      const photoMarkup = unoCardPhotoMarkup(card);
+      const photoMarkup = unoCardAssetMarkup(card) || unoCardPhotoMarkup(card);
       const usePhoto = Boolean(photoMarkup);
       const value = String((card && card.value) || '').toLowerCase();
       const cornerGlyph = ({
@@ -16813,11 +17086,11 @@ PAGE_TEMPLATE = """
       const mark = String(label || 'TDG').trim() || 'TDG';
       return `
         <div class="uno-back-card">
-          <div class="uno-back-face" style="--uno-cardback-surface:${escapeHtml(cardbackSurface)};">
-            <span class="uno-back-oval" aria-hidden="true"></span>
-            <span class="uno-back-corner top" aria-hidden="true"><span class="uno-back-corner-dot"></span></span>
-            <span class="uno-back-corner bottom" aria-hidden="true"><span class="uno-back-corner-dot"></span></span>
-            <span class="uno-back-brand" aria-hidden="true"><span class="uno-back-brand-mark">${escapeHtml(mark)}</span></span>
+          <div class="uno-back-face photo" style="--uno-cardback-surface:${escapeHtml(cardbackSurface)};">
+            <span class="uno-photo-face asset back" aria-hidden="true">
+              <img src="${UNO_OPEN_CARD_BACK_URL}" alt="">
+            </span>
+            <span class="sr-only">${escapeHtml(mark)}</span>
           </div>
           ${frameAsset ? `<img class="uno-card-frame" src="${frameAsset}" alt="">` : ''}
         </div>
@@ -17039,7 +17312,7 @@ PAGE_TEMPLATE = """
       if (!hasUnoTesterAccess()) {
         stopUnoStatusPolling();
         setUnoLiveLock(false);
-        unoRoot.innerHTML = '<div class="uno-empty"><strong>Режим UNO недоступен.</strong><div class="tiny">Сейчас это закрытый тестовый режим.</div></div>';
+        unoRoot.innerHTML = '<div class="uno-empty"><strong>Раздел недоступен.</strong></div>';
         return;
       }
       syncMascotPopover();
@@ -17054,10 +17327,11 @@ PAGE_TEMPLATE = """
       const guildKey = ((cosmetics.guild || {}).key) || '';
       const emoji = cosmeticEmojiSymbol(cosmetics);
       const frameAsset = cosmeticAssetUrl('frame', frameKey);
-      const tableSurface = giftArenaSurface(arenaKey, emoji);
+      const session = state.unoSession;
+      const unoThemeColor = String((session && session.current_color) || 'blue').toLowerCase();
+      const tableSurface = unoReferenceSurface(unoThemeColor, giftArenaSurface(arenaKey, emoji));
       const backSurface = giftCardbackSurface(backKey, emoji);
       const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : '';
-      const session = state.unoSession;
       const backMark = String(emoji || 'TDG').trim() || 'TDG';
       const sessionStatus = String((session && session.status) || '');
       const unoLiveScreen = Boolean(
@@ -17066,7 +17340,7 @@ PAGE_TEMPLATE = """
         && !session.complete
         && sessionStatus !== 'waiting'
       );
-      const compactUnoLive = Boolean(document.body.classList.contains('tma-app') && unoLiveScreen);
+      const compactUnoLive = Boolean(isCompactTmaLayout() && unoLiveScreen);
       setUnoLiveLock(unoLiveScreen);
       const identityLabel = identity.progressEnabled
         ? `${state.selectedDomain}.ton`
@@ -17098,7 +17372,7 @@ PAGE_TEMPLATE = """
                   <div class="tiny">Классический flow UNO: матч с ботом, комната с друзьями до 6 игроков и быстрый поиск любой свободной партии.</div>
                 </div>
                 <div class="actions" style="margin-left:auto;">
-                  ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">UNO</div>` : ''}
+                  ${unoBrandBadge('UNO', bannerSurface)}
                   <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
                 </div>
               </div>
@@ -17216,7 +17490,7 @@ PAGE_TEMPLATE = """
                   <div class="tiny">Код: ${escapeHtml(session.room_code || session.session_id || '—')} • ${participantCount}/${Number(session.max_players || 2)} игроков • профиль ${escapeHtml((viewerParticipant && viewerParticipant.domain) ? `${viewerParticipant.domain}.ton` : identity.displayName)}</div>
                 </div>
                 <div class="actions" style="margin-left:auto;">
-                  ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">${session.mode === 'quick' ? 'MATCHMAKING' : 'FRIENDS'}</div>` : ''}
+                  ${unoBrandBadge(session.mode === 'quick' ? 'MATCH' : 'FRIENDS', bannerSurface)}
                   <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
                 </div>
               </div>
@@ -17282,7 +17556,7 @@ PAGE_TEMPLATE = """
                 </div>
               `}
               <div class="actions" style="margin-left:auto;">
-                ${bannerSurface ? `<div class="uno-banner" style="background:${bannerSurface};">${escapeHtml(session.current_color_label || 'UNO')}</div>` : `<div class="uno-chip">Цвет: ${escapeHtml(session.current_color_label || '—')}</div>`}
+                ${unoBrandBadge(session.current_color_label || 'UNO', bannerSurface)}
                 <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
               </div>
             </div>
@@ -18268,7 +18542,7 @@ PAGE_TEMPLATE = """
       }
       const playerRect = playerSource.getBoundingClientRect();
       const enemyRect = enemySource.getBoundingClientRect();
-      const compactClash = document.body.classList.contains('tma-app') || window.innerWidth <= 700;
+      const compactClash = isCompactTmaLayout() || window.innerWidth <= 700;
       const playerCosmetics = (currentResult && currentResult.player_cosmetics) || {};
       const opponentCosmetics = (currentResult && currentResult.opponent_cosmetics) || {};
       const clashCardWidth = compactClash ? 52 : 138;
@@ -18888,7 +19162,7 @@ PAGE_TEMPLATE = """
         const energyFill = `${Math.max(0, Math.min(100, (energyNow / 3) * 100))}%`;
         const cooldownFill = `${Math.max(0, Math.min(100, (activeAbilityCooldownNow / activeAbilityCooldownMax) * 100))}%`;
         const chargesFill = `${Math.max(0, Math.min(100, (activeAbilityChargesNow / activeAbilityChargesMax) * 100))}%`;
-        const compactResourcePills = isTelegramMiniApp() || window.innerWidth <= 430;
+        const compactResourcePills = isCompactTmaLayout() || window.innerWidth <= 430;
         const energyCaption = compactResourcePills
           ? `Действий: ${interactiveActionKeys.length}`
           : `Доступно действий: ${interactiveActionKeys.length}`;
