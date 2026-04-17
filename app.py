@@ -1474,6 +1474,72 @@ PAGE_TEMPLATE = """
       min-width: 112px;
     }
 
+    .uno-color-sheet {
+      position: sticky;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+      z-index: 16;
+      display: grid;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(121, 217, 255, 0.2);
+      background:
+        linear-gradient(135deg, rgba(8, 18, 31, 0.96), rgba(8, 25, 42, 0.92)),
+        radial-gradient(circle at top, rgba(255, 211, 110, 0.12), transparent 64%);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(18px);
+    }
+
+    .uno-color-sheet-head {
+      display: grid;
+      gap: 4px;
+    }
+
+    .uno-color-sheet-head strong {
+      font-size: 16px;
+      line-height: 1.22;
+      color: #f5fbff;
+    }
+
+    .uno-color-sheet-head .tiny {
+      color: rgba(224, 238, 255, 0.78);
+      line-height: 1.38;
+    }
+
+    .uno-color-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .uno-color-choice {
+      min-height: 54px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      color: #ffffff;
+      text-transform: uppercase;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+      touch-action: manipulation;
+    }
+
+    .uno-color-choice.red { background: linear-gradient(180deg, #ff665f, #d81e2e); }
+    .uno-color-choice.yellow { background: linear-gradient(180deg, #f9da52, #c89c0b); color: #15202a; }
+    .uno-color-choice.green { background: linear-gradient(180deg, #49de8d, #1e9b5a); }
+    .uno-color-choice.blue { background: linear-gradient(180deg, #55c2ff, #1d74d9); }
+
+    .uno-color-cancel {
+      min-height: 42px;
+      justify-self: center;
+      min-width: 160px;
+      touch-action: manipulation;
+    }
+
     .uno-log,
     .uno-result-box {
       padding: 14px 16px;
@@ -1949,6 +2015,27 @@ PAGE_TEMPLATE = """
 
       .uno-color-btn {
         min-width: calc(50% - 6px);
+      }
+
+      .uno-color-sheet {
+        gap: 10px;
+        padding: 12px;
+        border-radius: 18px;
+        bottom: calc(6px + env(safe-area-inset-bottom));
+      }
+
+      .uno-color-sheet-head strong {
+        font-size: 14px;
+      }
+
+      .uno-color-grid {
+        gap: 8px;
+      }
+
+      .uno-color-choice {
+        min-height: 48px;
+        border-radius: 16px;
+        font-size: 13px;
       }
     }
 
@@ -11498,6 +11585,30 @@ PAGE_TEMPLATE = """
       display: none;
     }
 
+    body.tma-app.uno-live-lock .uno-color-sheet {
+      gap: 8px;
+      padding: 10px;
+      border-radius: 18px;
+      bottom: calc(4px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app.uno-live-lock .uno-color-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    body.tma-app.uno-live-lock .uno-color-choice {
+      min-height: 42px;
+      padding: 0 4px;
+      border-radius: 14px;
+      font-size: 10px;
+    }
+
+    body.tma-app.uno-live-lock .uno-color-cancel {
+      min-height: 34px;
+      min-width: 132px;
+    }
+
     body.tma-app.uno-live-lock .uno-opponent-zone,
     body.tma-app.uno-live-lock .uno-live-board,
     body.tma-app.uno-live-lock .uno-player-row {
@@ -17321,7 +17432,26 @@ PAGE_TEMPLATE = """
       return 'Ход';
     }
 
-    function unoLiveInstructionData(session, playableIds) {
+    function unoSessionVisualKey(session) {
+      if (!session) return '';
+      try {
+        return JSON.stringify(session);
+      } catch (_) {
+        return String(session && session.session_id || '');
+      }
+    }
+
+    function unoCanKeepPendingColorCard(session, cardId) {
+      const normalizedCardId = String(cardId || '').trim();
+      if (!session || !normalizedCardId || session.complete) return '';
+      if (session.uno_alert && session.uno_alert.active) return '';
+      if (!session.your_turn) return '';
+      return (session.player_hand || []).some((card) => card && card.id === normalizedCardId && card.wild)
+        ? normalizedCardId
+        : '';
+    }
+
+    function unoLiveInstructionData(session, playableIds, pendingWildCardId = '') {
       const topCard = session && session.discard_top ? session.discard_top : null;
       const hand = Array.isArray(session && session.player_hand) ? session.player_hand : [];
       const playableCards = hand.filter((card) => playableIds.has(card.id));
@@ -17337,6 +17467,17 @@ PAGE_TEMPLATE = """
           ],
         };
       }
+      if (pendingWildCardId) {
+        return {
+          headline: 'Выбери новый цвет для Wild',
+          detail: 'Нажми один из четырёх цветов ниже. После выбора карта сразу уйдёт на стол.',
+          chips: [
+            `Сброс: ${topCard && topCard.title ? topCard.title : '—'}`,
+            'Шаг 1: выбери цвет',
+            'Шаг 2: стол обновится',
+          ],
+        };
+      }
       if (unoAlert) {
         return {
           headline: unoAlert.title || 'Жми UNO',
@@ -17349,21 +17490,30 @@ PAGE_TEMPLATE = """
         };
       }
       if (session.your_turn) {
+        if (!playableCards.length) {
+          return {
+            headline: 'Подходящей карты нет',
+            detail: 'Жми «Взять карту». В этой версии UNO после добора ход сразу переходит дальше.',
+            chips: [
+              `Сброс: ${topCard && topCard.title ? topCard.title : '—'}`,
+              `Цвет: ${session.current_color_label || '—'}`,
+              'Действие: взять карту',
+            ],
+          };
+        }
         return {
-          headline: `Смотри на сброс: ${topCard && topCard.title ? topCard.title : '—'}`,
-          detail: playableCards.length
-            ? `Играй карту того же цвета ${session.current_color_label || '—'}, того же знака ${topCard && (topCard.value_label || topCard.value) ? (topCard.value_label || topCard.value) : '—'} или любой Wild.`
-            : 'Подходящей карты нет. Жми «Взять карту», и стол сразу покажет новый ход.',
+          headline: 'Сейчас твой ход',
+          detail: `Нажми любую подсвеченную карту. Можно ходить по цвету ${session.current_color_label || '—'}, по такому же знаку или Wild-картой.`,
           chips: [
-            `Цвет: ${session.current_color_label || '—'}`,
+            `Сброс: ${topCard && topCard.title ? topCard.title : '—'}`,
             `Подходят: ${playableCards.length}`,
-            ...uniqueReasons.slice(0, 2),
+            uniqueReasons[0] || `Цвет: ${session.current_color_label || '—'}`,
           ],
         };
       }
       return {
         headline: `Сейчас ходит ${session.turn_display_name || 'соперник'}`,
-        detail: 'Жди обновление центра стола. Когда соперник сходит, карта и последнее действие вспыхнут прямо на поле.',
+        detail: 'Подожди ход соперника. Как только он сыграет карту, сверху обновится сброс и твой следующий шаг.',
         chips: [
           `Сброс: ${topCard && topCard.title ? topCard.title : '—'}`,
           `Цвет: ${session.current_color_label || '—'}`,
@@ -17698,7 +17848,6 @@ PAGE_TEMPLATE = """
         if (data.player) {
           state.playerProfile = data.player;
         }
-        renderProfile();
         renderUnoPanel();
         return Boolean(state.unoSession);
       } catch (_) {
@@ -17734,15 +17883,19 @@ PAGE_TEMPLATE = """
           ? `wallet=${encodeURIComponent(identity.wallet)}`
           : `guest_id=${encodeURIComponent(identity.guest_id)}`;
         const data = await api(`/api/uno/status?${query}&session_id=${encodeURIComponent(state.unoSession.session_id)}`);
+        const previousSignature = unoSessionVisualKey(state.unoSession);
+        const previousPendingCardId = String(state.unoPendingColorCardId || '');
         state.unoSession = data.session || null;
-        state.unoPendingColorCardId = null;
+        state.unoPendingColorCardId = unoCanKeepPendingColorCard(state.unoSession, previousPendingCardId);
         rememberUnoSession(state.unoSession);
         if (data.player) {
           state.playerProfile = data.player;
-          renderProfile();
-        } else {
+        }
+        const nextSignature = unoSessionVisualKey(state.unoSession);
+        if (document.body.dataset.activeView === 'uno' && (previousSignature !== nextSignature || previousPendingCardId !== state.unoPendingColorCardId)) {
           renderUnoPanel();
         }
+        scheduleUnoStatusPolling();
       } catch (error) {
         stopUnoStatusPolling();
         if (String(error.message || '').toLowerCase().includes('не найдена')) {
@@ -17931,11 +18084,11 @@ PAGE_TEMPLATE = """
         const unoJoinRoomBtn = document.getElementById('uno-join-room-btn');
         const unoGuestNameInput = document.getElementById('uno-guest-name-input');
         const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
-        if (unoStartBtn) bindFunctionalControl(unoStartBtn, startUnoMatch);
-        if (unoQuickSearchBtn) bindFunctionalControl(unoQuickSearchBtn, searchUnoQuickMatch);
-        if (unoCreateRoomBtn) bindFunctionalControl(unoCreateRoomBtn, createUnoRoom);
-        if (unoJoinRoomBtn) bindFunctionalControl(unoJoinRoomBtn, joinUnoRoom);
-        if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher());
+        if (unoStartBtn) bindFunctionalControl(unoStartBtn, startUnoMatch, 'click', {skipPrepare: true});
+        if (unoQuickSearchBtn) bindFunctionalControl(unoQuickSearchBtn, searchUnoQuickMatch, 'click', {skipPrepare: true});
+        if (unoCreateRoomBtn) bindFunctionalControl(unoCreateRoomBtn, createUnoRoom, 'click', {skipPrepare: true});
+        if (unoJoinRoomBtn) bindFunctionalControl(unoJoinRoomBtn, joinUnoRoom, 'click', {skipPrepare: true});
+        if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
         if (unoGuestNameInput) {
           unoGuestNameInput.addEventListener('input', (event) => {
             updateUnoGuestName(event.target.value || '');
@@ -18005,15 +18158,15 @@ PAGE_TEMPLATE = """
         const unoRoomRefreshBtn = document.getElementById('uno-room-refresh-btn');
         const unoRoomLeaveBtn = document.getElementById('uno-room-leave-btn');
         const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
-        if (unoRoomStartBtn) bindFunctionalControl(unoRoomStartBtn, startUnoRoom);
-        if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus());
-        if (unoRoomLeaveBtn) bindFunctionalControl(unoRoomLeaveBtn, leaveUnoSession);
-        if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher());
+        if (unoRoomStartBtn) bindFunctionalControl(unoRoomStartBtn, startUnoRoom, 'click', {skipPrepare: true});
+        if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus(), 'click', {skipPrepare: true});
+        if (unoRoomLeaveBtn) bindFunctionalControl(unoRoomLeaveBtn, leaveUnoSession, 'click', {skipPrepare: true});
+        if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
         return;
       }
       scheduleUnoStatusPolling();
       const turnToneClass = session.complete ? 'complete' : (session.your_turn ? 'you' : 'wait');
-      const liveGuide = unoLiveInstructionData(session, playableIds);
+      const liveGuide = unoLiveInstructionData(session, playableIds, pendingWildCardId);
       const unoAlert = session && session.uno_alert && session.uno_alert.active ? session.uno_alert : null;
       const nextUnoEventKey = unoSessionEventKey(session);
       const shouldAnimateUnoEvent = Boolean(nextUnoEventKey && state.unoLastEventKey && state.unoLastEventKey !== nextUnoEventKey);
@@ -18060,6 +18213,9 @@ PAGE_TEMPLATE = """
             <div class="uno-live-summary-sub">${escapeHtml(session.last_action || resultSummary)}</div>
           </div>
           <div class="uno-turn-cue">
+            <span class="uno-turn-pill ${session.complete ? 'complete' : (unoAlert ? 'wait' : (session.your_turn ? 'you' : 'wait'))}">
+              ${session.complete ? 'Результат' : (pendingWildCardId ? 'Выбор цвета' : (unoAlert ? 'UNO' : (session.your_turn ? 'Что делать' : 'Ждём ход')))}
+            </span>
             <div>
               <strong>${escapeHtml(liveGuide.headline)}</strong>
               <div class="tiny">${escapeHtml(liveGuide.detail)}</div>
@@ -18126,14 +18282,6 @@ PAGE_TEMPLATE = """
                 </div>
                 <div class="uno-play-hint">${escapeHtml(resultSummary)}</div>
               </div>
-              ${pendingWildCardId ? `
-                <div class="uno-log">
-                  <strong>Выбери цвет для Wild</strong>
-                  <div class="uno-color-pick">
-                    ${['red', 'yellow', 'green', 'blue'].map((color) => `<button type="button" class="secondary uno-color-btn" data-uno-color="${color}" data-uno-card-id="${escapeHtml(pendingWildCardId)}">${escapeHtml({red: 'Красный', yellow: 'Жёлтый', green: 'Зелёный', blue: 'Синий'}[color])}</button>`).join('')}
-                  </div>
-                </div>
-              ` : ''}
               ${session.complete ? `
                 <div class="uno-result-box">
                   <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
@@ -18163,26 +18311,43 @@ PAGE_TEMPLATE = """
                 ${(session.player_hand || []).map((card) => unoCardMarkup(card, {frameAsset, playable: !unoAlert && playableIds.has(card.id) && Boolean(session.your_turn), disabled: Boolean(unoAlert) || !(playableIds.has(card.id) && Boolean(session.your_turn))})).join('')}
               </div>
             </div>
+            ${pendingWildCardId ? `
+              <div class="uno-color-sheet">
+                <div class="uno-color-sheet-head">
+                  <strong>Выбери цвет для Wild</strong>
+                  <div class="tiny">Это обязательный шаг. Пока цвет не выбран, карта не сыграет.</div>
+                </div>
+                <div class="uno-color-grid">
+                  ${['red', 'yellow', 'green', 'blue'].map((color) => `<button type="button" class="uno-color-choice ${color}" data-uno-color="${color}" data-uno-card-id="${escapeHtml(pendingWildCardId)}">${escapeHtml({red: 'Красный', yellow: 'Жёлтый', green: 'Зелёный', blue: 'Синий'}[color])}</button>`).join('')}
+                </div>
+                <button type="button" class="secondary uno-color-cancel" id="uno-color-cancel-btn">Отмена</button>
+              </div>
+            ` : ''}
           </div>
         </div>
       `;
       const unoAlertBtn = document.getElementById('uno-alert-btn');
+      const unoColorCancelBtn = document.getElementById('uno-color-cancel-btn');
       const unoDrawBtn = document.getElementById('uno-draw-btn');
       const unoRoomRefreshBtn = document.getElementById('uno-room-refresh-btn');
       const unoAfterBotBtn = document.getElementById('uno-after-bot-btn');
       const unoResultLauncherBtn = document.getElementById('uno-result-launcher-btn');
       const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
-      if (unoAlertBtn) bindFunctionalControl(unoAlertBtn, () => runUnoAction('uno'));
-      if (unoDrawBtn && !unoDrawBtn.disabled && session.can_draw) bindFunctionalControl(unoDrawBtn, () => runUnoAction('draw'));
-      if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus());
-      if (unoAfterBotBtn) bindFunctionalControl(unoAfterBotBtn, () => (session.mode === 'bot' ? startUnoMatch() : searchUnoQuickMatch()));
-      if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher());
-      if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher());
+      if (unoAlertBtn) bindFunctionalControl(unoAlertBtn, () => runUnoAction('uno'), 'click', {skipPrepare: true});
+      if (unoColorCancelBtn) bindFunctionalControl(unoColorCancelBtn, () => {
+        state.unoPendingColorCardId = null;
+        renderUnoPanel();
+      }, 'click', {skipPrepare: true});
+      if (unoDrawBtn && !unoDrawBtn.disabled && session.can_draw) bindFunctionalControl(unoDrawBtn, () => runUnoAction('draw'), 'click', {skipPrepare: true});
+      if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus(), 'click', {skipPrepare: true});
+      if (unoAfterBotBtn) bindFunctionalControl(unoAfterBotBtn, () => (session.mode === 'bot' ? startUnoMatch() : searchUnoQuickMatch()), 'click', {skipPrepare: true});
+      if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
+      if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
       unoRoot.querySelectorAll('[data-uno-play-card]').forEach((button) => {
-        bindFunctionalControl(button, () => requestUnoCardPlay(button.dataset.unoPlayCard));
+        bindFunctionalControl(button, () => requestUnoCardPlay(button.dataset.unoPlayCard), 'click', {skipPrepare: true});
       });
       unoRoot.querySelectorAll('[data-uno-color]').forEach((button) => {
-        bindFunctionalControl(button, () => runUnoAction('play', button.dataset.unoCardId, button.dataset.unoColor));
+        bindFunctionalControl(button, () => runUnoAction('play', button.dataset.unoCardId, button.dataset.unoColor), 'click', {skipPrepare: true});
       });
       if (shouldAnimateUnoEvent || shouldAnimateUnoIntro) {
         requestAnimationFrame(() => {
@@ -18210,12 +18375,8 @@ PAGE_TEMPLATE = """
         rememberUnoSession(state.unoSession);
         if (data.player) {
           state.playerProfile = data.player;
-          renderProfile();
-        } else {
-          renderUnoPanel();
         }
         switchView('uno');
-        renderUnoPanel();
         scheduleUnoStatusPolling();
       } catch (error) {
         unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
@@ -18237,13 +18398,10 @@ PAGE_TEMPLATE = """
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
-        switchView('uno');
         if (data.player) {
           state.playerProfile = data.player;
-          renderProfile();
-        } else {
-          renderUnoPanel();
         }
+        switchView('uno');
         scheduleUnoStatusPolling();
       } catch (error) {
         unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
@@ -18269,13 +18427,10 @@ PAGE_TEMPLATE = """
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
-        switchView('uno');
         if (data.player) {
           state.playerProfile = data.player;
-          renderProfile();
-        } else {
-          renderUnoPanel();
         }
+        switchView('uno');
         scheduleUnoStatusPolling();
       } catch (error) {
         unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
@@ -18292,12 +18447,10 @@ PAGE_TEMPLATE = """
           body: unoActorPayload({ session_id: state.unoSession.session_id })
         });
         state.unoSession = data.session || null;
+        state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
         if (data.player) {
           state.playerProfile = data.player;
-          renderProfile();
-        } else {
-          renderUnoPanel();
         }
         scheduleUnoStatusPolling(true);
       } catch (error) {
@@ -18319,13 +18472,10 @@ PAGE_TEMPLATE = """
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
-        switchView('uno');
         if (data.player) {
           state.playerProfile = data.player;
-          renderProfile();
-        } else {
-          renderUnoPanel();
         }
+        switchView('uno');
         scheduleUnoStatusPolling(true);
       } catch (error) {
         unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
@@ -18346,10 +18496,8 @@ PAGE_TEMPLATE = """
         rememberUnoSession(state.unoSession);
         if (data.player) {
           state.playerProfile = data.player;
-          renderProfile();
-        } else {
-          renderUnoPanel();
         }
+        renderUnoPanel();
       } catch (error) {
         unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
       }
@@ -18374,7 +18522,6 @@ PAGE_TEMPLATE = """
         rememberUnoSession(state.unoSession);
         if (data.player) {
           state.playerProfile = data.player;
-          renderProfile();
         }
         renderUnoPanel();
         scheduleUnoStatusPolling();
