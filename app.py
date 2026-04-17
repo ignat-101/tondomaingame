@@ -15407,6 +15407,9 @@ PAGE_TEMPLATE = """
     var lastTmaViewportHeight = 0;
 
     function clearScheduledTmaSyncs() {
+      if (!Array.isArray(tmaSyncTimers)) {
+        tmaSyncTimers = [];
+      }
       tmaSyncTimers.forEach((timer) => window.clearTimeout(timer));
       tmaSyncTimers = [];
     }
@@ -15590,6 +15593,9 @@ PAGE_TEMPLATE = """
 
     function stabilizeTmaAfterAsyncRender() {
       if (!isTelegramMiniApp()) return;
+      if (!Array.isArray(tmaSyncTimers)) {
+        tmaSyncTimers = [];
+      }
       [0, 60, 180, 360, 720, 1200, 2000, 3200, 5200].forEach((delay) => {
         const timer = window.setTimeout(() => {
           performTmaSync();
@@ -17928,11 +17934,23 @@ PAGE_TEMPLATE = """
 
     function themeSlugFromKey(key) {
       const safeKey = String(key || '').toLowerCase();
-      return Object.keys(GIFT_THEMES).find((slug) => safeKey.includes(slug)) || 'black';
+      const catalog = (typeof GIFT_THEMES === 'object' && GIFT_THEMES) ? GIFT_THEMES : null;
+      if (!catalog) return 'black';
+      return Object.keys(catalog).find((slug) => safeKey.includes(slug)) || 'black';
     }
 
     function cosmeticTheme(type, key) {
-      return GIFT_THEMES[themeSlugFromKey(key)] || GIFT_THEMES.black;
+      const catalog = (typeof GIFT_THEMES === 'object' && GIFT_THEMES) ? GIFT_THEMES : null;
+      return (catalog && (catalog[themeSlugFromKey(key)] || catalog.black)) || {
+        name: 'Black',
+        emoji: '♠️',
+        base: '#020202',
+        secondary: '#090909',
+        accent: '#5E616B',
+        glow: 'rgba(94,97,107,0.22)',
+        text: '#F2F2F2',
+        motif: 'stripes',
+      };
     }
 
     const COSMETIC_RARITY_ORDER = ['basic', 'rare', 'epic', 'mythic', 'legendary'];
@@ -18494,24 +18512,24 @@ PAGE_TEMPLATE = """
       });
     }
 
-    const UNO_OPEN_ASSET_VERSION = '20260414';
-    const UNO_OPEN_CARD_BASE = '/static/uno-open/cards-front';
-    const UNO_OPEN_CARD_BACK_URL = `/static/uno-open/card-back.png?v=${UNO_OPEN_ASSET_VERSION}`;
-    const UNO_OPEN_LOGO_URL = `/static/uno-open/logo.png?v=${UNO_OPEN_ASSET_VERSION}`;
-    const UNO_OPEN_BG_BY_COLOR = Object.freeze({
+    var UNO_OPEN_ASSET_VERSION = '20260414';
+    var UNO_OPEN_CARD_BASE = '/static/uno-open/cards-front';
+    var UNO_OPEN_CARD_BACK_URL = `/static/uno-open/card-back.png?v=${UNO_OPEN_ASSET_VERSION}`;
+    var UNO_OPEN_LOGO_URL = `/static/uno-open/logo.png?v=${UNO_OPEN_ASSET_VERSION}`;
+    var UNO_OPEN_BG_BY_COLOR = Object.freeze({
       red: `/static/uno-open/backgrounds/bgR.png?v=${UNO_OPEN_ASSET_VERSION}`,
       yellow: `/static/uno-open/backgrounds/bgY.png?v=${UNO_OPEN_ASSET_VERSION}`,
       green: `/static/uno-open/backgrounds/bgG.png?v=${UNO_OPEN_ASSET_VERSION}`,
       blue: `/static/uno-open/backgrounds/bgB.png?v=${UNO_OPEN_ASSET_VERSION}`,
     });
-    const UNO_OPEN_COLOR_CODE = Object.freeze({
+    var UNO_OPEN_COLOR_CODE = Object.freeze({
       red: 'R',
       yellow: 'Y',
       green: 'G',
       blue: 'B',
     });
-    const UNO_PHOTO_SPRITE_URL = '/static/uno-reference.webp?v=20260414';
-    const UNO_PHOTO_SPRITE = Object.freeze({
+    var UNO_PHOTO_SPRITE_URL = '/static/uno-reference.webp?v=20260414';
+    var UNO_PHOTO_SPRITE = Object.freeze({
       imageW: 900,
       imageH: 1200,
       cardW: 50,
@@ -18529,7 +18547,7 @@ PAGE_TEMPLATE = """
         blue: 731,
       }),
     });
-    const UNO_PHOTO_VALUE_INDEX = Object.freeze({
+    var UNO_PHOTO_VALUE_INDEX = Object.freeze({
       '1': 0,
       '2': 1,
       '3': 2,
@@ -18548,13 +18566,19 @@ PAGE_TEMPLATE = """
       const rawValue = String((card && card.value) || '').trim().toLowerCase();
       const value = rawValue.replace(/[\\s_-]+/g, '');
       const color = String((card && card.color) || '').trim().toLowerCase();
+      const colorCodeMap = (typeof UNO_OPEN_COLOR_CODE === 'object' && UNO_OPEN_COLOR_CODE) ? UNO_OPEN_COLOR_CODE : {
+        red: 'R',
+        yellow: 'Y',
+        green: 'G',
+        blue: 'B',
+      };
       if (value === 'wild4' || value === 'draw4' || value === '+4') {
         return 'D4W.png';
       }
       if (value === 'wild' || color === 'wild') {
         return 'W.png';
       }
-      const colorCode = UNO_OPEN_COLOR_CODE[color];
+      const colorCode = colorCodeMap[color];
       if (!colorCode) {
         return '';
       }
@@ -18576,11 +18600,15 @@ PAGE_TEMPLATE = """
     function unoOpenCardAssetUrl(card) {
       const filename = unoOpenCardAssetName(card);
       if (!filename) return '';
-      return `${UNO_OPEN_CARD_BASE}/${filename}?v=${UNO_OPEN_ASSET_VERSION}`;
+      const base = String(UNO_OPEN_CARD_BASE || '/static/uno-open/cards-front').trim() || '/static/uno-open/cards-front';
+      const version = String(UNO_OPEN_ASSET_VERSION || '20260414').trim() || '20260414';
+      return `${base}/${filename}?v=${version}`;
     }
 
     function unoReferenceBackgroundUrl(color) {
-      return UNO_OPEN_BG_BY_COLOR[String(color || '').trim().toLowerCase()] || UNO_OPEN_BG_BY_COLOR.blue;
+      const backgrounds = (typeof UNO_OPEN_BG_BY_COLOR === 'object' && UNO_OPEN_BG_BY_COLOR) ? UNO_OPEN_BG_BY_COLOR : null;
+      if (!backgrounds) return '';
+      return backgrounds[String(color || '').trim().toLowerCase()] || backgrounds.blue || '';
     }
 
     function unoReferenceSurface(color, fallbackSurface = '') {
@@ -18595,9 +18623,10 @@ PAGE_TEMPLATE = """
 
     function unoBrandBadge(label, cosmeticSurface = '') {
       const background = String(cosmeticSurface || '').trim() || 'linear-gradient(135deg, rgba(21, 34, 58, 0.96), rgba(10, 18, 30, 0.94))';
+      const logoUrl = String(UNO_OPEN_LOGO_URL || '').trim();
       return `
         <div class="uno-banner" style="background:${background};">
-          <img src="${UNO_OPEN_LOGO_URL}" alt="">
+          ${logoUrl ? `<img src="${logoUrl}" alt="">` : ''}
           <span>${escapeHtml(label || 'UNO')}</span>
         </div>
       `;
@@ -18809,7 +18838,11 @@ PAGE_TEMPLATE = """
     function unoCardPhotoCoords(card) {
       const value = String((card && card.value) || '').toLowerCase();
       const color = String((card && card.color) || '').toLowerCase();
-      const cfg = UNO_PHOTO_SPRITE;
+      const cfg = (typeof UNO_PHOTO_SPRITE === 'object' && UNO_PHOTO_SPRITE) ? UNO_PHOTO_SPRITE : null;
+      const valueIndex = (typeof UNO_PHOTO_VALUE_INDEX === 'object' && UNO_PHOTO_VALUE_INDEX) ? UNO_PHOTO_VALUE_INDEX : null;
+      if (!cfg || !valueIndex || !cfg.rows) {
+        return null;
+      }
       if (value === 'wild' || value === 'wild4' || color === 'wild') {
         return {
           x: value === 'wild4' ? cfg.wild4X : cfg.wildX,
@@ -18822,11 +18855,11 @@ PAGE_TEMPLATE = """
       if (value === '0') {
         return {x: cfg.zeroX, y: cfg.rows[color]};
       }
-      if (!Object.prototype.hasOwnProperty.call(UNO_PHOTO_VALUE_INDEX, value)) {
+      if (!Object.prototype.hasOwnProperty.call(valueIndex, value)) {
         return null;
       }
       return {
-        x: cfg.startX + cfg.stepX * UNO_PHOTO_VALUE_INDEX[value],
+        x: cfg.startX + cfg.stepX * valueIndex[value],
         y: cfg.rows[color],
       };
     }
@@ -18905,11 +18938,12 @@ PAGE_TEMPLATE = """
 
     function unoBackCardMarkup(cardbackSurface, frameAsset = '', label = 'TDG') {
       const mark = String(label || 'TDG').trim() || 'TDG';
+      const backUrl = String(UNO_OPEN_CARD_BACK_URL || '').trim();
       return `
         <div class="uno-back-card">
           <div class="uno-back-face photo" style="--uno-cardback-surface:${escapeHtml(cardbackSurface)};">
             <span class="uno-photo-face asset back" aria-hidden="true">
-              <img src="${UNO_OPEN_CARD_BACK_URL}" alt="">
+              ${backUrl ? `<img src="${backUrl}" alt="">` : ''}
             </span>
             <span class="sr-only">${escapeHtml(mark)}</span>
           </div>
