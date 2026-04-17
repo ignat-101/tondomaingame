@@ -1328,6 +1328,27 @@ PAGE_TEMPLATE = """
       margin: 0 auto;
     }
 
+    .uno-stack-action {
+      padding: 0;
+      margin: 0;
+      border: 0;
+      background: transparent;
+      display: grid;
+      justify-items: center;
+      gap: 0;
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+
+    .uno-stack-action:disabled {
+      cursor: default;
+      opacity: 0.92;
+    }
+
+    .uno-stack-action.can-draw .uno-stack-top {
+      animation: unoDrawPilePulse 1.52s ease-in-out infinite;
+    }
+
     .uno-stack-card,
     .uno-stack-top {
       position: absolute;
@@ -1540,6 +1561,78 @@ PAGE_TEMPLATE = """
       touch-action: manipulation;
     }
 
+    .uno-home-actions {
+      display: grid;
+      gap: 12px;
+    }
+
+    .uno-guide-card {
+      padding: 18px 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background:
+        linear-gradient(135deg, rgba(8, 21, 35, 0.9), rgba(7, 15, 25, 0.84)),
+        radial-gradient(circle at top, rgba(255, 211, 110, 0.08), transparent 62%);
+      display: grid;
+      gap: 14px;
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+    }
+
+    .uno-guide-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .uno-guide-head strong {
+      font-size: 18px;
+      line-height: 1.18;
+      color: #f5fbff;
+    }
+
+    .uno-guide-steps {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .uno-guide-step {
+      min-height: 92px;
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .uno-guide-step b {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(83, 246, 184, 0.16);
+      border: 1px solid rgba(83, 246, 184, 0.26);
+      font-size: 12px;
+      color: #f2fffb;
+    }
+
+    .uno-guide-step span {
+      color: rgba(235, 245, 255, 0.88);
+      font-size: 13px;
+      line-height: 1.36;
+    }
+
+    .uno-guide-note {
+      color: rgba(223, 239, 255, 0.78);
+      font-size: 12px;
+      line-height: 1.42;
+    }
+
     .uno-log,
     .uno-result-box {
       padding: 14px 16px;
@@ -1750,6 +1843,10 @@ PAGE_TEMPLATE = """
       color: rgba(224, 238, 255, 0.74);
     }
 
+    .uno-live-summary-sub:empty {
+      display: none;
+    }
+
     .uno-live-board {
       position: relative;
       align-content: start;
@@ -1903,6 +2000,17 @@ PAGE_TEMPLATE = """
       }
     }
 
+    @keyframes unoDrawPilePulse {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+        filter: drop-shadow(0 0 0 rgba(255, 211, 110, 0));
+      }
+      50% {
+        transform: translateY(-4px) scale(1.02);
+        filter: drop-shadow(0 0 14px rgba(255, 211, 110, 0.34));
+      }
+    }
+
     @media (max-width: 720px) {
       .uno-shell {
         padding: 12px;
@@ -1913,6 +2021,10 @@ PAGE_TEMPLATE = """
       .uno-intro-grid,
       .uno-mode-grid,
       .uno-participants-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .uno-guide-steps {
         grid-template-columns: 1fr;
       }
 
@@ -2977,9 +3089,17 @@ PAGE_TEMPLATE = """
     .player-card.profile-preview .player-card-back {
       width: 64px;
       height: 88px;
-      left: 14px;
-      bottom: 14px;
+      left: 13px;
+      bottom: 13px;
       border-radius: 14px;
+    }
+
+    .player-card.profile-preview .player-card-frame {
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
     }
 
     .player-card-frame {
@@ -11301,6 +11421,11 @@ PAGE_TEMPLATE = """
       border-radius: 20px;
     }
 
+    body.tma-app[data-active-view="uno"] #view-uno > h2,
+    body.tma-app[data-active-view="uno"] #view-uno > p {
+      display: none !important;
+    }
+
     body.tma-app[data-active-view="uno"] .hero {
       display: none;
     }
@@ -11423,7 +11548,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.uno-live-lock .uno-shell.playing .uno-stage {
-      grid-template-rows: auto auto auto;
+      grid-template-rows: auto minmax(0, 1fr) auto;
     }
 
     body.tma-app.uno-live-lock .uno-shell.playing {
@@ -11451,7 +11576,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.uno-live-lock .uno-meta-strip {
-      gap: 5px;
+      display: none;
     }
 
     body.tma-app.uno-live-lock .uno-chip {
@@ -11488,8 +11613,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.uno-live-lock .uno-live-summary-sub {
-      font-size: 10px;
-      line-height: 1.22;
+      display: none;
     }
 
     body.tma-app.uno-live-lock .uno-opponent-zone {
@@ -11545,6 +11669,16 @@ PAGE_TEMPLATE = """
     body.tma-app.uno-live-lock .uno-player-meta {
       font-size: 12px;
       line-height: 1.1;
+    }
+
+    body.tma-app.uno-live-lock .uno-turn-cue {
+      gap: 6px;
+      padding: 10px 12px;
+    }
+
+    body.tma-app.uno-live-lock .uno-turn-cue .tiny,
+    body.tma-app.uno-live-lock .uno-turn-cue .uno-playable-reasons {
+      display: none;
     }
 
     body.tma-app.uno-live-lock .uno-player-hand {
@@ -11955,30 +12089,30 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.tma-desktop .showdown-main.arena-board {
-      min-height: 620px;
+      min-height: 500px;
       padding: 8px 8px 14px;
     }
 
     body.tma-app.tma-desktop.showdown-open .showdown-main.arena-board {
       height: auto;
-      min-height: max(620px, calc(var(--app-height, 100dvh) - 120px));
+      min-height: max(460px, calc(var(--app-height, 100dvh) - 108px));
       max-height: none;
-      padding: 8px 8px 10px;
+      padding: 6px 8px 8px;
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior-y: contain;
     }
 
     body.tma-app.tma-desktop .arena-shell {
-      grid-template-rows: auto minmax(360px, 1fr) auto;
-      gap: 8px;
+      grid-template-rows: auto minmax(240px, 1fr) auto;
+      gap: 6px;
       align-content: stretch;
     }
 
     body.tma-app.tma-desktop.showdown-open .arena-shell {
       height: auto;
-      min-height: 100%;
-      grid-template-rows: auto minmax(360px, auto) auto;
+      min-height: calc(var(--app-height, 100dvh) - 120px);
+      grid-template-rows: auto minmax(220px, 1fr) auto;
       align-content: start;
     }
 
@@ -11988,12 +12122,12 @@ PAGE_TEMPLATE = """
 
     body.tma-app.tma-desktop .arena-core {
       --arena-choice-center-y: 50%;
-      min-height: 340px;
+      min-height: 220px;
       overflow: hidden;
     }
 
     body.tma-app.tma-desktop.showdown-open .arena-core {
-      min-height: 340px;
+      min-height: 220px;
       height: auto;
     }
 
@@ -12100,6 +12234,19 @@ PAGE_TEMPLATE = """
       height: 18px;
       top: 10px;
       border-radius: 8px;
+    }
+
+    body.tma-app .player-card.profile-preview .player-card-back {
+      left: 12px;
+      bottom: 12px;
+    }
+
+    body.tma-app .player-card.profile-preview .player-card-frame {
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
     }
 
     body.tma-app .panel,
@@ -13418,6 +13565,7 @@ PAGE_TEMPLATE = """
       activeDuelInviteId: null,
       unoSession: null,
       unoPendingColorCardId: null,
+      unoActionInFlight: false,
       unoRestoreInFlight: false,
       unoLastEventKey: '',
       unoEventTimer: null,
@@ -17463,7 +17611,7 @@ PAGE_TEMPLATE = """
           detail: 'Смотри результат, а потом запускай новый матч или возвращайся в меню.',
           chips: [
             `Победитель: ${session && session.winner_label ? session.winner_label : '—'}`,
-            `Сброс: ${topCard && topCard.title ? topCard.title : '—'}`
+            'Можно начать заново'
           ],
         };
       }
@@ -17472,7 +17620,6 @@ PAGE_TEMPLATE = """
           headline: 'Выбери новый цвет для Wild',
           detail: 'Нажми один из четырёх цветов ниже. После выбора карта сразу уйдёт на стол.',
           chips: [
-            `Сброс: ${topCard && topCard.title ? topCard.title : '—'}`,
             'Шаг 1: выбери цвет',
             'Шаг 2: стол обновится',
           ],
@@ -17493,19 +17640,17 @@ PAGE_TEMPLATE = """
         if (!playableCards.length) {
           return {
             headline: 'Подходящей карты нет',
-            detail: 'Жми «Взять карту». В этой версии UNO после добора ход сразу переходит дальше.',
+            detail: 'Тапни по колоде. Берётся только 1 карта, после этого ход переходит дальше.',
             chips: [
-              `Сброс: ${topCard && topCard.title ? topCard.title : '—'}`,
               `Цвет: ${session.current_color_label || '—'}`,
-              'Действие: взять карту',
+              'Добор: 1 карта',
             ],
           };
         }
         return {
           headline: 'Сейчас твой ход',
-          detail: `Нажми любую подсвеченную карту. Можно ходить по цвету ${session.current_color_label || '—'}, по такому же знаку или Wild-картой.`,
+          detail: 'Нажми подсвеченную карту. Подходит тот же цвет, тот же знак или любая Wild-карта.',
           chips: [
-            `Сброс: ${topCard && topCard.title ? topCard.title : '—'}`,
             `Подходят: ${playableCards.length}`,
             uniqueReasons[0] || `Цвет: ${session.current_color_label || '—'}`,
           ],
@@ -17513,9 +17658,8 @@ PAGE_TEMPLATE = """
       }
       return {
         headline: `Сейчас ходит ${session.turn_display_name || 'соперник'}`,
-        detail: 'Подожди ход соперника. Как только он сыграет карту, сверху обновится сброс и твой следующий шаг.',
+        detail: 'Жди ход соперника. Когда очередь перейдёт к тебе, подходящие карты снова подсветятся.',
         chips: [
-          `Сброс: ${topCard && topCard.title ? topCard.title : '—'}`,
           `Цвет: ${session.current_color_label || '—'}`,
           `Очередь: ${session.turn_display_name || 'соперник'}`,
         ],
@@ -17568,7 +17712,11 @@ PAGE_TEMPLATE = """
       const heading = intro
         ? (session.your_turn ? 'Старт раунда' : `Старт: ${session.turn_display_name || 'соперник'}`)
         : (session.complete ? 'Финиш' : 'Ход обновился');
-      const copy = String(session.last_action || '').trim() || (session.complete ? 'Партия завершена.' : 'Стол обновился.');
+      const copy = session.complete
+        ? 'Партия завершена.'
+        : (session.your_turn
+          ? 'Стол обновился. Твой ход.'
+          : `Стол обновился. Ходит ${session.turn_display_name || 'соперник'}.`);
       layer.hidden = false;
       layer.innerHTML = `
         <div class="uno-event-burst ${session.complete ? 'finish' : ''}">
@@ -17970,11 +18118,6 @@ PAGE_TEMPLATE = """
       const identityLabel = identity.progressEnabled
         ? `${state.selectedDomain}.ton`
         : identity.displayName;
-      const identitySummary = identity.progressEnabled
-        ? `Прогресс, сезонный пропуск и задания засчитываются в ${state.selectedDomain}.ton.`
-        : (state.wallet
-          ? 'Кошелёк подключён, но домен не выбран. Сейчас можно играть как guest без общего прогресса.'
-          : 'Играй как guest без кошелька. Для общего прогресса позже подключи кошелёк и выбери домен.');
       if (!session) {
         stopUnoStatusPolling();
         state.unoLastEventKey = '';
@@ -17996,7 +18139,6 @@ PAGE_TEMPLATE = """
               <div class="uno-header-top">
                 <div class="uno-title">
                   <strong>UNO Arena</strong>
-                  <div class="tiny">Классический flow UNO: матч с ботом, комната с друзьями до 6 игроков и быстрый поиск любой свободной партии.</div>
                 </div>
                 <div class="actions" style="margin-left:auto;">
                   ${unoBrandBadge('UNO', bannerSurface)}
@@ -18004,77 +18146,60 @@ PAGE_TEMPLATE = """
                 </div>
               </div>
               <div class="uno-meta-strip">
-                <div class="uno-chip">Профиль: ${escapeHtml(identityLabel)}</div>
-                <div class="uno-chip">Сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 16)}</div>
-                <div class="uno-chip">💠 ${Number(rewards.pack_shards || 0)} • 🎟️ ${Number(rewards.rare_tokens || 0)} • ✨ ${Number(rewards.lucky_tokens || 0)}</div>
+                <div class="uno-chip">${identity.progressEnabled ? `Профиль: ${escapeHtml(identityLabel)}` : 'Guest-режим'}</div>
+                <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Кошелёк не обязателен'}</div>
               </div>
             </div>
-            <div class="uno-status-banner wait">
-              <span class="uno-turn-pill wait">Как играть</span>
-              <strong>Клади карту по цвету, цифре или спецкарте. Если подходящего хода нет, добирай из колоды.</strong>
-              <div class="tiny">Skip пропускает ход, Reverse меняет направление, +2 и Wild +4 добирают карты, обычный Wild даёт выбрать цвет.</div>
-            </div>
-            <div class="uno-intro-grid">
+            ${identity.progressEnabled ? '' : `
               <div class="uno-identity-card">
-                <strong>${identity.progressEnabled ? 'Связанный профиль' : 'Играть можно без кошелька'}</strong>
-                <div class="tiny">${escapeHtml(identitySummary)}</div>
-                ${identity.progressEnabled ? `
-                  <div class="uno-meta-strip">
-                    <div class="uno-chip">Домены: общая косметика</div>
-                    <div class="uno-chip">Пропуск: единый</div>
-                    <div class="uno-chip">Задания: общие</div>
+                <strong>Ник в UNO</strong>
+                <input type="text" id="uno-guest-name-input" class="uno-identity-input" maxlength="24" value="${escapeHtml(identity.displayName)}" placeholder="Твой ник">
+              </div>
+            `}
+            <div class="uno-home-actions">
+              <div class="uno-mode-grid">
+                <article class="uno-mode-card">
+                  <strong>Против бота</strong>
+                  <div class="actions">
+                    <button type="button" id="uno-start-btn">Играть</button>
                   </div>
-                ` : `
-                  <label class="tiny" for="uno-guest-name-input">Ник в UNO</label>
-                  <input type="text" id="uno-guest-name-input" class="uno-identity-input" maxlength="24" value="${escapeHtml(identity.displayName)}" placeholder="Твой ник">
-                `}
+                </article>
+                <article class="uno-mode-card">
+                  <strong>Быстрый матч</strong>
+                  <div class="actions">
+                    <button type="button" id="uno-quick-search-btn">Найти партию</button>
+                  </div>
+                </article>
+                <article class="uno-mode-card">
+                  <strong>Комната с друзьями</strong>
+                  <div class="actions" style="gap:10px;">
+                    <select id="uno-room-size-select">
+                      ${[2,3,4,5,6].map((value) => `<option value="${value}"${value === 6 ? ' selected' : ''}>${value} игроков</option>`).join('')}
+                    </select>
+                    <button type="button" id="uno-create-room-btn">Создать</button>
+                  </div>
+                </article>
+                <article class="uno-mode-card">
+                  <strong>Войти по коду</strong>
+                  <div class="actions" style="gap:10px;">
+                    <input type="text" id="uno-room-code-input" placeholder="Код комнаты" style="text-transform:uppercase;">
+                    <button type="button" id="uno-join-room-btn">Войти</button>
+                  </div>
+                </article>
               </div>
-              <div class="uno-rule-list">
-                <strong>Что происходит в матче</strong>
-                <ul>
-                  <li>Верхняя стопка показывает карту, под которую можно ходить прямо сейчас.</li>
-                  <li>Подсвеченные карты внизу доступны для хода. Остальные пока заблокированы по правилам UNO.</li>
-                  <li>Когда ход не твой, сверху сразу видно чей он и сколько карт у соперников осталось.</li>
-                </ul>
+              <div class="uno-guide-card">
+                <div class="uno-guide-head">
+                  <span class="uno-turn-pill wait">Гайд</span>
+                  <strong>Как проходит матч UNO</strong>
+                </div>
+                <div class="uno-guide-steps">
+                  <div class="uno-guide-step"><b>1</b><span>Смотри на карту в стопке сброса по центру стола.</span></div>
+                  <div class="uno-guide-step"><b>2</b><span>Играй карту такого же цвета, такого же знака или Wild.</span></div>
+                  <div class="uno-guide-step"><b>3</b><span>Если хода нет, тапни по колоде. Берётся ровно 1 карта.</span></div>
+                  <div class="uno-guide-step"><b>4</b><span>Когда остаётся 1 карта, быстро жми UNO, иначе можно получить штраф.</span></div>
+                </div>
+                <div class="uno-guide-note">Skip пропускает ход, Reverse меняет направление, +2 и Wild +4 заставляют добирать карты, обычный Wild только меняет цвет.</div>
               </div>
-            </div>
-            <div class="uno-mode-grid">
-              <article class="uno-mode-card">
-                <div class="catalog-kicker">UNO</div>
-                <strong>Против бота</strong>
-                <div class="tiny">Самый понятный способ быстро вкатиться в правила и механику карт.</div>
-                <div class="actions">
-                  <button type="button" id="uno-start-btn">Играть с ботом</button>
-                </div>
-              </article>
-              <article class="uno-mode-card">
-                <div class="catalog-kicker">UNO</div>
-                <strong>Быстрый матч</strong>
-                <div class="tiny">Подключение к любой свободной публичной партии. Берём первое подходящее открытое лобби.</div>
-                <div class="actions">
-                  <button type="button" id="uno-quick-search-btn">Найти свободную партию</button>
-                </div>
-              </article>
-              <article class="uno-mode-card">
-                <div class="catalog-kicker">UNO</div>
-                <strong>Комната с друзьями</strong>
-                <div class="tiny">Создаёшь приватную комнату, выбираешь лимит игроков и отправляешь код друзьям.</div>
-                <div class="actions" style="gap:10px;">
-                  <select id="uno-room-size-select">
-                    ${[2,3,4,5,6].map((value) => `<option value="${value}"${value === 6 ? ' selected' : ''}>${value} игроков</option>`).join('')}
-                  </select>
-                  <button type="button" id="uno-create-room-btn">Создать комнату</button>
-                </div>
-              </article>
-              <article class="uno-mode-card">
-                <div class="catalog-kicker">UNO</div>
-                <strong>Подключение по коду</strong>
-                <div class="tiny">Вводишь room code и сразу попадаешь в приватное лобби друзей.</div>
-                <div class="actions" style="gap:10px;">
-                  <input type="text" id="uno-room-code-input" placeholder="Код комнаты" style="text-transform:uppercase;">
-                  <button type="button" id="uno-join-room-btn">Войти</button>
-                </div>
-              </article>
             </div>
           </div>
         `;
@@ -18167,6 +18292,7 @@ PAGE_TEMPLATE = """
       scheduleUnoStatusPolling();
       const turnToneClass = session.complete ? 'complete' : (session.your_turn ? 'you' : 'wait');
       const liveGuide = unoLiveInstructionData(session, playableIds, pendingWildCardId);
+      const actionLocked = Boolean(state.unoActionInFlight);
       const unoAlert = session && session.uno_alert && session.uno_alert.active ? session.uno_alert : null;
       const nextUnoEventKey = unoSessionEventKey(session);
       const shouldAnimateUnoEvent = Boolean(nextUnoEventKey && state.unoLastEventKey && state.unoLastEventKey !== nextUnoEventKey);
@@ -18176,13 +18302,14 @@ PAGE_TEMPLATE = """
         : (unoAlert
           ? (unoAlert.title || 'Жми UNO')
           : (session.your_turn
-          ? 'Сейчас твой ход. Играй карту или добери новую.'
-          : `Сейчас ходит ${session.turn_display_name || 'игрок'}.`));
+          ? 'Твой ход'
+          : `Ходит ${session.turn_display_name || 'игрок'}`));
       const resultSummary = session.complete
         ? 'Партия закончилась. Можно начать следующую.'
         : (unoAlert
           ? (unoAlert.detail || 'Сейчас решается гонка за кнопку UNO.')
-          : 'Подсвеченные карты в руке доступны для хода по текущим правилам UNO.');
+          : '');
+      const canTapDrawPile = Boolean(session.can_draw && !unoAlert && !actionLocked);
       unoRoot.innerHTML = `
         <div class="uno-shell ${session.complete ? 'completed' : 'playing'}" style="background:${tableSurface};">
           <div class="uno-header">
@@ -18190,7 +18317,7 @@ PAGE_TEMPLATE = """
               ${compactUnoLive ? '' : `
                 <div class="uno-title">
                   <strong>UNO Arena</strong>
-                  <div class="tiny">${escapeHtml(unoModeLabel(session.mode))} • ${participantCount} игроков • код ${escapeHtml(session.room_code || session.session_id || '—')} • профиль ${escapeHtml(identityLabel)}</div>
+                  <div class="tiny">${escapeHtml(unoModeLabel(session.mode))} • ${participantCount} игроков</div>
                 </div>
               `}
               <div class="actions" style="margin-left:auto;">
@@ -18199,10 +18326,9 @@ PAGE_TEMPLATE = """
               </div>
             </div>
             <div class="uno-meta-strip">
-              <div class="uno-chip">Ход: ${escapeHtml(session.turn_display_name || (session.your_turn ? 'твой' : 'соперника'))}</div>
+              <div class="uno-chip">Ход: ${escapeHtml(session.turn_display_name || (session.your_turn ? 'ты' : 'соперник'))}</div>
               <div class="uno-chip">Колода: ${Number(session.draw_remaining || 0)}</div>
-              <div class="uno-chip">Режим: ${escapeHtml(unoModeLabel(session.mode))}</div>
-              ${compactUnoLive ? `<div class="uno-chip">Рука: ${Number((session.player_hand || []).length || 0)}</div>` : `<div class="uno-chip">Сезон ${Number((session.reward_summary || rewards).season_level || 1)}</div>`}
+              <div class="uno-chip">Рука: ${Number((session.player_hand || []).length || 0)}</div>
             </div>
           </div>
           <div class="uno-status-banner uno-live-summary ${turnToneClass}">
@@ -18210,7 +18336,7 @@ PAGE_TEMPLATE = """
               <span class="uno-turn-pill ${turnToneClass}">${session.complete ? 'Финиш' : (session.your_turn ? 'Твой ход' : 'Ожидание')}</span>
               <strong class="uno-live-summary-main">${escapeHtml(topStatusText)}</strong>
             </div>
-            <div class="uno-live-summary-sub">${escapeHtml(session.last_action || resultSummary)}</div>
+            <div class="uno-live-summary-sub">${escapeHtml(resultSummary)}</div>
           </div>
           <div class="uno-turn-cue">
             <span class="uno-turn-pill ${session.complete ? 'complete' : (unoAlert ? 'wait' : (session.your_turn ? 'you' : 'wait'))}">
@@ -18220,9 +18346,11 @@ PAGE_TEMPLATE = """
               <strong>${escapeHtml(liveGuide.headline)}</strong>
               <div class="tiny">${escapeHtml(liveGuide.detail)}</div>
             </div>
-            <div class="uno-playable-reasons">
-              ${(liveGuide.chips || []).map((chip) => `<span class="uno-playable-reason">${escapeHtml(chip)}</span>`).join('')}
-            </div>
+            ${(liveGuide.chips || []).length ? `
+              <div class="uno-playable-reasons">
+                ${(liveGuide.chips || []).map((chip) => `<span class="uno-playable-reason">${escapeHtml(chip)}</span>`).join('')}
+              </div>
+            ` : ''}
           </div>
           ${unoAlert ? `
             <div class="uno-alert-banner ${unoAlert.viewer_role === 'call' ? 'call' : 'catch'}">
@@ -18238,7 +18366,7 @@ PAGE_TEMPLATE = """
               </div>
               ${unoAlert.viewer_can_press ? `
                 <div class="actions uno-alert-action">
-                  <button type="button" id="uno-alert-btn">${escapeHtml(unoAlert.button_label || 'UNO!')}</button>
+                  <button type="button" id="uno-alert-btn"${actionLocked ? ' disabled' : ''}>${escapeHtml(unoAlert.button_label || 'UNO!')}</button>
                 </div>
               ` : ''}
             </div>
@@ -18261,26 +18389,22 @@ PAGE_TEMPLATE = """
               <div class="uno-event-layer" data-uno-event-layer hidden></div>
               <div class="uno-center">
                 <div>
-                  <div class="uno-stack">
-                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
-                    <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
-                    <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
-                  </div>
-                  <div class="uno-stack-label">Добор • ${Number(session.draw_remaining || 0)}</div>
+                  <button type="button" class="uno-stack-action ${canTapDrawPile ? 'can-draw' : ''}" id="uno-draw-pile-btn"${canTapDrawPile ? '' : ' disabled'}>
+                    <span class="sr-only">Взять одну карту из колоды</span>
+                    <div class="uno-stack">
+                      <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+                      <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+                      <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+                    </div>
+                    <div class="uno-stack-label">${canTapDrawPile ? 'Тяни 1' : 'Колода'}</div>
+                  </button>
                 </div>
                 <div class="uno-discard-stack">
                   <div class="uno-stack">
                     <div class="uno-stack-top">${session.discard_top ? unoCardMarkup(session.discard_top, {frameAsset, asButton: false}) : ''}</div>
                   </div>
-                  <div class="uno-stack-label">Сброс • цвет ${escapeHtml(session.current_color_label || '—')}</div>
+                  <div class="uno-stack-label">Стол • ${escapeHtml(session.current_color_label || '—')}</div>
                 </div>
-              </div>
-              <div class="uno-log uno-live-feed">
-                <div class="uno-turn-line">
-                  <strong>${session.complete ? 'Матч завершён' : (session.your_turn ? 'Твоя очередь' : `Очередь: ${escapeHtml(session.turn_display_name || 'игрок')}`)}</strong>
-                  <strong>Сверху: ${escapeHtml((session.discard_top && session.discard_top.title) || '—')}</strong>
-                </div>
-                <div class="uno-play-hint">${escapeHtml(resultSummary)}</div>
               </div>
               ${session.complete ? `
                 <div class="uno-result-box">
@@ -18295,20 +18419,15 @@ PAGE_TEMPLATE = """
                     <button type="button" class="secondary" id="uno-result-launcher-btn">Приложения</button>
                   </div>
                 </div>
-              ` : `
-                <div class="uno-controls">
-                  <button type="button" id="uno-draw-btn"${session.can_draw && !unoAlert ? '' : ' disabled'}>${unoAlert ? 'Сначала UNO' : (session.your_turn ? 'Нет хода? Взять карту' : 'Ждём ход соперника')}</button>
-                  ${compactUnoLive ? '' : '<button type="button" class="secondary" id="uno-room-refresh-btn">Обновить</button>'}
-                </div>
-              `}
+              ` : ''}
             </div>
             <div class="uno-player-row">
               <div class="uno-player-meta">
-                <strong>Твоя рука</strong>
-                <strong>${Number((session.player_hand || []).length || 0)} карт${session.your_turn ? ' • твой ход' : ''}</strong>
+                <strong>Рука</strong>
+                <strong>${Number((session.player_hand || []).length || 0)} карт</strong>
               </div>
               <div class="uno-player-hand">
-                ${(session.player_hand || []).map((card) => unoCardMarkup(card, {frameAsset, playable: !unoAlert && playableIds.has(card.id) && Boolean(session.your_turn), disabled: Boolean(unoAlert) || !(playableIds.has(card.id) && Boolean(session.your_turn))})).join('')}
+                ${(session.player_hand || []).map((card) => unoCardMarkup(card, {frameAsset, playable: !unoAlert && !actionLocked && playableIds.has(card.id) && Boolean(session.your_turn), disabled: actionLocked || Boolean(unoAlert) || !(playableIds.has(card.id) && Boolean(session.your_turn))})).join('')}
               </div>
             </div>
             ${pendingWildCardId ? `
@@ -18318,9 +18437,9 @@ PAGE_TEMPLATE = """
                   <div class="tiny">Это обязательный шаг. Пока цвет не выбран, карта не сыграет.</div>
                 </div>
                 <div class="uno-color-grid">
-                  ${['red', 'yellow', 'green', 'blue'].map((color) => `<button type="button" class="uno-color-choice ${color}" data-uno-color="${color}" data-uno-card-id="${escapeHtml(pendingWildCardId)}">${escapeHtml({red: 'Красный', yellow: 'Жёлтый', green: 'Зелёный', blue: 'Синий'}[color])}</button>`).join('')}
+                  ${['red', 'yellow', 'green', 'blue'].map((color) => `<button type="button" class="uno-color-choice ${color}" data-uno-color="${color}" data-uno-card-id="${escapeHtml(pendingWildCardId)}"${actionLocked ? ' disabled' : ''}>${escapeHtml({red: 'Красный', yellow: 'Жёлтый', green: 'Зелёный', blue: 'Синий'}[color])}</button>`).join('')}
                 </div>
-                <button type="button" class="secondary uno-color-cancel" id="uno-color-cancel-btn">Отмена</button>
+                <button type="button" class="secondary uno-color-cancel" id="uno-color-cancel-btn"${actionLocked ? ' disabled' : ''}>Отмена</button>
               </div>
             ` : ''}
           </div>
@@ -18328,7 +18447,7 @@ PAGE_TEMPLATE = """
       `;
       const unoAlertBtn = document.getElementById('uno-alert-btn');
       const unoColorCancelBtn = document.getElementById('uno-color-cancel-btn');
-      const unoDrawBtn = document.getElementById('uno-draw-btn');
+      const unoDrawPileBtn = document.getElementById('uno-draw-pile-btn');
       const unoRoomRefreshBtn = document.getElementById('uno-room-refresh-btn');
       const unoAfterBotBtn = document.getElementById('uno-after-bot-btn');
       const unoResultLauncherBtn = document.getElementById('uno-result-launcher-btn');
@@ -18338,7 +18457,7 @@ PAGE_TEMPLATE = """
         state.unoPendingColorCardId = null;
         renderUnoPanel();
       }, 'click', {skipPrepare: true});
-      if (unoDrawBtn && !unoDrawBtn.disabled && session.can_draw) bindFunctionalControl(unoDrawBtn, () => runUnoAction('draw'), 'click', {skipPrepare: true});
+      if (unoDrawPileBtn && !unoDrawPileBtn.disabled && session.can_draw) bindFunctionalControl(unoDrawPileBtn, () => runUnoAction('draw'), 'click', {skipPrepare: true});
       if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus(), 'click', {skipPrepare: true});
       if (unoAfterBotBtn) bindFunctionalControl(unoAfterBotBtn, () => (session.mode === 'bot' ? startUnoMatch() : searchUnoQuickMatch()), 'click', {skipPrepare: true});
       if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
@@ -18505,9 +18624,18 @@ PAGE_TEMPLATE = """
 
     async function runUnoAction(action, cardId = '', chosenColor = '') {
       if (!unoTesterGuard()) return;
-      await prepareFunctionalInteraction();
       if (!state.unoSession || !state.unoSession.session_id) return;
+      if (state.unoActionInFlight) return;
+      if (action === 'draw' && (!state.unoSession.can_draw || (state.unoSession.uno_alert && state.unoSession.uno_alert.active))) return;
+      state.unoActionInFlight = true;
+      renderUnoPanel();
       try {
+        if (isTelegramIosWebView()) {
+          await prepareFunctionalInteraction();
+        } else {
+          syncTmaMode();
+          syncTmaViewport();
+        }
         const data = await api('/api/uno/action', {
           method: 'POST',
           body: unoActorPayload({
@@ -18529,12 +18657,15 @@ PAGE_TEMPLATE = """
         if (unoRoot) {
           unoRoot.insertAdjacentHTML('afterbegin', `<div class="uno-log"><strong class="error">${escapeHtml(error.message)}</strong></div>`);
         }
+      } finally {
+        state.unoActionInFlight = false;
+        renderUnoPanel();
       }
     }
 
     function requestUnoCardPlay(cardId) {
       const session = state.unoSession;
-      if (!session || !cardId) return;
+      if (!session || !cardId || state.unoActionInFlight) return;
       const card = (session.player_hand || []).find((item) => item.id === cardId);
       if (!card) return;
       if (card.wild) {
