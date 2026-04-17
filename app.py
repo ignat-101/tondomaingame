@@ -656,6 +656,25 @@ PAGE_TEMPLATE = """
       display: flex;
     }
 
+    body.tma-app .app-launcher {
+      position: fixed;
+      inset:
+        calc(4px + env(safe-area-inset-top))
+        8px
+        calc(8px + env(safe-area-inset-bottom))
+        8px;
+      z-index: 9000;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body.tma-app .app-launcher-device {
+      width: min(100%, 430px);
+      min-height: 100%;
+      max-height: 100%;
+      margin: 0 auto;
+    }
+
     .app-launcher-device {
       width: min(100%, 430px);
       min-height: min(820px, calc(100vh - 36px));
@@ -23723,9 +23742,17 @@ PAGE_TEMPLATE = """
         return 'domain';
       }
     })();
-    switchView(initialApp === 'uno' && hasUnoTesterAccess() ? 'uno' : 'profile');
+    const shouldBootIntoUno = initialApp === 'uno' && hasUnoTesterAccess();
+    switchView(shouldBootIntoUno ? 'uno' : 'profile');
     updateButtons();
-    window.setTimeout(() => openAppLauncher(true), 160);
+    requestAnimationFrame(() => {
+      openAppLauncher(true);
+      window.setTimeout(() => {
+        if (!state.launcherOpen) {
+          openAppLauncher(true);
+        }
+      }, 220);
+    });
     document.addEventListener('click', (event) => {
       if (!mascotWidget || !mascotWidget.classList.contains('open')) return;
       if (event.target.closest('#mascot-widget')) return;
