@@ -12111,6 +12111,14 @@ PAGE_TEMPLATE = """
       border-radius: 0;
       background: transparent;
       box-shadow: none;
+      min-height: 0;
+      overflow: visible;
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) #view-uno.active {
+      display: block;
+      min-height: 0;
+      overflow: visible;
     }
 
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) #view-uno > h2,
@@ -12120,7 +12128,8 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
-      min-height: max(700px, calc(var(--app-height, 100dvh) - 86px));
+      min-height: min(700px, calc(var(--app-height, 100dvh) - 86px));
+      height: auto;
     }
 
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .mobile-nav,
@@ -12134,10 +12143,15 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell {
-      min-height: max(700px, calc(var(--app-height, 100dvh) - 86px));
+      min-height: min(700px, calc(var(--app-height, 100dvh) - 86px));
+      height: auto;
+      max-height: calc(var(--app-height, 100dvh) - 52px);
       width: 100%;
       padding: 18px;
       border-radius: 30px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.playing .uno-stage {
