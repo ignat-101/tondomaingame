@@ -818,6 +818,7 @@ PAGE_TEMPLATE = """
       font-size: 12px;
       line-height: 1.34;
       text-align: left;
+      display: none;
     }
 
     .app-launcher-dock {
@@ -1018,6 +1019,7 @@ PAGE_TEMPLATE = """
       max-width: 360px;
       color: rgba(240, 244, 255, 0.72);
       line-height: 1.34;
+      display: none;
     }
 
     .uno-home-stage {
@@ -1124,6 +1126,7 @@ PAGE_TEMPLATE = """
       color: rgba(232, 239, 255, 0.72);
       line-height: 1.34;
       font-size: 12px;
+      display: none;
     }
 
     .uno-home-tile button,
@@ -1173,14 +1176,14 @@ PAGE_TEMPLATE = """
       background:
         radial-gradient(circle at 50% 18%, rgba(255, 214, 74, 0.12), transparent 24%),
         linear-gradient(180deg, rgba(10, 16, 28, 0.92), rgba(7, 10, 18, 0.98));
-      min-height: 264px;
+      min-height: 228px;
     }
 
     .uno-guide-scene {
       position: relative;
       width: 100%;
       height: 100%;
-      min-height: 240px;
+      min-height: 208px;
       border-radius: 24px;
       overflow: hidden;
       background:
@@ -1290,6 +1293,10 @@ PAGE_TEMPLATE = """
     }
 
     .uno-guide-draw-card.live {
+      animation: unoGuideDrawToHand 1.05s cubic-bezier(.16,.88,.2,1) forwards;
+    }
+
+    .uno-guide-draw-card.live.returning {
       animation: unoGuideDrawToHand 1.05s cubic-bezier(.16,.88,.2,1) forwards;
     }
 
@@ -1675,14 +1682,15 @@ PAGE_TEMPLATE = """
 
     .uno-card-wild-badge {
       position: relative;
-      width: 46px;
-      height: 46px;
+      width: 58px;
+      min-height: 54px;
       border-radius: 14px;
       background: rgba(255,255,255,0.98);
       box-shadow: 0 8px 14px rgba(0,0,0,0.14);
       transform: rotate(-18deg);
       display: grid;
       place-items: center;
+      padding: 8px 6px;
     }
 
     .uno-card-wild-grid {
@@ -1721,6 +1729,19 @@ PAGE_TEMPLATE = """
       letter-spacing: 0.04em;
       transform: rotate(12deg);
       box-shadow: 0 8px 14px rgba(0,0,0,0.22);
+    }
+
+    .uno-card-wild-text {
+      position: absolute;
+      left: 50%;
+      bottom: 5px;
+      transform: translateX(-50%);
+      color: #10151d;
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      white-space: nowrap;
     }
 
     .uno-back-brand {
@@ -1764,12 +1785,14 @@ PAGE_TEMPLATE = """
 
     .uno-card-frame {
       position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: fill;
+      inset: 1px;
+      width: calc(100% - 2px);
+      height: calc(100% - 2px);
+      object-fit: contain;
       pointer-events: none;
       z-index: 4;
+      opacity: 0.88;
+      filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.18));
     }
 
     .uno-opponent-cards .uno-back-card {
@@ -1785,6 +1808,51 @@ PAGE_TEMPLATE = """
 
     .uno-player-hand .uno-card-btn {
       scroll-snap-align: start;
+    }
+
+    .uno-discard-stack {
+      position: relative;
+      transition: transform 160ms ease, filter 160ms ease;
+    }
+
+    .uno-discard-stack.drop-ready::after {
+      content: "DROP";
+      position: absolute;
+      left: 50%;
+      bottom: -22px;
+      transform: translateX(-50%);
+      color: rgba(255, 238, 191, 0.86);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      pointer-events: none;
+    }
+
+    .uno-discard-stack.drop-active {
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 20px rgba(255, 214, 74, 0.28));
+    }
+
+    .uno-discard-stack.drop-active .uno-stack-top {
+      animation: unoDropTargetPulse 620ms ease-in-out infinite;
+    }
+
+    .uno-drag-ghost {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 120;
+      pointer-events: none;
+      will-change: transform, opacity;
+      transform-origin: center center;
+    }
+
+    .uno-drag-ghost .uno-card-btn,
+    .uno-drag-ghost .uno-back-card {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      box-shadow: 0 22px 44px rgba(0, 0, 0, 0.34);
     }
 
     .uno-center {
@@ -1815,6 +1883,18 @@ PAGE_TEMPLATE = """
       cursor: pointer;
     }
 
+    .uno-stack-action.drag-ready,
+    .uno-card-btn.drag-ready {
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .uno-stack-action.dragging,
+    .uno-card-btn.dragging {
+      opacity: 0.12;
+      transform: scale(0.98);
+    }
+
     .uno-stack-action:disabled {
       cursor: default;
       opacity: 0.92;
@@ -1840,6 +1920,12 @@ PAGE_TEMPLATE = """
       font-size: 11px;
       color: rgba(224, 238, 255, 0.76);
       margin-top: 166px;
+    }
+
+    .uno-stack-label.drop-hint {
+      color: rgba(255, 240, 194, 0.92);
+      font-weight: 800;
+      letter-spacing: 0.04em;
     }
 
     .uno-controls {
@@ -2569,6 +2655,17 @@ PAGE_TEMPLATE = """
       }
     }
 
+    @keyframes unoDropTargetPulse {
+      0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0 rgba(255, 214, 74, 0));
+      }
+      50% {
+        transform: scale(1.04);
+        filter: drop-shadow(0 0 18px rgba(255, 214, 74, 0.26));
+      }
+    }
+
     @keyframes unoGuideUnoPulse {
       0%, 100% {
         transform: scale(1);
@@ -2638,11 +2735,11 @@ PAGE_TEMPLATE = """
       }
 
       .uno-startup-guide .startup-guide-stage {
-        min-height: 228px;
+        min-height: 188px;
       }
 
       .uno-guide-scene {
-        min-height: 208px;
+        min-height: 172px;
       }
 
       .uno-guide-menu-grid {
@@ -12189,7 +12286,7 @@ PAGE_TEMPLATE = """
       height: var(--app-height, 100vh);
       min-height: var(--app-height, 100vh);
       overflow-x: hidden;
-      overflow-y: auto;
+      overflow-y: hidden;
       padding-bottom: 0;
     }
 
@@ -12229,6 +12326,7 @@ PAGE_TEMPLATE = """
     body.tma-app.uno-live-lock .uno-root {
       min-height: 100%;
       height: 100%;
+      overflow: hidden;
     }
 
     body.tma-app.uno-live-lock .uno-shell,
@@ -12873,6 +12971,24 @@ PAGE_TEMPLATE = """
         calc(6px + env(safe-area-inset-top))
         6px
         calc(6px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app .uno-startup-guide {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body.tma-app .uno-startup-guide .startup-guide-card {
+      max-height: calc(var(--app-height, 100dvh) - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      overflow: hidden;
+    }
+
+    body.tma-app .uno-startup-guide .startup-guide-stage {
+      min-height: min(208px, 30vh);
+    }
+
+    body.tma-app .uno-startup-guide .uno-guide-scene {
+      min-height: min(188px, 28vh);
     }
 
     body.tma-app .startup-guide-card {
@@ -14151,7 +14267,6 @@ PAGE_TEMPLATE = """
       </div>
       <div class="app-launcher-header">
         <strong>Выбери игру</strong>
-        <div class="tiny">Один кошелёк, один пропуск, одна коллекция косметики. Выбирай приложение и играй в общем прогрессе.</div>
       </div>
       <div class="app-launcher-grid">
         <button type="button" class="app-launcher-app" data-launch-app="domain">
@@ -14159,19 +14274,17 @@ PAGE_TEMPLATE = """
             <img src="/static/mascot-ton-bot.png" alt="">
           </div>
           <strong>Domain Game</strong>
-          <span>Основная карточная игра по твоему `.ton` домену с колодой, боями, кланами и пропуском.</span>
         </button>
         <button type="button" class="app-launcher-app" data-launch-app="uno" data-uno-entry="1" hidden>
           <div class="app-launcher-icon uno"></div>
           <strong>UNO Arena</strong>
-          <span>Быстрый UNO-режим на тех же скинах, том же домене и том же сезонном прогрессе.</span>
         </button>
       </div>
       <div class="app-launcher-dock">
         <button type="button" class="app-launcher-mini" data-launch-app="domain"><i></i>Domain</button>
         <button type="button" class="app-launcher-mini uno" data-launch-app="uno" data-uno-entry="1" hidden><i></i>UNO</button>
       </div>
-      <div class="app-launcher-hint">Нажми на логотип сверху в любой момент, чтобы снова открыть этот экран и переключиться между приложениями.</div>
+      <div class="app-launcher-hint">Нажми на логотип сверху, чтобы открыть Apps снова.</div>
     </div>
   </div>
 
@@ -14208,18 +14321,18 @@ PAGE_TEMPLATE = """
         </div>
       </div>
       <div class="mascot-popover-actions" id="mascot-domain-actions">
-        <button type="button" id="mascot-open-profile-btn">Профиль</button>
-        <button type="button" id="mascot-open-pack-btn">Карты</button>
-        <button type="button" id="mascot-open-battle-btn">Игра</button>
-        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>Игры</button>
-        <button type="button" class="secondary" id="mascot-open-guide-btn">Гайд</button>
+        <button type="button" id="mascot-open-profile-btn">Profile</button>
+        <button type="button" id="mascot-open-pack-btn">Cards</button>
+        <button type="button" id="mascot-open-battle-btn">Battle</button>
+        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>Apps</button>
+        <button type="button" class="secondary" id="mascot-open-guide-btn">Guide</button>
       </div>
       <div class="mascot-popover-actions" id="mascot-uno-actions" hidden>
-        <button type="button" id="mascot-uno-home-btn">Меню игр</button>
-        <button type="button" id="mascot-uno-bot-btn">С ботом</button>
-        <button type="button" id="mascot-uno-quick-btn">Быстрый матч</button>
-        <button type="button" id="mascot-uno-room-btn">Комната</button>
-        <button type="button" class="secondary" id="mascot-uno-back-btn">Игры</button>
+        <button type="button" id="mascot-uno-home-btn">Apps</button>
+        <button type="button" id="mascot-uno-bot-btn">Bot</button>
+        <button type="button" id="mascot-uno-quick-btn">Match</button>
+        <button type="button" id="mascot-uno-room-btn">Room</button>
+        <button type="button" class="secondary" id="mascot-uno-back-btn">Back</button>
       </div>
     </div>
     <button type="button" class="mascot-fab" id="mascot-fab" aria-label="Открыть помощника">
@@ -14307,6 +14420,9 @@ PAGE_TEMPLATE = """
       unoRestoreInFlight: false,
       unoLastEventKey: '',
       unoEventTimer: null,
+      unoDrawFx: null,
+      unoDrawFxTimer: null,
+      unoDrag: null,
       unoGuestId: '',
       unoGuestName: '',
       activeApp: 'domain',
@@ -14710,7 +14826,7 @@ PAGE_TEMPLATE = """
     const unoGuideSteps = [
       {
         title: 'Читай стол',
-        body: 'Смотри на карту по центру: играть можно тем же цветом, тем же знаком или Wild.',
+        body: 'Смотри на карту по центру: ходят тем же цветом, тем же знаком или картой Color.',
         overlayHtml: `
           <div class="uno-guide-scene">
             <div class="uno-guide-table">
@@ -14730,7 +14846,7 @@ PAGE_TEMPLATE = """
               <div class="uno-guide-control-row">
                 <button type="button" class="active" data-uno-guide-action="match" data-uno-guide-value="color">По цвету</button>
                 <button type="button" data-uno-guide-action="match" data-uno-guide-value="value">По знаку</button>
-                <button type="button" data-uno-guide-action="match" data-uno-guide-value="wild">Wild</button>
+                <button type="button" data-uno-guide-action="match" data-uno-guide-value="wild">Color</button>
               </div>
             </div>
           </div>
@@ -14738,7 +14854,7 @@ PAGE_TEMPLATE = """
       },
       {
         title: 'Если хода нет',
-        body: 'Тапни по колоде. Из неё вылетит ровно одна карта, после этого ход идёт дальше.',
+        body: 'Тяни колоду к центру. Карта вылетит в руку, и ты продолжаешь добор, пока не найдёшь подходящую.',
         overlayHtml: `
           <div class="uno-guide-scene">
             <div class="uno-guide-deck-stage">
@@ -14756,7 +14872,7 @@ PAGE_TEMPLATE = """
                 ${unoCardMarkup(unoDemoCard('red', '9', 'guide-hand-c'), {asButton: false})}
               </div>
               <div class="uno-guide-control-row">
-                <button type="button" class="active" data-uno-guide-action="draw" data-uno-guide-value="tap">Тянуть карту</button>
+                <button type="button" class="active" data-uno-guide-action="draw" data-uno-guide-value="drag">Тянуть к центру</button>
               </div>
             </div>
           </div>
@@ -14788,14 +14904,14 @@ PAGE_TEMPLATE = """
       },
       {
         title: 'UNO как отдельный режим',
-        body: 'Снизу навигация в UNO запускает только UNO режимы: меню игр, бот, быстрый матч и комната.',
+        body: 'Снизу навигация в UNO ведёт только по UNO: Apps, Bot, Match и Room.',
         overlayHtml: `
           <div class="uno-guide-scene">
             <div class="uno-guide-menu-stage">
               <div class="uno-guide-menu-grid" data-uno-guide-menu-grid>
-                <div class="uno-guide-menu-tile active" data-uno-guide-menu="bot"><b>Бот</b><span>Быстрый вход в матч</span></div>
-                <div class="uno-guide-menu-tile" data-uno-guide-menu="quick"><b>Матч</b><span>Поиск свободной партии</span></div>
-                <div class="uno-guide-menu-tile" data-uno-guide-menu="friends"><b>Комната</b><span>Приватный код для друзей</span></div>
+                <div class="uno-guide-menu-tile active" data-uno-guide-menu="bot"><b>Bot</b><span>Матч против бота</span></div>
+                <div class="uno-guide-menu-tile" data-uno-guide-menu="quick"><b>Match</b><span>Любая свободная партия</span></div>
+                <div class="uno-guide-menu-tile" data-uno-guide-menu="friends"><b>Room</b><span>Приватный код для друзей</span></div>
               </div>
               <div class="uno-guide-mini-nav">
                 <i></i>
@@ -14804,9 +14920,9 @@ PAGE_TEMPLATE = """
                 <i></i>
               </div>
               <div class="uno-guide-control-row">
-                <button type="button" class="active" data-uno-guide-action="menu" data-uno-guide-value="bot">Бот</button>
-                <button type="button" data-uno-guide-action="menu" data-uno-guide-value="quick">Матч</button>
-                <button type="button" data-uno-guide-action="menu" data-uno-guide-value="friends">Комната</button>
+                <button type="button" class="active" data-uno-guide-action="menu" data-uno-guide-value="bot">Bot</button>
+                <button type="button" data-uno-guide-action="menu" data-uno-guide-value="quick">Match</button>
+                <button type="button" data-uno-guide-action="menu" data-uno-guide-value="friends">Room</button>
               </div>
             </div>
           </div>
@@ -15232,7 +15348,7 @@ PAGE_TEMPLATE = """
               const copy = {
                 color: 'Если цвет совпадает со столом, карту можно класть сразу.',
                 value: 'Тот же знак тоже работает, даже если цвет у карты другой.',
-                wild: 'Wild всегда спасает, когда нужно сменить цвет или выйти из тупика.'
+                wild: 'Color-карта всегда спасает, когда нужно сменить цвет или выйти из тупика.'
               };
               setUnoGuideBody(copy[value] || unoGuideSteps[0].body);
               break;
@@ -15244,7 +15360,7 @@ PAGE_TEMPLATE = """
                 void drawCard.offsetWidth;
                 drawCard.classList.add('live');
               }
-              setUnoGuideBody('Тап по колоде берёт только одну карту. На телефоне это самый быстрый и понятный добор.');
+              setUnoGuideBody('Тяни колоду к центру. Карта вылетит в руку, и добор не закончится, пока не найдётся рабочая карта.');
               break;
             }
             case '2:call': {
@@ -15275,9 +15391,9 @@ PAGE_TEMPLATE = """
                 dot.classList.toggle('active', index === activeIndex);
               });
               const copy = {
-                bot: 'Кнопка «Бот» снизу сразу кидает в матч против бота.',
-                quick: 'Кнопка «Матч» ищет любую свободную открытую партию.',
-                friends: 'Кнопка «Комната» работает только внутри UNO и ведёт в приватный режим для друзей.'
+                bot: 'Bot снизу сразу кидает в матч против бота.',
+                quick: 'Match ищет любую свободную открытую партию.',
+                friends: 'Room работает только внутри UNO и ведёт в приватный режим для друзей.'
               };
               setUnoGuideBody(copy[value] || unoGuideSteps[3].body);
               break;
@@ -17323,10 +17439,10 @@ PAGE_TEMPLATE = """
       document.body.classList.toggle('uno-app-context', unoContext);
       if (!navPack || !navModes || !navGuilds || !navAchievements) return;
       if (unoContext) {
-        navPack.textContent = 'Игры';
-        navModes.textContent = 'Бот';
-        navGuilds.textContent = 'Матч';
-        navAchievements.textContent = 'Комната';
+        navPack.textContent = 'Apps';
+        navModes.textContent = 'Bot';
+        navGuilds.textContent = 'Match';
+        navAchievements.textContent = 'Room';
         [navPack, navModes, navGuilds, navAchievements].forEach((button) => button.classList.remove('active'));
         const session = state.unoSession;
         const activeButton = !session || session.complete
@@ -18639,7 +18755,7 @@ PAGE_TEMPLATE = """
       const activeColor = String(currentColor || '').toLowerCase();
       const topValue = String((topCard && topCard.value) || '').toLowerCase();
       if (value === 'wild' || value === 'wild4' || color === 'wild') {
-        return 'Wild';
+        return 'Color';
       }
       const matchesColor = Boolean(color && activeColor && color === activeColor);
       const matchesValue = Boolean(value && topValue && value === topValue);
@@ -18675,69 +18791,42 @@ PAGE_TEMPLATE = """
     }
 
     function unoLiveInstructionData(session, playableIds, pendingWildCardId = '') {
-      const topCard = session && session.discard_top ? session.discard_top : null;
       const hand = Array.isArray(session && session.player_hand) ? session.player_hand : [];
       const playableCards = hand.filter((card) => playableIds.has(card.id));
-      const uniqueReasons = Array.from(new Set(playableCards.map((card) => unoCardReasonLabel(card, topCard, session && session.current_color)).filter(Boolean)));
       const unoAlert = session && session.uno_alert && session.uno_alert.active ? session.uno_alert : null;
       if (!session || session.complete) {
         return {
           headline: 'Партия завершена',
-          detail: 'Смотри результат, а потом запускай новый матч или возвращайся в меню.',
-          chips: [
-            `Победитель: ${session && session.winner_label ? session.winner_label : '—'}`,
-            'Можно начать заново'
-          ],
+          detail: 'Смотри результат и запускай следующий матч.',
         };
       }
       if (pendingWildCardId) {
         return {
-          headline: 'Выбери новый цвет для Wild',
-          detail: 'Нажми один из четырёх цветов ниже. После выбора карта сразу уйдёт на стол.',
-          chips: [
-            'Шаг 1: выбери цвет',
-            'Шаг 2: стол обновится',
-          ],
+          headline: 'Выбери цвет для Color-карты',
+          detail: 'Без выбора цвета карта не уйдёт на стол.',
         };
       }
       if (unoAlert) {
         return {
           headline: unoAlert.title || 'Жми UNO',
           detail: unoAlert.detail || 'Сейчас решается гонка за кнопку UNO.',
-          chips: [
-            `Цель: ${unoAlert.target_name || 'игрок'}`,
-            `Штраф: +${Number(unoAlert.penalty_cards || 2)}`,
-            `Окно: ${unoAlert.countdown_label || '0.0с'}`,
-          ],
         };
       }
       if (session.your_turn) {
         if (!playableCards.length) {
           return {
-            headline: 'Подходящей карты нет',
-            detail: 'Тапни по колоде. Берётся только 1 карта, после этого ход переходит дальше.',
-            chips: [
-              `Цвет: ${session.current_color_label || '—'}`,
-              'Добор: 1 карта',
-            ],
+            headline: 'Тяни колоду',
+            detail: 'Потяни колоду к центру и добирай, пока не найдётся подходящая карта.',
           };
         }
         return {
-          headline: 'Сейчас твой ход',
-          detail: 'Нажми подсвеченную карту. Подходит тот же цвет, тот же знак или любая Wild-карта.',
-          chips: [
-            `Подходят: ${playableCards.length}`,
-            uniqueReasons[0] || `Цвет: ${session.current_color_label || '—'}`,
-          ],
+          headline: 'Тяни карту к центру',
+          detail: 'Подходит тот же цвет, тот же знак или любая Color-карта.',
         };
       }
       return {
-        headline: `Сейчас ходит ${session.turn_display_name || 'соперник'}`,
-        detail: 'Жди ход соперника. Когда очередь перейдёт к тебе, подходящие карты снова подсветятся.',
-        chips: [
-          `Цвет: ${session.current_color_label || '—'}`,
-          `Очередь: ${session.turn_display_name || 'соперник'}`,
-        ],
+        headline: `Ходит ${session.turn_display_name || 'соперник'}`,
+        detail: 'Жди, пока ход не вернётся к тебе.',
       };
     }
 
@@ -18825,6 +18914,261 @@ PAGE_TEMPLATE = """
       }, intro ? 1180 : 1380);
     }
 
+    function clearUnoDrawFx(options = {}) {
+      if (state.unoDrawFxTimer) {
+        window.clearTimeout(state.unoDrawFxTimer);
+        state.unoDrawFxTimer = null;
+      }
+      const fx = state.unoDrawFx;
+      if (fx && Array.isArray(fx.ghosts)) {
+        fx.ghosts.forEach((ghost) => {
+          if (ghost && ghost.parentNode) {
+            ghost.parentNode.removeChild(ghost);
+          }
+        });
+      }
+      state.unoDrawFx = null;
+      if (options.render) {
+        renderUnoPanel();
+      }
+    }
+
+    function queueUnoDrawFxReveal(delay = 480) {
+      if (state.unoDrawFxTimer) {
+        window.clearTimeout(state.unoDrawFxTimer);
+      }
+      state.unoDrawFxTimer = window.setTimeout(() => {
+        state.unoDrawFxTimer = null;
+        if (!state.unoDrawFx) return;
+        state.unoDrawFx = null;
+        renderUnoPanel();
+      }, Math.max(120, Number(delay || 0)));
+    }
+
+    function armUnoDrawFx(previousSession, nextSession) {
+      clearUnoDrawFx();
+      if (!previousSession || !nextSession || previousSession.session_id !== nextSession.session_id) return;
+      const previousHand = Array.isArray(previousSession.player_hand) ? previousSession.player_hand : [];
+      const nextHand = Array.isArray(nextSession.player_hand) ? nextSession.player_hand : [];
+      const previousIds = new Set(previousHand.map((card) => String(card && card.id || '')));
+      const drawnCards = nextHand.filter((card) => card && card.id && !previousIds.has(String(card.id || '')));
+      if (!drawnCards.length) return;
+      state.unoDrawFx = {
+        sessionId: nextSession.session_id,
+        cards: drawnCards,
+        started: false,
+        ghosts: [],
+      };
+    }
+
+    function visibleUnoPlayerHand(session) {
+      const hand = Array.isArray(session && session.player_hand) ? session.player_hand : [];
+      const fx = state.unoDrawFx;
+      if (!fx || fx.sessionId !== String(session && session.session_id || '')) {
+        return hand;
+      }
+      const hiddenIds = new Set((fx.cards || []).map((card) => String(card && card.id || '')));
+      return hand.filter((card) => !hiddenIds.has(String(card && card.id || '')));
+    }
+
+    function runUnoDrawFxAnimation(session, frameAsset) {
+      const fx = state.unoDrawFx;
+      if (!unoRoot || !session || !fx || fx.started || fx.sessionId !== String(session.session_id || '')) return;
+      const deckCard = unoRoot.querySelector('#uno-draw-pile-btn .uno-stack-top .uno-back-card');
+      const handRow = unoRoot.querySelector('.uno-player-hand');
+      if (!deckCard || !handRow) {
+        queueUnoDrawFxReveal(180);
+        return;
+      }
+      const deckRect = deckCard.getBoundingClientRect();
+      const handRect = handRow.getBoundingClientRect();
+      if (!deckRect.width || !handRect.width) {
+        queueUnoDrawFxReveal(180);
+        return;
+      }
+      fx.started = true;
+      const cardWidth = deckRect.width;
+      const cardHeight = deckRect.height;
+      const baseTargetTop = Math.max(8, handRect.bottom - cardHeight - 2);
+      fx.ghosts = (fx.cards || []).map((card, index) => {
+        const ghost = document.createElement('div');
+        ghost.className = 'uno-drag-ghost';
+        ghost.style.width = `${cardWidth}px`;
+        ghost.style.height = `${cardHeight}px`;
+        ghost.style.left = `${deckRect.left}px`;
+        ghost.style.top = `${deckRect.top}px`;
+        ghost.style.opacity = '0.98';
+        ghost.innerHTML = unoCardMarkup(card, {frameAsset, asButton: false});
+        document.body.appendChild(ghost);
+        const targetLeft = Math.max(
+          10,
+          Math.min(
+            window.innerWidth - cardWidth - 10,
+            handRect.left + 16 + index * Math.max(20, cardWidth * 0.34)
+          )
+        );
+        requestAnimationFrame(() => {
+          ghost.style.transition = 'transform 420ms cubic-bezier(.16,.88,.22,1), opacity 420ms ease';
+          ghost.style.transform = `translate(${targetLeft - deckRect.left}px, ${baseTargetTop - deckRect.top}px) rotate(${index % 2 === 0 ? -8 : 8}deg) scale(1.02)`;
+        });
+        window.setTimeout(() => {
+          if (ghost.parentNode) ghost.parentNode.removeChild(ghost);
+        }, 460);
+        return ghost;
+      });
+      queueUnoDrawFxReveal(430);
+    }
+
+    function clearUnoDragInteraction(options = {}) {
+      const drag = state.unoDrag;
+      if (!drag) return;
+      if (drag.moveHandler) window.removeEventListener('pointermove', drag.moveHandler, true);
+      if (drag.upHandler) window.removeEventListener('pointerup', drag.upHandler, true);
+      if (drag.cancelHandler) window.removeEventListener('pointercancel', drag.cancelHandler, true);
+      if (drag.sourceEl) {
+        drag.sourceEl.classList.remove('dragging');
+        if (drag.pointerId != null && typeof drag.sourceEl.releasePointerCapture === 'function') {
+          try {
+            drag.sourceEl.releasePointerCapture(drag.pointerId);
+          } catch (_) {
+          }
+        }
+      }
+      if (drag.dropTarget) {
+        drag.dropTarget.classList.remove('drop-ready', 'drop-active');
+      }
+      const ghost = drag.ghost;
+      state.unoDrag = null;
+      if (!ghost) return;
+      const removeGhost = () => {
+        if (ghost.parentNode) ghost.parentNode.removeChild(ghost);
+      };
+      if (options.success) {
+        ghost.style.transition = 'transform 160ms ease, opacity 160ms ease';
+        ghost.style.opacity = '0';
+        ghost.style.transform = `${ghost.style.transform || 'translate(0px, 0px)'} scale(1.08)`;
+        window.setTimeout(removeGhost, 170);
+        return;
+      }
+      if (options.animateBack) {
+        ghost.style.transition = 'transform 180ms ease, opacity 180ms ease';
+        ghost.style.opacity = '0.16';
+        ghost.style.transform = 'translate(0px, 0px) rotate(0deg) scale(0.98)';
+        window.setTimeout(removeGhost, 190);
+        return;
+      }
+      removeGhost();
+    }
+
+    function startUnoDragInteraction(event, config = {}) {
+      if (!event || (typeof event.button === 'number' && event.button !== 0) || state.unoActionInFlight) return;
+      const sourceEl = config.sourceEl;
+      const previewEl = config.previewEl || sourceEl;
+      const dropTarget = unoRoot ? unoRoot.querySelector('[data-uno-drop-target="discard"]') : null;
+      if (!sourceEl || !previewEl || !dropTarget) return;
+      event.preventDefault();
+      clearUnoDragInteraction();
+      const originRect = previewEl.getBoundingClientRect();
+      if (!originRect.width || !originRect.height) return;
+      const ghost = document.createElement('div');
+      ghost.className = 'uno-drag-ghost';
+      ghost.style.width = `${originRect.width}px`;
+      ghost.style.height = `${originRect.height}px`;
+      ghost.style.left = `${originRect.left}px`;
+      ghost.style.top = `${originRect.top}px`;
+      ghost.style.opacity = '0.98';
+      ghost.innerHTML = previewEl.outerHTML;
+      document.body.appendChild(ghost);
+      sourceEl.classList.add('dragging');
+      dropTarget.classList.add('drop-ready');
+      const drag = {
+        kind: config.kind || 'play',
+        cardId: config.cardId || '',
+        sourceEl,
+        previewEl,
+        dropTarget,
+        ghost,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+        overTarget: false,
+      };
+      if (typeof sourceEl.setPointerCapture === 'function' && event.pointerId != null) {
+        try {
+          sourceEl.setPointerCapture(event.pointerId);
+        } catch (_) {
+        }
+      }
+      drag.moveHandler = (moveEvent) => {
+        if (moveEvent.pointerId !== drag.pointerId) return;
+        moveEvent.preventDefault();
+        const dx = moveEvent.clientX - drag.startX;
+        const dy = moveEvent.clientY - drag.startY;
+        drag.moved = drag.moved || (Math.abs(dx) + Math.abs(dy) > 8);
+        const rotate = drag.kind === 'draw'
+          ? Math.max(-10, Math.min(10, dx * 0.04))
+          : Math.max(-14, Math.min(14, dx * 0.05));
+        ghost.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`;
+        const targetRect = dropTarget.getBoundingClientRect();
+        drag.overTarget = Boolean(
+          drag.moved
+          && moveEvent.clientX >= targetRect.left
+          && moveEvent.clientX <= targetRect.right
+          && moveEvent.clientY >= targetRect.top
+          && moveEvent.clientY <= targetRect.bottom
+        );
+        dropTarget.classList.toggle('drop-active', drag.overTarget);
+      };
+      drag.upHandler = (upEvent) => {
+        if (upEvent.pointerId !== drag.pointerId) return;
+        upEvent.preventDefault();
+        const shouldCommit = Boolean(drag.moved && drag.overTarget);
+        clearUnoDragInteraction({ success: shouldCommit, animateBack: !shouldCommit });
+        if (!shouldCommit) return;
+        if (drag.kind === 'draw') {
+          runUnoAction('draw');
+          return;
+        }
+        requestUnoCardPlay(drag.cardId);
+      };
+      drag.cancelHandler = (cancelEvent) => {
+        if (cancelEvent.pointerId !== drag.pointerId) return;
+        clearUnoDragInteraction({ animateBack: true });
+      };
+      window.addEventListener('pointermove', drag.moveHandler, true);
+      window.addEventListener('pointerup', drag.upHandler, true);
+      window.addEventListener('pointercancel', drag.cancelHandler, true);
+      state.unoDrag = drag;
+    }
+
+    function setupUnoDragInteractions(session, playableIds, options = {}) {
+      if (!unoRoot || !session || session.complete) return;
+      const canPlayCards = Boolean(session.your_turn && !options.actionLocked && !options.unoAlert && !options.pendingWildCardId);
+      const drawSource = document.getElementById('uno-draw-pile-btn');
+      if (drawSource && options.canDraw) {
+        const previewEl = drawSource.querySelector('.uno-stack-top .uno-back-card') || drawSource.querySelector('.uno-stack-top') || drawSource;
+        drawSource.classList.add('drag-ready');
+        drawSource.addEventListener('pointerdown', (event) => startUnoDragInteraction(event, {
+          kind: 'draw',
+          sourceEl: drawSource,
+          previewEl,
+        }), { passive: false });
+      }
+      if (!canPlayCards) return;
+      unoRoot.querySelectorAll('[data-uno-play-card]').forEach((button) => {
+        const cardId = String(button.dataset.unoPlayCard || '');
+        if (!playableIds.has(cardId)) return;
+        button.classList.add('drag-ready');
+        button.addEventListener('pointerdown', (event) => startUnoDragInteraction(event, {
+          kind: 'play',
+          cardId,
+          sourceEl: button,
+          previewEl: button,
+        }), { passive: false });
+      });
+    }
+
     function unoCardAssetMarkup(card) {
       const assetUrl = unoOpenCardAssetUrl(card);
       if (!assetUrl) return '';
@@ -18883,14 +19227,15 @@ PAGE_TEMPLATE = """
       const frameAsset = options.frameAsset || '';
       const playable = Boolean(options.playable);
       const disabled = Boolean(options.disabled);
-      const photoMarkup = unoCardAssetMarkup(card) || unoCardPhotoMarkup(card);
-      const usePhoto = Boolean(photoMarkup);
       const value = String((card && card.value) || '').toLowerCase();
+      const isWild = value === 'wild' || value === 'wild4';
+      const photoMarkup = unoCardAssetMarkup(card) || unoCardPhotoMarkup(card);
+      const usePhoto = !isWild && Boolean(photoMarkup);
       const cornerGlyph = ({
         skip: '⊘',
         reverse: '↺',
         draw2: '+2',
-        wild: 'W',
+        wild: 'C',
         wild4: '+4',
       })[value] || String(card && (card.value_label || card.value) || '');
       const centerGlyph = ({
@@ -18901,7 +19246,6 @@ PAGE_TEMPLATE = """
       const centerClass = value === 'draw2'
         ? 'draw'
         : (value === 'skip' || value === 'reverse' ? 'action' : '');
-      const isWild = value === 'wild' || value === 'wild4';
       const buttonAttrs = options.asButton === false
         ? 'type="button" tabindex="-1" disabled'
         : `type="button" data-uno-play-card="${escapeHtml(card.id || '')}"${disabled ? ' disabled' : ''}`;
@@ -18922,6 +19266,7 @@ PAGE_TEMPLATE = """
                 ${isWild ? `
                   <span class="uno-card-wild-badge" aria-hidden="true">
                     <span class="uno-card-wild-grid"><i></i><i></i><i></i><i></i></span>
+                    <span class="uno-card-wild-text">Color</span>
                     ${value === 'wild4' ? '<span class="uno-card-wild-plus">+4</span>' : ''}
                   </span>
                 ` : `
@@ -19073,12 +19418,14 @@ PAGE_TEMPLATE = """
         const data = await api(`/api/uno/status?${query}&session_id=${encodeURIComponent(sessionId)}`);
         if (data.session && data.session.complete) {
           state.unoSession = null;
+          clearUnoDrawFx();
           state.unoPendingColorCardId = null;
           rememberUnoSession(null);
           renderUnoPanel();
           return false;
         }
         state.unoSession = data.session || null;
+        clearUnoDrawFx();
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
         if (data.player) {
@@ -19088,6 +19435,7 @@ PAGE_TEMPLATE = """
         return Boolean(state.unoSession);
       } catch (_) {
         state.unoSession = null;
+        clearUnoDrawFx();
         state.unoPendingColorCardId = null;
         rememberUnoSession(null);
         renderUnoPanel();
@@ -19122,6 +19470,9 @@ PAGE_TEMPLATE = """
         const previousSignature = unoSessionVisualKey(state.unoSession);
         const previousPendingCardId = String(state.unoPendingColorCardId || '');
         state.unoSession = data.session || null;
+        if (!state.unoDrawFx || !state.unoSession || state.unoDrawFx.sessionId !== String(state.unoSession.session_id || '')) {
+          clearUnoDrawFx();
+        }
         state.unoPendingColorCardId = unoCanKeepPendingColorCard(state.unoSession, previousPendingCardId);
         rememberUnoSession(state.unoSession);
         if (data.player) {
@@ -19136,6 +19487,7 @@ PAGE_TEMPLATE = """
         stopUnoStatusPolling();
         if (String(error.message || '').toLowerCase().includes('не найдена')) {
           state.unoSession = null;
+          clearUnoDrawFx();
           rememberUnoSession(null);
           renderUnoPanel();
         }
@@ -19172,7 +19524,7 @@ PAGE_TEMPLATE = """
         yellow: 'Жёлтый',
         green: 'Зелёный',
         blue: 'Синий',
-        wild: 'Wild',
+        wild: 'Color',
       }[String(color || '').toLowerCase()] || 'UNO';
     }
 
@@ -19181,8 +19533,8 @@ PAGE_TEMPLATE = """
         skip: 'Пропуск',
         reverse: 'Разворот',
         draw2: '+2',
-        wild: 'Wild',
-        wild4: '+4',
+        wild: 'Color',
+        wild4: 'Color +4',
       }[String(value || '').toLowerCase()] || String(value || '').toUpperCase();
     }
 
@@ -19225,11 +19577,13 @@ PAGE_TEMPLATE = """
 
     function renderUnoPanel() {
       if (!unoRoot) return;
+      clearUnoDragInteraction();
       if (!hasUnoTesterAccess()) {
         stopUnoStatusPolling();
         setUnoLiveLock(false);
         state.unoLastEventKey = '';
         clearUnoEventFx();
+        clearUnoDrawFx();
         unoRoot.innerHTML = '<div class="uno-empty"><strong>Раздел недоступен.</strong></div>';
         return;
       }
@@ -19268,6 +19622,7 @@ PAGE_TEMPLATE = """
         stopUnoStatusPolling();
         state.unoLastEventKey = '';
         clearUnoEventFx();
+        clearUnoDrawFx();
         const cachedSessionId = rememberedUnoSessionId();
         if (cachedSessionId) {
           unoRoot.innerHTML = `
@@ -19284,30 +19639,27 @@ PAGE_TEMPLATE = """
             <div class="uno-home-top">
               <div class="uno-home-title">
                 <strong>UNO Arena</strong>
-                <div class="tiny">Быстрый режим на тех же скинах, том же прогрессе и с компактным full-screen UX внутри TMA.</div>
               </div>
               <div class="actions">
                 ${unoBrandBadge('UNO', bannerSurface)}
-                <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
+                <button type="button" class="secondary" id="uno-open-launcher-btn">Apps</button>
               </div>
             </div>
             ${unoHomeStageMarkup(frameAsset, backSurface, backMark)}
             <div class="uno-meta-strip">
               <div class="uno-chip">${identity.progressEnabled ? `Профиль ${escapeHtml(identityLabel)}` : 'Guest-режим'}</div>
               <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Кошелёк не обязателен'}</div>
-              ${identity.progressEnabled ? `<div class="uno-chip">Общий пропуск и опыт</div>` : '<div class="uno-chip">Общий прогресс включится после домена</div>'}
+              ${identity.progressEnabled ? `<div class="uno-chip">Общий пропуск и опыт</div>` : '<div class="uno-chip">Подключи домен для общего прогресса</div>'}
             </div>
             <div class="uno-home-grid">
               <article class="uno-home-tile">
                 <strong>Против бота</strong>
-                <div class="tiny">Самый быстрый старт без лишних экранов.</div>
                 <div class="actions">
                   <button type="button" id="uno-start-btn">Играть</button>
                 </div>
               </article>
               <article class="uno-home-tile">
                 <strong>Быстрый матч</strong>
-                <div class="tiny">Ищет любую открытую свободную партию.</div>
                 <div class="actions">
                   <button type="button" id="uno-quick-search-btn">Найти матч</button>
                 </div>
@@ -19369,6 +19721,7 @@ PAGE_TEMPLATE = """
         clearUnoEventFx();
         const countdownSeconds = Math.max(0, Number(session.countdown_seconds || 0));
         const viewerParticipant = (session.participants || []).find((item) => item.is_viewer) || null;
+        clearUnoDrawFx();
         unoRoot.innerHTML = `
           <div class="uno-shell waiting" style="background:${tableSurface};">
             <div class="uno-header">
@@ -19379,7 +19732,7 @@ PAGE_TEMPLATE = """
                 </div>
                 <div class="actions" style="margin-left:auto;">
                   ${unoBrandBadge(session.mode === 'quick' ? 'MATCH' : 'FRIENDS', bannerSurface)}
-                  <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
+                  <button type="button" class="secondary" id="uno-open-launcher-btn">Apps</button>
                 </div>
               </div>
               <div class="uno-meta-strip">
@@ -19431,19 +19784,10 @@ PAGE_TEMPLATE = """
       const nextUnoEventKey = unoSessionEventKey(session);
       const shouldAnimateUnoEvent = Boolean(nextUnoEventKey && state.unoLastEventKey && state.unoLastEventKey !== nextUnoEventKey);
       const shouldAnimateUnoIntro = Boolean(nextUnoEventKey && !state.unoLastEventKey && !session.complete);
-      const topStatusText = session.complete
-        ? `${session.winner_label || 'Матч завершён'} выигрывает`
-        : (unoAlert
-          ? (unoAlert.title || 'Жми UNO')
-          : (session.your_turn
-          ? 'Твой ход'
-          : `Ходит ${session.turn_display_name || 'игрок'}`));
-      const resultSummary = session.complete
-        ? 'Партия закончилась. Можно начать следующую.'
-        : (unoAlert
-          ? (unoAlert.detail || 'Сейчас решается гонка за кнопку UNO.')
-          : '');
-      const canTapDrawPile = Boolean(session.can_draw && !unoAlert && !actionLocked);
+      const topStatusText = liveGuide.headline || (session.complete ? `${session.winner_label || 'Матч завершён'} выигрывает` : '');
+      const resultSummary = liveGuide.detail || '';
+      const canDragDraw = Boolean(session.can_draw && !unoAlert && !actionLocked && !pendingWildCardId && !state.unoDrawFx);
+      const displayHand = visibleUnoPlayerHand(session);
       unoRoot.innerHTML = `
         <div class="uno-shell ${session.complete ? 'completed' : 'playing'}" style="background:${tableSurface};">
           <div class="uno-header">
@@ -19456,7 +19800,7 @@ PAGE_TEMPLATE = """
               `}
               <div class="actions" style="margin-left:auto;">
                 ${unoBrandBadge(session.current_color_label || 'UNO', bannerSurface)}
-                <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
+                <button type="button" class="secondary" id="uno-open-launcher-btn">Apps</button>
               </div>
             </div>
             <div class="uno-meta-strip">
@@ -19471,20 +19815,6 @@ PAGE_TEMPLATE = """
               <strong class="uno-live-summary-main">${escapeHtml(topStatusText)}</strong>
             </div>
             <div class="uno-live-summary-sub">${escapeHtml(resultSummary)}</div>
-          </div>
-          <div class="uno-turn-cue">
-            <span class="uno-turn-pill ${session.complete ? 'complete' : (unoAlert ? 'wait' : (session.your_turn ? 'you' : 'wait'))}">
-              ${session.complete ? 'Результат' : (pendingWildCardId ? 'Выбор цвета' : (unoAlert ? 'UNO' : (session.your_turn ? 'Что делать' : 'Ждём ход')))}
-            </span>
-            <div>
-              <strong>${escapeHtml(liveGuide.headline)}</strong>
-              <div class="tiny">${escapeHtml(liveGuide.detail)}</div>
-            </div>
-            ${(liveGuide.chips || []).length ? `
-              <div class="uno-playable-reasons">
-                ${(liveGuide.chips || []).map((chip) => `<span class="uno-playable-reason">${escapeHtml(chip)}</span>`).join('')}
-              </div>
-            ` : ''}
           </div>
           ${unoAlert ? `
             <div class="uno-alert-banner ${unoAlert.viewer_role === 'call' ? 'call' : 'catch'}">
@@ -19523,21 +19853,21 @@ PAGE_TEMPLATE = """
               <div class="uno-event-layer" data-uno-event-layer hidden></div>
               <div class="uno-center">
                 <div>
-                  <button type="button" class="uno-stack-action ${canTapDrawPile ? 'can-draw' : ''}" id="uno-draw-pile-btn"${canTapDrawPile ? '' : ' disabled'}>
+                  <button type="button" class="uno-stack-action ${canDragDraw ? 'can-draw' : ''}" id="uno-draw-pile-btn"${canDragDraw ? '' : ' disabled'}>
                     <span class="sr-only">Взять одну карту из колоды</span>
                     <div class="uno-stack">
                       <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
                       <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
                       <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
                     </div>
-                    <div class="uno-stack-label">${canTapDrawPile ? 'Тяни 1' : 'Колода'}</div>
+                    <div class="uno-stack-label">${canDragDraw ? 'Тяни в центр' : 'Колода'}</div>
                   </button>
                 </div>
-                <div class="uno-discard-stack">
+                <div class="uno-discard-stack" data-uno-drop-target="discard">
                   <div class="uno-stack">
                     <div class="uno-stack-top">${session.discard_top ? unoCardMarkup(session.discard_top, {frameAsset, asButton: false}) : ''}</div>
                   </div>
-                  <div class="uno-stack-label">Стол • ${escapeHtml(session.current_color_label || '—')}</div>
+                  <div class="uno-stack-label ${session.your_turn && !session.complete ? 'drop-hint' : ''}">${session.your_turn && !session.complete ? 'Сюда' : `Стол • ${escapeHtml(session.current_color_label || '—')}`}</div>
                 </div>
               </div>
               ${session.complete ? `
@@ -19550,24 +19880,24 @@ PAGE_TEMPLATE = """
                   </div>
                   <div class="actions" style="margin-top:12px;">
                     <button type="button" id="uno-after-bot-btn">${session.mode === 'bot' ? 'С ботом ещё раз' : 'Новая быстрая партия'}</button>
-                    <button type="button" class="secondary" id="uno-result-launcher-btn">Приложения</button>
+                    <button type="button" class="secondary" id="uno-result-launcher-btn">Apps</button>
                   </div>
                 </div>
               ` : ''}
             </div>
             <div class="uno-player-row">
               <div class="uno-player-meta">
-                <strong>Рука</strong>
+                <strong>Твои карты</strong>
                 <strong>${Number((session.player_hand || []).length || 0)} карт</strong>
               </div>
-              <div class="uno-player-hand">
-                ${(session.player_hand || []).map((card) => unoCardMarkup(card, {frameAsset, playable: !unoAlert && !actionLocked && playableIds.has(card.id) && Boolean(session.your_turn), disabled: actionLocked || Boolean(unoAlert) || !(playableIds.has(card.id) && Boolean(session.your_turn))})).join('')}
+              <div class="uno-player-hand" data-uno-player-hand>
+                ${displayHand.map((card) => unoCardMarkup(card, {frameAsset, playable: !unoAlert && !actionLocked && playableIds.has(card.id) && Boolean(session.your_turn), disabled: actionLocked || Boolean(unoAlert) || !(playableIds.has(card.id) && Boolean(session.your_turn))})).join('')}
               </div>
             </div>
             ${pendingWildCardId ? `
               <div class="uno-color-sheet">
                 <div class="uno-color-sheet-head">
-                  <strong>Выбери цвет для Wild</strong>
+                  <strong>Выбери цвет для Color</strong>
                   <div class="tiny">Это обязательный шаг. Пока цвет не выбран, карта не сыграет.</div>
                 </div>
                 <div class="uno-color-grid">
@@ -19591,22 +19921,27 @@ PAGE_TEMPLATE = """
         state.unoPendingColorCardId = null;
         renderUnoPanel();
       }, 'click', {skipPrepare: true});
-      if (unoDrawPileBtn && !unoDrawPileBtn.disabled && session.can_draw) bindFunctionalControl(unoDrawPileBtn, () => runUnoAction('draw'), 'click', {skipPrepare: true});
       if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus(), 'click', {skipPrepare: true});
       if (unoAfterBotBtn) bindFunctionalControl(unoAfterBotBtn, () => (session.mode === 'bot' ? startUnoMatch() : searchUnoQuickMatch()), 'click', {skipPrepare: true});
       if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
       if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
-      unoRoot.querySelectorAll('[data-uno-play-card]').forEach((button) => {
-        bindFunctionalControl(button, () => requestUnoCardPlay(button.dataset.unoPlayCard), 'click', {skipPrepare: true});
-      });
       unoRoot.querySelectorAll('[data-uno-color]').forEach((button) => {
         bindFunctionalControl(button, () => runUnoAction('play', button.dataset.unoCardId, button.dataset.unoColor), 'click', {skipPrepare: true});
       });
-      if (shouldAnimateUnoEvent || shouldAnimateUnoIntro) {
+      setupUnoDragInteractions(session, playableIds, {
+        canDraw: canDragDraw,
+        actionLocked,
+        unoAlert,
+        pendingWildCardId,
+      });
+      if (state.unoDrawFx) {
+        runUnoDrawFxAnimation(session, frameAsset);
+      }
+      if (!state.unoDrawFx && (shouldAnimateUnoEvent || shouldAnimateUnoIntro)) {
         requestAnimationFrame(() => {
           triggerUnoEventFx(session, {intro: shouldAnimateUnoIntro});
         });
-      } else {
+      } else if (!state.unoDrawFx) {
         clearUnoEventFx();
       }
       state.unoLastEventKey = nextUnoEventKey;
@@ -19623,6 +19958,7 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: payload
         });
+        clearUnoDrawFx();
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
@@ -19648,6 +19984,7 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: unoActorPayload({ max_players: maxPlayers })
         });
+        clearUnoDrawFx();
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
@@ -19677,6 +20014,7 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: unoActorPayload({ room_code: roomCode })
         });
+        clearUnoDrawFx();
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
@@ -19699,6 +20037,7 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: unoActorPayload({ session_id: state.unoSession.session_id })
         });
+        clearUnoDrawFx();
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
@@ -19722,6 +20061,7 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: payload
         });
+        clearUnoDrawFx();
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
@@ -19744,6 +20084,7 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: unoActorPayload({ session_id: state.unoSession.session_id })
         });
+        clearUnoDrawFx();
         state.unoSession = data.session || null;
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
@@ -19761,6 +20102,7 @@ PAGE_TEMPLATE = """
       if (!state.unoSession || !state.unoSession.session_id) return;
       if (state.unoActionInFlight) return;
       if (action === 'draw' && (!state.unoSession.can_draw || (state.unoSession.uno_alert && state.unoSession.uno_alert.active))) return;
+      const previousSession = state.unoSession;
       state.unoActionInFlight = true;
       renderUnoPanel();
       try {
@@ -19780,6 +20122,11 @@ PAGE_TEMPLATE = """
           })
         });
         state.unoSession = data.session || state.unoSession;
+        if (action === 'draw') {
+          armUnoDrawFx(previousSession, state.unoSession);
+        } else {
+          clearUnoDrawFx();
+        }
         state.unoPendingColorCardId = null;
         rememberUnoSession(state.unoSession);
         if (data.player) {
@@ -25720,14 +26067,14 @@ UNO_COLOR_LABELS = {
     'yellow': 'Жёлтый',
     'green': 'Зелёный',
     'blue': 'Синий',
-    'wild': 'Wild',
+    'wild': 'Color',
 }
 UNO_VALUE_LABELS = {
     'skip': 'Пропуск',
     'reverse': 'Реверс',
     'draw2': '+2',
-    'wild': 'Wild',
-    'wild4': 'Wild +4',
+    'wild': 'Color',
+    'wild4': 'Color +4',
 }
 UNO_VALUE_ORDER = {
     '0': 0,
@@ -25753,7 +26100,7 @@ def uno_card_title(card):
     color = str((card or {}).get('color') or 'wild')
     value = str((card or {}).get('value') or '')
     if color == 'wild':
-        return UNO_VALUE_LABELS.get(value, 'Wild')
+        return UNO_VALUE_LABELS.get(value, 'Color')
     return f'{UNO_COLOR_LABELS.get(color, color.capitalize())} {UNO_VALUE_LABELS.get(value, value)}'
 
 
@@ -25852,6 +26199,10 @@ def uno_find_hand_card(cards, card_id):
         if str(card.get('id') or '') == str(card_id or ''):
             return card
     return None
+
+
+def uno_has_playable_card(cards, top_card, current_color):
+    return any(uno_card_playable(card, top_card, current_color) for card in (cards or []))
 
 
 def uno_remove_hand_card(cards, card_id):
@@ -26432,7 +26783,7 @@ def build_uno_multiplayer_payload(state, viewer_wallet):
         'winner_label': uno_player_name(winner_participant) if winner_participant else 'Матч завершён',
         'last_action': state.get('last_action') or '',
         'playable_card_ids': [] if uno_alert else list(playable_ids),
-        'can_draw': (not bool(state.get('complete')) and str(current_wallet or '') == str(viewer_wallet or '') and not bool(uno_alert)),
+        'can_draw': (not bool(state.get('complete')) and str(current_wallet or '') == str(viewer_wallet or '') and not bool(uno_alert) and not bool(playable_ids)),
         'available_colors': [{'key': color, 'label': UNO_COLOR_LABELS[color]} for color in UNO_COLORS],
         'reward_summary': summary_map.get(viewer_wallet) or uno_reward_summary_for(viewer_wallet),
         'reward_gain': reward_map.get(viewer_wallet),
@@ -26494,7 +26845,7 @@ def build_uno_session_payload(state, viewer_wallet=None):
         'winner_label': 'Победа' if state.get('winner') == 'player' else ('Поражение' if state.get('winner') == 'bot' else 'Ничья'),
         'last_action': state.get('last_action') or '',
         'playable_card_ids': [] if uno_alert else list(playable_ids),
-        'can_draw': not bool(state.get('complete')) and state.get('turn') == 'player' and not bool(uno_alert),
+        'can_draw': not bool(state.get('complete')) and state.get('turn') == 'player' and not bool(uno_alert) and not bool(playable_ids),
         'available_colors': [{'key': color, 'label': UNO_COLOR_LABELS[color]} for color in UNO_COLORS],
         'reward_summary': rewards_payload,
         'reward_gain': state.get('reward_gain'),
@@ -26791,7 +27142,7 @@ def uno_apply_card_effect(state, actor, card, chosen_color=None):
 
 def uno_run_bot_turn(state):
     safety = 0
-    while not state.get('complete') and state.get('turn') == 'bot' and not uno_active_alert(state) and safety < 12:
+    while not state.get('complete') and state.get('turn') == 'bot' and not uno_active_alert(state) and safety < 64:
         safety += 1
         chosen = uno_choose_bot_card(state)
         if chosen:
@@ -26807,10 +27158,13 @@ def uno_run_bot_turn(state):
             state['turn'] = 'player'
             break
         state['bot_hand'] = uno_sort_hand(list(state.get('bot_hand') or []) + drawn)
-        state['last_action'] = f"{state.get('bot_name') or 'UNO Bot'} взял карту и передал ход."
-        state['turn'] = 'player'
-        break
-    if safety >= 12 and not state.get('complete'):
+        top_card = (state.get('discard') or [None])[-1]
+        current_color = state.get('current_color')
+        if uno_has_playable_card(state.get('bot_hand') or [], top_card, current_color):
+            state['last_action'] = f"{state.get('bot_name') or 'UNO Bot'} добрал карту и продолжает ход."
+            continue
+        state['last_action'] = f"{state.get('bot_name') or 'UNO Bot'} добрал карту и ищет подходящую дальше."
+    if safety >= 64 and not state.get('complete'):
         player_left = len(state.get('player_hand') or [])
         bot_left = len(state.get('bot_hand') or [])
         state['winner'] = 'player' if player_left < bot_left else ('bot' if bot_left < player_left else None)
@@ -26955,15 +27309,21 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
         hands = dict(state.get('hands') or {})
         player_hand = uno_sort_hand(hands.get(wallet) or [])
         if action_key == 'draw':
+            if uno_has_playable_card(player_hand, top_card, state.get('current_color')):
+                raise ValueError('Сначала сыграй подходящую карту.')
             drawn = uno_draw_cards(state, 1)
             state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
             if drawn:
-                hands[wallet] = uno_sort_hand(player_hand + drawn)
+                updated_hand = uno_sort_hand(player_hand + drawn)
+                hands[wallet] = updated_hand
                 state['hands'] = hands
-                state['last_action'] = f'{display_name_for_wallet(wallet)} взял карту и передал ход.'
+                if uno_has_playable_card(updated_hand, top_card, state.get('current_color')):
+                    state['last_action'] = f'{display_name_for_wallet(wallet)} добрал карту и теперь может играть.'
+                else:
+                    state['last_action'] = f'{display_name_for_wallet(wallet)} добрал карту и может тянуть дальше.'
             else:
-                state['last_action'] = f'{display_name_for_wallet(wallet)} хотел взять карту, но колода пуста.'
-            state['current_player_index'] = uno_next_player_index(state, current_index, 1)
+                state['last_action'] = f'{display_name_for_wallet(wallet)} хотел добрать, но колода пуста. Ход переходит дальше.'
+                state['current_player_index'] = uno_next_player_index(state, current_index, 1)
             save_uno_session(state)
             return build_uno_session_payload(state, wallet)
         if action_key != 'play':
@@ -26976,7 +27336,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
         if str(chosen_card.get('color') or '') == 'wild':
             selected_color = str(chosen_color or '').strip().lower()
             if selected_color not in UNO_COLORS:
-                raise ValueError('Для Wild-карты сначала выбери цвет.')
+                raise ValueError('Для Color-карты сначала выбери цвет.')
         else:
             selected_color = str(chosen_card.get('color') or 'blue')
         state = uno_apply_multiplayer_card_effect(state, wallet, chosen_card, chosen_color=selected_color)
@@ -27004,6 +27364,8 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
         return build_uno_session_payload(state, wallet)
     top_card = (state.get('discard') or [None])[-1]
     if action_key == 'draw':
+        if uno_has_playable_card(state.get('player_hand') or [], top_card, state.get('current_color')):
+            raise ValueError('Сначала сыграй подходящую карту.')
         drawn = uno_draw_cards(state, 1)
         state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
         if not drawn:
@@ -27011,8 +27373,10 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
             state['turn'] = 'bot'
         else:
             state['player_hand'] = uno_sort_hand(list(state.get('player_hand') or []) + drawn)
-            state['last_action'] = 'Ты взял карту и передал ход.'
-            state['turn'] = 'bot'
+            if uno_has_playable_card(state.get('player_hand') or [], top_card, state.get('current_color')):
+                state['last_action'] = 'Карта в руке. Теперь её можно тянуть на стол.'
+            else:
+                state['last_action'] = 'Карта прилетела в руку. Подходящей ещё нет, тяни дальше.'
         if not state.get('complete') and state.get('turn') == 'bot':
             state = uno_run_bot_turn(state)
         save_uno_session(state)
@@ -27027,7 +27391,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
     if str(chosen_card.get('color') or '') == 'wild':
         selected_color = str(chosen_color or '').strip().lower()
         if selected_color not in UNO_COLORS:
-            raise ValueError('Для Wild-карты сначала выбери цвет.')
+            raise ValueError('Для Color-карты сначала выбери цвет.')
     else:
         selected_color = str(chosen_card.get('color') or 'blue')
     uno_apply_card_effect(state, 'player', chosen_card, chosen_color=selected_color)
