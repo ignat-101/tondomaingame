@@ -17885,7 +17885,7 @@ PAGE_TEMPLATE = """
       if (buySeasonPassWeb3Btn && !buySeasonPassWeb3Btn.disabled) bindFunctionalControl(buySeasonPassWeb3Btn, buySeasonPassWithWeb3);
     }
 
-    const GIFT_THEMES = {
+    var GIFT_THEMES = {
       black: { name: 'Black', emoji: '♠️', base: '#020202', secondary: '#090909', accent: '#5E616B', glow: 'rgba(94,97,107,0.22)', text: '#F2F2F2', motif: 'stripes' },
       onyx_black: { name: 'Onyx Black', emoji: '🕷️', base: '#0B0E14', secondary: '#171D27', accent: '#9BB0D2', glow: 'rgba(155,176,210,0.26)', text: '#F2F7FF', motif: 'web' },
       gunmetal: { name: 'Gunmetal', emoji: '🛠️', base: '#1A2432', secondary: '#2A3C56', accent: '#9BB0CC', glow: 'rgba(155,176,204,0.26)', text: '#EEF5FF', motif: 'grid' },
