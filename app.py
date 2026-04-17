@@ -881,15 +881,44 @@ PAGE_TEMPLATE = """
 
     .uno-header-top {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
     .uno-title {
       display: grid;
       gap: 4px;
+    }
+
+    .uno-shell {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background:
+        radial-gradient(circle at 14% 12%, rgba(255, 91, 87, 0.22), transparent 28%),
+        radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.18), transparent 26%),
+        radial-gradient(circle at 50% 100%, rgba(49, 168, 255, 0.16), transparent 34%),
+        linear-gradient(180deg, rgba(12, 18, 30, 0.98), rgba(7, 12, 22, 0.98));
+      box-shadow:
+        0 28px 56px rgba(0, 0, 0, 0.34),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+
+    .uno-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(130deg, transparent 0 32%, rgba(255,255,255,0.045) 32% 34%, transparent 34% 48%, rgba(255,255,255,0.035) 48% 50%, transparent 50% 100%);
+      opacity: 0.65;
+    }
+
+    .uno-shell > * {
+      position: relative;
+      z-index: 1;
     }
 
     .uno-banner {
@@ -924,13 +953,440 @@ PAGE_TEMPLATE = """
       min-height: 34px;
       padding: 0 12px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(7, 16, 29, 0.72);
+      border: 1px solid rgba(255,255,255,0.14);
+      background: linear-gradient(135deg, rgba(19, 26, 40, 0.84), rgba(12, 18, 30, 0.76));
       display: inline-flex;
       align-items: center;
       color: rgba(245, 250, 255, 0.9);
       font-size: 12px;
       font-weight: 700;
+    }
+
+    .uno-home-shell {
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .uno-home-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .uno-home-top .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .uno-home-title {
+      display: grid;
+      gap: 6px;
+    }
+
+    .uno-home-title strong {
+      font-size: clamp(30px, 4vw, 42px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      color: #fffaf3;
+    }
+
+    .uno-home-title .tiny {
+      max-width: 360px;
+      color: rgba(240, 244, 255, 0.72);
+      line-height: 1.34;
+    }
+
+    .uno-home-stage {
+      position: relative;
+      min-height: 168px;
+      border-radius: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.16), transparent 24%),
+        radial-gradient(circle at 18% 86%, rgba(255, 91, 87, 0.14), transparent 28%),
+        radial-gradient(circle at 84% 76%, rgba(46, 132, 255, 0.16), transparent 26%),
+        linear-gradient(180deg, rgba(12, 18, 30, 0.74), rgba(7, 11, 20, 0.94));
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+
+    .uno-home-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 46%, rgba(255,255,255,0.08), transparent 20%),
+        linear-gradient(126deg, transparent 0 40%, rgba(255,255,255,0.03) 40% 41.5%, transparent 41.5% 100%);
+      pointer-events: none;
+    }
+
+    .uno-home-stage .uno-stack {
+      width: 96px;
+      height: 134px;
+    }
+
+    .uno-home-deck {
+      position: absolute;
+      left: 16px;
+      bottom: 14px;
+    }
+
+    .uno-home-table-card {
+      position: absolute;
+      right: 18px;
+      top: 24px;
+      transform: rotate(10deg);
+    }
+
+    .uno-home-flight-card {
+      position: absolute;
+      left: 34px;
+      bottom: 18px;
+      width: 82px;
+      height: 126px;
+      transform-origin: center center;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .uno-home-flight-card.one { animation: unoHomeCardFlightOne 4.4s ease-in-out infinite; }
+    .uno-home-flight-card.two { animation: unoHomeCardFlightTwo 4.4s ease-in-out infinite 0.18s; }
+    .uno-home-flight-card.three { animation: unoHomeCardFlightThree 4.4s ease-in-out infinite 0.34s; }
+    .uno-home-flight-card.four { animation: unoHomeCardFlightFour 4.4s ease-in-out infinite 0.52s; }
+
+    .uno-home-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .uno-home-tile,
+    .uno-home-control {
+      position: relative;
+      min-height: 132px;
+      padding: 16px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background:
+        linear-gradient(180deg, rgba(10, 16, 27, 0.82), rgba(8, 12, 20, 0.94)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 70%);
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+
+    .uno-home-tile::before,
+    .uno-home-control::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent 48%);
+      opacity: 0.64;
+    }
+
+    .uno-home-tile strong,
+    .uno-home-control strong {
+      font-size: 18px;
+      line-height: 1.06;
+      color: #fffaf3;
+    }
+
+    .uno-home-tile .tiny,
+    .uno-home-control .tiny {
+      color: rgba(232, 239, 255, 0.72);
+      line-height: 1.34;
+      font-size: 12px;
+    }
+
+    .uno-home-tile button,
+    .uno-home-control button {
+      min-width: 0;
+    }
+
+    .uno-home-control .actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .uno-home-control select,
+    .uno-home-control input {
+      min-height: 48px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255,255,255,0.04);
+      color: #fffaf3;
+      padding: 0 14px;
+      font-size: 15px;
+    }
+
+    .uno-shell button:not(.secondary):not(.uno-card-btn):not(.uno-stack-action):not(.uno-color-choice):not(.uno-guide-call-button),
+    .uno-startup-guide button:not(.secondary) {
+      border-color: rgba(255, 214, 74, 0.38);
+      background: linear-gradient(135deg, rgba(255, 91, 87, 0.86), rgba(255, 214, 74, 0.78));
+      color: #1b1208;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .uno-shell button.secondary {
+      border-color: rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff7ec;
+    }
+
+    .uno-startup-guide .startup-guide-card {
+      border-color: rgba(255, 214, 74, 0.18);
+      background:
+        linear-gradient(180deg, rgba(19, 16, 10, 0.96), rgba(10, 12, 18, 0.96)),
+        radial-gradient(circle at top, rgba(255, 91, 87, 0.16), transparent 42%),
+        radial-gradient(circle at 80% 20%, rgba(46, 132, 255, 0.12), transparent 36%);
+    }
+
+    .uno-startup-guide .startup-guide-stage {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255, 214, 74, 0.12), transparent 24%),
+        linear-gradient(180deg, rgba(10, 16, 28, 0.92), rgba(7, 10, 18, 0.98));
+      min-height: 264px;
+    }
+
+    .uno-guide-scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 240px;
+      border-radius: 24px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.08), transparent 22%),
+        linear-gradient(135deg, rgba(255, 91, 87, 0.06), transparent 28%),
+        linear-gradient(225deg, rgba(46, 132, 255, 0.08), transparent 28%);
+    }
+
+    .uno-guide-table,
+    .uno-guide-deck-stage,
+    .uno-guide-call-stage,
+    .uno-guide-menu-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    .uno-guide-deck-cluster {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+    }
+
+    .uno-guide-deck-cluster .uno-stack {
+      width: 88px;
+      height: 124px;
+    }
+
+    .uno-guide-discard {
+      position: absolute;
+      right: 26px;
+      top: 28px;
+      transform: rotate(8deg);
+    }
+
+    .uno-guide-hand-row {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0;
+      align-items: flex-end;
+    }
+
+    .uno-guide-hand-row .uno-card-btn {
+      margin-left: -12px;
+    }
+
+    .uno-guide-hand-row .uno-card-btn:first-child {
+      margin-left: 0;
+    }
+
+    .uno-guide-hand-row .uno-card-btn.highlight {
+      transform: translateY(-10px) scale(1.04);
+      box-shadow:
+        0 22px 36px rgba(0, 0, 0, 0.34),
+        0 0 0 2px rgba(255, 214, 74, 0.24);
+    }
+
+    .uno-guide-control-row {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .uno-guide-control-row button {
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: #fff8ef;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .uno-guide-control-row button.active {
+      border-color: rgba(255, 214, 74, 0.42);
+      background: linear-gradient(135deg, rgba(255, 91, 87, 0.28), rgba(255, 214, 74, 0.18));
+    }
+
+    .uno-guide-match-burst {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .uno-guide-match-burst .uno-home-flight-card {
+      opacity: 1;
+      animation-duration: 1.3s;
+      animation-iteration-count: infinite;
+    }
+
+    .uno-guide-draw-card {
+      position: absolute;
+      left: 28px;
+      bottom: 30px;
+      width: 82px;
+      height: 126px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .uno-guide-draw-card.live {
+      animation: unoGuideDrawToHand 1.05s cubic-bezier(.16,.88,.2,1) forwards;
+    }
+
+    .uno-guide-call-panel {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 18px;
+      display: grid;
+      gap: 12px;
+      padding: 16px 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 214, 74, 0.24);
+      background:
+        linear-gradient(135deg, rgba(74, 23, 18, 0.94), rgba(19, 15, 23, 0.9)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.18), transparent 64%);
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.3);
+    }
+
+    .uno-guide-call-panel.catch {
+      border-color: rgba(46, 132, 255, 0.24);
+      background:
+        linear-gradient(135deg, rgba(15, 27, 68, 0.94), rgba(14, 15, 24, 0.9)),
+        radial-gradient(circle at top, rgba(46, 132, 255, 0.18), transparent 64%);
+    }
+
+    .uno-guide-call-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .uno-guide-call-head strong {
+      color: #fff6ea;
+      font-size: 16px;
+    }
+
+    .uno-guide-call-button {
+      min-height: 48px;
+      min-width: 180px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: linear-gradient(135deg, rgba(255, 91, 87, 0.38), rgba(255, 214, 74, 0.24));
+      color: #fff9f0;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      animation: unoGuideUnoPulse 1.4s ease-in-out infinite;
+    }
+
+    .uno-guide-menu-grid {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .uno-guide-menu-tile {
+      min-height: 118px;
+      padding: 14px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background:
+        linear-gradient(180deg, rgba(13, 18, 29, 0.88), rgba(8, 11, 19, 0.94)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 64%);
+      display: grid;
+      gap: 6px;
+      align-content: start;
+    }
+
+    .uno-guide-menu-tile.active {
+      border-color: rgba(255, 214, 74, 0.42);
+      transform: translateY(-4px);
+      box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
+    }
+
+    .uno-guide-menu-tile b {
+      font-size: 15px;
+      color: #fffaf3;
+    }
+
+    .uno-guide-menu-tile span {
+      color: rgba(236, 242, 255, 0.72);
+      font-size: 12px;
+      line-height: 1.32;
+    }
+
+    .uno-guide-mini-nav {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      padding: 8px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 214, 74, 0.16);
+      background: rgba(11, 12, 19, 0.92);
+    }
+
+    .uno-guide-mini-nav i {
+      min-height: 34px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .uno-guide-mini-nav i.active {
+      background: linear-gradient(135deg, rgba(255, 91, 87, 0.3), rgba(255, 214, 74, 0.22));
+      border-color: rgba(255, 214, 74, 0.34);
     }
 
     .uno-stage {
@@ -1725,18 +2181,18 @@ PAGE_TEMPLATE = """
     }
 
     .uno-status-banner.you {
-      border-color: rgba(83, 246, 184, 0.34);
-      background: linear-gradient(135deg, rgba(18, 56, 44, 0.92), rgba(7, 16, 29, 0.82));
+      border-color: rgba(255, 91, 87, 0.34);
+      background: linear-gradient(135deg, rgba(82, 20, 18, 0.94), rgba(17, 13, 24, 0.84));
     }
 
     .uno-status-banner.wait {
-      border-color: rgba(121, 217, 255, 0.28);
-      background: linear-gradient(135deg, rgba(12, 34, 52, 0.92), rgba(7, 16, 29, 0.82));
+      border-color: rgba(56, 152, 255, 0.28);
+      background: linear-gradient(135deg, rgba(12, 32, 68, 0.92), rgba(10, 16, 28, 0.84));
     }
 
     .uno-status-banner.complete {
-      border-color: rgba(255, 211, 110, 0.34);
-      background: linear-gradient(135deg, rgba(56, 38, 12, 0.92), rgba(7, 16, 29, 0.82));
+      border-color: rgba(255, 214, 74, 0.34);
+      background: linear-gradient(135deg, rgba(78, 58, 10, 0.92), rgba(15, 15, 23, 0.84));
     }
 
     .uno-turn-pill {
@@ -1756,18 +2212,18 @@ PAGE_TEMPLATE = """
     }
 
     .uno-turn-pill.you {
-      background: rgba(83, 246, 184, 0.16);
-      border-color: rgba(83, 246, 184, 0.3);
+      background: rgba(255, 91, 87, 0.16);
+      border-color: rgba(255, 91, 87, 0.3);
     }
 
     .uno-turn-pill.wait {
-      background: rgba(121, 217, 255, 0.12);
-      border-color: rgba(121, 217, 255, 0.26);
+      background: rgba(56, 152, 255, 0.12);
+      border-color: rgba(56, 152, 255, 0.26);
     }
 
     .uno-turn-pill.complete {
-      background: rgba(255, 211, 110, 0.14);
-      border-color: rgba(255, 211, 110, 0.28);
+      background: rgba(255, 214, 74, 0.14);
+      border-color: rgba(255, 214, 74, 0.28);
     }
 
     .uno-countdown {
@@ -1878,6 +2334,27 @@ PAGE_TEMPLATE = """
       z-index: 7;
       overflow: hidden;
     }
+
+    .uno-event-deal {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .uno-event-deal-card {
+      position: absolute;
+      left: 18%;
+      bottom: 18%;
+      width: 82px;
+      height: 126px;
+      opacity: 0;
+      transform-origin: center center;
+    }
+
+    .uno-event-deal-card.d1 { animation: unoDealFlightOne 980ms cubic-bezier(.16,.9,.22,1) forwards; }
+    .uno-event-deal-card.d2 { animation: unoDealFlightTwo 980ms cubic-bezier(.16,.9,.22,1) forwards 0.06s; }
+    .uno-event-deal-card.d3 { animation: unoDealFlightThree 980ms cubic-bezier(.16,.9,.22,1) forwards 0.12s; }
+    .uno-event-deal-card.d4 { animation: unoDealFlightFour 980ms cubic-bezier(.16,.9,.22,1) forwards 0.18s; }
 
     .uno-event-burst {
       min-width: min(320px, calc(100% - 24px));
@@ -2011,11 +2488,117 @@ PAGE_TEMPLATE = """
       }
     }
 
+    @keyframes unoHomeCardFlightOne {
+      0%, 10% { opacity: 0; transform: translate(0, 0) rotate(-14deg) scale(0.88); }
+      18%, 58% { opacity: 1; transform: translate(104px, -82px) rotate(-8deg) scale(1); }
+      72%, 100% { opacity: 0; transform: translate(156px, -116px) rotate(-2deg) scale(1.04); }
+    }
+
+    @keyframes unoHomeCardFlightTwo {
+      0%, 12% { opacity: 0; transform: translate(0, 0) rotate(-8deg) scale(0.88); }
+      20%, 58% { opacity: 1; transform: translate(154px, -36px) rotate(4deg) scale(1.02); }
+      72%, 100% { opacity: 0; transform: translate(214px, -54px) rotate(12deg) scale(1.06); }
+    }
+
+    @keyframes unoHomeCardFlightThree {
+      0%, 14% { opacity: 0; transform: translate(0, 0) rotate(-10deg) scale(0.86); }
+      22%, 60% { opacity: 1; transform: translate(186px, -124px) rotate(10deg) scale(1.02); }
+      74%, 100% { opacity: 0; transform: translate(256px, -162px) rotate(16deg) scale(1.08); }
+    }
+
+    @keyframes unoHomeCardFlightFour {
+      0%, 16% { opacity: 0; transform: translate(0, 0) rotate(-12deg) scale(0.88); }
+      24%, 58% { opacity: 1; transform: translate(240px, -76px) rotate(18deg) scale(1); }
+      72%, 100% { opacity: 0; transform: translate(318px, -104px) rotate(26deg) scale(1.08); }
+    }
+
+    @keyframes unoDealFlightOne {
+      0% { opacity: 0; transform: translate(0, 0) rotate(-12deg) scale(0.88); }
+      22% { opacity: 1; }
+      100% { opacity: 0; transform: translate(94px, -72px) rotate(-2deg) scale(1.02); }
+    }
+
+    @keyframes unoDealFlightTwo {
+      0% { opacity: 0; transform: translate(0, 0) rotate(-8deg) scale(0.88); }
+      22% { opacity: 1; }
+      100% { opacity: 0; transform: translate(126px, 12px) rotate(10deg) scale(1.02); }
+    }
+
+    @keyframes unoDealFlightThree {
+      0% { opacity: 0; transform: translate(0, 0) rotate(-10deg) scale(0.88); }
+      22% { opacity: 1; }
+      100% { opacity: 0; transform: translate(168px, -108px) rotate(14deg) scale(1.04); }
+    }
+
+    @keyframes unoDealFlightFour {
+      0% { opacity: 0; transform: translate(0, 0) rotate(-10deg) scale(0.88); }
+      22% { opacity: 1; }
+      100% { opacity: 0; transform: translate(204px, -24px) rotate(20deg) scale(1.04); }
+    }
+
+    @keyframes unoGuideDrawToHand {
+      0% {
+        opacity: 0;
+        transform: translate(0, 0) rotate(-12deg) scale(0.88);
+      }
+      18% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(216px, -34px) rotate(8deg) scale(1.02);
+      }
+    }
+
+    @keyframes unoGuideUnoPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 214, 74, 0);
+      }
+      50% {
+        transform: scale(1.04);
+        box-shadow: 0 0 0 10px rgba(255, 214, 74, 0.08);
+      }
+    }
+
     @media (max-width: 720px) {
       .uno-shell {
         padding: 12px;
         gap: 12px;
         border-radius: 24px;
+      }
+
+      .uno-home-top {
+        gap: 10px;
+      }
+
+      .uno-home-top .actions {
+        width: 100%;
+        justify-content: space-between;
+        margin-left: 0;
+      }
+
+      .uno-home-title strong {
+        font-size: 32px;
+      }
+
+      .uno-home-stage {
+        min-height: 146px;
+      }
+
+      .uno-home-stage .uno-stack {
+        width: 78px;
+        height: 110px;
+      }
+
+      .uno-home-table-card {
+        right: 10px;
+        top: 18px;
+      }
+
+      .uno-home-flight-card {
+        width: 72px;
+        height: 110px;
       }
 
       .uno-intro-grid,
@@ -2024,8 +2607,36 @@ PAGE_TEMPLATE = """
         grid-template-columns: 1fr;
       }
 
-      .uno-guide-steps {
+      .uno-home-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .uno-home-tile,
+      .uno-home-control {
+        min-height: 104px;
+        padding: 12px;
+        gap: 8px;
+      }
+
+      .uno-startup-guide .startup-guide-stage {
+        min-height: 228px;
+      }
+
+      .uno-guide-scene {
+        min-height: 208px;
+      }
+
+      .uno-guide-menu-grid {
         grid-template-columns: 1fr;
+      }
+
+      .uno-guide-mini-nav {
+        gap: 6px;
+      }
+
+      .uno-guide-call-button {
+        min-width: 0;
+        width: 100%;
       }
 
       .uno-stage {
@@ -11422,8 +12033,48 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app[data-active-view="uno"] #view-uno > h2,
-    body.tma-app[data-active-view="uno"] #view-uno > p {
+    body.tma-app[data-active-view="uno"] #view-uno > p,
+    body.tma-app[data-active-view="uno"] #view-uno > .support-footer {
       display: none !important;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) {
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: manipulation;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .shell {
+      height: var(--app-height, 100vh);
+      min-height: var(--app-height, 100vh);
+      overflow: hidden;
+      padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.active {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell {
+      height: 100%;
+      min-height: 0;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-stage {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-participants-grid {
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 2px;
     }
 
     body.tma-app[data-active-view="uno"] .hero {
@@ -11438,6 +12089,16 @@ PAGE_TEMPLATE = """
       padding: 12px;
       border-radius: 22px;
       gap: 12px;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 12px;
+      border-radius: 24px;
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
@@ -11522,8 +12183,8 @@ PAGE_TEMPLATE = """
       background: transparent;
       box-shadow: none;
       overflow-x: hidden;
-      overflow-y: auto;
-      overscroll-behavior: contain;
+      overflow-y: hidden;
+      overscroll-behavior: none;
     }
 
     body.tma-app.uno-live-lock #view-uno.active > h2,
@@ -11534,13 +12195,13 @@ PAGE_TEMPLATE = """
 
     body.tma-app.uno-live-lock .uno-root {
       min-height: 100%;
-      height: auto;
+      height: 100%;
     }
 
     body.tma-app.uno-live-lock .uno-shell,
     body.tma-app.uno-live-lock .uno-stage {
       min-height: 0;
-      height: auto;
+      height: 100%;
     }
 
     body.tma-app.uno-live-lock .uno-shell {
@@ -11753,6 +12414,28 @@ PAGE_TEMPLATE = """
     body.tma-app.uno-live-lock .uno-opponent-cards {
       overflow-y: hidden;
       touch-action: pan-x;
+    }
+
+    body.uno-app-context .mobile-nav {
+      border-color: rgba(255, 214, 74, 0.22);
+      background:
+        linear-gradient(180deg, rgba(24, 19, 10, 0.94), rgba(12, 12, 18, 0.98)),
+        radial-gradient(circle at top, rgba(255, 91, 87, 0.12), transparent 64%);
+      box-shadow:
+        0 20px 34px rgba(0, 0, 0, 0.38),
+        0 0 0 1px rgba(255, 214, 74, 0.04);
+    }
+
+    body.uno-app-context .mobile-nav button {
+      border-color: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.035);
+      color: #fff6ea;
+    }
+
+    body.uno-app-context .mobile-nav button.active {
+      border-color: rgba(255, 214, 74, 0.52);
+      background: linear-gradient(135deg, rgba(255, 91, 87, 0.32), rgba(255, 214, 74, 0.24));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
     }
 
     @media (max-height: 760px) {
@@ -13495,20 +14178,42 @@ PAGE_TEMPLATE = """
         <button type="button" id="mascot-open-profile-btn">Профиль</button>
         <button type="button" id="mascot-open-pack-btn">Карты</button>
         <button type="button" id="mascot-open-battle-btn">Игра</button>
-        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>UNO</button>
+        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>Игры</button>
         <button type="button" class="secondary" id="mascot-open-guide-btn">Гайд</button>
       </div>
       <div class="mascot-popover-actions" id="mascot-uno-actions" hidden>
-        <button type="button" id="mascot-uno-home-btn">UNO меню</button>
+        <button type="button" id="mascot-uno-home-btn">Меню игр</button>
         <button type="button" id="mascot-uno-bot-btn">С ботом</button>
         <button type="button" id="mascot-uno-quick-btn">Быстрый матч</button>
         <button type="button" id="mascot-uno-room-btn">Комната</button>
-        <button type="button" class="secondary" id="mascot-uno-back-btn">Domain</button>
+        <button type="button" class="secondary" id="mascot-uno-back-btn">Игры</button>
       </div>
     </div>
     <button type="button" class="mascot-fab" id="mascot-fab" aria-label="Открыть помощника">
       <img src="/static/mascot-ton-bot.png" alt="">
     </button>
+  </div>
+
+  <div class="startup-guide uno-startup-guide" id="uno-startup-guide">
+    <div class="startup-guide-card">
+      <div class="startup-guide-meta">
+        <span id="uno-guide-step-label">Шаг 1 / 4</span>
+        <span class="startup-guide-dots" id="uno-guide-dots"></span>
+      </div>
+      <div class="startup-guide-stage" aria-hidden="true">
+        <div class="startup-guide-stage-overlay" id="uno-guide-stage-overlay" style="display:flex;"></div>
+      </div>
+      <div class="startup-guide-copy">
+        <strong id="uno-guide-title">Как играть в UNO</strong>
+        <div class="tiny" id="uno-guide-body">Подсказка</div>
+      </div>
+      <div class="actions startup-guide-actions">
+        <button class="secondary" id="uno-guide-prev-btn">Назад</button>
+        <button id="uno-guide-next-btn">Далее</button>
+        <button id="uno-guide-close-btn">Готово</button>
+        <button class="secondary" id="uno-guide-skip-btn">Пропустить</button>
+      </div>
+    </div>
   </div>
 
   <div class="public-profile-backdrop" id="public-profile-backdrop">
@@ -13670,6 +14375,16 @@ PAGE_TEMPLATE = """
     const startupGuideSkipBtn = document.getElementById('startup-guide-skip-btn');
     const startupGuidePrevBtn = document.getElementById('startup-guide-prev-btn');
     const startupGuideNextBtn = document.getElementById('startup-guide-next-btn');
+    const unoStartupGuide = document.getElementById('uno-startup-guide');
+    const unoGuideStageOverlay = document.getElementById('uno-guide-stage-overlay');
+    const unoGuideStepLabel = document.getElementById('uno-guide-step-label');
+    const unoGuideDots = document.getElementById('uno-guide-dots');
+    const unoGuideTitle = document.getElementById('uno-guide-title');
+    const unoGuideBody = document.getElementById('uno-guide-body');
+    const unoGuideCloseBtn = document.getElementById('uno-guide-close-btn');
+    const unoGuideSkipBtn = document.getElementById('uno-guide-skip-btn');
+    const unoGuidePrevBtn = document.getElementById('uno-guide-prev-btn');
+    const unoGuideNextBtn = document.getElementById('uno-guide-next-btn');
     const publicProfileBackdrop = document.getElementById('public-profile-backdrop');
     const publicProfileContent = document.getElementById('public-profile-content');
     const ownedDecksList = document.getElementById('owned-decks-list');
@@ -13679,6 +14394,10 @@ PAGE_TEMPLATE = """
     const topNavModes = document.getElementById('top-nav-modes');
     const topNavGuilds = document.getElementById('top-nav-guilds');
     const topNavAchievements = document.getElementById('top-nav-achievements');
+    const navPack = document.getElementById('nav-pack');
+    const navModes = document.getElementById('nav-modes');
+    const navGuilds = document.getElementById('nav-guilds');
+    const navAchievements = document.getElementById('nav-achievements');
     const appLauncher = document.getElementById('app-launcher');
     const appLauncherHomeBtn = document.getElementById('app-launcher-home-btn');
     const viewUno = document.getElementById('view-uno');
@@ -13741,6 +14460,7 @@ PAGE_TEMPLATE = """
     let battleAutostartTimer = null;
     const usageStorageKey = 'tondomaingame_ui_usage_v1';
     const startupGuideStorageKey = 'tondomaingame_startup_guide_v1';
+    const unoGuideStorageKey = 'tondomaingame_uno_guide_v1';
     const startupGuideSteps = [
       {
         title: 'Подключи кошелёк и проверь домены',
@@ -13952,6 +14672,114 @@ PAGE_TEMPLATE = """
       step.gifSrc = '';
     });
     let startupGuideStepIndex = 0;
+    let unoGuideStepIndex = 0;
+    const unoGuideBackSurface = giftCardbackSurface('cardback_stock_plain', '');
+    const unoGuideSteps = [
+      {
+        title: 'Читай стол',
+        body: 'Смотри на карту по центру: играть можно тем же цветом, тем же знаком или Wild.',
+        overlayHtml: `
+          <div class="uno-guide-scene">
+            <div class="uno-guide-table">
+              <div class="uno-guide-deck-cluster">
+                <div class="uno-stack">
+                  <div class="uno-stack-card">${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
+                  <div class="uno-stack-card">${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
+                  <div class="uno-stack-top">${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
+                </div>
+              </div>
+              <div class="uno-guide-discard">${unoCardMarkup(unoDemoCard('yellow', '5', 'guide-top'), {asButton: false})}</div>
+              <div class="uno-guide-hand-row" data-uno-guide-hand>
+                ${unoCardMarkup(unoDemoCard('yellow', '1', 'guide-color'), {asButton: false})}
+                ${unoCardMarkup(unoDemoCard('red', '5', 'guide-value'), {asButton: false})}
+                ${unoCardMarkup(unoDemoCard('wild', 'wild', 'guide-wild'), {asButton: false})}
+              </div>
+              <div class="uno-guide-control-row">
+                <button type="button" class="active" data-uno-guide-action="match" data-uno-guide-value="color">По цвету</button>
+                <button type="button" data-uno-guide-action="match" data-uno-guide-value="value">По знаку</button>
+                <button type="button" data-uno-guide-action="match" data-uno-guide-value="wild">Wild</button>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: 'Если хода нет',
+        body: 'Тапни по колоде. Из неё вылетит ровно одна карта, после этого ход идёт дальше.',
+        overlayHtml: `
+          <div class="uno-guide-scene">
+            <div class="uno-guide-deck-stage">
+              <div class="uno-guide-deck-cluster">
+                <div class="uno-stack">
+                  <div class="uno-stack-card">${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
+                  <div class="uno-stack-card">${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
+                  <div class="uno-stack-top">${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
+                </div>
+              </div>
+              <div class="uno-guide-draw-card" data-uno-guide-draw-card>${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
+              <div class="uno-guide-hand-row">
+                ${unoCardMarkup(unoDemoCard('blue', '2', 'guide-hand-a'), {asButton: false})}
+                ${unoCardMarkup(unoDemoCard('green', 'reverse', 'guide-hand-b'), {asButton: false})}
+                ${unoCardMarkup(unoDemoCard('red', '9', 'guide-hand-c'), {asButton: false})}
+              </div>
+              <div class="uno-guide-control-row">
+                <button type="button" class="active" data-uno-guide-action="draw" data-uno-guide-value="tap">Тянуть карту</button>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: 'Не забудь UNO',
+        body: 'Когда в руке остаётся 1 карта, у тебя несколько секунд на кнопку UNO.',
+        overlayHtml: `
+          <div class="uno-guide-scene">
+            <div class="uno-guide-call-stage">
+              <div class="uno-guide-call-panel" data-uno-guide-call-panel>
+                <div class="uno-guide-call-head">
+                  <span class="uno-turn-pill wait" data-uno-guide-call-pill>UNO</span>
+                  <strong data-uno-guide-call-title>Осталась 1 карта</strong>
+                </div>
+                <button type="button" class="uno-guide-call-button" data-uno-guide-action="call" data-uno-guide-value="call">UNO!</button>
+              </div>
+              <div class="uno-guide-hand-row">
+                ${unoCardMarkup(unoDemoCard('red', 'skip', 'guide-call-a'), {asButton: false})}
+              </div>
+              <div class="uno-guide-control-row">
+                <button type="button" class="active" data-uno-guide-action="call" data-uno-guide-value="call">Успеть</button>
+                <button type="button" data-uno-guide-action="call" data-uno-guide-value="catch">Поймать</button>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: 'UNO как отдельный режим',
+        body: 'Снизу навигация в UNO запускает только UNO режимы: меню игр, бот, быстрый матч и комната.',
+        overlayHtml: `
+          <div class="uno-guide-scene">
+            <div class="uno-guide-menu-stage">
+              <div class="uno-guide-menu-grid" data-uno-guide-menu-grid>
+                <div class="uno-guide-menu-tile active" data-uno-guide-menu="bot"><b>Бот</b><span>Быстрый вход в матч</span></div>
+                <div class="uno-guide-menu-tile" data-uno-guide-menu="quick"><b>Матч</b><span>Поиск свободной партии</span></div>
+                <div class="uno-guide-menu-tile" data-uno-guide-menu="friends"><b>Комната</b><span>Приватный код для друзей</span></div>
+              </div>
+              <div class="uno-guide-mini-nav">
+                <i></i>
+                <i class="active"></i>
+                <i></i>
+                <i></i>
+              </div>
+              <div class="uno-guide-control-row">
+                <button type="button" class="active" data-uno-guide-action="menu" data-uno-guide-value="bot">Бот</button>
+                <button type="button" data-uno-guide-action="menu" data-uno-guide-value="quick">Матч</button>
+                <button type="button" data-uno-guide-action="menu" data-uno-guide-value="friends">Комната</button>
+              </div>
+            </div>
+          </div>
+        `
+      }
+    ];
 
     function shortAddress(value) {
       if (!value) return '-';
@@ -14322,6 +15150,157 @@ PAGE_TEMPLATE = """
     function prevStartupGuideStep() {
       startupGuideStepIndex = Math.max(0, startupGuideStepIndex - 1);
       renderStartupGuideStep();
+    }
+
+    function shouldShowUnoGuide() {
+      try {
+        return window.localStorage.getItem(unoGuideStorageKey) !== 'seen';
+      } catch (_) {
+        return true;
+      }
+    }
+
+    function closeUnoGuide(markSeen = true) {
+      if (!unoStartupGuide) return;
+      unoStartupGuide.classList.remove('visible');
+      if (markSeen) {
+        try {
+          window.localStorage.setItem(unoGuideStorageKey, 'seen');
+        } catch (_) {
+        }
+      }
+    }
+
+    function setUnoGuideBody(text) {
+      if (unoGuideBody) unoGuideBody.textContent = text || '';
+    }
+
+    function setActiveUnoGuideButton(action, value) {
+      if (!unoGuideStageOverlay) return;
+      unoGuideStageOverlay.querySelectorAll(`[data-uno-guide-action="${action}"]`).forEach((button) => {
+        button.classList.toggle('active', button.dataset.unoGuideValue === value);
+      });
+    }
+
+    function wireUnoGuideInteractions(stepIndex) {
+      if (!unoGuideStageOverlay) return;
+      unoGuideStageOverlay.querySelectorAll('[data-uno-guide-action]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const action = button.dataset.unoGuideAction || '';
+          const value = button.dataset.unoGuideValue || '';
+          setActiveUnoGuideButton(action, value);
+          switch (`${stepIndex}:${action}`) {
+            case '0:match': {
+              const cards = Array.from(unoGuideStageOverlay.querySelectorAll('.uno-guide-hand-row .uno-card-btn'));
+              cards.forEach((card, index) => {
+                const activeIndex = value === 'value' ? 1 : (value === 'wild' ? 2 : 0);
+                card.classList.toggle('highlight', index === activeIndex);
+              });
+              const copy = {
+                color: 'Если цвет совпадает со столом, карту можно класть сразу.',
+                value: 'Тот же знак тоже работает, даже если цвет у карты другой.',
+                wild: 'Wild всегда спасает, когда нужно сменить цвет или выйти из тупика.'
+              };
+              setUnoGuideBody(copy[value] || unoGuideSteps[0].body);
+              break;
+            }
+            case '1:draw': {
+              const drawCard = unoGuideStageOverlay.querySelector('[data-uno-guide-draw-card]');
+              if (drawCard) {
+                drawCard.classList.remove('live');
+                void drawCard.offsetWidth;
+                drawCard.classList.add('live');
+              }
+              setUnoGuideBody('Тап по колоде берёт только одну карту. На телефоне это самый быстрый и понятный добор.');
+              break;
+            }
+            case '2:call': {
+              const panel = unoGuideStageOverlay.querySelector('[data-uno-guide-call-panel]');
+              const pill = unoGuideStageOverlay.querySelector('[data-uno-guide-call-pill]');
+              const title = unoGuideStageOverlay.querySelector('[data-uno-guide-call-title]');
+              if (panel) panel.classList.toggle('catch', value === 'catch');
+              if (pill) {
+                pill.textContent = value === 'catch' ? 'Реакция' : 'UNO';
+                pill.classList.toggle('wait', value !== 'catch');
+                pill.classList.toggle('complete', value === 'catch');
+              }
+              if (title) {
+                title.textContent = value === 'catch' ? 'Если соперник не нажал UNO' : 'Осталась 1 карта';
+              }
+              setUnoGuideBody(value === 'catch'
+                ? 'Если другой игрок не успел нажать UNO, его можно поймать и повесить штраф.'
+                : 'Когда остаётся одна карта, жми UNO быстрее всех. Иначе можно получить +2.');
+              break;
+            }
+            case '3:menu': {
+              unoGuideStageOverlay.querySelectorAll('[data-uno-guide-menu]').forEach((tile) => {
+                tile.classList.toggle('active', tile.dataset.unoGuideMenu === value);
+              });
+              const navDots = Array.from(unoGuideStageOverlay.querySelectorAll('.uno-guide-mini-nav i'));
+              navDots.forEach((dot, index) => {
+                const activeIndex = value === 'bot' ? 1 : (value === 'quick' ? 2 : 3);
+                dot.classList.toggle('active', index === activeIndex);
+              });
+              const copy = {
+                bot: 'Кнопка «Бот» снизу сразу кидает в матч против бота.',
+                quick: 'Кнопка «Матч» ищет любую свободную открытую партию.',
+                friends: 'Кнопка «Комната» работает только внутри UNO и ведёт в приватный режим для друзей.'
+              };
+              setUnoGuideBody(copy[value] || unoGuideSteps[3].body);
+              break;
+            }
+            default:
+              break;
+          }
+        });
+      });
+      if (stepIndex === 1) {
+        const drawBtn = unoGuideStageOverlay.querySelector('[data-uno-guide-action="draw"]');
+        if (drawBtn) drawBtn.click();
+      }
+    }
+
+    function renderUnoGuideStep() {
+      if (!unoStartupGuide || !unoGuideStageOverlay) return;
+      const maxIndex = Math.max(0, unoGuideSteps.length - 1);
+      unoGuideStepIndex = Math.max(0, Math.min(maxIndex, Number(unoGuideStepIndex || 0)));
+      const step = unoGuideSteps[unoGuideStepIndex] || unoGuideSteps[0];
+      if (unoGuideTitle) unoGuideTitle.textContent = step.title || '';
+      if (unoGuideBody) unoGuideBody.textContent = step.body || '';
+      if (unoGuideStepLabel) unoGuideStepLabel.textContent = `Шаг ${unoGuideStepIndex + 1} / ${unoGuideSteps.length}`;
+      if (unoGuideDots) {
+        unoGuideDots.innerHTML = unoGuideSteps.map((_, index) => `<i class="${index === unoGuideStepIndex ? 'active' : ''}"></i>`).join('');
+      }
+      unoGuideStageOverlay.innerHTML = step.overlayHtml || '';
+      wireUnoGuideInteractions(unoGuideStepIndex);
+      if (unoGuidePrevBtn) unoGuidePrevBtn.disabled = unoGuideStepIndex <= 0;
+      if (unoGuideNextBtn) unoGuideNextBtn.textContent = unoGuideStepIndex >= maxIndex ? 'Готово' : 'Далее';
+      if (unoGuideCloseBtn) unoGuideCloseBtn.style.display = unoGuideStepIndex >= maxIndex ? 'inline-flex' : 'none';
+    }
+
+    function showUnoGuideIfNeeded(options = {}) {
+      if (!unoStartupGuide || state.launcherOpen || document.body.dataset.activeView !== 'uno') return;
+      if (rememberedUnoSessionId()) return;
+      if (state.unoSession && !state.unoSession.complete) return;
+      if (!options.force && !shouldShowUnoGuide()) return;
+      unoGuideStepIndex = 0;
+      renderUnoGuideStep();
+      unoStartupGuide.classList.add('visible');
+    }
+
+    function nextUnoGuideStep() {
+      const maxIndex = Math.max(0, unoGuideSteps.length - 1);
+      if (unoGuideStepIndex >= maxIndex) {
+        closeUnoGuide(true);
+        return;
+      }
+      unoGuideStepIndex += 1;
+      renderUnoGuideStep();
+    }
+
+    function prevUnoGuideStep() {
+      unoGuideStepIndex = Math.max(0, unoGuideStepIndex - 1);
+      renderUnoGuideStep();
     }
 
     function isTelegramMiniApp() {
@@ -16118,6 +17097,7 @@ PAGE_TEMPLATE = """
       } else if (viewUno) {
         viewUno.hidden = false;
       }
+      syncMobileNavContext();
       return allowed;
     }
 
@@ -16138,6 +17118,7 @@ PAGE_TEMPLATE = """
       }
       if (name !== 'uno') {
         setUnoLiveLock(false);
+        closeUnoGuide(false);
       }
       if (name !== 'modes' && name !== 'battleflow') {
         resetBattleStage();
@@ -16172,6 +17153,7 @@ PAGE_TEMPLATE = """
       state.activeApp = name === 'uno' ? 'uno' : 'domain';
       applyUnoTesterVisibility();
       syncMascotPopover();
+      syncMobileNavContext();
       try {
         window.localStorage.setItem(appLauncherStorageKey, state.activeApp);
       } catch (_) {
@@ -16185,6 +17167,7 @@ PAGE_TEMPLATE = """
       }
       if (name === 'uno') {
         renderUnoPanel();
+        requestAnimationFrame(() => showUnoGuideIfNeeded());
       }
       if (name === 'profile') {
         requestAnimationFrame(() => {
@@ -16207,6 +17190,7 @@ PAGE_TEMPLATE = """
       if (initial) {
         closeStartupGuide(false);
       }
+      closeUnoGuide(false);
     }
 
     function closeAppLauncher() {
@@ -16219,6 +17203,7 @@ PAGE_TEMPLATE = """
     function launchDesktopApp(appKey) {
       const safeApp = appKey === 'uno' ? 'uno' : 'domain';
       closeStartupGuide(false);
+      closeUnoGuide(false);
       closeAppLauncher();
       if (safeApp === 'uno') {
         if (!hasUnoTesterAccess()) {
@@ -16292,6 +17277,34 @@ PAGE_TEMPLATE = """
       if (mascotUnoActions) {
         mascotUnoActions.hidden = !unoContext || !unoEnabled;
       }
+    }
+
+    function syncMobileNavContext() {
+      const unoContext = hasUnoTesterAccess() && state.activeApp === 'uno';
+      document.body.classList.toggle('uno-app-context', unoContext);
+      if (!navPack || !navModes || !navGuilds || !navAchievements) return;
+      if (unoContext) {
+        navPack.textContent = 'Игры';
+        navModes.textContent = 'Бот';
+        navGuilds.textContent = 'Матч';
+        navAchievements.textContent = 'Комната';
+        [navPack, navModes, navGuilds, navAchievements].forEach((button) => button.classList.remove('active'));
+        const session = state.unoSession;
+        const activeButton = !session || session.complete
+          ? navPack
+          : (String(session.mode || 'bot') === 'bot'
+            ? navModes
+            : (String(session.mode || 'bot') === 'quick' ? navGuilds : navAchievements));
+        if (activeButton) activeButton.classList.add('active');
+        return;
+      }
+      navPack.textContent = 'Карты';
+      navModes.textContent = 'Игра';
+      navGuilds.textContent = 'Кланы';
+      navAchievements.textContent = 'Пропуск';
+      [navPack, navModes, navGuilds, navAchievements].forEach((button) => {
+        button.classList.toggle('active', button.id === `nav-${document.body.dataset.activeView || 'profile'}`);
+      });
     }
 
     function setMascotOpen(open) {
@@ -17705,6 +18718,7 @@ PAGE_TEMPLATE = """
       clearUnoEventFx();
       const board = unoRoot.querySelector('.uno-live-board');
       const layer = unoRoot.querySelector('[data-uno-event-layer]');
+      const deckCard = unoRoot.querySelector('.uno-stack-action .uno-back-card');
       const discardCard = unoRoot.querySelector('.uno-discard-stack .uno-stack-top .uno-card-btn');
       const discardStack = unoRoot.querySelector('.uno-discard-stack .uno-stack-top');
       if (!board || !layer) return;
@@ -17717,6 +18731,8 @@ PAGE_TEMPLATE = """
         : (session.your_turn
           ? 'Стол обновился. Твой ход.'
           : `Стол обновился. Ходит ${session.turn_display_name || 'соперник'}.`);
+      const drawLikeAction = /взял карту/i.test(String(session.last_action || ''));
+      const burstCount = intro ? 4 : (drawLikeAction ? 1 : 0);
       layer.hidden = false;
       layer.innerHTML = `
         <div class="uno-event-burst ${session.complete ? 'finish' : ''}">
@@ -17726,6 +18742,11 @@ PAGE_TEMPLATE = """
             <span>${escapeHtml(copy)}</span>
           </div>
         </div>
+        ${burstCount && deckCard ? `
+          <div class="uno-event-deal">
+            ${Array.from({length: burstCount}).map((_, index) => `<div class="uno-event-deal-card d${Math.min(index + 1, 4)}">${deckCard.outerHTML}</div>`).join('')}
+          </div>
+        ` : ''}
       `;
       requestAnimationFrame(() => {
         board.classList.add('event-beat');
@@ -18078,6 +19099,63 @@ PAGE_TEMPLATE = """
       }[String(mode || 'bot')] || 'UNO';
     }
 
+    function unoColorName(color) {
+      return {
+        red: 'Красный',
+        yellow: 'Жёлтый',
+        green: 'Зелёный',
+        blue: 'Синий',
+        wild: 'Wild',
+      }[String(color || '').toLowerCase()] || 'UNO';
+    }
+
+    function unoValueName(value) {
+      return {
+        skip: 'Пропуск',
+        reverse: 'Разворот',
+        draw2: '+2',
+        wild: 'Wild',
+        wild4: '+4',
+      }[String(value || '').toLowerCase()] || String(value || '').toUpperCase();
+    }
+
+    function unoDemoCard(color, value, suffix = 'demo') {
+      const colorLabel = unoColorName(color);
+      const valueLabel = unoValueName(value);
+      const normalizedColor = String(color || 'wild').toLowerCase();
+      return {
+        id: `uno-demo-${normalizedColor}-${String(value || '0').toLowerCase()}-${suffix}`,
+        color: normalizedColor,
+        color_label: colorLabel,
+        value: String(value || '0').toLowerCase(),
+        value_label: valueLabel,
+        title: normalizedColor === 'wild' ? valueLabel : `${colorLabel} ${valueLabel}`,
+      };
+    }
+
+    function unoHomeStageMarkup(frameAsset, backSurface, backMark) {
+      const sampleDiscard = unoDemoCard('yellow', '7', 'table');
+      const sampleBurstCards = [
+        unoDemoCard('red', '5', 'burst-a'),
+        unoDemoCard('blue', 'reverse', 'burst-b'),
+        unoDemoCard('green', '2', 'burst-c'),
+        unoDemoCard('wild', 'wild4', 'burst-d'),
+      ];
+      return `
+        <div class="uno-home-stage" aria-hidden="true">
+          <div class="uno-home-deck">
+            <div class="uno-stack">
+              <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+              <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+              <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+            </div>
+          </div>
+          <div class="uno-home-table-card">${unoCardMarkup(sampleDiscard, {frameAsset, asButton: false})}</div>
+          ${sampleBurstCards.map((card, index) => `<div class="uno-home-flight-card ${['one', 'two', 'three', 'four'][index]}">${unoCardMarkup(card, {frameAsset, asButton: false})}</div>`).join('')}
+        </div>
+      `;
+    }
+
     function renderUnoPanel() {
       if (!unoRoot) return;
       if (!hasUnoTesterAccess()) {
@@ -18115,6 +19193,7 @@ PAGE_TEMPLATE = """
       );
       const compactUnoLive = Boolean(isCompactTmaLayout() && unoLiveScreen);
       setUnoLiveLock(unoLiveScreen);
+      syncMobileNavContext();
       const identityLabel = identity.progressEnabled
         ? `${state.selectedDomain}.ton`
         : identity.displayName;
@@ -18134,21 +19213,54 @@ PAGE_TEMPLATE = """
           return;
         }
         unoRoot.innerHTML = `
-          <div class="uno-shell landing" style="background:${tableSurface};">
-            <div class="uno-header">
-              <div class="uno-header-top">
-                <div class="uno-title">
-                  <strong>UNO Arena</strong>
-                </div>
-                <div class="actions" style="margin-left:auto;">
-                  ${unoBrandBadge('UNO', bannerSurface)}
-                  <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
-                </div>
+          <div class="uno-shell landing uno-home-shell" style="background:${tableSurface};">
+            <div class="uno-home-top">
+              <div class="uno-home-title">
+                <strong>UNO Arena</strong>
+                <div class="tiny">Быстрый режим на тех же скинах, том же прогрессе и с компактным full-screen UX внутри TMA.</div>
               </div>
-              <div class="uno-meta-strip">
-                <div class="uno-chip">${identity.progressEnabled ? `Профиль: ${escapeHtml(identityLabel)}` : 'Guest-режим'}</div>
-                <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Кошелёк не обязателен'}</div>
+              <div class="actions">
+                ${unoBrandBadge('UNO', bannerSurface)}
+                <button type="button" class="secondary" id="uno-open-launcher-btn">Приложения</button>
               </div>
+            </div>
+            ${unoHomeStageMarkup(frameAsset, backSurface, backMark)}
+            <div class="uno-meta-strip">
+              <div class="uno-chip">${identity.progressEnabled ? `Профиль ${escapeHtml(identityLabel)}` : 'Guest-режим'}</div>
+              <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Кошелёк не обязателен'}</div>
+              ${identity.progressEnabled ? `<div class="uno-chip">Общий пропуск и опыт</div>` : '<div class="uno-chip">Общий прогресс включится после домена</div>'}
+            </div>
+            <div class="uno-home-grid">
+              <article class="uno-home-tile">
+                <strong>Против бота</strong>
+                <div class="tiny">Самый быстрый старт без лишних экранов.</div>
+                <div class="actions">
+                  <button type="button" id="uno-start-btn">Играть</button>
+                </div>
+              </article>
+              <article class="uno-home-tile">
+                <strong>Быстрый матч</strong>
+                <div class="tiny">Ищет любую открытую свободную партию.</div>
+                <div class="actions">
+                  <button type="button" id="uno-quick-search-btn">Найти матч</button>
+                </div>
+              </article>
+              <article class="uno-home-control">
+                <strong>Комната</strong>
+                <div class="actions">
+                  <select id="uno-room-size-select">
+                    ${[2,3,4,5,6].map((value) => `<option value="${value}"${value === 6 ? ' selected' : ''}>${value} игроков</option>`).join('')}
+                  </select>
+                  <button type="button" id="uno-create-room-btn">Создать</button>
+                </div>
+              </article>
+              <article class="uno-home-control">
+                <strong>Войти по коду</strong>
+                <div class="actions">
+                  <input type="text" id="uno-room-code-input" placeholder="Код комнаты" style="text-transform:uppercase;">
+                  <button type="button" id="uno-join-room-btn">Войти</button>
+                </div>
+              </article>
             </div>
             ${identity.progressEnabled ? '' : `
               <div class="uno-identity-card">
@@ -18156,51 +19268,6 @@ PAGE_TEMPLATE = """
                 <input type="text" id="uno-guest-name-input" class="uno-identity-input" maxlength="24" value="${escapeHtml(identity.displayName)}" placeholder="Твой ник">
               </div>
             `}
-            <div class="uno-home-actions">
-              <div class="uno-mode-grid">
-                <article class="uno-mode-card">
-                  <strong>Против бота</strong>
-                  <div class="actions">
-                    <button type="button" id="uno-start-btn">Играть</button>
-                  </div>
-                </article>
-                <article class="uno-mode-card">
-                  <strong>Быстрый матч</strong>
-                  <div class="actions">
-                    <button type="button" id="uno-quick-search-btn">Найти партию</button>
-                  </div>
-                </article>
-                <article class="uno-mode-card">
-                  <strong>Комната с друзьями</strong>
-                  <div class="actions" style="gap:10px;">
-                    <select id="uno-room-size-select">
-                      ${[2,3,4,5,6].map((value) => `<option value="${value}"${value === 6 ? ' selected' : ''}>${value} игроков</option>`).join('')}
-                    </select>
-                    <button type="button" id="uno-create-room-btn">Создать</button>
-                  </div>
-                </article>
-                <article class="uno-mode-card">
-                  <strong>Войти по коду</strong>
-                  <div class="actions" style="gap:10px;">
-                    <input type="text" id="uno-room-code-input" placeholder="Код комнаты" style="text-transform:uppercase;">
-                    <button type="button" id="uno-join-room-btn">Войти</button>
-                  </div>
-                </article>
-              </div>
-              <div class="uno-guide-card">
-                <div class="uno-guide-head">
-                  <span class="uno-turn-pill wait">Гайд</span>
-                  <strong>Как проходит матч UNO</strong>
-                </div>
-                <div class="uno-guide-steps">
-                  <div class="uno-guide-step"><b>1</b><span>Смотри на карту в стопке сброса по центру стола.</span></div>
-                  <div class="uno-guide-step"><b>2</b><span>Играй карту такого же цвета, такого же знака или Wild.</span></div>
-                  <div class="uno-guide-step"><b>3</b><span>Если хода нет, тапни по колоде. Берётся ровно 1 карта.</span></div>
-                  <div class="uno-guide-step"><b>4</b><span>Когда остаётся 1 карта, быстро жми UNO, иначе можно получить штраф.</span></div>
-                </div>
-                <div class="uno-guide-note">Skip пропускает ход, Reverse меняет направление, +2 и Wild +4 заставляют добирать карты, обычный Wild только меняет цвет.</div>
-              </div>
-            </div>
           </div>
         `;
         const unoStartBtn = document.getElementById('uno-start-btn');
@@ -22239,6 +23306,18 @@ PAGE_TEMPLATE = """
     if (startupGuidePrevBtn) {
       bindFunctionalControl(startupGuidePrevBtn, prevStartupGuideStep, 'click', {skipPrepare: true});
     }
+    if (unoGuideCloseBtn) {
+      bindFunctionalControl(unoGuideCloseBtn, () => closeUnoGuide(true), 'click', {skipPrepare: true});
+    }
+    if (unoGuideSkipBtn) {
+      bindFunctionalControl(unoGuideSkipBtn, () => closeUnoGuide(true), 'click', {skipPrepare: true});
+    }
+    if (unoGuideNextBtn) {
+      bindFunctionalControl(unoGuideNextBtn, nextUnoGuideStep, 'click', {skipPrepare: true});
+    }
+    if (unoGuidePrevBtn) {
+      bindFunctionalControl(unoGuidePrevBtn, prevUnoGuideStep, 'click', {skipPrepare: true});
+    }
     if (telegramMiniappLinkBtn) {
       bindFunctionalControl(telegramMiniappLinkBtn, () => linkTelegramFromMiniApp({requestWrite: true}), 'click', {skipPrepare: true});
     }
@@ -22336,8 +23415,21 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(showDeckBtn, showDeck);
     bindFunctionalControl(toggleDeckBtn, toggleDeck);
     bindFunctionalControl(document.getElementById('mobile-show-deck-btn'), showDeck);
-    bindFunctionalControl(document.getElementById('nav-pack'), () => switchView('pack'));
-    bindFunctionalControl(document.getElementById('nav-modes'), () => switchView('modes'));
+    bindFunctionalControl(navPack, async () => {
+      if (state.activeApp === 'uno') {
+        openAppLauncher();
+        return;
+      }
+      switchView('pack');
+    });
+    bindFunctionalControl(navModes, async () => {
+      if (state.activeApp === 'uno') {
+        clearCompletedUnoSession();
+        await startUnoMatch();
+        return;
+      }
+      switchView('modes');
+    });
     bindFunctionalControl(topNavPack, () => switchView('pack'));
     bindFunctionalControl(topNavModes, () => switchView('modes'));
     bindFunctionalControl(document.getElementById('nav-profile'), () => {
@@ -22346,8 +23438,22 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(topNavProfile, () => {
       switchView('profile');
     });
-    bindFunctionalControl(document.getElementById('nav-guilds'), () => switchView('guilds'));
-    bindFunctionalControl(document.getElementById('nav-achievements'), () => switchView('achievements'));
+    bindFunctionalControl(navGuilds, async () => {
+      if (state.activeApp === 'uno') {
+        clearCompletedUnoSession();
+        await searchUnoQuickMatch();
+        return;
+      }
+      switchView('guilds');
+    });
+    bindFunctionalControl(navAchievements, async () => {
+      if (state.activeApp === 'uno') {
+        clearCompletedUnoSession();
+        await createUnoRoom();
+        return;
+      }
+      switchView('achievements');
+    });
     bindFunctionalControl(topNavGuilds, () => switchView('guilds'));
     bindFunctionalControl(topNavAchievements, () => switchView('achievements'));
     if (appLauncherHomeBtn) {
@@ -22360,6 +23466,11 @@ PAGE_TEMPLATE = """
     }
     if (mascotFab) {
       bindFunctionalControl(mascotFab, () => {
+        if (state.activeApp === 'uno') {
+          setMascotOpen(false);
+          openAppLauncher();
+          return;
+        }
         syncMascotPopover();
         setMascotOpen(!(mascotWidget && mascotWidget.classList.contains('open')));
       });
@@ -22384,7 +23495,8 @@ PAGE_TEMPLATE = """
     }
     if (mascotOpenUnoBtn) {
       bindFunctionalControl(mascotOpenUnoBtn, () => {
-        openUnoHub();
+        setMascotOpen(false);
+        openAppLauncher();
       });
     }
     if (mascotOpenGuideBtn) {
@@ -22399,7 +23511,8 @@ PAGE_TEMPLATE = """
     }
     if (mascotUnoHomeBtn) {
       bindFunctionalControl(mascotUnoHomeBtn, () => {
-        openUnoHub();
+        setMascotOpen(false);
+        openAppLauncher();
       });
     }
     if (mascotUnoBotBtn) {
@@ -22422,7 +23535,7 @@ PAGE_TEMPLATE = """
     if (mascotUnoBackBtn) {
       bindFunctionalControl(mascotUnoBackBtn, () => {
         setMascotOpen(false);
-        switchView('profile');
+        openAppLauncher();
       });
     }
     [buildAttack, buildDefense, buildLuck, buildSpeed, buildMagic].forEach((node) => {
