@@ -15399,12 +15399,12 @@ PAGE_TEMPLATE = """
       return active;
     }
 
-    let tmaSyncRaf = null;
-    let tmaSyncTimers = [];
-    let tmaResizeObserver = null;
-    let tmaMutationObserver = null;
-    let lastTmaViewportWidth = 0;
-    let lastTmaViewportHeight = 0;
+    var tmaSyncRaf = null;
+    var tmaSyncTimers = [];
+    var tmaResizeObserver = null;
+    var tmaMutationObserver = null;
+    var lastTmaViewportWidth = 0;
+    var lastTmaViewportHeight = 0;
 
     function clearScheduledTmaSyncs() {
       tmaSyncTimers.forEach((timer) => window.clearTimeout(timer));
