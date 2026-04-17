@@ -12275,6 +12275,7 @@ PAGE_TEMPLATE = """
       align-content: stretch;
     }
 
+    html.tma-app.uno-live-lock,
     body.tma-app.uno-live-lock {
       padding-bottom: 0;
       overflow: hidden;
@@ -14854,7 +14855,7 @@ PAGE_TEMPLATE = """
       },
       {
         title: 'Если хода нет',
-        body: 'Тяни колоду к центру. Карта вылетит в руку, и ты продолжаешь добор, пока не найдёшь подходящую.',
+        body: 'Тапни по колоде. Карта вылетит в руку, и ты продолжаешь добор, пока не найдёшь подходящую.',
         overlayHtml: `
           <div class="uno-guide-scene">
             <div class="uno-guide-deck-stage">
@@ -15360,7 +15361,7 @@ PAGE_TEMPLATE = """
                 void drawCard.offsetWidth;
                 drawCard.classList.add('live');
               }
-              setUnoGuideBody('Тяни колоду к центру. Карта вылетит в руку, и добор не закончится, пока не найдётся рабочая карта.');
+              setUnoGuideBody('Тапни по колоде. Карта вылетит в руку, и добор не закончится, пока не найдётся рабочая карта.');
               break;
             }
             case '2:call': {
@@ -17440,16 +17441,16 @@ PAGE_TEMPLATE = """
       if (!navPack || !navModes || !navGuilds || !navAchievements) return;
       if (unoContext) {
         navPack.textContent = 'Apps';
-        navModes.textContent = 'Bot';
-        navGuilds.textContent = 'Match';
-        navAchievements.textContent = 'Room';
+        navModes.textContent = 'Profile';
+        navGuilds.textContent = 'Clans';
+        navAchievements.textContent = 'Pass';
         [navPack, navModes, navGuilds, navAchievements].forEach((button) => button.classList.remove('active'));
-        const session = state.unoSession;
-        const activeButton = !session || session.complete
-          ? navPack
-          : (String(session.mode || 'bot') === 'bot'
-            ? navModes
-            : (String(session.mode || 'bot') === 'quick' ? navGuilds : navAchievements));
+        const activeView = String(document.body.dataset.activeView || '');
+        const activeButton = activeView === 'profile'
+          ? navModes
+          : (activeView === 'guilds'
+            ? navGuilds
+            : (activeView === 'achievements' ? navAchievements : navPack));
         if (activeButton) activeButton.classList.add('active');
         return;
       }
@@ -17478,6 +17479,18 @@ PAGE_TEMPLATE = """
         return 'Сейчас идёт поиск матча. Можно открыть игру и следить за статусом.';
       }
       return 'Быстрый доступ к профилю, картам, бою и гайду.';
+    }
+
+    function switchUnoSharedView(name) {
+      switchView(name);
+      if (!hasUnoTesterAccess()) return;
+      state.activeApp = 'uno';
+      syncMascotPopover();
+      syncMobileNavContext();
+      try {
+        window.localStorage.setItem(appLauncherStorageKey, 'uno');
+      } catch (_) {
+      }
     }
 
     function mountWalletIntoProfile() {
@@ -18812,13 +18825,13 @@ PAGE_TEMPLATE = """
           detail: unoAlert.detail || 'Сейчас решается гонка за кнопку UNO.',
         };
       }
-      if (session.your_turn) {
-        if (!playableCards.length) {
-          return {
-            headline: 'Тяни колоду',
-            detail: 'Потяни колоду к центру и добирай, пока не найдётся подходящая карта.',
-          };
-        }
+        if (session.your_turn) {
+          if (!playableCards.length) {
+            return {
+            headline: 'Жми колоду',
+            detail: 'Тапай по колоде и добирай, пока не найдётся подходящая карта.',
+            };
+          }
         return {
           headline: 'Тяни карту к центру',
           detail: 'Подходит тот же цвет, тот же знак или любая Color-карта.',
@@ -19145,16 +19158,6 @@ PAGE_TEMPLATE = """
     function setupUnoDragInteractions(session, playableIds, options = {}) {
       if (!unoRoot || !session || session.complete) return;
       const canPlayCards = Boolean(session.your_turn && !options.actionLocked && !options.unoAlert && !options.pendingWildCardId);
-      const drawSource = document.getElementById('uno-draw-pile-btn');
-      if (drawSource && options.canDraw) {
-        const previewEl = drawSource.querySelector('.uno-stack-top .uno-back-card') || drawSource.querySelector('.uno-stack-top') || drawSource;
-        drawSource.classList.add('drag-ready');
-        drawSource.addEventListener('pointerdown', (event) => startUnoDragInteraction(event, {
-          kind: 'draw',
-          sourceEl: drawSource,
-          previewEl,
-        }), { passive: false });
-      }
       if (!canPlayCards) return;
       unoRoot.querySelectorAll('[data-uno-play-card]').forEach((button) => {
         const cardId = String(button.dataset.unoPlayCard || '');
@@ -19786,7 +19789,7 @@ PAGE_TEMPLATE = """
       const shouldAnimateUnoIntro = Boolean(nextUnoEventKey && !state.unoLastEventKey && !session.complete);
       const topStatusText = liveGuide.headline || (session.complete ? `${session.winner_label || 'Матч завершён'} выигрывает` : '');
       const resultSummary = liveGuide.detail || '';
-      const canDragDraw = Boolean(session.can_draw && !unoAlert && !actionLocked && !pendingWildCardId && !state.unoDrawFx);
+      const canTapDraw = Boolean(session.can_draw && !unoAlert && !actionLocked && !pendingWildCardId && !state.unoDrawFx);
       const displayHand = visibleUnoPlayerHand(session);
       unoRoot.innerHTML = `
         <div class="uno-shell ${session.complete ? 'completed' : 'playing'}" style="background:${tableSurface};">
@@ -19853,14 +19856,14 @@ PAGE_TEMPLATE = """
               <div class="uno-event-layer" data-uno-event-layer hidden></div>
               <div class="uno-center">
                 <div>
-                  <button type="button" class="uno-stack-action ${canDragDraw ? 'can-draw' : ''}" id="uno-draw-pile-btn"${canDragDraw ? '' : ' disabled'}>
+                  <button type="button" class="uno-stack-action ${canTapDraw ? 'can-draw' : ''}" id="uno-draw-pile-btn"${canTapDraw ? '' : ' disabled'}>
                     <span class="sr-only">Взять одну карту из колоды</span>
                     <div class="uno-stack">
                       <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
                       <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
                       <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
                     </div>
-                    <div class="uno-stack-label">${canDragDraw ? 'Тяни в центр' : 'Колода'}</div>
+                    <div class="uno-stack-label">${canTapDraw ? 'Tap to draw' : 'Колода'}</div>
                   </button>
                 </div>
                 <div class="uno-discard-stack" data-uno-drop-target="discard">
@@ -19917,6 +19920,9 @@ PAGE_TEMPLATE = """
       const unoResultLauncherBtn = document.getElementById('uno-result-launcher-btn');
       const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
       if (unoAlertBtn) bindFunctionalControl(unoAlertBtn, () => runUnoAction('uno'), 'click', {skipPrepare: true});
+      if (unoDrawPileBtn && !unoDrawPileBtn.disabled && session.can_draw) {
+        bindFunctionalControl(unoDrawPileBtn, () => runUnoAction('draw'), 'click', {skipPrepare: true});
+      }
       if (unoColorCancelBtn) bindFunctionalControl(unoColorCancelBtn, () => {
         state.unoPendingColorCardId = null;
         renderUnoPanel();
@@ -19929,7 +19935,6 @@ PAGE_TEMPLATE = """
         bindFunctionalControl(button, () => runUnoAction('play', button.dataset.unoCardId, button.dataset.unoColor), 'click', {skipPrepare: true});
       });
       setupUnoDragInteractions(session, playableIds, {
-        canDraw: canDragDraw,
         actionLocked,
         unoAlert,
         pendingWildCardId,
@@ -23838,8 +23843,7 @@ PAGE_TEMPLATE = """
     });
     bindFunctionalControl(navModes, async () => {
       if (state.activeApp === 'uno') {
-        clearCompletedUnoSession();
-        await startUnoMatch();
+        switchUnoSharedView('profile');
         return;
       }
       switchView('modes');
@@ -23854,16 +23858,14 @@ PAGE_TEMPLATE = """
     });
     bindFunctionalControl(navGuilds, async () => {
       if (state.activeApp === 'uno') {
-        clearCompletedUnoSession();
-        await searchUnoQuickMatch();
+        switchUnoSharedView('guilds');
         return;
       }
       switchView('guilds');
     });
     bindFunctionalControl(navAchievements, async () => {
       if (state.activeApp === 'uno') {
-        clearCompletedUnoSession();
-        await createUnoRoom();
+        switchUnoSharedView('achievements');
         return;
       }
       switchView('achievements');
