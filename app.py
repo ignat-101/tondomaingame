@@ -1159,9 +1159,34 @@ PAGE_TEMPLATE = """
       min-width: 0;
     }
 
+    .uno-surface-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+
+    .uno-surface-actions button {
+      min-width: 0;
+      min-height: 44px;
+      padding-inline: 16px;
+      white-space: nowrap;
+    }
+
     .uno-home-control .actions {
       display: grid;
       gap: 10px;
+    }
+
+    .uno-home-control.code-entry {
+      min-height: 148px;
+      grid-template-rows: auto 1fr;
+    }
+
+    .uno-home-control.code-entry .actions {
+      align-content: end;
     }
 
     .uno-home-control select,
@@ -2841,6 +2866,17 @@ PAGE_TEMPLATE = """
         width: 100%;
         justify-content: space-between;
         margin-left: 0;
+      }
+
+      .uno-surface-actions {
+        width: 100%;
+        justify-content: space-between;
+        margin-left: 0;
+      }
+
+      .uno-surface-actions button {
+        flex: 1 1 0;
+        padding-inline: 10px;
       }
 
       .uno-home-title strong {
@@ -19930,6 +19966,28 @@ PAGE_TEMPLATE = """
       `;
     }
 
+    function unoSurfaceActionsMarkup() {
+      return `
+        <div class="actions uno-surface-actions">
+          <button type="button" data-uno-surface-link="apps">Apps</button>
+          <button type="button" class="secondary" data-uno-surface-link="profile">Profile</button>
+          <button type="button" class="secondary" data-uno-surface-link="pass">Pass</button>
+        </div>
+      `;
+    }
+
+    function bindUnoSurfaceActions(root = document) {
+      root.querySelectorAll('[data-uno-surface-link]').forEach((button) => {
+        const target = String(button.dataset.unoSurfaceLink || 'apps');
+        const handler = target === 'profile'
+          ? () => switchView('profile')
+          : (target === 'pass'
+            ? () => switchView('achievements')
+            : () => openAppLauncher());
+        bindFunctionalControl(button, handler, 'click', {skipPrepare: true});
+      });
+    }
+
     function renderUnoPanel() {
       if (!unoRoot) return;
       clearUnoDragInteraction();
@@ -19993,9 +20051,7 @@ PAGE_TEMPLATE = """
           <div class="uno-shell landing uno-home-shell" style="background:${tableSurface};">
             <div class="uno-home-top">
               <div class="uno-home-title">${unoBrandBadge('UNO')}</div>
-              <div class="actions">
-                <button type="button" class="secondary" id="uno-open-launcher-btn">Apps</button>
-              </div>
+              ${unoSurfaceActionsMarkup()}
             </div>
             ${unoHomeStageMarkup(frameAsset, backSurface, backMark)}
             <div class="uno-meta-strip">
@@ -20031,10 +20087,10 @@ PAGE_TEMPLATE = """
                   <button type="button" id="uno-create-room-btn">Создать</button>
                 </div>
               </article>
-              <article class="uno-home-control">
-                <strong>Войти по коду</strong>
+              <article class="uno-home-control code-entry">
+                <strong>Code</strong>
                 <div class="actions">
-                  <input type="text" id="uno-room-code-input" placeholder="КОД" style="text-transform:uppercase;">
+                  <input type="text" id="uno-room-code-input" placeholder="CODE" style="text-transform:uppercase;">
                   <button type="button" id="uno-join-room-btn">Войти</button>
                 </div>
               </article>
@@ -20053,13 +20109,12 @@ PAGE_TEMPLATE = """
         const unoCreateRoomBtn = document.getElementById('uno-create-room-btn');
         const unoJoinRoomBtn = document.getElementById('uno-join-room-btn');
         const unoGuestNameInput = document.getElementById('uno-guest-name-input');
-        const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
         if (unoRookieStartBtn) bindFunctionalControl(unoRookieStartBtn, startUnoRookieMatch, 'click', {skipPrepare: true});
         if (unoStartBtn) bindFunctionalControl(unoStartBtn, startUnoMatch, 'click', {skipPrepare: true});
         if (unoQuickSearchBtn) bindFunctionalControl(unoQuickSearchBtn, searchUnoQuickMatch, 'click', {skipPrepare: true});
         if (unoCreateRoomBtn) bindFunctionalControl(unoCreateRoomBtn, createUnoRoom, 'click', {skipPrepare: true});
         if (unoJoinRoomBtn) bindFunctionalControl(unoJoinRoomBtn, joinUnoRoom, 'click', {skipPrepare: true});
-        if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
+        bindUnoSurfaceActions(unoRoot);
         if (unoGuestNameInput) {
           unoGuestNameInput.addEventListener('input', (event) => {
             updateUnoGuestName(event.target.value || '');
@@ -20092,10 +20147,7 @@ PAGE_TEMPLATE = """
                   <strong>${escapeHtml(unoModeLabel(session.mode))}</strong>
                   <div class="tiny">Код: ${escapeHtml(session.room_code || session.session_id || '—')} • ${participantCount}/${Number(session.max_players || 2)} игроков • профиль ${escapeHtml((viewerParticipant && viewerParticipant.domain) ? `${viewerParticipant.domain}.ton` : identity.displayName)}</div>
                 </div>
-                <div class="actions" style="margin-left:auto;">
-                  ${unoBrandBadge('UNO')}
-                  <button type="button" class="secondary" id="uno-open-launcher-btn">Apps</button>
-                </div>
+                ${unoSurfaceActionsMarkup()}
               </div>
               <div class="uno-meta-strip">
                 <div class="uno-chip">${session.mode === 'quick' ? 'Публичная партия' : 'Приватная комната'}</div>
@@ -20132,11 +20184,10 @@ PAGE_TEMPLATE = """
         const unoRoomReadyBtn = document.getElementById('uno-room-ready-btn');
         const unoRoomRefreshBtn = document.getElementById('uno-room-refresh-btn');
         const unoRoomLeaveBtn = document.getElementById('uno-room-leave-btn');
-        const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
         if (unoRoomReadyBtn) bindFunctionalControl(unoRoomReadyBtn, () => toggleUnoRoomReady(!viewerReady), 'click', {skipPrepare: true});
         if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus(), 'click', {skipPrepare: true});
         if (unoRoomLeaveBtn) bindFunctionalControl(unoRoomLeaveBtn, leaveUnoSession, 'click', {skipPrepare: true});
-        if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
+        bindUnoSurfaceActions(unoRoot);
         return;
       }
       scheduleUnoStatusPolling();
@@ -20164,10 +20215,7 @@ PAGE_TEMPLATE = """
                   <div class="tiny">${participantCount} игроков</div>
                 </div>
               `}
-              <div class="actions" style="margin-left:auto;">
-                ${unoBrandBadge('UNO')}
-                <button type="button" class="secondary" id="uno-open-launcher-btn">Apps</button>
-              </div>
+              ${unoSurfaceActionsMarkup()}
             </div>
             <div class="uno-meta-strip">
               <div class="uno-chip">Цвет: ${escapeHtml(session.current_color_label || 'UNO')}</div>
@@ -20286,7 +20334,6 @@ PAGE_TEMPLATE = """
       const unoRoomRefreshBtn = document.getElementById('uno-room-refresh-btn');
       const unoAfterBotBtn = document.getElementById('uno-after-bot-btn');
       const unoResultLauncherBtn = document.getElementById('uno-result-launcher-btn');
-      const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
       if (unoAlertBtn) bindFunctionalControl(unoAlertBtn, () => runUnoAction('uno'), 'click', {skipPrepare: true});
       if (unoDrawPileBtn && !unoDrawPileBtn.disabled && session.can_draw) {
         bindFunctionalControl(unoDrawPileBtn, () => runUnoAction('draw'), 'click', {skipPrepare: true});
@@ -20298,7 +20345,7 @@ PAGE_TEMPLATE = """
       if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus(), 'click', {skipPrepare: true});
       if (unoAfterBotBtn) bindFunctionalControl(unoAfterBotBtn, () => (session.mode === 'bot' ? startUnoMatch(session.bot_profile || 'standard') : searchUnoQuickMatch()), 'click', {skipPrepare: true});
       if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
-      if (unoOpenLauncherBtn) bindFunctionalControl(unoOpenLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
+      bindUnoSurfaceActions(unoRoot);
       unoRoot.querySelectorAll('[data-uno-color]').forEach((button) => {
         bindFunctionalControl(button, () => runUnoAction('play', button.dataset.unoCardId, button.dataset.unoColor), 'click', {skipPrepare: true});
       });
