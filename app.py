@@ -1116,8 +1116,10 @@ PAGE_TEMPLATE = """
 
     .uno-home-tile strong,
     .uno-home-control strong {
-      font-size: 18px;
+      font-size: clamp(16px, 2vw, 18px);
       line-height: 1.06;
+      letter-spacing: -0.02em;
+      overflow-wrap: anywhere;
       color: #fffaf3;
     }
 
@@ -1141,6 +1143,8 @@ PAGE_TEMPLATE = """
 
     .uno-home-control select,
     .uno-home-control input {
+      width: 100%;
+      max-width: 100%;
       min-height: 48px;
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1200,6 +1204,14 @@ PAGE_TEMPLATE = """
       inset: 0;
     }
 
+    .uno-guide-deck-stage {
+      display: grid;
+      grid-template-columns: minmax(88px, 112px) minmax(0, 1fr);
+      align-items: end;
+      gap: 18px;
+      padding: 22px 20px 72px;
+    }
+
     .uno-guide-deck-cluster {
       position: absolute;
       left: 18px;
@@ -1211,11 +1223,75 @@ PAGE_TEMPLATE = """
       height: 124px;
     }
 
+    .uno-guide-deck-stage .uno-guide-deck-cluster {
+      position: relative;
+      left: auto;
+      bottom: auto;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+
+    .uno-guide-tap-chip {
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 214, 74, 0.34);
+      background: linear-gradient(135deg, rgba(255, 91, 87, 0.2), rgba(255, 214, 74, 0.14));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff2db;
+      letter-spacing: 0.02em;
+    }
+
     .uno-guide-discard {
       position: absolute;
       right: 26px;
       top: 28px;
       transform: rotate(8deg);
+    }
+
+    .uno-guide-deck-stage .uno-guide-discard {
+      position: relative;
+      right: auto;
+      top: auto;
+      transform: none;
+      justify-self: center;
+      align-self: center;
+    }
+
+    .uno-guide-draw-track {
+      position: relative;
+      min-height: 148px;
+      border-radius: 26px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background:
+        linear-gradient(180deg, rgba(9, 18, 31, 0.84), rgba(7, 14, 24, 0.94)),
+        radial-gradient(circle at center, rgba(255,255,255,0.06), transparent 60%);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+      overflow: hidden;
+    }
+
+    .uno-guide-draw-track::before {
+      content: "";
+      position: absolute;
+      inset: 50% 18px auto 18px;
+      border-top: 1px dashed rgba(255,255,255,0.16);
+      transform: translateY(-50%);
+    }
+
+    .uno-guide-draw-track::after {
+      content: "РУКА";
+      position: absolute;
+      right: 18px;
+      top: 14px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      color: rgba(231, 240, 255, 0.48);
     }
 
     .uno-guide-hand-row {
@@ -1284,8 +1360,8 @@ PAGE_TEMPLATE = """
 
     .uno-guide-draw-card {
       position: absolute;
-      left: 28px;
-      bottom: 30px;
+      left: 14px;
+      bottom: 18px;
       width: 82px;
       height: 126px;
       opacity: 0;
@@ -1357,6 +1433,7 @@ PAGE_TEMPLATE = """
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
+      align-items: stretch;
     }
 
     .uno-guide-menu-tile {
@@ -1390,29 +1467,7 @@ PAGE_TEMPLATE = """
     }
 
     .uno-guide-mini-nav {
-      position: absolute;
-      left: 18px;
-      right: 18px;
-      bottom: 16px;
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-      padding: 8px;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 214, 74, 0.16);
-      background: rgba(11, 12, 19, 0.92);
-    }
-
-    .uno-guide-mini-nav i {
-      min-height: 34px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .uno-guide-mini-nav i.active {
-      background: linear-gradient(135deg, rgba(255, 91, 87, 0.3), rgba(255, 214, 74, 0.22));
-      border-color: rgba(255, 214, 74, 0.34);
+      display: none;
     }
 
     .uno-stage {
@@ -1861,6 +1916,8 @@ PAGE_TEMPLATE = """
       justify-content: center;
       gap: 10px;
       align-items: center;
+      align-content: center;
+      min-height: 100%;
       padding: 2px 0;
     }
 
@@ -2408,8 +2465,40 @@ PAGE_TEMPLATE = """
       display: none;
     }
 
+    .uno-live-board-head {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .uno-live-board-head span {
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: rgba(241, 247, 255, 0.88);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
     .uno-live-board {
       position: relative;
+      min-height: clamp(196px, 29vh, 248px);
+      padding: 16px 18px;
+      border-radius: 28px;
+      border: 1px solid rgba(121, 217, 255, 0.14);
+      background:
+        linear-gradient(180deg, rgba(8, 18, 30, 0.82), rgba(7, 12, 22, 0.92)),
+        radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 62%);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
       align-content: start;
       overflow: hidden;
     }
@@ -2739,7 +2828,7 @@ PAGE_TEMPLATE = """
       }
 
       .uno-guide-scene {
-        min-height: 172px;
+        min-height: 188px;
       }
 
       .uno-guide-menu-grid {
@@ -2757,6 +2846,21 @@ PAGE_TEMPLATE = """
 
       .uno-stage {
         gap: 10px;
+      }
+
+      .uno-guide-deck-stage {
+        grid-template-columns: 90px minmax(0, 1fr);
+        padding: 18px 16px 72px;
+        gap: 14px;
+      }
+
+      .uno-guide-draw-track {
+        min-height: 132px;
+      }
+
+      .uno-live-board {
+        min-height: 154px;
+        padding: 10px 12px;
       }
 
       .uno-turn-cue {
@@ -12275,6 +12379,10 @@ PAGE_TEMPLATE = """
       align-content: stretch;
     }
 
+    body.tma-app.tma-desktop[data-active-view="uno"] .uno-live-board {
+      min-height: clamp(220px, 32vh, 288px);
+    }
+
     html.tma-app.uno-live-lock,
     body.tma-app.uno-live-lock {
       padding-bottom: 0;
@@ -12396,6 +12504,17 @@ PAGE_TEMPLATE = """
       gap: 4px;
     }
 
+    body.tma-app.uno-live-lock .uno-live-board-head {
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    body.tma-app.uno-live-lock .uno-live-board-head span {
+      min-height: 24px;
+      padding: 0 8px;
+      font-size: 9px;
+    }
+
     body.tma-app.uno-live-lock .uno-live-summary-line {
       gap: 8px;
     }
@@ -12437,6 +12556,9 @@ PAGE_TEMPLATE = """
 
     body.tma-app.uno-live-lock .uno-live-board {
       gap: 6px;
+      min-height: 116px;
+      padding: 8px 10px;
+      border-radius: 20px;
     }
 
     body.tma-app.uno-live-lock .uno-center {
@@ -14357,7 +14479,8 @@ PAGE_TEMPLATE = """
       <div class="actions startup-guide-actions">
         <button class="secondary" id="uno-guide-prev-btn">Назад</button>
         <button id="uno-guide-next-btn">Далее</button>
-        <button id="uno-guide-close-btn">Готово</button>
+        <button id="uno-guide-play-btn" style="display:none;">Запустить Bot</button>
+        <button id="uno-guide-close-btn" style="display:none;">Готово</button>
         <button class="secondary" id="uno-guide-skip-btn">Пропустить</button>
       </div>
     </div>
@@ -14535,6 +14658,7 @@ PAGE_TEMPLATE = """
     const unoGuideSkipBtn = document.getElementById('uno-guide-skip-btn');
     const unoGuidePrevBtn = document.getElementById('uno-guide-prev-btn');
     const unoGuideNextBtn = document.getElementById('uno-guide-next-btn');
+    const unoGuidePlayBtn = document.getElementById('uno-guide-play-btn');
     const publicProfileBackdrop = document.getElementById('public-profile-backdrop');
     const publicProfileContent = document.getElementById('public-profile-content');
     const ownedDecksList = document.getElementById('owned-decks-list');
@@ -14865,15 +14989,19 @@ PAGE_TEMPLATE = """
                   <div class="uno-stack-card">${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
                   <div class="uno-stack-top">${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
                 </div>
+                <div class="uno-guide-tap-chip">Тап по колоде</div>
               </div>
-              <div class="uno-guide-draw-card" data-uno-guide-draw-card>${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
-              <div class="uno-guide-hand-row">
-                ${unoCardMarkup(unoDemoCard('blue', '2', 'guide-hand-a'), {asButton: false})}
-                ${unoCardMarkup(unoDemoCard('green', 'reverse', 'guide-hand-b'), {asButton: false})}
-                ${unoCardMarkup(unoDemoCard('red', '9', 'guide-hand-c'), {asButton: false})}
+              <div class="uno-guide-draw-track">
+                <div class="uno-guide-draw-card" data-uno-guide-draw-card>${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
+                <div class="uno-guide-discard">${unoCardMarkup(unoDemoCard('yellow', '7', 'guide-track-top'), {asButton: false})}</div>
+                <div class="uno-guide-hand-row">
+                  ${unoCardMarkup(unoDemoCard('blue', '2', 'guide-hand-a'), {asButton: false})}
+                  ${unoCardMarkup(unoDemoCard('green', 'reverse', 'guide-hand-b'), {asButton: false})}
+                  ${unoCardMarkup(unoDemoCard('red', '9', 'guide-hand-c'), {asButton: false})}
+                </div>
               </div>
               <div class="uno-guide-control-row">
-                <button type="button" class="active" data-uno-guide-action="draw" data-uno-guide-value="drag">Тянуть к центру</button>
+                <button type="button" class="active" data-uno-guide-action="draw" data-uno-guide-value="tap">Тап по колоде</button>
               </div>
             </div>
           </div>
@@ -14905,20 +15033,14 @@ PAGE_TEMPLATE = """
       },
       {
         title: 'UNO как отдельный режим',
-        body: 'Снизу навигация в UNO ведёт только по UNO: Apps, Bot, Match и Room.',
+        body: 'Выбирай режим прямо из UNO: Bot, Match или Room. Кнопка Apps наверху возвращает к выбору приложений.',
         overlayHtml: `
           <div class="uno-guide-scene">
             <div class="uno-guide-menu-stage">
               <div class="uno-guide-menu-grid" data-uno-guide-menu-grid>
-                <div class="uno-guide-menu-tile active" data-uno-guide-menu="bot"><b>Bot</b><span>Матч против бота</span></div>
-                <div class="uno-guide-menu-tile" data-uno-guide-menu="quick"><b>Match</b><span>Любая свободная партия</span></div>
-                <div class="uno-guide-menu-tile" data-uno-guide-menu="friends"><b>Room</b><span>Приватный код для друзей</span></div>
-              </div>
-              <div class="uno-guide-mini-nav">
-                <i></i>
-                <i class="active"></i>
-                <i></i>
-                <i></i>
+                <div class="uno-guide-menu-tile active" data-uno-guide-menu="bot"><b>Bot</b><span>Сразу запускает матч против бота</span></div>
+                <div class="uno-guide-menu-tile" data-uno-guide-menu="quick"><b>Match</b><span>Подключает к любой свободной партии</span></div>
+                <div class="uno-guide-menu-tile" data-uno-guide-menu="friends"><b>Room</b><span>Комната по коду с ready-стартом</span></div>
               </div>
               <div class="uno-guide-control-row">
                 <button type="button" class="active" data-uno-guide-action="menu" data-uno-guide-value="bot">Bot</button>
@@ -15386,15 +15508,10 @@ PAGE_TEMPLATE = """
               unoGuideStageOverlay.querySelectorAll('[data-uno-guide-menu]').forEach((tile) => {
                 tile.classList.toggle('active', tile.dataset.unoGuideMenu === value);
               });
-              const navDots = Array.from(unoGuideStageOverlay.querySelectorAll('.uno-guide-mini-nav i'));
-              navDots.forEach((dot, index) => {
-                const activeIndex = value === 'bot' ? 1 : (value === 'quick' ? 2 : 3);
-                dot.classList.toggle('active', index === activeIndex);
-              });
               const copy = {
-                bot: 'Bot снизу сразу кидает в матч против бота.',
-                quick: 'Match ищет любую свободную открытую партию.',
-                friends: 'Room работает только внутри UNO и ведёт в приватный режим для друзей.'
+                bot: 'Bot сразу кидает в матч против бота. Это лучший вход после гайда.',
+                quick: 'Match ищет любую свободную открытую партию и ведёт в ready-лобби.',
+                friends: 'Room создаёт приватную комнату с кодом и общим ready-подтверждением.'
               };
               setUnoGuideBody(copy[value] || unoGuideSteps[3].body);
               break;
@@ -15424,8 +15541,20 @@ PAGE_TEMPLATE = """
       unoGuideStageOverlay.innerHTML = step.overlayHtml || '';
       wireUnoGuideInteractions(unoGuideStepIndex);
       if (unoGuidePrevBtn) unoGuidePrevBtn.disabled = unoGuideStepIndex <= 0;
-      if (unoGuideNextBtn) unoGuideNextBtn.textContent = unoGuideStepIndex >= maxIndex ? 'Готово' : 'Далее';
-      if (unoGuideCloseBtn) unoGuideCloseBtn.style.display = unoGuideStepIndex >= maxIndex ? 'inline-flex' : 'none';
+      if (unoGuideNextBtn) {
+        unoGuideNextBtn.textContent = 'Далее';
+        unoGuideNextBtn.style.display = unoGuideStepIndex >= maxIndex ? 'none' : 'inline-flex';
+      }
+      if (unoGuidePlayBtn) {
+        unoGuidePlayBtn.style.display = unoGuideStepIndex >= maxIndex ? 'inline-flex' : 'none';
+      }
+      if (unoGuideCloseBtn) {
+        unoGuideCloseBtn.textContent = 'Готово';
+        unoGuideCloseBtn.style.display = unoGuideStepIndex >= maxIndex ? 'inline-flex' : 'none';
+      }
+      if (unoGuideSkipBtn) {
+        unoGuideSkipBtn.style.display = unoGuideStepIndex >= maxIndex ? 'none' : 'inline-flex';
+      }
     }
 
     function showUnoGuideIfNeeded(options = {}) {
@@ -18825,7 +18954,7 @@ PAGE_TEMPLATE = """
           detail: unoAlert.detail || 'Сейчас решается гонка за кнопку UNO.',
         };
       }
-        if (session.your_turn) {
+      if (session.your_turn) {
           if (!playableCards.length) {
             return {
             headline: 'Жми колоду',
@@ -18833,8 +18962,8 @@ PAGE_TEMPLATE = """
             };
           }
         return {
-          headline: 'Тяни карту к центру',
-          detail: 'Подходит тот же цвет, тот же знак или любая Color-карта.',
+          headline: 'Сыграй карту в центр',
+          detail: 'Перетащи подходящую карту на стол. Работает тот же цвет, знак или любая Color-карта.',
         };
       }
       return {
@@ -19677,9 +19806,9 @@ PAGE_TEMPLATE = """
                 </div>
               </article>
               <article class="uno-home-control">
-                <strong>Войти по коду</strong>
+                <strong>Код комнаты</strong>
                 <div class="actions">
-                  <input type="text" id="uno-room-code-input" placeholder="Код комнаты" style="text-transform:uppercase;">
+                  <input type="text" id="uno-room-code-input" placeholder="КОД" style="text-transform:uppercase;">
                   <button type="button" id="uno-join-room-btn">Войти</button>
                 </div>
               </article>
@@ -19717,6 +19846,8 @@ PAGE_TEMPLATE = """
       const pendingWildCardId = state.unoPendingColorCardId || '';
       const opponents = Array.isArray(session.opponents) ? session.opponents : [];
       const participantCount = Number(session.participant_count || (Array.isArray(session.participants) ? session.participants.length : 0) || 0);
+      const readyCount = Math.max(0, Number(session.ready_count || 0));
+      const viewerReady = Boolean(session.viewer_ready);
       const waitingLobby = String(session.status || '') === 'waiting';
       if (waitingLobby) {
         scheduleUnoStatusPolling();
@@ -19740,28 +19871,30 @@ PAGE_TEMPLATE = """
               </div>
               <div class="uno-meta-strip">
                 <div class="uno-chip">${session.mode === 'quick' ? 'Публичная партия' : 'Приватная комната'}</div>
-                <div class="uno-chip">${countdownSeconds ? `Автостарт через ${countdownSeconds} сек` : (session.can_start ? 'Можно стартовать' : 'Ждём игроков')}</div>
+                <div class="uno-chip">Ready ${readyCount}/${participantCount}</div>
+                <div class="uno-chip">${countdownSeconds ? `Старт через ${countdownSeconds} сек` : (session.all_ready ? 'Все готовы' : 'Ждём ready')}</div>
                 <div class="uno-chip">Лимит: ${Number(session.max_players || 2)}</div>
               </div>
             </div>
             <div class="uno-status-banner ${session.can_start ? 'you' : 'wait'}">
-              <span class="uno-turn-pill ${session.can_start ? 'you' : 'wait'}">${session.can_start ? 'Host' : 'Лобби'}</span>
-              <strong>${session.can_start ? 'Комната собрана. Можно запускать игру.' : (countdownSeconds ? 'Игра стартует автоматически.' : 'Ждём подключение игроков.')}</strong>
+              <span class="uno-turn-pill ${session.can_start ? 'you' : 'wait'}">${viewerReady ? 'Ready' : 'Lobby'}</span>
+              <strong>${session.can_start ? 'Все готовы. Можно запускать игру.' : (countdownSeconds ? 'Все готовы. Старт уже идёт.' : (viewerReady ? 'Ты готов. Ждём остальных.' : 'Подтверди готовность перед матчем.'))}</strong>
               <div class="uno-turn-line">
                 <div class="tiny">${escapeHtml(session.last_action || 'Собираем состав перед стартом.')}</div>
-                <div class="uno-countdown ${countdownSeconds ? '' : 'ready'}">${countdownSeconds ? `${countdownSeconds}с` : (session.can_start ? 'Ready' : 'Lobby')}</div>
+                <div class="uno-countdown ${countdownSeconds ? '' : 'ready'}">${countdownSeconds ? `${countdownSeconds}с` : `Ready ${readyCount}/${participantCount}`}</div>
               </div>
             </div>
             <div class="uno-stage">
               <div class="uno-participants-grid">
                 ${(session.participants || []).map((item, index) => `
                   <div class="uno-log">
-                    <strong>${index + 1}. ${escapeHtml(item.display_name || 'Игрок')}</strong>
+                    <strong>${index + 1}. ${escapeHtml(item.display_name || 'Игрок')} ${item.ready ? '• ready' : '• waiting'}</strong>
                     <div class="tiny">${escapeHtml(item.domain ? `${item.domain}.ton` : 'Guest')} ${item.is_owner ? '• host' : ''} ${item.is_viewer ? '• ты' : ''}</div>
                   </div>
                 `).join('')}
               </div>
               <div class="uno-controls">
+                ${session.can_ready ? `<button type="button" class="${viewerReady ? 'secondary' : ''}" id="uno-room-ready-btn">${viewerReady ? 'Снять ready' : 'Готов'}</button>` : ''}
                 ${session.can_start ? '<button type="button" id="uno-room-start-btn">Стартовать</button>' : '<button type="button" class="secondary" disabled>Старт недоступен</button>'}
                 <button type="button" class="secondary" id="uno-room-refresh-btn">Обновить</button>
                 ${session.can_leave ? '<button type="button" class="secondary" id="uno-room-leave-btn">Выйти</button>' : ''}
@@ -19769,10 +19902,12 @@ PAGE_TEMPLATE = """
             </div>
           </div>
         `;
+        const unoRoomReadyBtn = document.getElementById('uno-room-ready-btn');
         const unoRoomStartBtn = document.getElementById('uno-room-start-btn');
         const unoRoomRefreshBtn = document.getElementById('uno-room-refresh-btn');
         const unoRoomLeaveBtn = document.getElementById('uno-room-leave-btn');
         const unoOpenLauncherBtn = document.getElementById('uno-open-launcher-btn');
+        if (unoRoomReadyBtn) bindFunctionalControl(unoRoomReadyBtn, () => toggleUnoRoomReady(!viewerReady), 'click', {skipPrepare: true});
         if (unoRoomStartBtn) bindFunctionalControl(unoRoomStartBtn, startUnoRoom, 'click', {skipPrepare: true});
         if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus(), 'click', {skipPrepare: true});
         if (unoRoomLeaveBtn) bindFunctionalControl(unoRoomLeaveBtn, leaveUnoSession, 'click', {skipPrepare: true});
@@ -19790,6 +19925,9 @@ PAGE_TEMPLATE = """
       const topStatusText = liveGuide.headline || (session.complete ? `${session.winner_label || 'Матч завершён'} выигрывает` : '');
       const resultSummary = liveGuide.detail || '';
       const canTapDraw = Boolean(session.can_draw && !unoAlert && !actionLocked && !pendingWildCardId && !state.unoDrawFx);
+      const turnCountdownLabel = !session.complete && !unoAlert && Number(session.turn_remaining_ms || 0) > 0
+        ? `${Math.max(1, Math.ceil(Number(session.turn_remaining_ms || 0) / 1000))}с`
+        : '';
       const displayHand = visibleUnoPlayerHand(session);
       unoRoot.innerHTML = `
         <div class="uno-shell ${session.complete ? 'completed' : 'playing'}" style="background:${tableSurface};">
@@ -19807,9 +19945,9 @@ PAGE_TEMPLATE = """
               </div>
             </div>
             <div class="uno-meta-strip">
-              <div class="uno-chip">Ход: ${escapeHtml(session.turn_display_name || (session.your_turn ? 'ты' : 'соперник'))}</div>
               <div class="uno-chip">Колода: ${Number(session.draw_remaining || 0)}</div>
               <div class="uno-chip">Рука: ${Number((session.player_hand || []).length || 0)}</div>
+              ${turnCountdownLabel ? `<div class="uno-chip">Ход: ${escapeHtml(turnCountdownLabel)}</div>` : ''}
             </div>
           </div>
           <div class="uno-status-banner uno-live-summary ${turnToneClass}">
@@ -19854,6 +19992,10 @@ PAGE_TEMPLATE = """
             </div>
             <div class="uno-live-board">
               <div class="uno-event-layer" data-uno-event-layer hidden></div>
+              <div class="uno-live-board-head">
+                <span>${canTapDraw ? 'Жми колоду' : 'Колода'}</span>
+                <span>${session.your_turn && !session.complete ? 'Бросай сюда' : `Стол • ${escapeHtml(session.current_color_label || '—')}`}</span>
+              </div>
               <div class="uno-center">
                 <div>
                   <button type="button" class="uno-stack-action ${canTapDraw ? 'can-draw' : ''}" id="uno-draw-pile-btn"${canTapDraw ? '' : ' disabled'}>
@@ -19863,14 +20005,14 @@ PAGE_TEMPLATE = """
                       <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
                       <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
                     </div>
-                    <div class="uno-stack-label">${canTapDraw ? 'Tap to draw' : 'Колода'}</div>
+                    <div class="uno-stack-label">${canTapDraw ? 'Тап по колоде' : 'Колода'}</div>
                   </button>
                 </div>
                 <div class="uno-discard-stack" data-uno-drop-target="discard">
                   <div class="uno-stack">
                     <div class="uno-stack-top">${session.discard_top ? unoCardMarkup(session.discard_top, {frameAsset, asButton: false}) : ''}</div>
                   </div>
-                  <div class="uno-stack-label ${session.your_turn && !session.complete ? 'drop-hint' : ''}">${session.your_turn && !session.complete ? 'Сюда' : `Стол • ${escapeHtml(session.current_color_label || '—')}`}</div>
+                  <div class="uno-stack-label ${session.your_turn && !session.complete ? 'drop-hint' : ''}">${session.your_turn && !session.complete ? 'Бросай сюда' : `Стол • ${escapeHtml(session.current_color_label || '—')}`}</div>
                 </div>
               </div>
               ${session.complete ? `
@@ -20050,6 +20192,28 @@ PAGE_TEMPLATE = """
           state.playerProfile = data.player;
         }
         scheduleUnoStatusPolling(true);
+      } catch (error) {
+        unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
+      }
+    }
+
+    async function toggleUnoRoomReady(ready = true) {
+      if (!unoTesterGuard()) return;
+      await prepareFunctionalInteraction();
+      if (!state.unoSession || !state.unoSession.session_id) return;
+      try {
+        const data = await api('/api/uno/room/ready', {
+          method: 'POST',
+          body: unoActorPayload({ session_id: state.unoSession.session_id, ready: Boolean(ready) })
+        });
+        state.unoSession = data.session || null;
+        state.unoPendingColorCardId = null;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+        }
+        scheduleUnoStatusPolling(true);
+        renderUnoPanel();
       } catch (error) {
         unoRoot.innerHTML = `<div class="uno-empty"><strong class="error">${escapeHtml(error.message)}</strong></div>`;
       }
@@ -23734,6 +23898,12 @@ PAGE_TEMPLATE = """
     if (unoGuideNextBtn) {
       bindFunctionalControl(unoGuideNextBtn, nextUnoGuideStep, 'click', {skipPrepare: true});
     }
+    if (unoGuidePlayBtn) {
+      bindFunctionalControl(unoGuidePlayBtn, async () => {
+        closeUnoGuide(true);
+        await startUnoMatch();
+      }, 'click', {skipPrepare: true});
+    }
     if (unoGuidePrevBtn) {
       bindFunctionalControl(unoGuidePrevBtn, prevUnoGuideStep, 'click', {skipPrepare: true});
     }
@@ -26273,8 +26443,11 @@ def record_uno_behavior(wallet, domain, result):
 
 
 UNO_QUICK_AUTOSTART_SECONDS = 10
+UNO_READY_AUTOSTART_SECONDS = 4
 UNO_CALL_WINDOW_SECONDS = 4.0
 UNO_CALL_PENALTY_CARDS = 2
+UNO_TURN_TIMEOUT_SECONDS = 18
+UNO_STALL_PENALTY_CARDS = 1
 UNO_BOT_UNO_REACTION_MIN_SECONDS = 1.15
 UNO_BOT_UNO_REACTION_MAX_SECONDS = 2.45
 
@@ -26342,6 +26515,153 @@ def uno_clear_alert(state):
     return state
 
 
+def uno_ready_map(state):
+    ready_by_wallet = state.get('ready_by_wallet')
+    if not isinstance(ready_by_wallet, dict):
+        ready_by_wallet = {}
+    normalized = {}
+    for participant in uno_participants(state):
+        wallet = str(participant.get('wallet') or '').strip()
+        if wallet:
+            normalized[wallet] = bool(ready_by_wallet.get(wallet))
+    return normalized
+
+
+def uno_ready_count(state):
+    return sum(1 for ready in uno_ready_map(state).values() if ready)
+
+
+def uno_all_participants_ready(state):
+    participants = uno_participants(state)
+    if len(participants) < 2:
+        return False
+    ready_by_wallet = uno_ready_map(state)
+    return all(ready_by_wallet.get(str(participant.get('wallet') or '').strip(), False) for participant in participants)
+
+
+def uno_sync_waiting_ready(state):
+    if uno_state_status(state) != 'waiting':
+        state.pop('ready_by_wallet', None)
+        state.pop('auto_start_at', None)
+        return state
+    state['ready_by_wallet'] = uno_ready_map(state)
+    if not uno_all_participants_ready(state):
+        state['auto_start_at'] = None
+    return state
+
+
+def uno_set_waiting_ready(state, wallet, ready=True):
+    if uno_state_status(state) != 'waiting':
+        raise ValueError('Готовность можно менять только до старта UNO-партии.')
+    actor_wallet = str(wallet or '').strip()
+    if uno_find_participant_index(state, actor_wallet) < 0:
+        raise ValueError('Игрок не найден в этом лобби UNO.')
+    ready_by_wallet = uno_ready_map(state)
+    ready_by_wallet[actor_wallet] = bool(ready)
+    state['ready_by_wallet'] = ready_by_wallet
+    state['auto_start_at'] = None
+    actor_label = uno_actor_label(state, actor_wallet)
+    state['last_action'] = f'{actor_label} {"готов" if ready else "снял готовность"}.'
+    if uno_all_participants_ready(state):
+        if uno_state_mode(state) == 'quick':
+            state['auto_start_at'] = (now_utc() + timedelta(seconds=UNO_READY_AUTOSTART_SECONDS)).isoformat()
+            state['last_action'] = f'Все готовы. Быстрый матч стартует через {UNO_READY_AUTOSTART_SECONDS} сек.'
+        else:
+            state['last_action'] = 'Все готовы. Хост может запускать матч.'
+    return state
+
+
+def uno_current_turn_actor_id(state):
+    if bool(state.get('complete')) or uno_state_status(state) == 'waiting':
+        return ''
+    if uno_state_mode(state) == 'bot':
+        return str(state.get('wallet') or '').strip() if state.get('turn') == 'player' else 'bot'
+    participants = uno_participants(state)
+    if not participants:
+        return ''
+    current_index = int(state.get('current_player_index', 0) or 0) % max(1, len(participants))
+    return str(participants[current_index].get('wallet') or '').strip()
+
+
+def uno_touch_turn_timer(state):
+    if bool(state.get('complete')) or uno_state_status(state) == 'waiting':
+        state.pop('turn_started_at', None)
+        return state
+    state['turn_started_at'] = now_iso()
+    return state
+
+
+def uno_turn_timer_payload(state):
+    if bool(state.get('complete')) or uno_state_status(state) == 'waiting' or uno_active_alert(state):
+        return {
+            'turn_timeout_seconds': UNO_TURN_TIMEOUT_SECONDS,
+            'turn_deadline_at': None,
+            'turn_remaining_ms': 0,
+            'stall_penalty_cards': UNO_STALL_PENALTY_CARDS,
+        }
+    try:
+        started_at = parse_iso(state.get('turn_started_at'))
+    except Exception:
+        started_at = now_utc()
+    deadline_at = started_at + timedelta(seconds=UNO_TURN_TIMEOUT_SECONDS)
+    remaining_ms = max(0, int((deadline_at - now_utc()).total_seconds() * 1000))
+    return {
+        'turn_timeout_seconds': UNO_TURN_TIMEOUT_SECONDS,
+        'turn_deadline_at': deadline_at.isoformat(),
+        'turn_remaining_ms': remaining_ms,
+        'stall_penalty_cards': UNO_STALL_PENALTY_CARDS,
+    }
+
+
+def uno_apply_turn_timeout(state, actor_id):
+    actor_wallet = str(actor_id or '').strip()
+    if not actor_wallet or bool(state.get('complete')):
+        return state
+    drawn_cards = uno_draw_cards(state, UNO_STALL_PENALTY_CARDS)
+    current_hand = uno_get_actor_hand(state, actor_wallet)
+    uno_set_actor_hand(state, actor_wallet, list(current_hand) + list(drawn_cards))
+    state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
+    penalty_text = f'Штраф +{len(drawn_cards)}.' if drawn_cards else 'Колода пуста, штрафная карта не добрана.'
+    if uno_state_mode(state) == 'bot':
+        actor_side = uno_bot_actor_from_id(state, actor_wallet)
+        if actor_side == 'player':
+            state['turn'] = 'bot'
+            state['last_action'] = f'Ты слишком долго думал. {penalty_text} Ход у {state.get("bot_name") or "UNO Bot"}.'
+            state = uno_touch_turn_timer(state)
+            return uno_run_bot_turn(state)
+        state['turn'] = 'player'
+        state['last_action'] = f'{state.get("bot_name") or "UNO Bot"} замешкался. {penalty_text} Твой ход.'
+        return uno_touch_turn_timer(state)
+    participants = uno_participants(state)
+    actor_index = uno_find_participant_index(state, actor_wallet)
+    if actor_index < 0 or not participants:
+        return state
+    next_index = uno_next_player_index(state, actor_index, 1)
+    next_participant = participants[next_index]
+    state['current_player_index'] = next_index
+    state['last_action'] = (
+        f'{uno_actor_label(state, actor_wallet)} слишком долго думал. '
+        f'{penalty_text} Ход у {uno_player_name(next_participant)}.'
+    )
+    return uno_touch_turn_timer(state)
+
+
+def uno_progress_turn_timeout(state):
+    if bool(state.get('complete')) or uno_state_status(state) == 'waiting' or uno_active_alert(state):
+        return state, False
+    actor_wallet = uno_current_turn_actor_id(state)
+    if not actor_wallet:
+        return state, False
+    try:
+        started_at = parse_iso(state.get('turn_started_at'))
+    except Exception:
+        state = uno_touch_turn_timer(state)
+        return state, True
+    if now_utc() < started_at + timedelta(seconds=UNO_TURN_TIMEOUT_SECONDS):
+        return state, False
+    return uno_apply_turn_timeout(state, actor_wallet), True
+
+
 def uno_arm_uno_alert(state, target_actor_id):
     target_wallet = str(target_actor_id or '').strip()
     if not target_wallet or bool(state.get('complete')) or len(uno_get_actor_hand(state, target_wallet)) != 1:
@@ -26375,7 +26695,7 @@ def uno_resolve_self_call(state, actor_id):
     target_wallet = str(actor_id or '').strip()
     uno_clear_alert(state)
     state['last_action'] = f'{uno_actor_label(state, target_wallet)} успел нажать UNO и защитил последнюю карту.'
-    return state
+    return uno_touch_turn_timer(state)
 
 
 def uno_resolve_catch(state, target_actor_id, catcher_actor_id):
@@ -26389,14 +26709,14 @@ def uno_resolve_catch(state, target_actor_id, catcher_actor_id):
         f'{uno_actor_label(state, catcher_wallet)} поймал {uno_actor_label(state, target_wallet)} без UNO. '
         f'Штраф +{len(drawn_cards)} карты.'
     )
-    return state
+    return uno_touch_turn_timer(state)
 
 
 def uno_resolve_timeout(state, target_actor_id):
     target_wallet = str(target_actor_id or '').strip()
     uno_clear_alert(state)
     state['last_action'] = f'У {uno_actor_label(state, target_wallet)} оставалась 1 карта. Окно UNO закрылось.'
-    return state
+    return uno_touch_turn_timer(state)
 
 
 def uno_resume_bot_after_alert(state):
@@ -26673,6 +26993,7 @@ def create_uno_reward_payload(wallet, domain, result, *, turns, cards_left, tota
 
 def build_uno_waiting_payload(state, viewer_wallet):
     participants = uno_participants(state)
+    ready_by_wallet = uno_ready_map(state)
     countdown_seconds = 0
     auto_start_at = state.get('auto_start_at')
     if auto_start_at:
@@ -26695,13 +27016,18 @@ def build_uno_waiting_payload(state, viewer_wallet):
                 'wallet': item.get('wallet'),
                 'display_name': uno_player_name(item),
                 'domain': item.get('domain') or '',
+                'ready': ready_by_wallet.get(str(item.get('wallet') or '').strip(), False),
                 'is_owner': str(item.get('wallet') or '') == str(state.get('wallet') or ''),
                 'is_viewer': str(item.get('wallet') or '') == str(viewer_wallet or ''),
             }
             for item in participants
         ],
         'is_owner': str(state.get('wallet') or '') == str(viewer_wallet or ''),
-        'can_start': uno_state_mode(state) == 'friends' and str(state.get('wallet') or '') == str(viewer_wallet or '') and len(participants) >= 2,
+        'viewer_ready': ready_by_wallet.get(str(viewer_wallet or '').strip(), False),
+        'ready_count': uno_ready_count(state),
+        'all_ready': uno_all_participants_ready(state),
+        'can_start': str(state.get('wallet') or '') == str(viewer_wallet or '') and uno_all_participants_ready(state),
+        'can_ready': uno_find_participant_index(state, viewer_wallet) >= 0,
         'can_leave': uno_find_participant_index(state, viewer_wallet) >= 0,
         'auto_start_at': auto_start_at,
         'countdown_seconds': countdown_seconds,
@@ -26792,6 +27118,7 @@ def build_uno_multiplayer_payload(state, viewer_wallet):
         'player_cosmetics': uno_equipped_cosmetics_for(viewer_wallet),
         'is_owner': str(state.get('wallet') or '') == str(viewer_wallet or ''),
         'uno_alert': uno_alert,
+        **uno_turn_timer_payload(state),
     }
 
 
@@ -26855,6 +27182,7 @@ def build_uno_session_payload(state, viewer_wallet=None):
         'bot_name': state.get('bot_name') or 'UNO Bot',
         'is_owner': True,
         'uno_alert': uno_alert,
+        **uno_turn_timer_payload(state),
     }
 
 
@@ -26960,18 +27288,25 @@ def uno_start_multiplayer_session(state):
     state['reward_summary_by_wallet'] = {}
     state['rewards_applied'] = False
     state['auto_start_at'] = None
+    state.pop('ready_by_wallet', None)
     state['started_at'] = now_iso()
     state['uno_alert'] = None
     state['last_action'] = f"Стол открыт картой {uno_card_title(top_card)}. Первый ход у {uno_player_name(participants[0])}."
-    return state
+    return uno_touch_turn_timer(state)
 
 
 def refresh_uno_quick_session(state):
     changed = False
     if uno_state_mode(state) != 'quick' or uno_state_status(state) != 'waiting':
         return state, changed
+    state = uno_sync_waiting_ready(state)
     participants = uno_participants(state)
     if len(participants) < 2:
+        if state.get('auto_start_at'):
+            state['auto_start_at'] = None
+            changed = True
+        return state, changed
+    if not uno_all_participants_ready(state):
         if state.get('auto_start_at'):
             state['auto_start_at'] = None
             changed = True
@@ -26979,7 +27314,7 @@ def refresh_uno_quick_session(state):
     max_players = max(2, min(6, int(state.get('max_players', 6) or 6)))
     auto_start_at = state.get('auto_start_at')
     if not auto_start_at:
-        state['auto_start_at'] = (now_utc() + timedelta(seconds=UNO_QUICK_AUTOSTART_SECONDS)).isoformat()
+        state['auto_start_at'] = (now_utc() + timedelta(seconds=UNO_READY_AUTOSTART_SECONDS)).isoformat()
         changed = True
         return state, changed
     should_start = False
@@ -27009,6 +27344,7 @@ def create_uno_multiplayer_room(wallet, domain, *, mode='friends', visibility='p
         'status': 'waiting',
         'max_players': max(2, min(6, int(max_players or 6))),
         'participants': [create_uno_participant(wallet, domain, display_name=display_name)],
+        'ready_by_wallet': {wallet: False},
         'draw_pile': [],
         'discard': [],
         'current_color': '',
@@ -27037,6 +27373,10 @@ def join_uno_multiplayer_room(session_id, wallet, domain, display_name=None):
         raise ValueError('Лобби UNO уже заполнено.')
     participants.append(create_uno_participant(wallet, domain, display_name=display_name))
     state['participants'] = participants
+    ready_by_wallet = uno_ready_map(state)
+    ready_by_wallet[str(wallet or '').strip()] = False
+    state['ready_by_wallet'] = ready_by_wallet
+    state['auto_start_at'] = None
     state['last_action'] = f'{display_name_for_wallet(wallet)} подключился к лобби.'
     state, _ = refresh_uno_quick_session(state)
     save_uno_session(state)
@@ -27058,6 +27398,10 @@ def leave_uno_multiplayer_room(session_id, wallet):
     state['participants'] = participants
     state['wallet'] = participants[0]['wallet']
     state['domain'] = participants[0]['domain']
+    ready_by_wallet = uno_ready_map(state)
+    ready_by_wallet.pop(str(wallet or '').strip(), None)
+    state['ready_by_wallet'] = ready_by_wallet
+    state['auto_start_at'] = None
     state['last_action'] = f'{display_name_for_wallet(wallet)} покинул лобби.'
     state, _ = refresh_uno_quick_session(state)
     save_uno_session(state)
@@ -27072,7 +27416,20 @@ def start_uno_multiplayer_room(session_id, wallet):
         return build_uno_session_payload(state, wallet)
     if uno_state_mode(state) == 'friends' and str(state.get('wallet') or '') != str(wallet or ''):
         raise ValueError('Стартовать приватную комнату может только создатель.')
+    if not uno_all_participants_ready(state):
+        raise ValueError('Сначала дождись готовности всех игроков.')
     state = uno_start_multiplayer_session(state)
+    save_uno_session(state)
+    return build_uno_session_payload(state, wallet)
+
+
+def set_uno_multiplayer_room_ready(session_id, wallet, ready=True):
+    state = load_uno_session(session_id)
+    if uno_state_mode(state) == 'bot':
+        raise ValueError('Для матча с ботом готовность не нужна.')
+    if uno_state_status(state) != 'waiting':
+        return build_uno_session_payload(state, wallet)
+    state = uno_set_waiting_ready(state, wallet, ready=ready)
     save_uno_session(state)
     return build_uno_session_payload(state, wallet)
 
@@ -27139,7 +27496,7 @@ def uno_apply_card_effect(state, actor, card, chosen_color=None):
     state['turn'] = actor if skip_turn else ('bot' if actor == 'player' else 'player')
     if len(state.get(hand_key) or []) == 1 and not state.get('complete'):
         state = uno_arm_uno_alert(state, uno_bot_actor_id(state, actor))
-    return state
+    return uno_touch_turn_timer(state)
 
 
 def uno_run_bot_turn(state):
@@ -27228,7 +27585,7 @@ def uno_apply_multiplayer_card_effect(state, wallet, card, chosen_color=None):
     state['current_player_index'] = uno_next_player_index(state, actor_index, 1 + skip_steps)
     if len(hands.get(wallet) or []) == 1 and not state.get('complete'):
         state = uno_arm_uno_alert(state, wallet)
-    return state
+    return uno_touch_turn_timer(state)
 
 
 def create_uno_session(wallet, domain, display_name=None):
@@ -27272,6 +27629,7 @@ def create_uno_session(wallet, domain, display_name=None):
         'rewards_applied': False,
         'created_at': now_iso(),
     }
+    state = uno_touch_turn_timer(state)
     save_uno_session(state)
     return build_uno_session_payload(state, wallet)
 
@@ -27289,6 +27647,8 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
                 save_uno_session(state)
             return build_uno_session_payload(state, wallet)
         state, changed = uno_progress_alert(state)
+        state, timeout_changed = uno_progress_turn_timeout(state)
+        changed = changed or timeout_changed
         if changed:
             save_uno_session(state)
         if state.get('complete'):
@@ -27323,9 +27683,11 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
                     state['last_action'] = f'{display_name_for_wallet(wallet)} добрал карту и теперь может играть.'
                 else:
                     state['last_action'] = f'{display_name_for_wallet(wallet)} добрал карту и может тянуть дальше.'
+                state = uno_touch_turn_timer(state)
             else:
                 state['last_action'] = f'{display_name_for_wallet(wallet)} хотел добрать, но колода пуста. Ход переходит дальше.'
                 state['current_player_index'] = uno_next_player_index(state, current_index, 1)
+                state = uno_touch_turn_timer(state)
             save_uno_session(state)
             return build_uno_session_payload(state, wallet)
         if action_key != 'play':
@@ -27347,6 +27709,8 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
     if wallet != state.get('wallet'):
         raise ValueError('Нет доступа к этой UNO-сессии.')
     state, changed = uno_progress_alert(state)
+    state, timeout_changed = uno_progress_turn_timeout(state)
+    changed = changed or timeout_changed
     if changed:
         save_uno_session(state)
     if state.get('complete'):
@@ -27379,6 +27743,9 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
                 state['last_action'] = 'Карта в руке. Теперь её можно тянуть на стол.'
             else:
                 state['last_action'] = 'Карта прилетела в руку. Подходящей ещё нет, тяни дальше.'
+            state = uno_touch_turn_timer(state)
+        if not drawn and state.get('turn') == 'bot':
+            state = uno_touch_turn_timer(state)
         if not state.get('complete') and state.get('turn') == 'bot':
             state = uno_run_bot_turn(state)
         save_uno_session(state)
@@ -35653,6 +36020,27 @@ def api_uno_leave():
     return jsonify({'ok': True, 'session': session, 'player': get_player(wallet) if valid_wallet_address(wallet) else None})
 
 
+@app.route('/api/uno/room/ready', methods=['POST'])
+def api_uno_room_ready():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    guest_id = normalize_uno_guest_id(payload.get('guest_id'))
+    actor_id = wallet if valid_wallet_address(wallet) else guest_id
+    session_id = (payload.get('session_id') or '').strip()
+    ready = bool(payload.get('ready', True))
+    if not actor_id:
+        return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        session = set_uno_multiplayer_room_ready(session_id, actor_id, ready=ready)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'session': session, 'player': get_player(wallet) if valid_wallet_address(wallet) else None})
+
+
 @app.route('/api/uno/action', methods=['POST'])
 def api_uno_action():
     payload = request.get_json(silent=True) or {}
@@ -35698,7 +36086,8 @@ def api_uno_status():
         return json_error('Нет доступа к этой UNO-сессии.', 403)
     state, changed = refresh_uno_quick_session(state)
     state, alert_changed = uno_progress_alert(state)
-    changed = changed or alert_changed
+    state, timeout_changed = uno_progress_turn_timeout(state)
+    changed = changed or alert_changed or timeout_changed
     if changed:
         save_uno_session(state)
     return jsonify({'ok': True, 'session': build_uno_session_payload(state, actor_id), 'player': get_player(wallet) if valid_wallet_address(wallet) else None})
