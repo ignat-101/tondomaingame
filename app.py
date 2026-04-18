@@ -632,6 +632,45 @@ PAGE_TEMPLATE = """
       background: linear-gradient(90deg, rgba(69, 215, 255, 0.94), rgba(83, 246, 184, 0.94));
     }
 
+    body.domain-app-context .top-app-nav {
+      border-color: rgba(121, 217, 255, 0.18);
+      background:
+        linear-gradient(180deg, rgba(8, 16, 27, 0.96), rgba(10, 20, 34, 0.94)),
+        radial-gradient(circle at top, rgba(69, 215, 255, 0.1), transparent 58%);
+      color: #d8efff;
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.22),
+        inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+
+    body.domain-app-context .top-app-brand {
+      color: #eef8ff;
+    }
+
+    body.domain-app-context .top-app-brand-badge {
+      border-color: rgba(121, 217, 255, 0.16);
+      background:
+        linear-gradient(180deg, rgba(18, 30, 48, 0.96), rgba(9, 18, 30, 0.98)),
+        radial-gradient(circle at top, rgba(83, 246, 184, 0.12), transparent 64%);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    body.domain-app-context .top-app-nav-link {
+      color: rgba(203, 226, 240, 0.72);
+    }
+
+    body.domain-app-context .top-app-nav-link:hover:not(:disabled) {
+      color: #eff9ff;
+    }
+
+    body.domain-app-context .top-app-nav-link.active {
+      color: #eff9ff;
+    }
+
+    body.domain-app-context .top-app-nav-link.active::after {
+      background: linear-gradient(90deg, rgba(69, 215, 255, 0.98), rgba(83, 246, 184, 0.98));
+    }
+
     body.launcher-open {
       overflow: hidden;
       overscroll-behavior: none;
@@ -964,7 +1003,7 @@ PAGE_TEMPLATE = """
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.12);
       background:
-        radial-gradient(circle at 14% 12%, rgba(255, 91, 87, 0.22), transparent 28%),
+        radial-gradient(circle at 14% 12%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.22)), transparent 28%),
         radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.18), transparent 26%),
         radial-gradient(circle at 50% 100%, rgba(49, 168, 255, 0.16), transparent 34%),
         linear-gradient(180deg, rgba(12, 18, 30, 0.98), rgba(7, 12, 22, 0.98));
@@ -1027,8 +1066,10 @@ PAGE_TEMPLATE = """
       min-height: 34px;
       padding: 0 12px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: linear-gradient(135deg, rgba(19, 26, 40, 0.84), rgba(12, 18, 30, 0.76));
+      border: 1px solid var(--uno-theme-accent-soft, rgba(255,255,255,0.14));
+      background:
+        linear-gradient(135deg, rgba(19, 26, 40, 0.84), rgba(12, 18, 30, 0.76)),
+        radial-gradient(circle at top, var(--uno-theme-accent-soft, rgba(255,255,255,0.05)), transparent 68%);
       display: inline-flex;
       align-items: center;
       color: rgba(245, 250, 255, 0.9);
@@ -1138,11 +1179,11 @@ PAGE_TEMPLATE = """
       position: relative;
       min-height: clamp(176px, 26vw, 220px);
       border-radius: 26px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--uno-theme-accent-soft, rgba(255, 255, 255, 0.1));
       overflow: hidden;
       background:
         radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.16), transparent 24%),
-        radial-gradient(circle at 18% 86%, rgba(255, 91, 87, 0.14), transparent 28%),
+        radial-gradient(circle at 18% 86%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.14)), transparent 28%),
         radial-gradient(circle at 84% 76%, rgba(46, 132, 255, 0.16), transparent 26%),
         linear-gradient(180deg, rgba(12, 18, 30, 0.74), rgba(7, 11, 20, 0.94));
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
@@ -1280,6 +1321,29 @@ PAGE_TEMPLATE = """
       min-width: 112px;
     }
 
+    .uno-surface-actions .uno-surface-tab {
+      min-height: 40px;
+      padding-inline: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background:
+        linear-gradient(180deg, rgba(16, 22, 36, 0.92), rgba(10, 15, 24, 0.96)),
+        radial-gradient(circle at top, var(--uno-theme-accent-soft, rgba(255, 214, 74, 0.12)), transparent 68%);
+      color: rgba(255, 246, 234, 0.92);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
+    }
+
+    .uno-surface-actions .uno-surface-tab.active {
+      border-color: rgba(255, 214, 74, 0.32);
+      background:
+        linear-gradient(135deg, rgba(255, 91, 87, 0.92), rgba(255, 214, 74, 0.84)),
+        radial-gradient(circle at top, rgba(255,255,255,0.12), transparent 72%);
+      color: #1a1208;
+      box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.18),
+        0 0 0 1px rgba(255,255,255,0.05);
+    }
+
     .uno-home-control .actions {
       display: grid;
       gap: 10px;
@@ -1312,7 +1376,7 @@ PAGE_TEMPLATE = """
       width: 100%;
     }
 
-    .uno-shell button:not(.secondary):not(.uno-card-btn):not(.uno-stack-action):not(.uno-color-choice):not(.uno-guide-call-button),
+    .uno-shell button:not(.secondary):not(.uno-card-btn):not(.uno-stack-action):not(.uno-color-choice):not(.uno-guide-call-button):not(.uno-surface-tab),
     .uno-startup-guide button:not(.secondary) {
       border-color: rgba(255, 214, 74, 0.38);
       background: linear-gradient(135deg, rgba(255, 91, 87, 0.86), rgba(255, 214, 74, 0.78));
@@ -1703,7 +1767,9 @@ PAGE_TEMPLATE = """
 
     .uno-back-face {
       background:
-        radial-gradient(circle at 50% 22%, rgba(255,255,255,0.12), transparent 26%),
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.12), transparent 30%),
+        radial-gradient(circle at 18% 20%, var(--uno-back-accent-soft, rgba(255, 214, 74, 0.14)), transparent 38%),
+        radial-gradient(circle at 82% 84%, var(--uno-back-accent-soft, rgba(255, 214, 74, 0.12)), transparent 42%),
         var(--uno-cardback-surface, linear-gradient(180deg, rgba(60,68,82,0.98), rgba(38,44,56,0.98)));
     }
 
@@ -1764,10 +1830,10 @@ PAGE_TEMPLATE = """
     }
 
     .uno-photo-face.asset.back {
-      inset: 21%;
+      inset: 27% 18%;
       border-radius: 0;
       background: transparent;
-      opacity: 0.2;
+      opacity: 0.12;
       mix-blend-mode: screen;
       filter: drop-shadow(0 8px 18px rgba(0,0,0,0.22));
     }
@@ -1825,10 +1891,14 @@ PAGE_TEMPLATE = """
     }
 
     .uno-back-oval {
-      background: var(--uno-cardback-surface);
+      background:
+        linear-gradient(180deg, rgba(7, 12, 20, 0.22), rgba(7, 12, 20, 0.48)),
+        var(--uno-cardback-surface);
       box-shadow:
-        inset 0 0 0 3px rgba(255,255,255,0.88),
-        0 10px 16px rgba(0,0,0,0.18);
+        inset 0 0 0 2px rgba(255,255,255,0.86),
+        inset 0 14px 18px rgba(255,255,255,0.06),
+        0 10px 16px rgba(0,0,0,0.18),
+        0 0 0 1px var(--uno-back-accent-soft, rgba(255, 214, 74, 0.18));
     }
 
     .uno-card-corner,
@@ -1988,21 +2058,22 @@ PAGE_TEMPLATE = """
     .uno-back-brand-mark {
       min-width: 54px;
       min-height: 54px;
-      padding: 0 14px;
+      padding: 0 16px;
       border-radius: 18px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       background:
-        linear-gradient(180deg, rgba(8, 13, 21, 0.28), rgba(8, 13, 21, 0.54)),
+        linear-gradient(180deg, rgba(8, 13, 21, 0.22), rgba(8, 13, 21, 0.52)),
         var(--uno-cardback-surface);
-      color: #eef8ff;
+      color: var(--uno-back-text, #eef8ff);
       font-size: 18px;
       font-weight: 900;
       letter-spacing: 0.08em;
       transform: rotate(-18deg);
       box-shadow:
-        inset 0 0 0 3px rgba(255,255,255,0.86),
+        inset 0 0 0 2px rgba(255,255,255,0.84),
+        inset 0 0 0 3px var(--uno-back-accent-soft, rgba(255, 214, 74, 0.16)),
         0 10px 16px rgba(0,0,0,0.18);
     }
 
@@ -2012,7 +2083,8 @@ PAGE_TEMPLATE = """
       border-radius: 999px;
       background: var(--uno-cardback-surface);
       box-shadow:
-        inset 0 0 0 2px rgba(255,255,255,0.84),
+        inset 0 0 0 2px rgba(255,255,255,0.82),
+        0 0 0 1px var(--uno-back-accent-soft, rgba(255, 214, 74, 0.16)),
         0 4px 8px rgba(0,0,0,0.16);
     }
 
@@ -2067,7 +2139,7 @@ PAGE_TEMPLATE = """
 
     .uno-discard-stack.drop-active {
       transform: scale(1.05);
-      filter: drop-shadow(0 0 20px rgba(255, 214, 74, 0.28));
+      filter: drop-shadow(0 0 20px var(--uno-theme-accent-soft, rgba(255, 214, 74, 0.28)));
     }
 
     .uno-discard-stack.drop-active .uno-stack-top {
@@ -2632,7 +2704,9 @@ PAGE_TEMPLATE = """
       padding: 10px 12px;
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(8, 14, 22, 0.76);
+      background:
+        linear-gradient(180deg, rgba(8, 14, 22, 0.82), rgba(7, 12, 19, 0.9)),
+        radial-gradient(circle at top, var(--uno-theme-accent-soft, rgba(255, 214, 74, 0.08)), transparent 72%);
       color: rgba(231, 239, 252, 0.82);
       font-size: 11px;
       line-height: 1.32;
@@ -2643,7 +2717,7 @@ PAGE_TEMPLATE = """
       font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: rgba(255, 214, 74, 0.92);
+      color: var(--uno-theme-accent, rgba(255, 214, 74, 0.92));
     }
 
     .uno-meta-strip .uno-chip.current-color {
@@ -2692,8 +2766,10 @@ PAGE_TEMPLATE = """
       min-height: 30px;
       padding: 0 12px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--uno-theme-accent-soft, rgba(255,255,255,0.08));
+      background:
+        linear-gradient(180deg, rgba(16, 22, 34, 0.84), rgba(9, 15, 24, 0.9)),
+        radial-gradient(circle at top, var(--uno-theme-accent-soft, rgba(255,255,255,0.05)), transparent 72%);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -5345,11 +5421,11 @@ PAGE_TEMPLATE = """
     .currency-float {
       position: fixed;
       top: 14px;
-      right: 14px;
+      right: 8px;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
+      gap: 6px;
+      padding: 8px 12px;
       border-radius: 16px;
       border: 1px solid rgba(121, 217, 255, 0.16);
       background: rgba(7, 16, 26, 0.92);
@@ -5361,7 +5437,7 @@ PAGE_TEMPLATE = """
     .currency-float-values {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       min-width: 0;
     }
 
@@ -13158,6 +13234,28 @@ PAGE_TEMPLATE = """
       touch-action: pan-x;
     }
 
+    body.domain-app-context .mobile-nav {
+      border-color: rgba(121, 217, 255, 0.2);
+      background:
+        linear-gradient(180deg, rgba(7, 16, 25, 0.96), rgba(7, 18, 30, 0.98)),
+        radial-gradient(circle at top, rgba(69, 215, 255, 0.12), transparent 64%);
+      box-shadow:
+        0 20px 34px rgba(0, 0, 0, 0.34),
+        0 0 0 1px rgba(121, 217, 255, 0.05);
+    }
+
+    body.domain-app-context .mobile-nav button {
+      border-color: rgba(121, 217, 255, 0.16);
+      background: rgba(255,255,255,0.03);
+      color: #eaf7ff;
+    }
+
+    body.domain-app-context .mobile-nav button.active {
+      border-color: rgba(83, 246, 184, 0.44);
+      background: linear-gradient(135deg, rgba(69, 215, 255, 0.22), rgba(83, 246, 184, 0.18));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
     body.uno-app-context .mobile-nav {
       border-color: rgba(255, 214, 74, 0.22);
       background:
@@ -13582,7 +13680,7 @@ PAGE_TEMPLATE = """
     body.tma-app.tma-desktop .currency-float {
       position: fixed;
       top: calc(10px + env(safe-area-inset-top));
-      right: 12px;
+      right: 6px;
       left: auto;
       margin: 0;
       max-width: min(520px, calc(100vw - 24px));
@@ -14364,7 +14462,7 @@ PAGE_TEMPLATE = """
 
     body.tma-app.battle-live-lock .currency-float {
       top: calc(4px + env(safe-area-inset-top));
-      right: 6px;
+      right: 2px;
       left: auto !important;
       gap: 4px;
       padding: 5px 6px;
@@ -14984,19 +15082,11 @@ PAGE_TEMPLATE = """
     <button id="nav-achievements">Пропуск</button>
   </nav>
 
-  <div class="currency-float collapsed" id="global-currency-float">
+  <div class="currency-float" id="global-currency-float">
     <div class="currency-float-values">
       <span class="currency-float-chip">💠 <span id="global-currency-shards">0</span></span>
       <span class="currency-float-chip">🎟️ <span id="global-currency-rare">0</span></span>
-      <span class="currency-float-chip optional">✨ <span id="global-currency-lucky">0</span></span>
-    </div>
-    <div class="currency-float-actions">
-      <button type="button" class="currency-float-toggle" id="global-currency-toggle" aria-label="Свернуть или развернуть очки">
-        <span class="currency-float-chevron"></span>
-      </button>
-      <button type="button" class="currency-float-menu" id="global-currency-menu" aria-label="Открыть профиль">
-        <span></span><span></span><span></span>
-      </button>
+      <span class="currency-float-chip">✨ <span id="global-currency-lucky">0</span></span>
     </div>
   </div>
 
@@ -18255,7 +18345,34 @@ PAGE_TEMPLATE = """
 
     function syncMobileNavContext() {
       const unoContext = hasUnoTesterAccess() && state.activeApp === 'uno';
+      const activeView = String(document.body.dataset.activeView || 'profile');
       document.body.classList.toggle('uno-app-context', unoContext);
+      document.body.classList.toggle('domain-app-context', !unoContext);
+      if (topNavProfile && topNavPack && topNavModes && topNavGuilds && topNavAchievements) {
+        if (unoContext) {
+          topNavProfile.textContent = 'Apps';
+          topNavPack.textContent = 'Profile';
+          topNavModes.textContent = 'UNO';
+          topNavGuilds.textContent = 'Clans';
+          topNavAchievements.textContent = 'Pass';
+          [topNavProfile, topNavPack, topNavModes, topNavGuilds, topNavAchievements].forEach((button) => button.classList.remove('active'));
+          const activeTopButton = activeView === 'profile'
+            ? topNavPack
+            : (activeView === 'guilds'
+              ? topNavGuilds
+              : (activeView === 'achievements'
+                ? topNavAchievements
+                : (activeView === 'uno' ? topNavModes : null)));
+          if (activeTopButton) activeTopButton.classList.add('active');
+        } else {
+          topNavProfile.textContent = 'Profile';
+          topNavPack.textContent = 'Cards';
+          topNavModes.textContent = 'Battle';
+          topNavGuilds.textContent = 'Clans';
+          topNavAchievements.textContent = 'Pass';
+          [topNavProfile, topNavPack, topNavModes, topNavGuilds, topNavAchievements].forEach((button) => button.classList.toggle('active', button.id === `top-nav-${activeView}`));
+        }
+      }
       if (!navPack || !navModes || !navGuilds || !navAchievements) return;
       if (unoContext) {
         navPack.textContent = 'Apps';
@@ -18263,7 +18380,6 @@ PAGE_TEMPLATE = """
         navGuilds.textContent = 'Clans';
         navAchievements.textContent = 'Pass';
         [navPack, navModes, navGuilds, navAchievements].forEach((button) => button.classList.remove('active'));
-        const activeView = String(document.body.dataset.activeView || '');
         const activeButton = activeView === 'profile'
           ? navModes
           : (activeView === 'guilds'
@@ -18283,7 +18399,7 @@ PAGE_TEMPLATE = """
 
     function syncCurrencyFloatChrome() {
       if (!globalCurrencyFloat) return;
-      globalCurrencyFloat.classList.toggle('collapsed', Boolean(state.currencyFloatCollapsed));
+      globalCurrencyFloat.classList.remove('collapsed');
       const hiddenForUnoDesktop = Boolean(state.activeApp === 'uno' && !document.body.classList.contains('tma-app') && document.body.dataset.activeView === 'uno');
       globalCurrencyFloat.style.display = hiddenForUnoDesktop ? 'none' : 'inline-flex';
     }
@@ -19630,6 +19746,7 @@ PAGE_TEMPLATE = """
       const emoji = cosmeticEmojiSymbol(cosmetics);
       const colorKey = String(preferredColor || (state.unoSession && state.unoSession.current_color) || 'yellow').toLowerCase();
       const arenaTheme = cosmeticTheme('arena', arenaKey);
+      const backTheme = cosmeticTheme('cardback', backKey);
       const backSurface = giftCardbackSurface(backKey, emoji);
       const arenaSurface = giftArenaSurface(arenaKey, emoji);
       return {
@@ -19639,6 +19756,8 @@ PAGE_TEMPLATE = """
         guildKey,
         emoji,
         arenaTheme,
+        backTheme,
+        hasCustomBack: !String(backKey || '').toLowerCase().includes('stock_plain'),
         frameAsset: cosmeticAssetUrl('frame', frameKey),
         bannerSurface: guildKey ? giftGuildSurface(guildKey, emoji) : '',
         backSurface,
@@ -19929,13 +20048,7 @@ PAGE_TEMPLATE = """
     }
 
     function visibleUnoPlayerHand(session) {
-      const hand = Array.isArray(session && session.player_hand) ? session.player_hand : [];
-      const fx = state.unoDrawFx;
-      if (!fx || fx.sessionId !== String(session && session.session_id || '')) {
-        return hand;
-      }
-      const hiddenIds = new Set((fx.cards || []).map((card) => String(card && card.id || '')));
-      return hand.filter((card) => !hiddenIds.has(String(card && card.id || '')));
+      return Array.isArray(session && session.player_hand) ? session.player_hand : [];
     }
 
     function runUnoDrawFxAnimation(session, frameAsset) {
@@ -20074,6 +20187,9 @@ PAGE_TEMPLATE = """
       }
       const ghost = drag.ghost;
       state.unoDrag = null;
+      if (state.unoSession && state.unoSession.session_id) {
+        scheduleUnoStatusPolling(true);
+      }
       if (!ghost) return;
       const removeGhost = () => {
         if (ghost.parentNode) ghost.parentNode.removeChild(ghost);
@@ -20100,9 +20216,11 @@ PAGE_TEMPLATE = """
       const sourceEl = config.sourceEl;
       const previewEl = config.previewEl || sourceEl;
       const dropTarget = unoRoot ? unoRoot.querySelector('[data-uno-drop-target="discard"]') : null;
+      const boardTarget = unoRoot ? unoRoot.querySelector('.uno-live-board') : null;
       if (!sourceEl || !previewEl || !dropTarget) return;
       event.preventDefault();
       clearUnoDragInteraction();
+      stopUnoStatusPolling();
       const originRect = previewEl.getBoundingClientRect();
       if (!originRect.width || !originRect.height) return;
       const ghost = document.createElement('div');
@@ -20146,12 +20264,32 @@ PAGE_TEMPLATE = """
           : Math.max(-14, Math.min(14, dx * 0.05));
         ghost.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`;
         const targetRect = dropTarget.getBoundingClientRect();
+        const boardRect = boardTarget ? boardTarget.getBoundingClientRect() : null;
+        const expandedTarget = {
+          left: targetRect.left - 42,
+          right: targetRect.right + 42,
+          top: targetRect.top - 42,
+          bottom: targetRect.bottom + 42,
+        };
+        const insideBoardLane = Boolean(
+          drag.moved
+          && boardRect
+          && moveEvent.clientX >= boardRect.left + Math.min(68, boardRect.width * 0.18)
+          && moveEvent.clientX <= boardRect.right - Math.min(68, boardRect.width * 0.18)
+          && moveEvent.clientY >= boardRect.top + 8
+          && moveEvent.clientY <= boardRect.bottom - 8
+        );
         drag.overTarget = Boolean(
           drag.moved
-          && moveEvent.clientX >= targetRect.left
-          && moveEvent.clientX <= targetRect.right
-          && moveEvent.clientY >= targetRect.top
-          && moveEvent.clientY <= targetRect.bottom
+          && (
+            (
+              moveEvent.clientX >= expandedTarget.left
+              && moveEvent.clientX <= expandedTarget.right
+              && moveEvent.clientY >= expandedTarget.top
+              && moveEvent.clientY <= expandedTarget.bottom
+            )
+            || insideBoardLane
+          )
         );
         dropTarget.classList.toggle('drop-active', drag.overTarget);
       };
@@ -20306,19 +20444,23 @@ PAGE_TEMPLATE = """
       `;
     }
 
-    function unoBackCardMarkup(cardbackSurface, frameAsset = '', label = 'TDG') {
+    function unoBackCardMarkup(cardbackSurface, frameAsset = '', label = 'TDG', options = {}) {
       const mark = String(label || 'TDG').trim() || 'TDG';
       const backUrl = String(UNO_OPEN_CARD_BACK_URL || '').trim();
+      const accent = String(options.accent || '').trim() || '#ffd64a';
+      const accentSoft = hexToRgba(accent, 0.2);
+      const markText = String(options.textColor || '').trim() || '#eef8ff';
+      const showBackArt = Boolean(backUrl && !options.customSkin);
       return `
         <div class="uno-back-card">
-          <div class="uno-back-face" style="--uno-cardback-surface:${escapeHtml(cardbackSurface)};">
+          <div class="uno-back-face" style="--uno-cardback-surface:${escapeHtml(cardbackSurface)};--uno-back-accent:${escapeHtml(accent)};--uno-back-accent-soft:${escapeHtml(accentSoft)};--uno-back-text:${escapeHtml(markText)};">
             <span class="uno-back-oval" aria-hidden="true"></span>
             <span class="uno-back-corner top" aria-hidden="true"><i class="uno-back-corner-dot"></i></span>
             <span class="uno-back-corner bottom" aria-hidden="true"><i class="uno-back-corner-dot"></i></span>
             <span class="uno-back-brand" aria-hidden="true">
               <span class="uno-back-brand-mark">${escapeHtml(mark)}</span>
             </span>
-            ${backUrl ? `
+            ${showBackArt ? `
               <span class="uno-photo-face asset back" aria-hidden="true">
                 <img src="${backUrl}" alt="">
               </span>
@@ -20490,6 +20632,10 @@ PAGE_TEMPLATE = """
         stopUnoStatusPolling();
         return;
       }
+      if (state.unoDrag || state.unoActionInFlight) {
+        scheduleUnoStatusPolling(true);
+        return;
+      }
       const identity = unoActiveIdentity();
       if ((!identity.wallet && !identity.guest_id) || !state.unoSession || !state.unoSession.session_id) {
         stopUnoStatusPolling();
@@ -20515,6 +20661,10 @@ PAGE_TEMPLATE = """
           state.playerProfile = data.player;
         }
         const nextSignature = unoSessionVisualKey(state.unoSession);
+        if (state.unoDrag) {
+          scheduleUnoStatusPolling(true);
+          return;
+        }
         if (document.body.dataset.activeView === 'uno' && (previousSignature !== nextSignature || previousPendingCardId !== state.unoPendingColorCardId)) {
           renderUnoPanel();
         }
@@ -20540,11 +20690,13 @@ PAGE_TEMPLATE = """
       if (status === 'completed') return;
       const delay = immediate
         ? 260
+        : (state.unoDrag
+          ? 260
         : (hasUnoAlert
           ? 420
           : (status === 'waiting'
             ? 1200
-            : (session.your_turn ? 820 : 980)));
+            : (session.your_turn ? 820 : 980))));
       unoStatusPollTimer = window.setTimeout(() => {
         pollUnoStatus().catch(() => {});
       }, delay);
@@ -20592,7 +20744,7 @@ PAGE_TEMPLATE = """
       };
     }
 
-    function unoHomeStageMarkup(frameAsset, backSurface, backMark) {
+    function unoHomeStageMarkup(frameAsset, backSurface, backMark, backOptions = {}) {
       const sampleDiscard = unoDemoCard('yellow', '7', 'table');
       const sampleBurstCards = [
         unoDemoCard('red', 'draw2', 'burst-a'),
@@ -20604,9 +20756,9 @@ PAGE_TEMPLATE = """
         <div class="uno-home-stage" aria-hidden="true">
           <div class="uno-home-deck">
             <div class="uno-stack">
-              <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
-              <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
-              <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+              <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>
+              <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>
+              <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>
             </div>
           </div>
           <div class="uno-home-table-card">${unoCardMarkup(sampleDiscard, {frameAsset, asButton: false})}</div>
@@ -20615,10 +20767,16 @@ PAGE_TEMPLATE = """
       `;
     }
 
-    function unoSurfaceActionsMarkup() {
+    function unoSurfaceActionsMarkup(activeTab = '') {
+      const tabs = [
+        {key: 'apps', label: 'Apps'},
+        {key: 'profile', label: 'Profile'},
+        {key: 'guilds', label: 'Clans'},
+        {key: 'achievements', label: 'Pass'},
+      ];
       return `
         <div class="actions uno-surface-actions compact">
-          <button type="button" data-uno-surface-link="apps">Apps</button>
+          ${tabs.map((tab) => `<button type="button" class="uno-surface-tab${activeTab === tab.key ? ' active' : ''}" data-uno-surface-link="${tab.key}">${tab.label}</button>`).join('')}
         </div>
       `;
     }
@@ -20630,7 +20788,9 @@ PAGE_TEMPLATE = """
           ? () => openAppLauncher()
           : (target === 'profile'
             ? () => switchUnoSharedView('profile')
-            : () => switchUnoSharedView('achievements'));
+            : (target === 'guilds'
+              ? () => switchUnoSharedView('guilds')
+              : () => switchUnoSharedView('achievements')));
         bindFunctionalControl(button, handler, 'click', {skipPrepare: true});
       });
     }
@@ -20660,7 +20820,14 @@ PAGE_TEMPLATE = """
       const backSurface = unoTheme.backSurface;
       const bannerSurface = unoTheme.bannerSurface;
       const backMark = String(unoTheme.emoji || 'TDG').trim() || 'TDG';
-      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-cardback-surface:${escapeHtml(backSurface)};`;
+      const arenaTheme = unoTheme.arenaTheme || cosmeticTheme('arena', unoTheme.arenaKey);
+      const backTheme = unoTheme.backTheme || cosmeticTheme('cardback', unoTheme.backKey);
+      const backOptions = {
+        customSkin: Boolean(unoTheme.hasCustomBack),
+        accent: backTheme.accent,
+        textColor: backTheme.text,
+      };
+      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};`;
       const unoHeaderClass = bannerSurface ? 'uno-header skin-banner' : 'uno-header';
       const unoHeaderStyle = bannerSurface ? ` style="--uno-banner-surface:${escapeHtml(bannerSurface)};"` : '';
       const sessionStatus = String((session && session.status) || '');
@@ -20698,7 +20865,7 @@ PAGE_TEMPLATE = """
               <div class="uno-home-title">${unoBrandBadge('UNO', bannerSurface)}</div>
               ${unoSurfaceActionsMarkup()}
             </div>
-            ${unoHomeStageMarkup(frameAsset, backSurface, backMark)}
+            ${unoHomeStageMarkup(frameAsset, backSurface, backMark, backOptions)}
             <div class="uno-meta-strip">
               <div class="uno-chip">${identity.progressEnabled ? `Профиль ${escapeHtml(identityLabel)}` : 'Guest-режим'}</div>
               <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Кошелёк не обязателен'}</div>
@@ -20901,7 +21068,7 @@ PAGE_TEMPLATE = """
                     <strong>${Number(opponent.card_count || 0)} карт${opponent.is_current_turn ? ' • ход' : ''}</strong>
                   </div>
                   <div class="uno-opponent-cards">
-                    ${Array.from({length: Math.max(1, Math.min(7, Number(opponent.card_count || 0)))}).map(() => unoBackCardMarkup(backSurface, frameAsset, backMark)).join('')}
+                    ${Array.from({length: Math.max(1, Math.min(7, Number(opponent.card_count || 0)))}).map(() => unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)).join('')}
                   </div>
                 </div>
               `).join('')}
@@ -20917,9 +21084,9 @@ PAGE_TEMPLATE = """
                   <button type="button" class="uno-stack-action ${canTapDraw ? 'can-draw' : ''}" id="uno-draw-pile-btn"${canTapDraw ? '' : ' disabled'}>
                     <span class="sr-only">Взять одну карту из колоды</span>
                     <div class="uno-stack">
-                      <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
-                      <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
-                      <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark)}</div>
+                      <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>
+                      <div class="uno-stack-card">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>
+                      <div class="uno-stack-top">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>
                     </div>
                     <div class="uno-stack-label">${canTapDraw ? 'Тап по колоде' : 'Колода'}</div>
                   </button>
@@ -21199,6 +21366,7 @@ PAGE_TEMPLATE = """
       if (state.unoActionInFlight) return;
       if (action === 'draw' && (!state.unoSession.can_draw || (state.unoSession.uno_alert && state.unoSession.uno_alert.active))) return;
       const previousSession = state.unoSession;
+      let sessionUpdated = false;
       state.unoActionInFlight = true;
       renderUnoPanel();
       try {
@@ -21218,6 +21386,7 @@ PAGE_TEMPLATE = """
           })
         });
         state.unoSession = data.session || state.unoSession;
+        sessionUpdated = true;
         armUnoDrawFx(previousSession, state.unoSession);
         if (action !== 'draw' && !state.unoDrawFx) {
           clearUnoDrawFx();
@@ -21235,7 +21404,9 @@ PAGE_TEMPLATE = """
         }
       } finally {
         state.unoActionInFlight = false;
-        renderUnoPanel();
+        if (!state.unoDrawFx || !sessionUpdated) {
+          renderUnoPanel();
+        }
       }
     }
 
