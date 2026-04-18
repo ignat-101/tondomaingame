@@ -1276,6 +1276,10 @@ PAGE_TEMPLATE = """
       white-space: nowrap;
     }
 
+    .uno-surface-actions.compact button {
+      min-width: 112px;
+    }
+
     .uno-home-control .actions {
       display: grid;
       gap: 10px;
@@ -1288,6 +1292,7 @@ PAGE_TEMPLATE = """
 
     .uno-home-control.code-entry .actions {
       align-content: end;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .uno-home-control select,
@@ -1301,6 +1306,10 @@ PAGE_TEMPLATE = """
       color: #fffaf3;
       padding: 0 14px;
       font-size: 15px;
+    }
+
+    .uno-home-control.code-entry button {
+      width: 100%;
     }
 
     .uno-shell button:not(.secondary):not(.uno-card-btn):not(.uno-stack-action):not(.uno-color-choice):not(.uno-guide-call-button),
@@ -1628,6 +1637,15 @@ PAGE_TEMPLATE = """
     .uno-player-row {
       display: grid;
       gap: 10px;
+      padding: 12px 14px;
+      border-radius: 22px;
+      border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
+      background:
+        linear-gradient(180deg, rgba(9, 16, 27, 0.8), rgba(6, 11, 20, 0.92)),
+        var(--uno-panel-surface, rgba(7, 16, 29, 0.76));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.03),
+        0 16px 28px var(--uno-panel-shadow, rgba(0, 0, 0, 0.16));
     }
 
     .uno-opponent-cards,
@@ -1681,6 +1699,12 @@ PAGE_TEMPLATE = """
       overflow: hidden;
       color: #ffffff;
       isolation: isolate;
+    }
+
+    .uno-back-face {
+      background:
+        radial-gradient(circle at 50% 22%, rgba(255,255,255,0.12), transparent 26%),
+        var(--uno-cardback-surface, linear-gradient(180deg, rgba(60,68,82,0.98), rgba(38,44,56,0.98)));
     }
 
     .uno-card-face::before,
@@ -1740,10 +1764,10 @@ PAGE_TEMPLATE = """
     }
 
     .uno-photo-face.asset.back {
-      inset: 18%;
+      inset: 21%;
       border-radius: 0;
       background: transparent;
-      opacity: 0.24;
+      opacity: 0.2;
       mix-blend-mode: screen;
       filter: drop-shadow(0 8px 18px rgba(0,0,0,0.22));
     }
@@ -1969,7 +1993,9 @@ PAGE_TEMPLATE = """
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: var(--uno-cardback-surface);
+      background:
+        linear-gradient(180deg, rgba(8, 13, 21, 0.28), rgba(8, 13, 21, 0.54)),
+        var(--uno-cardback-surface);
       color: #eef8ff;
       font-size: 18px;
       font-weight: 900;
@@ -2020,6 +2046,10 @@ PAGE_TEMPLATE = """
     .uno-discard-stack {
       position: relative;
       transition: transform 160ms ease, filter 160ms ease;
+      padding: 8px;
+      border-radius: 24px;
+      border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
+      background: linear-gradient(180deg, rgba(9, 16, 27, 0.58), rgba(7, 13, 22, 0.82));
     }
 
     .uno-discard-stack.drop-ready::after {
@@ -2083,13 +2113,15 @@ PAGE_TEMPLATE = """
     .uno-stack-action {
       padding: 0;
       margin: 0;
-      border: 0;
-      background: transparent;
+      border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
+      background: linear-gradient(180deg, rgba(9, 16, 27, 0.58), rgba(7, 13, 22, 0.82));
       display: grid;
       justify-items: center;
       gap: 0;
       touch-action: manipulation;
       cursor: pointer;
+      border-radius: 24px;
+      padding: 8px;
     }
 
     .uno-stack-action.drag-ready,
@@ -2594,6 +2626,37 @@ PAGE_TEMPLATE = """
       gap: 6px;
     }
 
+    .uno-compact-tip {
+      display: grid;
+      gap: 4px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(8, 14, 22, 0.76);
+      color: rgba(231, 239, 252, 0.82);
+      font-size: 11px;
+      line-height: 1.32;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .uno-compact-tip strong {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 214, 74, 0.92);
+    }
+
+    .uno-meta-strip .uno-chip.current-color {
+      padding: 2px;
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 214, 74, 0.18);
+    }
+
+    .uno-meta-strip .uno-chip.current-color .uno-color-indicator {
+      border-color: rgba(255, 214, 74, 0.14);
+      background: linear-gradient(135deg, rgba(28, 24, 18, 0.9), rgba(12, 18, 30, 0.82));
+    }
+
     .uno-live-summary-line {
       display: flex;
       align-items: center;
@@ -2646,11 +2709,14 @@ PAGE_TEMPLATE = """
       min-height: clamp(196px, 29vh, 248px);
       padding: 16px 18px;
       border-radius: 28px;
-      border: 1px solid rgba(121, 217, 255, 0.14);
+      border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
         linear-gradient(180deg, rgba(8, 18, 30, 0.82), rgba(7, 12, 22, 0.92)),
-        radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 62%);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 62%),
+        var(--uno-panel-surface, rgba(7, 16, 29, 0.76));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.02),
+        0 18px 34px var(--uno-panel-shadow, rgba(0, 0, 0, 0.2));
       align-content: start;
       overflow: hidden;
     }
@@ -5210,6 +5276,56 @@ PAGE_TEMPLATE = """
       color: rgba(255, 240, 205, 0.92);
     }
 
+    #view-modes #tutorial-panel {
+      margin: 0;
+    }
+
+    .tutorial-inline-note {
+      display: grid;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.16);
+      background:
+        linear-gradient(180deg, rgba(10, 18, 29, 0.92), rgba(8, 13, 22, 0.98)),
+        radial-gradient(circle at top, rgba(121, 217, 255, 0.08), transparent 62%);
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    .tutorial-inline-note.compact {
+      gap: 8px;
+      padding: 10px 12px;
+    }
+
+    .tutorial-inline-copy {
+      display: grid;
+      gap: 4px;
+    }
+
+    .tutorial-inline-copy strong {
+      font-size: 13px;
+      line-height: 1.1;
+      color: #f5fbff;
+    }
+
+    .tutorial-inline-copy .tiny {
+      color: rgba(214, 231, 247, 0.78);
+      line-height: 1.28;
+      font-size: 11px;
+    }
+
+    .tutorial-inline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tutorial-inline-actions button {
+      min-height: 38px;
+      padding: 0 14px;
+      font-size: 12px;
+    }
+
     .arena-core.clash-live .arena-battle-dock {
       opacity: 0;
       visibility: hidden;
@@ -5242,6 +5358,13 @@ PAGE_TEMPLATE = """
       box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
     }
 
+    .currency-float-values {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
     .currency-float-chip {
       display: inline-flex;
       align-items: center;
@@ -5253,6 +5376,62 @@ PAGE_TEMPLATE = """
       font-size: 11px;
       color: rgba(234, 248, 255, 0.94);
       white-space: nowrap;
+    }
+
+    .currency-float-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 2px;
+    }
+
+    .currency-float-toggle,
+    .currency-float-menu {
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
+      padding: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.05);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(239, 247, 255, 0.92);
+    }
+
+    .currency-float-toggle:hover,
+    .currency-float-menu:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .currency-float-chevron {
+      width: 12px;
+      height: 12px;
+      border-right: 3px solid currentColor;
+      border-bottom: 3px solid currentColor;
+      transform: rotate(45deg) translateY(-1px);
+      transition: transform 160ms ease;
+    }
+
+    .currency-float-menu {
+      gap: 3px;
+    }
+
+    .currency-float-menu span {
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: currentColor;
+      display: block;
+    }
+
+    .currency-float.collapsed .currency-float-chip.optional {
+      display: none;
+    }
+
+    .currency-float:not(.collapsed) .currency-float-chevron {
+      transform: rotate(-135deg) translateY(-1px);
     }
 
     .nav-badge {
@@ -12634,7 +12813,6 @@ PAGE_TEMPLATE = """
       height: auto;
     }
 
-    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .mobile-nav,
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .currency-float,
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .mascot-widget {
       display: none !important;
@@ -12784,6 +12962,16 @@ PAGE_TEMPLATE = """
     body.tma-app.uno-live-lock .uno-live-summary {
       padding: 8px 10px;
       gap: 4px;
+    }
+
+    body.tma-app.uno-live-lock .uno-compact-tip {
+      padding: 8px 10px;
+      font-size: 10px;
+      gap: 3px;
+    }
+
+    body.tma-app.uno-live-lock .uno-compact-tip strong {
+      font-size: 9px;
     }
 
     body.tma-app.uno-live-lock .uno-live-board-head {
@@ -13004,7 +13192,8 @@ PAGE_TEMPLATE = """
     }
 
     body.uno-app-context #view-profile .panel,
-    body.uno-app-context #view-achievements .panel {
+    body.uno-app-context #view-achievements .panel,
+    body.uno-app-context #view-guilds .panel {
       border-color: rgba(255, 214, 74, 0.18);
       background:
         radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 32%),
@@ -13016,10 +13205,34 @@ PAGE_TEMPLATE = """
         inset 0 0 0 1px rgba(255,255,255,0.03);
     }
 
+    body.uno-app-context #view-profile .profile-preview-hero,
+    body.uno-app-context #view-profile .wallet-section,
+    body.uno-app-context #view-achievements .team-card,
+    body.uno-app-context #view-guilds .team-card {
+      border-color: rgba(255, 214, 74, 0.16);
+      background:
+        linear-gradient(180deg, rgba(13, 18, 29, 0.96), rgba(8, 11, 20, 0.98)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 60%);
+      box-shadow:
+        0 20px 34px rgba(0, 0, 0, 0.22),
+        inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+
+    body.uno-app-context #view-profile h2,
+    body.uno-app-context #view-achievements h2,
+    body.uno-app-context #view-guilds h2,
+    body.uno-app-context #view-profile h3,
+    body.uno-app-context #view-achievements h3,
+    body.uno-app-context #view-guilds h3 {
+      color: #fff7ea;
+    }
+
     body.uno-app-context #view-profile .user-item,
     body.uno-app-context #view-achievements .user-item,
+    body.uno-app-context #view-guilds .user-item,
     body.uno-app-context #view-achievements .catalog-card,
-    body.uno-app-context #view-profile .catalog-card {
+    body.uno-app-context #view-profile .catalog-card,
+    body.uno-app-context #view-guilds .catalog-card {
       border-color: rgba(255, 214, 74, 0.16);
       background:
         linear-gradient(180deg, rgba(18, 22, 35, 0.92), rgba(8, 11, 20, 0.98)),
@@ -13029,10 +13242,26 @@ PAGE_TEMPLATE = """
 
     body.uno-app-context #view-profile .summary-chip,
     body.uno-app-context #view-achievements .summary-chip,
-    body.uno-app-context #view-profile .wallet-domain-chip {
+    body.uno-app-context #view-guilds .summary-chip,
+    body.uno-app-context #view-profile .wallet-domain-chip,
+    body.uno-app-context #view-guilds .wallet-domain-chip {
       border-color: rgba(255, 214, 74, 0.18);
       background: rgba(255, 214, 74, 0.08);
       color: #fff1c6;
+    }
+
+    body.uno-app-context #view-guilds input,
+    body.uno-app-context #view-guilds select,
+    body.uno-app-context #view-guilds textarea {
+      border-color: rgba(255, 214, 74, 0.18);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff7ea;
+    }
+
+    body.uno-app-context #view-guilds button.secondary {
+      border-color: rgba(255, 214, 74, 0.22);
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff4d5;
     }
 
     body.uno-app-context #view-achievements #season-pass-prev-btn,
@@ -13357,6 +13586,14 @@ PAGE_TEMPLATE = """
       left: auto;
       margin: 0;
       max-width: min(520px, calc(100vw - 24px));
+    }
+
+    body.tma-app:not(.battle-live-lock):not(.uno-live-lock) .currency-float {
+      top: calc(44px + env(safe-area-inset-top));
+    }
+
+    body.tma-app.tma-desktop:not(.battle-live-lock):not(.uno-live-lock) .currency-float {
+      top: calc(12px + env(safe-area-inset-top));
     }
 
     body.tma-app.tma-desktop .mascot-widget {
@@ -14747,10 +14984,20 @@ PAGE_TEMPLATE = """
     <button id="nav-achievements">Пропуск</button>
   </nav>
 
-  <div class="currency-float" id="global-currency-float">
-    <span class="currency-float-chip">💠 <span id="global-currency-shards">0</span></span>
-    <span class="currency-float-chip">🎟️ <span id="global-currency-rare">0</span></span>
-    <span class="currency-float-chip">✨ <span id="global-currency-lucky">0</span></span>
+  <div class="currency-float collapsed" id="global-currency-float">
+    <div class="currency-float-values">
+      <span class="currency-float-chip">💠 <span id="global-currency-shards">0</span></span>
+      <span class="currency-float-chip">🎟️ <span id="global-currency-rare">0</span></span>
+      <span class="currency-float-chip optional">✨ <span id="global-currency-lucky">0</span></span>
+    </div>
+    <div class="currency-float-actions">
+      <button type="button" class="currency-float-toggle" id="global-currency-toggle" aria-label="Свернуть или развернуть очки">
+        <span class="currency-float-chevron"></span>
+      </button>
+      <button type="button" class="currency-float-menu" id="global-currency-menu" aria-label="Открыть профиль">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
 
   <div class="app-launcher" id="app-launcher">
@@ -14923,7 +15170,10 @@ PAGE_TEMPLATE = """
       activeApp: 'domain',
       launcherOpen: false,
       seasonPassLevelIndex: 0,
-      tmaFullscreenRequestedAt: 0
+      tmaFullscreenRequestedAt: 0,
+      currencyFloatCollapsed: false,
+      unoGuestCompletedMatches: 0,
+      unoLastCompletedSessionId: ''
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -14940,11 +15190,17 @@ PAGE_TEMPLATE = """
     const appLauncherStorageKey = 'tondomaingame_app_launcher_v1';
     const unoGuestIdStorageKey = 'tondomaingame_uno_guest_id_v1';
     const unoGuestNameStorageKey = 'tondomaingame_uno_guest_name_v1';
+    const unoGuestMatchesStorageKey = 'tondomaingame_uno_guest_matches_v1';
     if (initialDuelInviteId) {
       state.pendingDuelLaunch = {
         inviteId: initialDuelInviteId,
         action: initialDuelAction === 'accept' ? 'accept' : '',
       };
+    }
+    try {
+      state.unoGuestCompletedMatches = Number(window.localStorage.getItem(unoGuestMatchesStorageKey) || 0) || 0;
+    } catch (_) {
+      state.unoGuestCompletedMatches = 0;
     }
     let duelInvitePollTimer = null;
     let duelInvitePollId = null;
@@ -14962,6 +15218,9 @@ PAGE_TEMPLATE = """
     const globalCurrencyShards = document.getElementById('global-currency-shards');
     const globalCurrencyRare = document.getElementById('global-currency-rare');
     const globalCurrencyLucky = document.getElementById('global-currency-lucky');
+    const globalCurrencyFloat = document.getElementById('global-currency-float');
+    const globalCurrencyToggle = document.getElementById('global-currency-toggle');
+    const globalCurrencyMenu = document.getElementById('global-currency-menu');
     const walletOpenPackBtn = document.getElementById('wallet-open-pack-btn');
     const profileWallet = document.getElementById('profile-wallet');
     const profileDomain = document.getElementById('profile-domain');
@@ -17141,17 +17400,28 @@ PAGE_TEMPLATE = """
     function renderTutorialPanel() {
       if (!tutorialPanel) return;
       const tutorial = state.tutorialData || (state.playerProfile && state.playerProfile.tutorial) || null;
+      const gamesPlayed = Math.max(0, Number((state.playerProfile && state.playerProfile.games_played) || 0));
+      const modesView = document.getElementById('view-modes');
+      const modeGrid = modesView ? modesView.querySelector('.mode-grid') : null;
+      if (modeGrid && tutorialPanel.previousElementSibling !== modeGrid) {
+        modeGrid.insertAdjacentElement('afterend', tutorialPanel);
+      }
       if (!state.wallet || !tutorial) {
+        tutorialPanel.innerHTML = '';
+        return;
+      }
+      if (gamesPlayed >= 3) {
         tutorialPanel.innerHTML = '';
         return;
       }
       if (tutorial.completed) {
         tutorialPanel.innerHTML = `
-          <div class="user-item">
-            <strong>Боевой туториал завершён</strong>
-            <div class="tiny">Побед: ${tutorial.wins || 1} • попыток: ${tutorial.attempts || 1}</div>
-            <div class="tiny">Первый успех уже засчитан. Можно идти в обычный или рейтинговый режим.</div>
-            <div class="actions" style="margin-top:10px;">
+          <div class="tutorial-inline-note compact">
+            <div class="tutorial-inline-copy">
+              <strong>Туториал завершён</strong>
+              <div class="tiny">Побед: ${tutorial.wins || 1} • попыток: ${tutorial.attempts || 1}. Можно сразу идти в обычный бой или рейтинг.</div>
+            </div>
+            <div class="actions tutorial-inline-actions">
               <button id="tutorial-replay-btn"${!(state.wallet && state.selectedDomain) ? ' disabled' : ''}>Повторить пробный бой</button>
               <button id="tutorial-go-casual-btn">Обычный бой</button>
               <button class="secondary" id="tutorial-go-ranked-btn">Рейтинг</button>
@@ -17167,11 +17437,12 @@ PAGE_TEMPLATE = """
         return;
       }
       tutorialPanel.innerHTML = `
-        <div class="user-item">
-          <strong>Интерактивный туториал боя</strong>
-          <div class="tiny">Сначала покажет базовые системы игры, затем сразу отправит в пробный бой. В пробном бою игра подскажет, что нажимать в каждом раунде и почему это выгодно.</div>
-          <div class="tiny">Статус: ${tutorial.skipped ? 'пропущен' : (tutorial.started ? 'начат' : 'не начат')} • попыток: ${tutorial.attempts || 0}</div>
-          <div class="actions" style="margin-top:10px;">
+        <div class="tutorial-inline-note compact">
+          <div class="tutorial-inline-copy">
+            <strong>Нужна короткая подсказка по бою?</strong>
+            <div class="tiny">Покажем базу и сразу запустим пробный матч. После трёх сыгранных боёв этот блок пропадёт.</div>
+          </div>
+          <div class="actions tutorial-inline-actions">
             <button id="start-tutorial-btn"${!(state.wallet && state.selectedDomain) ? ' disabled' : ''}>${tutorial.started ? 'Пройти заново' : 'Начать туториал'}</button>
             <button class="secondary" id="skip-tutorial-btn">Пропустить</button>
           </div>
@@ -17856,6 +18127,7 @@ PAGE_TEMPLATE = """
       applyUnoTesterVisibility();
       syncMascotPopover();
       syncMobileNavContext();
+      syncCurrencyFloatChrome();
       try {
         window.localStorage.setItem(appLauncherStorageKey, state.activeApp);
       } catch (_) {
@@ -18007,6 +18279,42 @@ PAGE_TEMPLATE = """
       [navPack, navModes, navGuilds, navAchievements].forEach((button) => {
         button.classList.toggle('active', button.id === `nav-${document.body.dataset.activeView || 'profile'}`);
       });
+    }
+
+    function syncCurrencyFloatChrome() {
+      if (!globalCurrencyFloat) return;
+      globalCurrencyFloat.classList.toggle('collapsed', Boolean(state.currencyFloatCollapsed));
+      const hiddenForUnoDesktop = Boolean(state.activeApp === 'uno' && !document.body.classList.contains('tma-app') && document.body.dataset.activeView === 'uno');
+      globalCurrencyFloat.style.display = hiddenForUnoDesktop ? 'none' : 'inline-flex';
+    }
+
+    function toggleCurrencyFloatCollapsed(force = null) {
+      const nextValue = typeof force === 'boolean' ? force : !Boolean(state.currencyFloatCollapsed);
+      state.currencyFloatCollapsed = nextValue;
+      syncCurrencyFloatChrome();
+    }
+
+    function unoMatchesPlayedCount() {
+      const analytics = (state.playerProfile && state.playerProfile.analytics) || {};
+      const stats = analytics.stats || {};
+      const modes = stats.modes || {};
+      const walletCount = Number(modes.uno || 0);
+      const localCount = Number(state.unoGuestCompletedMatches || 0);
+      if (walletCount > 0) return Math.max(walletCount, localCount);
+      return localCount;
+    }
+
+    function syncUnoCompletedMatchCounter(session = null) {
+      const safeSession = session || state.unoSession;
+      if (!safeSession || !safeSession.complete || !safeSession.session_id) return;
+      const sessionId = String(safeSession.session_id || '');
+      if (!sessionId || state.unoLastCompletedSessionId === sessionId) return;
+      state.unoLastCompletedSessionId = sessionId;
+      state.unoGuestCompletedMatches = Number(state.unoGuestCompletedMatches || 0) + 1;
+      try {
+        window.localStorage.setItem(unoGuestMatchesStorageKey, String(state.unoGuestCompletedMatches));
+      } catch (_) {
+      }
     }
 
     function setMascotOpen(open) {
@@ -18254,6 +18562,7 @@ PAGE_TEMPLATE = """
       if (globalCurrencyShards) globalCurrencyShards.textContent = Number(rewards.pack_shards || 0);
       if (globalCurrencyRare) globalCurrencyRare.textContent = Number(rewards.rare_tokens || 0);
       if (globalCurrencyLucky) globalCurrencyLucky.textContent = Number(rewards.lucky_tokens || 0);
+      syncCurrencyFloatChrome();
       walletQuickWallet.textContent = state.wallet ? shortAddress(state.wallet) : 'Не подключен';
       walletQuickDomain.textContent = state.selectedDomain ? `${state.selectedDomain}.ton` : 'Не выбран';
       profileWallet.textContent = state.wallet ? shortAddress(state.wallet) : '-';
@@ -19320,16 +19629,27 @@ PAGE_TEMPLATE = """
       const guildKey = ((cosmetics.guild || {}).key) || '';
       const emoji = cosmeticEmojiSymbol(cosmetics);
       const colorKey = String(preferredColor || (state.unoSession && state.unoSession.current_color) || 'yellow').toLowerCase();
+      const arenaTheme = cosmeticTheme('arena', arenaKey);
+      const backSurface = giftCardbackSurface(backKey, emoji);
+      const arenaSurface = giftArenaSurface(arenaKey, emoji);
       return {
         arenaKey,
         backKey,
         frameKey,
         guildKey,
         emoji,
+        arenaTheme,
         frameAsset: cosmeticAssetUrl('frame', frameKey),
         bannerSurface: guildKey ? giftGuildSurface(guildKey, emoji) : '',
-        backSurface: giftCardbackSurface(backKey, emoji),
-        tableSurface: unoReferenceSurface(colorKey, giftArenaSurface(arenaKey, emoji)),
+        backSurface,
+        arenaSurface,
+        tableSurface: unoReferenceSurface(colorKey, arenaSurface),
+        panelSurface: [
+          'linear-gradient(180deg, rgba(8, 16, 27, 0.74), rgba(7, 12, 20, 0.92))',
+          arenaSurface,
+        ].join(','),
+        panelBorder: hexToRgba(arenaTheme.accent, 0.22),
+        panelShadow: hexToRgba(arenaTheme.accent, 0.12),
       };
     }
 
@@ -19378,11 +19698,25 @@ PAGE_TEMPLATE = """
 
     function unoSessionVisualKey(session) {
       if (!session) return '';
-      try {
-        return JSON.stringify(session);
-      } catch (_) {
-        return String(session && session.session_id || '');
-      }
+      const playerHand = Array.isArray(session.player_hand) ? session.player_hand : [];
+      const opponents = Array.isArray(session.opponents) ? session.opponents : [];
+      const activeAlert = session.uno_alert && session.uno_alert.active ? session.uno_alert : null;
+      return [
+        String(session.session_id || ''),
+        String(session.status || ''),
+        String(session.turn_wallet || ''),
+        String(session.current_color || ''),
+        String(session.last_action || ''),
+        session.complete ? '1' : '0',
+        String(session.pending_draw_count || 0),
+        String(session.draw_remaining || 0),
+        String(session.recycle_count || 0),
+        session.discard_top && session.discard_top.id ? String(session.discard_top.id) : '',
+        activeAlert ? `${String(activeAlert.target_wallet || '')}:${String(activeAlert.viewer_role || '')}:${String(activeAlert.countdown_label || '')}` : '',
+        String(Math.max(0, Math.ceil(Number(session.turn_remaining_ms || 0) / 1000))),
+        playerHand.map((card) => String(card && card.id || '')).join(','),
+        opponents.map((item) => `${String(item && item.wallet || '')}:${Number(item && item.card_count || 0)}:${item && item.is_current_turn ? '1' : '0'}`).join(','),
+      ].join('|');
     }
 
     function unoCanKeepPendingColorCard(session, cardId) {
@@ -19652,6 +19986,23 @@ PAGE_TEMPLATE = """
           }, 460);
           fx.ghosts.push(ghost);
         });
+        if ((fx.cards || []).length) {
+          const badge = document.createElement('div');
+          badge.className = 'uno-transfer-badge';
+          badge.textContent = `+${Number((fx.cards || []).length || 0)}`;
+          badge.style.left = `${Math.max(8, handRect.right - 74)}px`;
+          badge.style.top = `${Math.max(8, handRect.top - 10)}px`;
+          document.body.appendChild(badge);
+          requestAnimationFrame(() => {
+            badge.style.transition = 'transform 520ms cubic-bezier(.16,.88,.22,1), opacity 520ms ease';
+            badge.style.opacity = '1';
+            badge.style.transform = 'translateY(-18px)';
+          });
+          window.setTimeout(() => {
+            if (badge.parentNode) badge.parentNode.removeChild(badge);
+          }, 560);
+          fx.badges.push(badge);
+        }
       }
       (fx.opponentBursts || []).forEach((burst, burstIndex) => {
         const targetWallet = String(burst.wallet || '');
@@ -20184,12 +20535,16 @@ PAGE_TEMPLATE = """
       const session = state.unoSession;
       const identity = unoActiveIdentity();
       if ((!identity.wallet && !identity.guest_id) || !session || !session.session_id) return;
-      const mode = String(session.mode || 'bot');
       const status = String(session.status || (session.complete ? 'completed' : 'active'));
       const hasUnoAlert = Boolean(session.uno_alert && session.uno_alert.active);
-      if (mode === 'bot' && status !== 'waiting' && !hasUnoAlert) return;
       if (status === 'completed') return;
-      const delay = immediate ? 650 : (hasUnoAlert ? 650 : (status === 'waiting' ? 1800 : (session.your_turn ? 2600 : 1800)));
+      const delay = immediate
+        ? 260
+        : (hasUnoAlert
+          ? 420
+          : (status === 'waiting'
+            ? 1200
+            : (session.your_turn ? 820 : 980)));
       unoStatusPollTimer = window.setTimeout(() => {
         pollUnoStatus().catch(() => {});
       }, delay);
@@ -20262,10 +20617,8 @@ PAGE_TEMPLATE = """
 
     function unoSurfaceActionsMarkup() {
       return `
-        <div class="actions uno-surface-actions">
+        <div class="actions uno-surface-actions compact">
           <button type="button" data-uno-surface-link="apps">Apps</button>
-          <button type="button" class="secondary" data-uno-surface-link="profile">Profile</button>
-          <button type="button" class="secondary" data-uno-surface-link="pass">Pass</button>
         </div>
       `;
     }
@@ -20273,11 +20626,11 @@ PAGE_TEMPLATE = """
     function bindUnoSurfaceActions(root = document) {
       root.querySelectorAll('[data-uno-surface-link]').forEach((button) => {
         const target = String(button.dataset.unoSurfaceLink || 'apps');
-        const handler = target === 'profile'
-          ? () => switchView('profile')
-          : (target === 'pass'
-            ? () => switchView('achievements')
-            : () => openAppLauncher());
+        const handler = target === 'apps'
+          ? () => openAppLauncher()
+          : (target === 'profile'
+            ? () => switchUnoSharedView('profile')
+            : () => switchUnoSharedView('achievements'));
         bindFunctionalControl(button, handler, 'click', {skipPrepare: true});
       });
     }
@@ -20296,22 +20649,18 @@ PAGE_TEMPLATE = """
       }
       syncMascotPopover();
       const identity = unoActiveIdentity();
+      const session = state.unoSession;
       const rewards = unoProgressEnabled()
         ? (((state.playerProfile && state.playerProfile.rewards) || {}))
         : { equipped_cosmetics: {}, pack_shards: 0, rare_tokens: 0, lucky_tokens: 0, season_level: 1, season_points: 0, season_target: 16 };
-      const cosmetics = rewards.equipped_cosmetics || {};
-      const arenaKey = ((cosmetics.arena || {}).key) || 'arena_stock_grid';
-      const backKey = ((cosmetics.cardback || {}).key) || 'cardback_stock_plain';
-      const frameKey = ((cosmetics.frame || {}).key) || '';
-      const guildKey = ((cosmetics.guild || {}).key) || '';
-      const emoji = cosmeticEmojiSymbol(cosmetics);
-      const frameAsset = cosmeticAssetUrl('frame', frameKey);
-      const session = state.unoSession;
       const unoThemeColor = String((session && session.current_color) || 'blue').toLowerCase();
-      const tableSurface = unoReferenceSurface(unoThemeColor, giftArenaSurface(arenaKey, emoji));
-      const backSurface = giftCardbackSurface(backKey, emoji);
-      const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : '';
-      const backMark = String(emoji || 'TDG').trim() || 'TDG';
+      const unoTheme = currentUnoSharedTheme(unoThemeColor);
+      const frameAsset = unoTheme.frameAsset;
+      const tableSurface = unoTheme.tableSurface;
+      const backSurface = unoTheme.backSurface;
+      const bannerSurface = unoTheme.bannerSurface;
+      const backMark = String(unoTheme.emoji || 'TDG').trim() || 'TDG';
+      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-cardback-surface:${escapeHtml(backSurface)};`;
       const unoHeaderClass = bannerSurface ? 'uno-header skin-banner' : 'uno-header';
       const unoHeaderStyle = bannerSurface ? ` style="--uno-banner-surface:${escapeHtml(bannerSurface)};"` : '';
       const sessionStatus = String((session && session.status) || '');
@@ -20344,7 +20693,7 @@ PAGE_TEMPLATE = """
           return;
         }
         unoRoot.innerHTML = `
-          <div class="uno-shell landing uno-home-shell" style="background:${tableSurface};">
+          <div class="uno-shell landing uno-home-shell" style="${shellVisualStyle}">
             <div class="uno-home-top">
               <div class="uno-home-title">${unoBrandBadge('UNO', bannerSurface)}</div>
               ${unoSurfaceActionsMarkup()}
@@ -20436,7 +20785,7 @@ PAGE_TEMPLATE = """
         const viewerParticipant = (session.participants || []).find((item) => item.is_viewer) || null;
         clearUnoDrawFx();
         unoRoot.innerHTML = `
-          <div class="uno-shell waiting" style="background:${tableSurface};">
+          <div class="uno-shell waiting" style="${shellVisualStyle}">
             <div class="${unoHeaderClass}"${unoHeaderStyle}>
               <div class="uno-header-top">
                 <div class="uno-title">
@@ -20487,15 +20836,12 @@ PAGE_TEMPLATE = """
         return;
       }
       scheduleUnoStatusPolling();
-      const turnToneClass = session.complete ? 'complete' : (session.your_turn ? 'you' : 'wait');
       const liveGuide = unoLiveInstructionData(session, playableIds, pendingWildCardId);
       const actionLocked = Boolean(state.unoActionInFlight);
       const unoAlert = session && session.uno_alert && session.uno_alert.active ? session.uno_alert : null;
       const nextUnoEventKey = unoSessionEventKey(session);
       const shouldAnimateUnoEvent = Boolean(nextUnoEventKey && state.unoLastEventKey && state.unoLastEventKey !== nextUnoEventKey);
       const shouldAnimateUnoIntro = Boolean(nextUnoEventKey && !state.unoLastEventKey && !session.complete);
-      const topStatusText = liveGuide.headline || (session.complete ? `${session.winner_label || 'Матч завершён'} выигрывает` : '');
-      const resultSummary = liveGuide.detail || '';
       const canTapDraw = Boolean(session.can_draw && !unoAlert && !actionLocked && !pendingWildCardId && !state.unoDrawFx);
       const currentColorMarkup = unoColorIndicatorMarkup(session.current_color, session.current_color_label, {compact: true});
       const deckCounterLabel = Number(session.draw_remaining || 0);
@@ -20504,8 +20850,10 @@ PAGE_TEMPLATE = """
         ? `${Math.max(1, Math.ceil(Number(session.turn_remaining_ms || 0) / 1000))}с`
         : '';
       const displayHand = visibleUnoPlayerHand(session);
+      const showCompactTip = !session.complete && unoMatchesPlayedCount() < 3;
+      syncUnoCompletedMatchCounter(session);
       unoRoot.innerHTML = `
-        <div class="uno-shell ${session.complete ? 'completed' : 'playing'}" style="background:${tableSurface};">
+        <div class="uno-shell ${session.complete ? 'completed' : 'playing'}" style="${shellVisualStyle}">
             <div class="${unoHeaderClass}"${unoHeaderStyle}>
               <div class="uno-header-top">
                 ${compactUnoLive ? '' : `
@@ -20517,22 +20865,12 @@ PAGE_TEMPLATE = """
               ${unoSurfaceActionsMarkup()}
             </div>
             <div class="uno-meta-strip">
-              <div class="uno-chip">Цвет: ${escapeHtml(session.current_color_label || 'UNO')}</div>
+              <div class="uno-chip current-color">${currentColorMarkup}</div>
               <div class="uno-chip">Колода: ${deckCounterLabel}</div>
               <div class="uno-chip">Рука: ${Number((session.player_hand || []).length || 0)}</div>
+              ${session.pending_draw_count ? `<div class="uno-chip">Стек +${Number(session.pending_draw_count || 0)}</div>` : ''}
               ${recycleCounterLabel ? `<div class="uno-chip">${escapeHtml(recycleCounterLabel)}</div>` : ''}
               ${turnCountdownLabel ? `<div class="uno-chip">Ход: ${escapeHtml(turnCountdownLabel)}</div>` : ''}
-            </div>
-          </div>
-          <div class="uno-status-banner uno-live-summary ${turnToneClass}">
-            <div class="uno-live-summary-line">
-              <span class="uno-turn-pill ${turnToneClass}">${session.complete ? 'Финиш' : (session.your_turn ? 'Твой ход' : 'Ожидание')}</span>
-              <strong class="uno-live-summary-main">${escapeHtml(topStatusText)}</strong>
-            </div>
-            <div class="uno-live-summary-sub">${escapeHtml(resultSummary)}</div>
-            <div class="uno-live-color-row">
-              ${currentColorMarkup}
-              ${session.pending_draw_count ? `<span class="stack">Стек +${Number(session.pending_draw_count || 0)}</span>` : ''}
             </div>
           </div>
           ${unoAlert ? `
@@ -20617,6 +20955,12 @@ PAGE_TEMPLATE = """
                 ${displayHand.map((card) => unoCardMarkup(card, {frameAsset, playable: !unoAlert && !actionLocked && playableIds.has(card.id) && Boolean(session.your_turn), disabled: actionLocked || Boolean(unoAlert) || !(playableIds.has(card.id) && Boolean(session.your_turn))})).join('')}
               </div>
             </div>
+            ${showCompactTip ? `
+              <div class="uno-compact-tip">
+                <strong>${escapeHtml(liveGuide.headline || 'Подсказка')}</strong>
+                <span>${escapeHtml(liveGuide.detail || 'Следи за цветом на столе и играй только подходящую карту.')}</span>
+              </div>
+            ` : ''}
             ${pendingWildCardId ? `
               <div class="uno-color-sheet">
                 <div class="uno-color-sheet-head">
@@ -22384,6 +22728,7 @@ PAGE_TEMPLATE = """
                     </div>
                     <div class="showdown-entry-actions">
                       <button id="start-battle-btn">Готов</button>
+                      <button class="secondary" id="cancel-battle-btn">Отмена</button>
                       <button class="secondary" onclick="openModes()">К режимам</button>
                     </div>
                   </div>
@@ -22444,6 +22789,7 @@ PAGE_TEMPLATE = """
         const interactiveBattleStatus = battleResult.querySelector('#interactive-battle-status');
         const interactiveTimer = battleResult.querySelector('#interactive-timer');
         const skipLiveTutorialBtn = battleResult.querySelector('#skip-live-tutorial-btn');
+        const cancelBattleBtn = battleResult.querySelector('#cancel-battle-btn');
         const applyPrebattlePreset = (preset) => {
           const meta = tutorialBuildPresetMeta(preset || 'balanced');
           if (prebattleBuildChart) {
@@ -22614,6 +22960,17 @@ PAGE_TEMPLATE = """
                 }
                 setTimeout(pollReadyStatus, 900);
 	              } catch (error) {
+	                if (/не найдена/i.test(String(error.message || '').toLowerCase())) {
+	                  if (prebattleReadyStatus) {
+	                    prebattleReadyStatus.textContent = 'Бой отменён соперником.';
+	                  }
+	                  setTimeout(() => {
+	                    resetBattleStage();
+	                    switchView('modes');
+	                    setStatus(matchmakingStatus, 'Соперник отменил бой.', 'warning');
+	                  }, 360);
+	                  return;
+	                }
 	                if (prebattleReadyStatus) {
 	                  prebattleReadyStatus.textContent = `Проблема связи: ${error.message}. Повторяем...`;
 	                }
@@ -22650,6 +23007,17 @@ PAGE_TEMPLATE = """
               pollReadyStatus();
 	            }).catch((error) => {
 	              (async () => {
+	                if (/не найдена/i.test(String(error.message || '').toLowerCase())) {
+	                  if (prebattleReadyStatus) {
+	                    prebattleReadyStatus.textContent = 'Бой отменён соперником.';
+	                  }
+	                  setTimeout(() => {
+	                    resetBattleStage();
+	                    switchView('modes');
+	                    setStatus(matchmakingStatus, 'Соперник отменил бой.', 'warning');
+	                  }, 360);
+	                  return;
+	                }
 	                try {
 	                  const poll = await api(`/api/battle-ready/status?wallet=${encodeURIComponent(state.wallet)}&session_id=${encodeURIComponent(sessionId)}`);
 	                  const st = poll.status || {};
@@ -22675,6 +23043,9 @@ PAGE_TEMPLATE = """
         }
         if (skipLiveTutorialBtn) {
           bindFunctionalControl(skipLiveTutorialBtn, skipTutorialBattle);
+        }
+        if (cancelBattleBtn && liveResult.battle_session_id) {
+          bindFunctionalControl(cancelBattleBtn, () => cancelPendingBattle(liveResult.battle_session_id), 'click', {skipPrepare: true});
         }
         if (result.autostart_battle && startBtn) {
           battleAutostartTimer = window.setTimeout(() => {
@@ -22749,6 +23120,28 @@ PAGE_TEMPLATE = """
           panel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         });
       }
+    }
+
+    async function cancelPendingBattle(sessionId) {
+      await prepareFunctionalInteraction();
+      if (!sessionId || !state.wallet) return;
+      try {
+        await api('/api/battle-ready/cancel', {
+          method: 'POST',
+          body: {
+            wallet: state.wallet,
+            session_id: sessionId,
+          }
+        });
+      } catch (error) {
+        const message = String(error.message || '');
+        if (!/не найдена/i.test(message.toLowerCase())) {
+          setStatus(matchmakingStatus, message, 'warning');
+        }
+      }
+      resetBattleStage();
+      switchView('modes');
+      setStatus(matchmakingStatus, 'Бой отменён.', 'warning');
     }
 
     async function openModes() {
@@ -24600,13 +24993,29 @@ PAGE_TEMPLATE = """
       }
       switchView('modes');
     });
-    bindFunctionalControl(topNavPack, () => switchView('pack'));
-    bindFunctionalControl(topNavModes, () => switchView('modes'));
+    bindFunctionalControl(topNavModes, () => {
+      if (state.activeApp === 'uno') {
+        openUnoHub({closePopover: false});
+        return;
+      }
+      switchView('modes');
+    });
     bindFunctionalControl(document.getElementById('nav-profile'), () => {
       switchView('profile');
     });
     bindFunctionalControl(topNavProfile, () => {
+      if (state.activeApp === 'uno') {
+        openAppLauncher();
+        return;
+      }
       switchView('profile');
+    });
+    bindFunctionalControl(topNavPack, () => {
+      if (state.activeApp === 'uno') {
+        switchUnoSharedView('profile');
+        return;
+      }
+      switchView('pack');
     });
     bindFunctionalControl(navGuilds, async () => {
       if (state.activeApp === 'uno') {
@@ -24622,8 +25031,32 @@ PAGE_TEMPLATE = """
       }
       switchView('achievements');
     });
-    bindFunctionalControl(topNavGuilds, () => switchView('guilds'));
-    bindFunctionalControl(topNavAchievements, () => switchView('achievements'));
+    bindFunctionalControl(topNavGuilds, () => {
+      if (state.activeApp === 'uno') {
+        switchUnoSharedView('guilds');
+        return;
+      }
+      switchView('guilds');
+    });
+    bindFunctionalControl(topNavAchievements, () => {
+      if (state.activeApp === 'uno') {
+        switchUnoSharedView('achievements');
+        return;
+      }
+      switchView('achievements');
+    });
+    if (globalCurrencyToggle) {
+      bindFunctionalControl(globalCurrencyToggle, () => toggleCurrencyFloatCollapsed(), 'click', {skipPrepare: true});
+    }
+    if (globalCurrencyMenu) {
+      bindFunctionalControl(globalCurrencyMenu, () => {
+        if (state.activeApp === 'uno') {
+          switchUnoSharedView('profile');
+          return;
+        }
+        switchView('profile');
+      }, 'click', {skipPrepare: true});
+    }
     if (appLauncherHomeBtn) {
       bindFunctionalControl(appLauncherHomeBtn, () => openAppLauncher());
     }
@@ -26888,7 +27321,6 @@ def build_uno_deck(seed_text):
     rng = random.Random(hashlib.sha256(f'uno-deck:{seed_text}'.encode()).hexdigest())
     deck = []
     for color in UNO_COLORS:
-        deck.append({'color': color, 'value': '0'})
         for value in [str(number) for number in range(1, 10)] + ['skip', 'reverse', 'draw2']:
             deck.append({'color': color, 'value': value})
             deck.append({'color': color, 'value': value})
@@ -34399,6 +34831,24 @@ def get_battle_ready_status(session_id, wallet):
     return battle_session_snapshot(row, wallet)
 
 
+def cancel_battle_ready(session_id, wallet):
+    def cancel_once():
+        with closing(get_db()) as conn:
+            conn.execute('BEGIN IMMEDIATE')
+            row = conn.execute('SELECT * FROM battle_sessions WHERE id = ?', (session_id,)).fetchone()
+            if row is None:
+                raise ValueError('Боевая сессия не найдена.')
+            if wallet not in {row['wallet_a'], row['wallet_b']}:
+                raise ValueError('Нет доступа к этой сессии.')
+            if row['started_at']:
+                raise ValueError('Бой уже запущен.')
+            conn.execute('DELETE FROM battle_sessions WHERE id = ?', (session_id,))
+            conn.commit()
+        return {'cancelled': True, 'session_id': session_id}
+
+    return run_with_sqlite_retry(cancel_once, attempts=5, base_delay=0.05)
+
+
 def latest_matchmaking_row(conn, wallet, mode):
     return conn.execute(
         '''
@@ -36395,6 +36845,26 @@ def api_battle_ready_status():
     except sqlite3.Error as exc:
         return json_error(f'Ошибка статуса боевой сессии: {exc}', 500)
     return jsonify({'status': status})
+
+
+@app.route('/api/battle-ready/cancel', methods=['POST'])
+@limiter.exempt
+def api_battle_ready_cancel():
+    ensure_runtime_tables()
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    session_id = (payload.get('session_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Нужно подключить кошелёк.')
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        status = cancel_battle_ready(session_id, wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    except sqlite3.Error as exc:
+        return json_error(f'Ошибка отмены боя: {exc}', 500)
+    return jsonify({'ok': True, 'status': status})
 
 
 @app.route('/api/match/<mode>', methods=['POST'])
