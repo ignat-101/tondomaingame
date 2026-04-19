@@ -1325,20 +1325,18 @@ PAGE_TEMPLATE = """
       min-height: 40px;
       padding-inline: 14px;
       border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background:
-        linear-gradient(180deg, rgba(16, 22, 36, 0.92), rgba(10, 15, 24, 0.96)),
-        radial-gradient(circle at top, var(--uno-theme-accent-soft, rgba(255, 214, 74, 0.12)), transparent 68%);
-      color: rgba(255, 246, 234, 0.92);
+      border: 1px solid var(--uno-tab-border, rgba(255, 255, 255, 0.12));
+      background: var(--uno-tab-surface, linear-gradient(180deg, rgba(16, 22, 36, 0.92), rgba(10, 15, 24, 0.96)));
+      color: var(--uno-tab-text, rgba(255, 246, 234, 0.92));
+      font-weight: 800;
+      letter-spacing: 0.02em;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
     }
 
     .uno-surface-actions .uno-surface-tab.active {
-      border-color: rgba(255, 214, 74, 0.32);
-      background:
-        linear-gradient(135deg, rgba(255, 91, 87, 0.92), rgba(255, 214, 74, 0.84)),
-        radial-gradient(circle at top, rgba(255,255,255,0.12), transparent 72%);
-      color: #1a1208;
+      border-color: var(--uno-tab-active-border, rgba(255, 214, 74, 0.32));
+      background: var(--uno-tab-active-surface, linear-gradient(135deg, rgba(255, 91, 87, 0.92), rgba(255, 214, 74, 0.84)));
+      color: var(--uno-tab-active-text, #1a1208);
       box-shadow:
         0 14px 28px rgba(0, 0, 0, 0.18),
         0 0 0 1px rgba(255,255,255,0.05);
@@ -1720,6 +1718,9 @@ PAGE_TEMPLATE = """
       overflow-x: auto;
       padding-bottom: 6px;
       -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      touch-action: pan-x;
       scrollbar-width: thin;
     }
 
@@ -1732,7 +1733,9 @@ PAGE_TEMPLATE = """
       border-radius: 20px;
       overflow: visible;
       border: 0;
-      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+      box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.24),
+        0 0 0 1px var(--uno-frame-soft, rgba(255, 214, 74, 0.16));
       background: transparent;
     }
 
@@ -1777,12 +1780,26 @@ PAGE_TEMPLATE = """
     .uno-back-face::before {
       content: "";
       position: absolute;
-      inset: 4px;
-      border-radius: 16px;
+      inset: 3px;
+      border-radius: 17px;
       box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.16),
+        inset 0 0 0 1px rgba(255,255,255,0.14),
+        inset 0 0 0 2px var(--uno-frame-soft, rgba(255, 214, 74, 0.12)),
         inset 0 12px 18px rgba(255,255,255,0.06),
-        inset 0 -18px 28px rgba(0,0,0,0.16);
+        inset 0 -18px 28px rgba(0,0,0,0.18),
+        0 0 0 1px var(--uno-frame-accent, rgba(255, 214, 74, 0.24));
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .uno-card-face::after,
+    .uno-back-face::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: 19px;
+      border: 1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 10px 18px var(--uno-frame-glow, rgba(255, 214, 74, 0.08));
       pointer-events: none;
       z-index: 1;
     }
@@ -1793,7 +1810,9 @@ PAGE_TEMPLATE = """
     }
 
     .uno-card-face.photo::before,
-    .uno-back-face.photo::before {
+    .uno-back-face.photo::before,
+    .uno-card-face.photo::after,
+    .uno-back-face.photo::after {
       display: none;
     }
 
@@ -1867,8 +1886,10 @@ PAGE_TEMPLATE = """
 
     .uno-back-face {
       background:
-        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.12), transparent 30%),
-        linear-gradient(180deg, rgba(24, 28, 35, 0.98), rgba(7, 11, 18, 0.98));
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.08), transparent 26%),
+        radial-gradient(circle at 18% 18%, var(--uno-back-accent-soft, rgba(255, 214, 74, 0.16)), transparent 34%),
+        radial-gradient(circle at 82% 84%, var(--uno-back-accent-soft, rgba(255, 214, 74, 0.14)), transparent 38%),
+        var(--uno-cardback-surface, linear-gradient(180deg, rgba(24, 28, 35, 0.98), rgba(7, 11, 18, 0.98)));
     }
 
     .uno-card-oval,
@@ -1891,14 +1912,7 @@ PAGE_TEMPLATE = """
     }
 
     .uno-back-oval {
-      background:
-        linear-gradient(180deg, rgba(7, 12, 20, 0.22), rgba(7, 12, 20, 0.48)),
-        var(--uno-cardback-surface);
-      box-shadow:
-        inset 0 0 0 2px rgba(255,255,255,0.86),
-        inset 0 14px 18px rgba(255,255,255,0.06),
-        0 10px 16px rgba(0,0,0,0.18),
-        0 0 0 1px var(--uno-back-accent-soft, rgba(255, 214, 74, 0.18));
+      display: none;
     }
 
     .uno-card-corner,
@@ -2056,48 +2070,67 @@ PAGE_TEMPLATE = """
     }
 
     .uno-back-brand-mark {
-      min-width: 54px;
+      min-width: 88px;
       min-height: 54px;
-      padding: 0 16px;
-      border-radius: 18px;
+      padding: 0 22px;
+      border-radius: 999px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       background:
-        linear-gradient(180deg, rgba(8, 13, 21, 0.22), rgba(8, 13, 21, 0.52)),
-        var(--uno-cardback-surface);
-      color: var(--uno-back-text, #eef8ff);
-      font-size: 18px;
+        linear-gradient(135deg, rgba(237, 36, 42, 0.98), rgba(255, 129, 36, 0.94) 58%, rgba(255, 214, 74, 0.9)),
+        linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0));
+      color: #ffe672;
+      font-size: 24px;
       font-weight: 900;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.03em;
       transform: rotate(-18deg);
       box-shadow:
-        inset 0 0 0 2px rgba(255,255,255,0.84),
-        inset 0 0 0 3px var(--uno-back-accent-soft, rgba(255, 214, 74, 0.16)),
-        0 10px 16px rgba(0,0,0,0.18);
+        inset 0 0 0 2px rgba(255,255,255,0.26),
+        0 12px 24px rgba(0,0,0,0.22),
+        0 0 0 1px rgba(0,0,0,0.18);
+      text-shadow:
+        0 2px 0 rgba(0,0,0,0.42),
+        0 6px 12px rgba(0,0,0,0.18);
     }
 
     .uno-back-corner-dot {
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      background: var(--uno-cardback-surface);
-      box-shadow:
-        inset 0 0 0 2px rgba(255,255,255,0.82),
-        0 0 0 1px var(--uno-back-accent-soft, rgba(255, 214, 74, 0.16)),
-        0 4px 8px rgba(0,0,0,0.16);
+      display: none;
     }
 
     .uno-card-frame {
+      display: none !important;
+    }
+
+    .uno-back-edge-mark {
       position: absolute;
-      inset: 1px;
-      width: calc(100% - 2px);
-      height: calc(100% - 2px);
-      object-fit: contain;
+      z-index: 2;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 10, 18, 0.32);
+      color: var(--uno-back-text, #eef8ff);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.12),
+        0 6px 10px rgba(0,0,0,0.18);
+      opacity: 0.82;
       pointer-events: none;
-      z-index: 4;
-      opacity: 0.88;
-      filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.18));
+    }
+
+    .uno-back-edge-mark.tl { top: 10px; left: 10px; }
+    .uno-back-edge-mark.tr { top: 10px; right: 10px; }
+    .uno-back-edge-mark.bl { bottom: 10px; left: 10px; }
+    .uno-back-edge-mark.br { bottom: 10px; right: 10px; }
+
+    .uno-back-edge-mark.empty {
+      opacity: 0;
     }
 
     .uno-opponent-cards .uno-back-card {
@@ -12822,10 +12855,16 @@ PAGE_TEMPLATE = """
       min-height: 0;
     }
 
-    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage,
-    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-stage {
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
       min-height: 0;
       overflow: hidden;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-stage {
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 2px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-participants-grid {
@@ -12856,6 +12895,11 @@ PAGE_TEMPLATE = """
       margin: 0;
       padding: 12px;
       border-radius: 24px;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
+      overflow-y: auto;
+      padding-bottom: calc(98px + env(safe-area-inset-bottom));
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
@@ -13257,49 +13301,55 @@ PAGE_TEMPLATE = """
     }
 
     body.uno-app-context .mobile-nav {
-      border-color: rgba(255, 214, 74, 0.22);
-      background:
-        linear-gradient(180deg, rgba(24, 19, 10, 0.94), rgba(12, 12, 18, 0.98)),
-        radial-gradient(circle at top, rgba(255, 91, 87, 0.12), transparent 64%);
+      border-color: var(--uno-shared-nav-border, rgba(255, 214, 74, 0.22));
+      background: var(--uno-shared-nav-surface, linear-gradient(180deg, rgba(24, 19, 10, 0.94), rgba(12, 12, 18, 0.98)));
       box-shadow:
         0 20px 34px rgba(0, 0, 0, 0.38),
         0 0 0 1px rgba(255, 214, 74, 0.04);
     }
 
     body.uno-app-context .mobile-nav button {
-      border-color: rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.035);
-      color: #fff6ea;
+      border-color: var(--uno-tab-border, rgba(255,255,255,0.1));
+      background: var(--uno-tab-surface, rgba(255,255,255,0.035));
+      color: var(--uno-tab-text, #fff6ea);
+      font-weight: 800;
+      letter-spacing: 0.02em;
     }
 
     body.uno-app-context .mobile-nav button.active {
-      border-color: rgba(255, 214, 74, 0.52);
-      background: linear-gradient(135deg, rgba(255, 91, 87, 0.32), rgba(255, 214, 74, 0.24));
+      border-color: var(--uno-tab-active-border, rgba(255, 214, 74, 0.52));
+      background: var(--uno-tab-active-surface, linear-gradient(135deg, rgba(255, 91, 87, 0.32), rgba(255, 214, 74, 0.24)));
+      color: var(--uno-tab-active-text, #1a1208);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
     }
 
+    body.uno-app-context .top-app-nav-link {
+      border-color: var(--uno-tab-border, rgba(255,255,255,0.1));
+      background: var(--uno-tab-surface, linear-gradient(180deg, rgba(16, 22, 36, 0.92), rgba(10, 15, 24, 0.96)));
+      color: var(--uno-tab-text, #fff6ea);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      box-shadow: 0 12px 22px rgba(0, 0, 0, 0.16);
+    }
+
     body.uno-app-context .top-app-nav-link.active {
-      color: #19120b;
-      background: linear-gradient(135deg, rgba(255, 93, 82, 0.94), rgba(255, 216, 84, 0.88));
-      border-color: rgba(255, 214, 74, 0.3);
+      color: var(--uno-tab-active-text, #19120b);
+      background: var(--uno-tab-active-surface, linear-gradient(135deg, rgba(255, 93, 82, 0.94), rgba(255, 216, 84, 0.88)));
+      border-color: var(--uno-tab-active-border, rgba(255, 214, 74, 0.3));
       box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
     }
 
     body.uno-app-context .top-app-nav-link.active::after {
-      background: linear-gradient(90deg, rgba(255, 93, 82, 0.98), rgba(255, 216, 84, 0.98), rgba(75, 193, 255, 0.92));
+      background: var(--uno-tab-active-accent, linear-gradient(90deg, rgba(255, 93, 82, 0.98), rgba(255, 216, 84, 0.98), rgba(75, 193, 255, 0.92)));
     }
 
     body.uno-app-context #view-profile .panel,
     body.uno-app-context #view-achievements .panel,
     body.uno-app-context #view-guilds .panel {
-      border-color: rgba(255, 214, 74, 0.18);
-      background:
-        radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 32%),
-        radial-gradient(circle at 18% 22%, rgba(255, 93, 82, 0.1), transparent 28%),
-        radial-gradient(circle at 82% 26%, rgba(78, 186, 255, 0.1), transparent 30%),
-        linear-gradient(180deg, rgba(11, 17, 29, 0.98), rgba(7, 11, 21, 0.98));
+      border-color: var(--uno-shared-panel-border, rgba(255, 214, 74, 0.18));
+      background: var(--uno-shared-panel-surface, linear-gradient(180deg, rgba(11, 17, 29, 0.98), rgba(7, 11, 21, 0.98)));
       box-shadow:
-        0 24px 48px rgba(0, 0, 0, 0.26),
+        0 24px 48px var(--uno-shared-shadow, rgba(0, 0, 0, 0.26)),
         inset 0 0 0 1px rgba(255,255,255,0.03);
     }
 
@@ -13307,10 +13357,8 @@ PAGE_TEMPLATE = """
     body.uno-app-context #view-profile .wallet-section,
     body.uno-app-context #view-achievements .team-card,
     body.uno-app-context #view-guilds .team-card {
-      border-color: rgba(255, 214, 74, 0.16);
-      background:
-        linear-gradient(180deg, rgba(13, 18, 29, 0.96), rgba(8, 11, 20, 0.98)),
-        radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 60%);
+      border-color: var(--uno-shared-card-border, rgba(255, 214, 74, 0.16));
+      background: var(--uno-shared-card-surface, linear-gradient(180deg, rgba(13, 18, 29, 0.96), rgba(8, 11, 20, 0.98)));
       box-shadow:
         0 20px 34px rgba(0, 0, 0, 0.22),
         inset 0 0 0 1px rgba(255,255,255,0.03);
@@ -13331,11 +13379,9 @@ PAGE_TEMPLATE = """
     body.uno-app-context #view-achievements .catalog-card,
     body.uno-app-context #view-profile .catalog-card,
     body.uno-app-context #view-guilds .catalog-card {
-      border-color: rgba(255, 214, 74, 0.16);
-      background:
-        linear-gradient(180deg, rgba(18, 22, 35, 0.92), rgba(8, 11, 20, 0.98)),
-        radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 60%);
-      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.16);
+      border-color: var(--uno-shared-card-border, rgba(255, 214, 74, 0.16));
+      background: var(--uno-shared-card-surface, linear-gradient(180deg, rgba(18, 22, 35, 0.92), rgba(8, 11, 20, 0.98)));
+      box-shadow: 0 16px 30px var(--uno-shared-shadow, rgba(0, 0, 0, 0.16));
     }
 
     body.uno-app-context #view-profile .summary-chip,
@@ -13343,9 +13389,9 @@ PAGE_TEMPLATE = """
     body.uno-app-context #view-guilds .summary-chip,
     body.uno-app-context #view-profile .wallet-domain-chip,
     body.uno-app-context #view-guilds .wallet-domain-chip {
-      border-color: rgba(255, 214, 74, 0.18);
-      background: rgba(255, 214, 74, 0.08);
-      color: #fff1c6;
+      border-color: var(--uno-shared-chip-border, rgba(255, 214, 74, 0.18));
+      background: var(--uno-shared-chip-bg, rgba(255, 214, 74, 0.08));
+      color: var(--uno-shared-chip-text, #fff1c6);
     }
 
     body.uno-app-context #view-guilds input,
@@ -15254,9 +15300,11 @@ PAGE_TEMPLATE = """
       unoEventTimer: null,
       unoDrawFx: null,
       unoDrawFxTimer: null,
+      unoCountdownTimer: null,
       unoDrag: null,
       unoGuestId: '',
       unoGuestName: '',
+      unoUiScroll: null,
       activeApp: 'domain',
       launcherOpen: false,
       seasonPassLevelIndex: 0,
@@ -16528,6 +16576,94 @@ PAGE_TEMPLATE = """
         } catch (_) {
         }
       });
+    }
+
+    function captureUnoUiScrollState() {
+      if (!unoRoot) return null;
+      const snapshot = {
+        sessionId: state.unoSession && state.unoSession.session_id ? String(state.unoSession.session_id) : '',
+        hand: 0,
+        opponents: {},
+      };
+      const handRow = unoRoot.querySelector('.uno-player-hand');
+      if (handRow) {
+        snapshot.hand = Number(handRow.scrollLeft || 0);
+      }
+      unoRoot.querySelectorAll('.uno-opponent-row[data-uno-opponent-wallet]').forEach((row) => {
+        const wallet = String(row.dataset.unoOpponentWallet || '');
+        const scroller = row.querySelector('.uno-opponent-cards');
+        if (wallet && scroller) {
+          snapshot.opponents[wallet] = Number(scroller.scrollLeft || 0);
+        }
+      });
+      return snapshot;
+    }
+
+    function restoreUnoUiScrollState(snapshot, session = null) {
+      if (!unoRoot || !snapshot) return;
+      const sessionId = session && session.session_id ? String(session.session_id) : '';
+      if (snapshot.sessionId && sessionId && snapshot.sessionId !== sessionId) {
+        return;
+      }
+      const handRow = unoRoot.querySelector('.uno-player-hand');
+      if (handRow && Number(snapshot.hand || 0) > 0) {
+        handRow.scrollLeft = Number(snapshot.hand || 0);
+      }
+      unoRoot.querySelectorAll('.uno-opponent-row[data-uno-opponent-wallet]').forEach((row) => {
+        const wallet = String(row.dataset.unoOpponentWallet || '');
+        const scroller = row.querySelector('.uno-opponent-cards');
+        if (!wallet || !scroller) return;
+        scroller.scrollLeft = Number((snapshot.opponents && snapshot.opponents[wallet]) || 0);
+      });
+    }
+
+    function stopUnoCountdownTicker() {
+      if (state.unoCountdownTimer) {
+        window.clearInterval(state.unoCountdownTimer);
+        state.unoCountdownTimer = null;
+      }
+    }
+
+    function formatUnoTurnCountdown(ms) {
+      return `${Math.max(1, Math.ceil(Math.max(0, Number(ms || 0)) / 1000))}с`;
+    }
+
+    function formatUnoAlertCountdown(ms) {
+      return `${(Math.max(0, Number(ms || 0)) / 1000).toFixed(1)}с`;
+    }
+
+    function syncUnoCountdownNodes() {
+      if (!unoRoot) return;
+      const now = Date.now();
+      unoRoot.querySelectorAll('[data-uno-turn-countdown]').forEach((node) => {
+        const deadline = Number(node.dataset.deadlineTs || 0);
+        if (!deadline) return;
+        const remaining = Math.max(0, deadline - now);
+        node.textContent = `Ход: ${formatUnoTurnCountdown(remaining)}`;
+      });
+      unoRoot.querySelectorAll('[data-uno-alert-countdown]').forEach((node) => {
+        const deadline = Number(node.dataset.deadlineTs || 0);
+        if (!deadline) return;
+        const remaining = Math.max(0, deadline - now);
+        node.textContent = formatUnoAlertCountdown(remaining);
+      });
+    }
+
+    function startUnoCountdownTicker(session = null) {
+      stopUnoCountdownTicker();
+      const safeSession = session || state.unoSession;
+      if (!safeSession || safeSession.complete || document.body.dataset.activeView !== 'uno') return;
+      const hasTurnCountdown = Number(safeSession.turn_remaining_ms || 0) > 0;
+      const hasAlertCountdown = Boolean(safeSession.uno_alert && safeSession.uno_alert.active && Number((safeSession.uno_alert || {}).remaining_ms || 0) > 0);
+      if (!hasTurnCountdown && !hasAlertCountdown) return;
+      syncUnoCountdownNodes();
+      state.unoCountdownTimer = window.setInterval(() => {
+        if (document.body.dataset.activeView !== 'uno') {
+          stopUnoCountdownTicker();
+          return;
+        }
+        syncUnoCountdownNodes();
+      }, 240);
     }
 
     function correctTmaShellDrift() {
@@ -18348,6 +18484,7 @@ PAGE_TEMPLATE = """
       const activeView = String(document.body.dataset.activeView || 'profile');
       document.body.classList.toggle('uno-app-context', unoContext);
       document.body.classList.toggle('domain-app-context', !unoContext);
+      syncUnoSharedThemeChrome(unoContext ? currentUnoSharedTheme() : null);
       if (topNavProfile && topNavPack && topNavModes && topNavGuilds && topNavAchievements) {
         if (unoContext) {
           topNavProfile.textContent = 'Apps';
@@ -19341,8 +19478,9 @@ PAGE_TEMPLATE = """
       const safeKey = String(key || '').toLowerCase();
       if (safeKey.includes('stock_plain')) {
         return [
-          'repeating-linear-gradient(135deg, rgba(154,164,181,0.2) 0 10px, rgba(154,164,181,0) 10px 20px)',
-          'linear-gradient(180deg, rgba(60,68,82,0.98), rgba(38,44,56,0.98))',
+          'radial-gradient(circle at 22% 18%, rgba(255,255,255,0.08), transparent 36%)',
+          'radial-gradient(circle at 78% 82%, rgba(255,214,74,0.12), transparent 40%)',
+          'linear-gradient(180deg, rgba(46,54,68,0.98), rgba(18,23,34,0.99))',
         ].join(', ');
       }
       const layers = [];
@@ -19350,11 +19488,11 @@ PAGE_TEMPLATE = """
         layers.push('radial-gradient(circle at 22% 18%, rgba(162, 186, 224, 0.24), transparent 42%)');
         layers.push('radial-gradient(circle at 78% 82%, rgba(148, 169, 201, 0.18), transparent 44%)');
       } else if (safeKey.includes('black')) {
-        layers.push('repeating-linear-gradient(135deg, rgba(162, 169, 182, 0.08) 0 7px, rgba(162, 169, 182, 0) 7px 15px)');
+        layers.push('radial-gradient(circle at 20% 18%, rgba(162, 169, 182, 0.12), transparent 38%)');
+        layers.push('radial-gradient(circle at 82% 80%, rgba(162, 169, 182, 0.08), transparent 42%)');
       }
-      const pattern = monogramPatternSurface(emoji, theme, 'cardback');
-      if (pattern) layers.push(pattern);
-      layers.push(`radial-gradient(circle at 50% 6%, ${hexToRgba(theme.accent, 0.2)}, transparent 46%)`);
+      layers.push(`radial-gradient(circle at 50% 8%, ${hexToRgba(theme.accent, 0.16)}, transparent 42%)`);
+      layers.push(`radial-gradient(circle at 50% 94%, ${hexToRgba(theme.accent, 0.1)}, transparent 42%)`);
       layers.push(`linear-gradient(180deg, ${hexToRgba(theme.base, 0.96)}, ${hexToRgba(theme.secondary, 0.98)})`);
       return layers.join(', ');
     }
@@ -19747,8 +19885,18 @@ PAGE_TEMPLATE = """
       const colorKey = String(preferredColor || (state.unoSession && state.unoSession.current_color) || 'yellow').toLowerCase();
       const arenaTheme = cosmeticTheme('arena', arenaKey);
       const backTheme = cosmeticTheme('cardback', backKey);
+      const frameTheme = cosmeticTheme('frame', frameKey || arenaKey || backKey);
       const backSurface = giftCardbackSurface(backKey, emoji);
       const arenaSurface = giftArenaSurface(arenaKey, emoji);
+      const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : `linear-gradient(135deg, ${hexToRgba(arenaTheme.secondary, 0.92)}, ${hexToRgba(frameTheme.accent, 0.82)})`;
+      const tabSurface = [
+        `linear-gradient(180deg, ${hexToRgba(frameTheme.base, 0.88)}, ${hexToRgba(frameTheme.secondary, 0.96)})`,
+        `radial-gradient(circle at top, ${hexToRgba(arenaTheme.accent, 0.12)}, transparent 70%)`,
+      ].join(',');
+      const activeTabSurface = [
+        `linear-gradient(135deg, ${hexToRgba(arenaTheme.secondary, 0.96)}, ${hexToRgba(frameTheme.accent, 0.84)})`,
+        `radial-gradient(circle at top, rgba(255,255,255,0.12), transparent 72%)`,
+      ].join(',');
       return {
         arenaKey,
         backKey,
@@ -19757,9 +19905,10 @@ PAGE_TEMPLATE = """
         emoji,
         arenaTheme,
         backTheme,
+        frameTheme,
         hasCustomBack: !String(backKey || '').toLowerCase().includes('stock_plain'),
         frameAsset: cosmeticAssetUrl('frame', frameKey),
-        bannerSurface: guildKey ? giftGuildSurface(guildKey, emoji) : '',
+        bannerSurface,
         backSurface,
         arenaSurface,
         tableSurface: unoReferenceSurface(colorKey, arenaSurface),
@@ -19769,7 +19918,80 @@ PAGE_TEMPLATE = """
         ].join(','),
         panelBorder: hexToRgba(arenaTheme.accent, 0.22),
         panelShadow: hexToRgba(arenaTheme.accent, 0.12),
+        frameAccent: hexToRgba(frameTheme.accent, 0.34),
+        frameSoft: hexToRgba(frameTheme.accent, 0.16),
+        frameGlow: frameTheme.glow || hexToRgba(frameTheme.accent, 0.18),
+        sharedNavSurface: [
+          'linear-gradient(180deg, rgba(12, 18, 30, 0.96), rgba(7, 11, 20, 0.98))',
+          bannerSurface,
+        ].join(','),
+        sharedPanelSurface: [
+          'linear-gradient(180deg, rgba(11, 17, 29, 0.96), rgba(7, 11, 21, 0.98))',
+          unoReferenceSurface(colorKey, arenaSurface),
+        ].join(','),
+        sharedCardSurface: [
+          'linear-gradient(180deg, rgba(13, 18, 29, 0.94), rgba(8, 11, 20, 0.98))',
+          arenaSurface,
+        ].join(','),
+        sharedChipBg: hexToRgba(frameTheme.accent, 0.12),
+        sharedChipBorder: hexToRgba(frameTheme.accent, 0.24),
+        sharedChipText: arenaTheme.text || '#fff6ea',
+        tabSurface,
+        activeTabSurface,
       };
+    }
+
+    function syncUnoSharedThemeChrome(theme = null) {
+      const body = document.body;
+      if (!body) return;
+      const vars = [
+        '--uno-shared-nav-surface',
+        '--uno-shared-nav-border',
+        '--uno-tab-surface',
+        '--uno-tab-border',
+        '--uno-tab-text',
+        '--uno-tab-active-surface',
+        '--uno-tab-active-border',
+        '--uno-tab-active-text',
+        '--uno-tab-active-accent',
+        '--uno-shared-panel-surface',
+        '--uno-shared-panel-border',
+        '--uno-shared-card-surface',
+        '--uno-shared-card-border',
+        '--uno-shared-chip-bg',
+        '--uno-shared-chip-border',
+        '--uno-shared-chip-text',
+        '--uno-shared-shadow',
+      ];
+      if (!theme) {
+        vars.forEach((name) => body.style.removeProperty(name));
+        return;
+      }
+      const arenaTheme = theme.arenaTheme || cosmeticTheme('arena', theme.arenaKey);
+      const frameTheme = theme.frameTheme || cosmeticTheme('frame', theme.frameKey || theme.arenaKey || theme.backKey);
+      const backTheme = theme.backTheme || cosmeticTheme('cardback', theme.backKey || theme.arenaKey);
+      const setters = {
+        '--uno-shared-nav-surface': theme.sharedNavSurface,
+        '--uno-shared-nav-border': hexToRgba(frameTheme.accent, 0.26),
+        '--uno-tab-surface': theme.tabSurface,
+        '--uno-tab-border': hexToRgba(frameTheme.accent, 0.22),
+        '--uno-tab-text': arenaTheme.text || '#fff6ea',
+        '--uno-tab-active-surface': theme.activeTabSurface,
+        '--uno-tab-active-border': hexToRgba(frameTheme.accent, 0.42),
+        '--uno-tab-active-text': '#1b1208',
+        '--uno-tab-active-accent': `linear-gradient(90deg, ${hexToRgba(arenaTheme.secondary, 0.98)}, ${hexToRgba(frameTheme.accent, 0.98)}, ${hexToRgba(backTheme.accent || frameTheme.accent, 0.92)})`,
+        '--uno-shared-panel-surface': theme.sharedPanelSurface,
+        '--uno-shared-panel-border': hexToRgba(frameTheme.accent, 0.2),
+        '--uno-shared-card-surface': theme.sharedCardSurface,
+        '--uno-shared-card-border': hexToRgba(frameTheme.accent, 0.18),
+        '--uno-shared-chip-bg': theme.sharedChipBg,
+        '--uno-shared-chip-border': theme.sharedChipBorder,
+        '--uno-shared-chip-text': theme.sharedChipText,
+        '--uno-shared-shadow': hexToRgba(arenaTheme.base, 0.3),
+      };
+      Object.entries(setters).forEach(([name, value]) => {
+        body.style.setProperty(name, String(value || ''));
+      });
     }
 
     function unoColorIndicatorMarkup(color, label, options = {}) {
@@ -19831,8 +20053,7 @@ PAGE_TEMPLATE = """
         String(session.draw_remaining || 0),
         String(session.recycle_count || 0),
         session.discard_top && session.discard_top.id ? String(session.discard_top.id) : '',
-        activeAlert ? `${String(activeAlert.target_wallet || '')}:${String(activeAlert.viewer_role || '')}:${String(activeAlert.countdown_label || '')}` : '',
-        String(Math.max(0, Math.ceil(Number(session.turn_remaining_ms || 0) / 1000))),
+        activeAlert ? `${String(activeAlert.target_wallet || '')}:${String(activeAlert.viewer_role || '')}:${String(activeAlert.penalty_cards || 0)}` : '',
         playerHand.map((card) => String(card && card.id || '')).join(','),
         opponents.map((item) => `${String(item && item.wallet || '')}:${Number(item && item.card_count || 0)}:${item && item.is_current_turn ? '1' : '0'}`).join(','),
       ].join('|');
@@ -20387,7 +20608,6 @@ PAGE_TEMPLATE = """
     }
 
     function unoCardMarkup(card, options = {}) {
-      const frameAsset = options.frameAsset || '';
       const playable = Boolean(options.playable);
       const disabled = Boolean(options.disabled);
       const value = String((card && card.value) || '').toLowerCase();
@@ -20439,35 +20659,27 @@ PAGE_TEMPLATE = """
             `}
             <span class="sr-only">${escapeHtml(card.title || '')}</span>
           </div>
-          ${frameAsset ? `<img class="uno-card-frame" src="${frameAsset}" alt="">` : ''}
         </button>
       `;
     }
 
     function unoBackCardMarkup(cardbackSurface, frameAsset = '', label = 'TDG', options = {}) {
-      const mark = String(label || 'TDG').trim() || 'TDG';
-      const backUrl = String(UNO_OPEN_CARD_BACK_URL || '').trim();
+      const edgeMark = String(options.edgeMark || '').trim();
       const accent = String(options.accent || '').trim() || '#ffd64a';
       const accentSoft = hexToRgba(accent, 0.2);
       const markText = String(options.textColor || '').trim() || '#eef8ff';
-      const showBackArt = Boolean(backUrl && !options.customSkin);
       return `
         <div class="uno-back-card">
           <div class="uno-back-face" style="--uno-cardback-surface:${escapeHtml(cardbackSurface)};--uno-back-accent:${escapeHtml(accent)};--uno-back-accent-soft:${escapeHtml(accentSoft)};--uno-back-text:${escapeHtml(markText)};">
-            <span class="uno-back-oval" aria-hidden="true"></span>
-            <span class="uno-back-corner top" aria-hidden="true"><i class="uno-back-corner-dot"></i></span>
-            <span class="uno-back-corner bottom" aria-hidden="true"><i class="uno-back-corner-dot"></i></span>
+            <span class="uno-back-edge-mark tl${edgeMark ? '' : ' empty'}" aria-hidden="true">${escapeHtml(edgeMark || '')}</span>
+            <span class="uno-back-edge-mark tr${edgeMark ? '' : ' empty'}" aria-hidden="true">${escapeHtml(edgeMark || '')}</span>
+            <span class="uno-back-edge-mark bl${edgeMark ? '' : ' empty'}" aria-hidden="true">${escapeHtml(edgeMark || '')}</span>
+            <span class="uno-back-edge-mark br${edgeMark ? '' : ' empty'}" aria-hidden="true">${escapeHtml(edgeMark || '')}</span>
             <span class="uno-back-brand" aria-hidden="true">
-              <span class="uno-back-brand-mark">${escapeHtml(mark)}</span>
+              <span class="uno-back-brand-mark">UNO</span>
             </span>
-            ${showBackArt ? `
-              <span class="uno-photo-face asset back" aria-hidden="true">
-                <img src="${backUrl}" alt="">
-              </span>
-            ` : ''}
-            <span class="sr-only">UNO ${escapeHtml(mark)}</span>
+            <span class="sr-only">UNO</span>
           </div>
-          ${frameAsset ? `<img class="uno-card-frame" src="${frameAsset}" alt="">` : ''}
         </div>
       `;
     }
@@ -20797,9 +21009,11 @@ PAGE_TEMPLATE = """
 
     function renderUnoPanel() {
       if (!unoRoot) return;
+      const previousUnoUiScroll = captureUnoUiScrollState();
       clearUnoDragInteraction();
       if (!hasUnoTesterAccess()) {
         stopUnoStatusPolling();
+        stopUnoCountdownTicker();
         setUnoLiveLock(false);
         state.unoLastEventKey = '';
         clearUnoEventFx();
@@ -20819,15 +21033,16 @@ PAGE_TEMPLATE = """
       const tableSurface = unoTheme.tableSurface;
       const backSurface = unoTheme.backSurface;
       const bannerSurface = unoTheme.bannerSurface;
-      const backMark = String(unoTheme.emoji || 'TDG').trim() || 'TDG';
+      const backMark = String(unoTheme.emoji || '').trim();
       const arenaTheme = unoTheme.arenaTheme || cosmeticTheme('arena', unoTheme.arenaKey);
       const backTheme = unoTheme.backTheme || cosmeticTheme('cardback', unoTheme.backKey);
       const backOptions = {
         customSkin: Boolean(unoTheme.hasCustomBack),
         accent: backTheme.accent,
         textColor: backTheme.text,
+        edgeMark: backMark,
       };
-      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};`;
+      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};`;
       const unoHeaderClass = bannerSurface ? 'uno-header skin-banner' : 'uno-header';
       const unoHeaderStyle = bannerSurface ? ` style="--uno-banner-surface:${escapeHtml(bannerSurface)};"` : '';
       const sessionStatus = String((session && session.status) || '');
@@ -20845,6 +21060,7 @@ PAGE_TEMPLATE = """
         : identity.displayName;
       if (!session) {
         stopUnoStatusPolling();
+        stopUnoCountdownTicker();
         state.unoLastEventKey = '';
         clearUnoEventFx();
         clearUnoDrawFx();
@@ -20946,6 +21162,7 @@ PAGE_TEMPLATE = """
       const waitingLobby = String(session.status || '') === 'waiting';
       if (waitingLobby) {
         scheduleUnoStatusPolling();
+        stopUnoCountdownTicker();
         state.unoLastEventKey = '';
         clearUnoEventFx();
         const countdownSeconds = Math.max(0, Number(session.countdown_seconds || 0));
@@ -21016,6 +21233,9 @@ PAGE_TEMPLATE = """
       const turnCountdownLabel = !session.complete && !unoAlert && Number(session.turn_remaining_ms || 0) > 0
         ? `${Math.max(1, Math.ceil(Number(session.turn_remaining_ms || 0) / 1000))}с`
         : '';
+      const nowTs = Date.now();
+      const turnDeadlineTs = turnCountdownLabel ? nowTs + Math.max(0, Number(session.turn_remaining_ms || 0)) : 0;
+      const alertDeadlineTs = unoAlert ? nowTs + Math.max(0, Number(unoAlert.remaining_ms || 0)) : 0;
       const displayHand = visibleUnoPlayerHand(session);
       const showCompactTip = !session.complete && unoMatchesPlayedCount() < 3;
       syncUnoCompletedMatchCounter(session);
@@ -21037,7 +21257,7 @@ PAGE_TEMPLATE = """
               <div class="uno-chip">Рука: ${Number((session.player_hand || []).length || 0)}</div>
               ${session.pending_draw_count ? `<div class="uno-chip">Стек +${Number(session.pending_draw_count || 0)}</div>` : ''}
               ${recycleCounterLabel ? `<div class="uno-chip">${escapeHtml(recycleCounterLabel)}</div>` : ''}
-              ${turnCountdownLabel ? `<div class="uno-chip">Ход: ${escapeHtml(turnCountdownLabel)}</div>` : ''}
+              ${turnCountdownLabel ? `<div class="uno-chip" data-uno-turn-countdown data-deadline-ts="${turnDeadlineTs}">Ход: ${escapeHtml(turnCountdownLabel)}</div>` : ''}
             </div>
           </div>
           ${unoAlert ? `
@@ -21045,7 +21265,7 @@ PAGE_TEMPLATE = """
               <div class="uno-alert-head">
                 <span class="uno-turn-pill ${unoAlert.viewer_role === 'call' ? 'you' : 'wait'}">${unoAlert.viewer_role === 'call' ? 'UNO' : 'Реакция'}</span>
                 <strong>${escapeHtml(unoAlert.title || 'Жми UNO')}</strong>
-                <span class="uno-alert-timer">${escapeHtml(unoAlert.countdown_label || '0.0с')}</span>
+                <span class="uno-alert-timer" data-uno-alert-countdown data-deadline-ts="${alertDeadlineTs}">${escapeHtml(unoAlert.countdown_label || formatUnoAlertCountdown(unoAlert.remaining_ms || 0))}</span>
               </div>
               <div class="tiny">${escapeHtml(unoAlert.detail || 'Сейчас решается гонка за кнопку UNO.')}</div>
               <div class="uno-playable-reasons">
@@ -21178,6 +21398,19 @@ PAGE_TEMPLATE = """
         });
       } else if (!state.unoDrawFx) {
         clearUnoEventFx();
+      }
+      if (previousUnoUiScroll) {
+        state.unoUiScroll = previousUnoUiScroll;
+        restoreUnoUiScrollState(previousUnoUiScroll, session);
+        requestAnimationFrame(() => {
+          restoreUnoUiScrollState(previousUnoUiScroll, session);
+          state.unoUiScroll = null;
+        });
+      }
+      if (session.complete) {
+        stopUnoCountdownTicker();
+      } else {
+        startUnoCountdownTicker(session);
       }
       state.unoLastEventKey = nextUnoEventKey;
     }
