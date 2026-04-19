@@ -2251,9 +2251,9 @@ PAGE_TEMPLATE = """
       position: relative;
       transition: transform 160ms ease, filter 160ms ease;
       padding: 8px;
-      border-radius: 24px;
-      border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
-      background: linear-gradient(180deg, rgba(9, 16, 27, 0.58), rgba(7, 13, 22, 0.82));
+      border-radius: 0;
+      border: 0;
+      background: transparent;
     }
 
     .uno-discard-stack.drop-ready::after {
@@ -2317,14 +2317,14 @@ PAGE_TEMPLATE = """
     .uno-stack-action {
       padding: 0;
       margin: 0;
-      border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
-      background: linear-gradient(180deg, rgba(9, 16, 27, 0.58), rgba(7, 13, 22, 0.82));
+      border: 0;
+      background: transparent;
       display: grid;
       justify-items: center;
       gap: 0;
       touch-action: manipulation;
       cursor: pointer;
-      border-radius: 24px;
+      border-radius: 0;
       padding: 8px;
     }
 
