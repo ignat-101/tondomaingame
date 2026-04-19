@@ -1817,7 +1817,7 @@ PAGE_TEMPLATE = """
       flex: 0 0 auto;
       width: 82px;
       height: 126px;
-      border-radius: 20px;
+      border-radius: 18px;
       overflow: visible;
       border: 0;
       box-shadow:
@@ -1849,7 +1849,7 @@ PAGE_TEMPLATE = """
     .uno-back-face {
       position: absolute;
       inset: 0;
-      border-radius: 20px;
+      border-radius: 18px;
       overflow: hidden;
       color: #ffffff;
       isolation: isolate;
@@ -1868,7 +1868,7 @@ PAGE_TEMPLATE = """
       content: "";
       position: absolute;
       inset: 3px;
-      border-radius: 17px;
+      border-radius: 15px;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.14),
         inset 0 0 0 2px var(--uno-frame-soft, rgba(255, 214, 74, 0.12)),
@@ -1884,7 +1884,7 @@ PAGE_TEMPLATE = """
       content: "";
       position: absolute;
       inset: 1px;
-      border-radius: 19px;
+      border-radius: 17px;
       border: 1px solid rgba(255,255,255,0.04);
       box-shadow: 0 10px 18px var(--uno-frame-glow, rgba(255, 214, 74, 0.08));
       pointer-events: none;
@@ -1906,7 +1906,7 @@ PAGE_TEMPLATE = """
     .uno-photo-face {
       position: absolute;
       inset: 5px;
-      border-radius: 15px;
+      border-radius: 13px;
       overflow: hidden;
       z-index: 2;
       background: #0f1117;
@@ -1922,8 +1922,8 @@ PAGE_TEMPLATE = """
     }
 
     .uno-photo-face.asset {
-      inset: 2px;
-      border-radius: 16px;
+      inset: 4px;
+      border-radius: 14px;
       background: #090e17;
     }
 
@@ -3233,7 +3233,7 @@ PAGE_TEMPLATE = """
     @media (max-width: 720px) {
       .uno-shell {
         padding: 12px;
-        gap: 12px;
+        gap: 10px;
         border-radius: 24px;
       }
 
@@ -3258,27 +3258,23 @@ PAGE_TEMPLATE = """
         padding-inline: 10px;
       }
 
+      .uno-surface-actions.tiles {
+        gap: 10px;
+      }
+
+      .uno-surface-actions.tiles button,
+      .uno-surface-actions.tiles .uno-surface-tab {
+        min-height: 78px;
+        padding: 12px;
+        border-radius: 20px;
+      }
+
+      .uno-surface-actions.tiles button::before {
+        font-size: 10px;
+      }
+
       .uno-home-title strong {
-        font-size: 32px;
-      }
-
-      .uno-home-stage {
-        min-height: 146px;
-      }
-
-      .uno-home-stage .uno-stack {
-        width: 78px;
-        height: 110px;
-      }
-
-      .uno-home-table-card {
-        right: 10px;
-        top: 18px;
-      }
-
-      .uno-home-flight-card {
-        width: 72px;
-        height: 110px;
+        font-size: 28px;
       }
 
       .uno-intro-grid,
@@ -3289,13 +3285,35 @@ PAGE_TEMPLATE = """
 
       .uno-home-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
       }
 
       .uno-home-tile,
       .uno-home-control {
-        min-height: 104px;
+        min-height: 94px;
         padding: 12px;
         gap: 8px;
+        border-radius: 20px;
+      }
+
+      .uno-home-tile.wide {
+        min-height: 88px;
+        gap: 12px;
+      }
+
+      .uno-home-tile strong,
+      .uno-home-control strong {
+        font-size: 15px;
+      }
+
+      .uno-meta-strip {
+        gap: 8px;
+      }
+
+      .uno-meta-strip .uno-chip {
+        min-height: 26px;
+        padding: 0 10px;
+        font-size: 10px;
       }
 
       .uno-startup-guide .startup-guide-stage {
@@ -13004,7 +13022,7 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
       overflow-y: auto;
-      padding-bottom: calc(98px + env(safe-area-inset-bottom));
+      padding-bottom: calc(148px + env(safe-area-inset-bottom));
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
@@ -13415,17 +13433,26 @@ PAGE_TEMPLATE = """
 
     body.uno-app-context .mobile-nav button {
       border-color: var(--uno-tab-border, rgba(255,255,255,0.1));
-      background: var(--uno-tab-surface, rgba(255,255,255,0.035));
+      background:
+        linear-gradient(180deg, rgba(10, 16, 27, 0.82), rgba(8, 12, 20, 0.94)),
+        var(--uno-tab-surface, rgba(255,255,255,0.035));
       color: var(--uno-tab-text, #fff6ea);
       font-weight: 800;
       letter-spacing: 0.02em;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.03),
+        0 12px 22px rgba(0, 0, 0, 0.18);
     }
 
     body.uno-app-context .mobile-nav button.active {
       border-color: var(--uno-tab-active-border, rgba(255, 214, 74, 0.52));
-      background: var(--uno-tab-active-surface, linear-gradient(135deg, rgba(255, 91, 87, 0.32), rgba(255, 214, 74, 0.24)));
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0)),
+        var(--uno-tab-active-surface, linear-gradient(135deg, rgba(255, 91, 87, 0.32), rgba(255, 214, 74, 0.24)));
       color: var(--uno-tab-active-text, #1a1208);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.06),
+        0 14px 24px rgba(0, 0, 0, 0.22);
     }
 
     body.uno-app-context .top-app-nav-link {
@@ -15274,7 +15301,7 @@ PAGE_TEMPLATE = """
         <button type="button" class="app-launcher-mini" data-launch-app="domain"><i></i>Domain</button>
         <button type="button" class="app-launcher-mini uno" data-launch-app="uno" data-uno-entry="1" hidden><i></i>UNO</button>
       </div>
-      <div class="app-launcher-hint">Нажми на логотип сверху, чтобы открыть Menu снова.</div>
+      <div class="app-launcher-hint">Открывай выбор игр через маскота.</div>
     </div>
   </div>
 
@@ -21138,8 +21165,8 @@ PAGE_TEMPLATE = """
     function bindUnoSurfaceActions(root = document) {
       root.querySelectorAll('[data-uno-surface-link]').forEach((button) => {
         const target = String(button.dataset.unoSurfaceLink || 'menu');
-        const handler = target === 'menu'
-          ? () => openAppLauncher()
+      const handler = target === 'menu'
+          ? () => openUnoHub({closePopover: false})
           : (target === 'profile'
             ? () => switchUnoSharedView('profile')
             : (target === 'guilds'
@@ -21260,7 +21287,6 @@ PAGE_TEMPLATE = """
             <div class="uno-home-top">
               <div class="uno-home-title">${unoBrandBadge('UNO', bannerSurface)}</div>
             </div>
-            ${unoHomeStageMarkup(frameAsset, backSurface, backMark, backOptions)}
             ${unoSurfaceActionsMarkup('menu', {tiles: true})}
             <div class="uno-meta-strip">
               <div class="uno-chip">${identity.progressEnabled ? `Профиль ${escapeHtml(identityLabel)}` : 'Guest-режим'}</div>
@@ -21331,6 +21357,51 @@ PAGE_TEMPLATE = """
             event.target.value = updateUnoGuestName(event.target.value || '');
           });
         }
+        return;
+      }
+      if (session.complete) {
+        stopUnoStatusPolling();
+        stopUnoCountdownTicker();
+        state.unoLastEventKey = '';
+        clearUnoEventFx();
+        clearUnoDrawFx();
+        syncUnoCompletedMatchCounter(session);
+        const rewardGain = session.reward_gain || {};
+        const playAgainLabel = session.mode === 'bot'
+          ? (session.bot_profile === 'rookie' ? 'Новичкам ещё раз' : 'С ботом ещё раз')
+          : 'Новая быстрая партия';
+        const resultSummary = session.last_action || 'Матч завершён.';
+        unoRoot.innerHTML = `
+          <div class="uno-shell completed uno-home-shell" style="${shellVisualStyle}">
+            <div class="uno-home-top">
+              <div class="uno-home-title">${unoBrandBadge('UNO', bannerSurface)}</div>
+            </div>
+            ${unoSurfaceActionsMarkup('menu', {tiles: true})}
+            <div class="uno-meta-strip">
+              <div class="uno-chip">${escapeHtml(unoModeLabel(session.mode, session.bot_profile))}</div>
+              <div class="uno-chip">${escapeHtml(session.winner_label || 'Матч завершён')}</div>
+              <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Guest-режим'}</div>
+            </div>
+            <div class="uno-result-box">
+              <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
+              <div class="tiny">${escapeHtml(resultSummary)}</div>
+              <div class="uno-reward-line">
+                <span class="summary-chip">💠 +${Number((rewardGain.pack_shards) || 0)}</span>
+                <span class="summary-chip">Сезон +${Number((rewardGain.season_points) || 0)}</span>
+                <span class="summary-chip">Колода ${Number(session.draw_remaining || 0)}</span>
+              </div>
+              <div class="actions" style="margin-top:12px;">
+                <button type="button" id="uno-after-bot-btn">${escapeHtml(playAgainLabel)}</button>
+                <button type="button" class="secondary" id="uno-result-launcher-btn">Menu</button>
+              </div>
+            </div>
+          </div>
+        `;
+        const unoAfterBotBtn = document.getElementById('uno-after-bot-btn');
+        const unoResultLauncherBtn = document.getElementById('uno-result-launcher-btn');
+        if (unoAfterBotBtn) bindFunctionalControl(unoAfterBotBtn, () => (session.mode === 'bot' ? startUnoMatch(session.bot_profile || 'standard') : searchUnoQuickMatch()), 'click', {skipPrepare: true});
+        if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openUnoHub({closePopover: false}), 'click', {skipPrepare: true});
+        bindUnoSurfaceActions(unoRoot);
         return;
       }
       const playableIds = new Set(session.playable_card_ids || []);
@@ -25567,7 +25638,7 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(document.getElementById('mobile-show-deck-btn'), showDeck);
     bindFunctionalControl(navPack, async () => {
       if (state.activeApp === 'uno') {
-        openAppLauncher();
+        openUnoHub({closePopover: false});
         return;
       }
       switchView('pack');
@@ -25591,7 +25662,7 @@ PAGE_TEMPLATE = """
     });
     bindFunctionalControl(topNavProfile, () => {
       if (state.activeApp === 'uno') {
-        openAppLauncher();
+        openUnoHub({closePopover: false});
         return;
       }
       switchView('profile');
@@ -25644,7 +25715,13 @@ PAGE_TEMPLATE = """
       }, 'click', {skipPrepare: true});
     }
     if (appLauncherHomeBtn) {
-      bindFunctionalControl(appLauncherHomeBtn, () => openAppLauncher());
+      bindFunctionalControl(appLauncherHomeBtn, () => {
+        if (state.activeApp === 'uno') {
+          openUnoHub({closePopover: false});
+          return;
+        }
+        switchView('profile');
+      });
     }
     if (appLauncher) {
       appLauncher.querySelectorAll('[data-launch-app]').forEach((button) => {
