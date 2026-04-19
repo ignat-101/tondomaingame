@@ -3536,6 +3536,36 @@ PAGE_TEMPLATE = """
       pointer-events: auto;
     }
 
+    .mascot-side-launch {
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 212, 94, 0.32);
+      background:
+        linear-gradient(135deg, rgba(255, 166, 76, 0.96), rgba(255, 213, 84, 0.94)),
+        radial-gradient(circle at top, rgba(255,255,255,0.16), transparent 68%);
+      color: #1f1404;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
+      cursor: pointer;
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 160ms ease, opacity 160ms ease;
+    }
+
+    .mascot-side-launch:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .mascot-side-launch[hidden] {
+      display: none !important;
+    }
+
     .mascot-fab {
       width: 78px;
       height: 78px;
@@ -14774,6 +14804,14 @@ PAGE_TEMPLATE = """
       width: min(286px, calc(100vw - 20px));
     }
 
+    body.tma-app .mascot-side-launch {
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 14px;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+
     body.tma-app .mode-card.preferred-mode {
       padding-top: 76px;
     }
@@ -15329,6 +15367,7 @@ PAGE_TEMPLATE = """
   </div>
 
   <div class="mascot-widget" id="mascot-widget">
+    <button type="button" class="mascot-side-launch" id="mascot-side-uno-btn" data-uno-entry="1" hidden>UNO</button>
     <div class="mascot-popover" id="mascot-popover">
       <div class="mascot-popover-head">
         <img src="/static/mascot-ton-bot.png" alt="">
@@ -15341,11 +15380,9 @@ PAGE_TEMPLATE = """
         <button type="button" id="mascot-open-profile-btn">Profile</button>
         <button type="button" id="mascot-open-pack-btn">Cards</button>
         <button type="button" id="mascot-open-battle-btn">Battle</button>
-        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>Menu</button>
         <button type="button" class="secondary" id="mascot-open-guide-btn">Guide</button>
       </div>
       <div class="mascot-popover-actions" id="mascot-uno-actions" hidden>
-        <button type="button" id="mascot-uno-home-btn">Menu</button>
         <button type="button" id="mascot-uno-bot-btn">Bot</button>
         <button type="button" id="mascot-uno-quick-btn">Match</button>
         <button type="button" id="mascot-uno-room-btn">Room</button>
@@ -15516,12 +15553,11 @@ PAGE_TEMPLATE = """
     const mascotOpenProfileBtn = document.getElementById('mascot-open-profile-btn');
     const mascotOpenPackBtn = document.getElementById('mascot-open-pack-btn');
     const mascotOpenBattleBtn = document.getElementById('mascot-open-battle-btn');
-    const mascotOpenUnoBtn = document.getElementById('mascot-open-uno-btn');
     const mascotOpenGuideBtn = document.getElementById('mascot-open-guide-btn');
     const mascotPopoverCopy = document.getElementById('mascot-popover-copy');
+    const mascotSideUnoBtn = document.getElementById('mascot-side-uno-btn');
     const mascotDomainActions = document.getElementById('mascot-domain-actions');
     const mascotUnoActions = document.getElementById('mascot-uno-actions');
-    const mascotUnoHomeBtn = document.getElementById('mascot-uno-home-btn');
     const mascotUnoBotBtn = document.getElementById('mascot-uno-bot-btn');
     const mascotUnoQuickBtn = document.getElementById('mascot-uno-quick-btn');
     const mascotUnoRoomBtn = document.getElementById('mascot-uno-room-btn');
@@ -18616,6 +18652,10 @@ PAGE_TEMPLATE = """
       }
       if (mascotUnoActions) {
         mascotUnoActions.hidden = !unoContext || !unoEnabled;
+      }
+      if (mascotSideUnoBtn) {
+        mascotSideUnoBtn.hidden = !unoEnabled;
+        mascotSideUnoBtn.textContent = unoContext ? 'Menu' : 'UNO';
       }
     }
 
@@ -25757,12 +25797,6 @@ PAGE_TEMPLATE = """
         switchView('modes');
       });
     }
-    if (mascotOpenUnoBtn) {
-      bindFunctionalControl(mascotOpenUnoBtn, () => {
-        setMascotOpen(false);
-        openAppLauncher();
-      });
-    }
     if (mascotOpenGuideBtn) {
       bindFunctionalControl(mascotOpenGuideBtn, () => {
         setMascotOpen(false);
@@ -25773,9 +25807,13 @@ PAGE_TEMPLATE = """
         showStartupGuideIfNeeded();
       });
     }
-    if (mascotUnoHomeBtn) {
-      bindFunctionalControl(mascotUnoHomeBtn, () => {
+    if (mascotSideUnoBtn) {
+      bindFunctionalControl(mascotSideUnoBtn, () => {
         setMascotOpen(false);
+        if (state.activeApp === 'uno') {
+          openUnoHub({closePopover: false});
+          return;
+        }
         openAppLauncher();
       });
     }
