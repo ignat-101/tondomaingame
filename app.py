@@ -15380,9 +15380,11 @@ PAGE_TEMPLATE = """
         <button type="button" id="mascot-open-profile-btn">Profile</button>
         <button type="button" id="mascot-open-pack-btn">Cards</button>
         <button type="button" id="mascot-open-battle-btn">Battle</button>
+        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>Menu</button>
         <button type="button" class="secondary" id="mascot-open-guide-btn">Guide</button>
       </div>
       <div class="mascot-popover-actions" id="mascot-uno-actions" hidden>
+        <button type="button" id="mascot-uno-home-btn">Menu</button>
         <button type="button" id="mascot-uno-bot-btn">Bot</button>
         <button type="button" id="mascot-uno-quick-btn">Match</button>
         <button type="button" id="mascot-uno-room-btn">Room</button>
@@ -15553,11 +15555,13 @@ PAGE_TEMPLATE = """
     const mascotOpenProfileBtn = document.getElementById('mascot-open-profile-btn');
     const mascotOpenPackBtn = document.getElementById('mascot-open-pack-btn');
     const mascotOpenBattleBtn = document.getElementById('mascot-open-battle-btn');
+    const mascotOpenUnoBtn = document.getElementById('mascot-open-uno-btn');
     const mascotOpenGuideBtn = document.getElementById('mascot-open-guide-btn');
     const mascotPopoverCopy = document.getElementById('mascot-popover-copy');
     const mascotSideUnoBtn = document.getElementById('mascot-side-uno-btn');
     const mascotDomainActions = document.getElementById('mascot-domain-actions');
     const mascotUnoActions = document.getElementById('mascot-uno-actions');
+    const mascotUnoHomeBtn = document.getElementById('mascot-uno-home-btn');
     const mascotUnoBotBtn = document.getElementById('mascot-uno-bot-btn');
     const mascotUnoQuickBtn = document.getElementById('mascot-uno-quick-btn');
     const mascotUnoRoomBtn = document.getElementById('mascot-uno-room-btn');
@@ -18654,8 +18658,13 @@ PAGE_TEMPLATE = """
         mascotUnoActions.hidden = !unoContext || !unoEnabled;
       }
       if (mascotSideUnoBtn) {
-        mascotSideUnoBtn.hidden = !unoEnabled;
-        mascotSideUnoBtn.textContent = unoContext ? 'Menu' : 'UNO';
+        const activeUnoBattle = unoEnabled
+          && state.activeApp === 'uno'
+          && state.unoSession
+          && !state.unoSession.complete
+          && String(state.unoSession.status || '') === 'playing';
+        mascotSideUnoBtn.hidden = !activeUnoBattle;
+        mascotSideUnoBtn.textContent = 'UNO';
       }
     }
 
@@ -25797,6 +25806,12 @@ PAGE_TEMPLATE = """
         switchView('modes');
       });
     }
+    if (mascotOpenUnoBtn) {
+      bindFunctionalControl(mascotOpenUnoBtn, () => {
+        setMascotOpen(false);
+        openAppLauncher();
+      });
+    }
     if (mascotOpenGuideBtn) {
       bindFunctionalControl(mascotOpenGuideBtn, () => {
         setMascotOpen(false);
@@ -25810,10 +25825,12 @@ PAGE_TEMPLATE = """
     if (mascotSideUnoBtn) {
       bindFunctionalControl(mascotSideUnoBtn, () => {
         setMascotOpen(false);
-        if (state.activeApp === 'uno') {
-          openUnoHub({closePopover: false});
-          return;
-        }
+        openUnoHub({closePopover: false});
+      });
+    }
+    if (mascotUnoHomeBtn) {
+      bindFunctionalControl(mascotUnoHomeBtn, () => {
+        setMascotOpen(false);
         openAppLauncher();
       });
     }
