@@ -963,6 +963,7 @@ PAGE_TEMPLATE = """
       border: 1px solid rgba(255,255,255,0.12);
       background:
         linear-gradient(180deg, rgba(6, 11, 20, 0.36), rgba(6, 11, 20, 0.72)),
+        var(--uno-banner-art, none),
         var(--uno-banner-surface, linear-gradient(180deg, rgba(16, 26, 44, 0.92), rgba(8, 15, 28, 0.96)));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
@@ -1006,6 +1007,7 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 14% 12%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.22)), transparent 28%),
         radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.18), transparent 26%),
         radial-gradient(circle at 50% 100%, rgba(49, 168, 255, 0.16), transparent 34%),
+        var(--uno-arena-art, none),
         linear-gradient(180deg, rgba(12, 18, 30, 0.98), rgba(7, 12, 22, 0.98));
       box-shadow:
         0 28px 56px rgba(0, 0, 0, 0.34),
@@ -1045,6 +1047,7 @@ PAGE_TEMPLATE = """
     .uno-banner.skinned {
       background:
         linear-gradient(135deg, rgba(255, 186, 48, 0.84), rgba(255, 88, 74, 0.84)),
+        var(--uno-banner-art, none),
         var(--uno-banner-surface, linear-gradient(135deg, rgba(255, 186, 48, 0.96), rgba(255, 88, 74, 0.96)));
     }
 
@@ -1143,7 +1146,8 @@ PAGE_TEMPLATE = """
 
     .uno-home-shell {
       display: grid;
-      grid-template-rows: auto auto auto minmax(0, 1fr);
+      grid-template-rows: auto auto auto auto;
+      align-content: start;
       gap: 12px;
     }
 
@@ -1185,7 +1189,8 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.16), transparent 24%),
         radial-gradient(circle at 18% 86%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.14)), transparent 28%),
         radial-gradient(circle at 84% 76%, rgba(46, 132, 255, 0.16), transparent 26%),
-        linear-gradient(180deg, rgba(12, 18, 30, 0.74), rgba(7, 11, 20, 0.94));
+        var(--uno-arena-art, none),
+        var(--uno-panel-surface, linear-gradient(180deg, rgba(12, 18, 30, 0.74), rgba(7, 11, 20, 0.94)));
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
     }
 
@@ -1249,7 +1254,8 @@ PAGE_TEMPLATE = """
       border: 1px solid rgba(255, 255, 255, 0.12);
       background:
         linear-gradient(180deg, rgba(10, 16, 27, 0.82), rgba(8, 12, 20, 0.94)),
-        radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 70%);
+        var(--uno-panel-art, none),
+        var(--uno-panel-surface, radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 70%));
       display: grid;
       gap: 10px;
       align-content: start;
@@ -1265,7 +1271,8 @@ PAGE_TEMPLATE = """
       gap: 16px;
       background:
         linear-gradient(135deg, rgba(56, 19, 14, 0.94), rgba(116, 42, 17, 0.86)),
-        radial-gradient(circle at top, rgba(255, 214, 74, 0.18), transparent 68%);
+        var(--uno-banner-art, none),
+        var(--uno-banner-surface, radial-gradient(circle at top, rgba(255, 214, 74, 0.18), transparent 68%));
     }
 
     .uno-home-tile::before,
@@ -1321,6 +1328,52 @@ PAGE_TEMPLATE = """
       min-width: 112px;
     }
 
+    .uno-surface-actions.tiles {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      width: 100%;
+      margin-left: 0;
+      justify-content: stretch;
+    }
+
+    .uno-surface-actions.tiles button {
+      width: 100%;
+      min-height: 96px;
+      padding: 16px 14px;
+      justify-content: flex-start;
+      text-align: left;
+      border-radius: 22px;
+      display: grid;
+      align-content: start;
+      gap: 6px;
+      white-space: normal;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .uno-surface-actions.tiles button::before {
+      content: attr(data-uno-kicker);
+      position: relative;
+      display: block;
+      font-size: 11px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.62);
+      z-index: 1;
+    }
+
+    .uno-surface-actions.tiles button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 44%);
+      opacity: 0.72;
+    }
+
     .uno-surface-actions .uno-surface-tab {
       min-height: 40px;
       padding-inline: 14px;
@@ -1340,6 +1393,40 @@ PAGE_TEMPLATE = """
       box-shadow:
         0 14px 28px rgba(0, 0, 0, 0.18),
         0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    .uno-surface-actions.tiles .uno-surface-tab {
+      min-height: 96px;
+      padding: 16px 14px;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(10, 16, 27, 0.82), rgba(8, 12, 20, 0.94)),
+        var(--uno-tab-surface, linear-gradient(180deg, rgba(16, 22, 36, 0.92), rgba(10, 15, 24, 0.96)));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.02),
+        0 18px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    .uno-surface-actions.tiles .uno-surface-tab.active {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0)),
+        var(--uno-tab-active-surface, linear-gradient(135deg, rgba(255, 91, 87, 0.92), rgba(255, 214, 74, 0.84)));
+      box-shadow:
+        0 18px 32px rgba(0, 0, 0, 0.22),
+        0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .uno-live-controls {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-left: auto;
+    }
+
+    .uno-live-exit {
+      min-width: 112px;
+      min-height: 42px;
+      border-radius: 16px;
     }
 
     .uno-home-control .actions {
@@ -1889,6 +1976,7 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 50% 12%, rgba(255,255,255,0.08), transparent 26%),
         radial-gradient(circle at 18% 18%, var(--uno-back-accent-soft, rgba(255, 214, 74, 0.16)), transparent 34%),
         radial-gradient(circle at 82% 84%, var(--uno-back-accent-soft, rgba(255, 214, 74, 0.14)), transparent 38%),
+        var(--uno-cardback-art, none),
         var(--uno-cardback-surface, linear-gradient(180deg, rgba(24, 28, 35, 0.98), rgba(7, 11, 18, 0.98)));
     }
 
@@ -2062,17 +2150,28 @@ PAGE_TEMPLATE = """
     .uno-back-brand {
       position: absolute;
       inset: 0;
-      z-index: 2;
+      z-index: 4;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 18px;
     }
 
+    .uno-back-frame {
+      position: absolute;
+      inset: -1px;
+      width: calc(100% + 2px);
+      height: calc(100% + 2px);
+      object-fit: contain;
+      z-index: 3;
+      pointer-events: none;
+      filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.18));
+    }
+
     .uno-back-brand-mark {
-      min-width: 88px;
-      min-height: 54px;
-      padding: 0 22px;
+      min-width: 72px;
+      min-height: 42px;
+      padding: 0 16px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
@@ -2081,7 +2180,7 @@ PAGE_TEMPLATE = """
         linear-gradient(135deg, rgba(237, 36, 42, 0.98), rgba(255, 129, 36, 0.94) 58%, rgba(255, 214, 74, 0.9)),
         linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0));
       color: #ffe672;
-      font-size: 24px;
+      font-size: 18px;
       font-weight: 900;
       letter-spacing: 0.03em;
       transform: rotate(-18deg);
@@ -2104,7 +2203,7 @@ PAGE_TEMPLATE = """
 
     .uno-back-edge-mark {
       position: absolute;
-      z-index: 2;
+      z-index: 4;
       min-width: 20px;
       height: 20px;
       padding: 0 5px;
@@ -2822,6 +2921,7 @@ PAGE_TEMPLATE = """
       background:
         linear-gradient(180deg, rgba(8, 18, 30, 0.82), rgba(7, 12, 22, 0.92)),
         radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 62%),
+        var(--uno-arena-art, none),
         var(--uno-panel-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -12838,7 +12938,7 @@ PAGE_TEMPLATE = """
       height: var(--app-height, 100vh);
       min-height: var(--app-height, 100vh);
       overflow: hidden;
-      padding-bottom: calc(82px + env(safe-area-inset-bottom));
+      padding-bottom: calc(108px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.active {
@@ -12857,7 +12957,9 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
       min-height: 0;
-      overflow: hidden;
+      overflow-y: auto;
+      padding-right: 2px;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-stage {
@@ -12895,6 +12997,9 @@ PAGE_TEMPLATE = """
       margin: 0;
       padding: 12px;
       border-radius: 24px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      padding-bottom: calc(132px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
@@ -13465,10 +13570,18 @@ PAGE_TEMPLATE = """
       }
     }
 
-    body.tma-app.uno-live-lock .mobile-nav,
-    body.tma-app.uno-live-lock .currency-float,
-    body.tma-app.uno-live-lock .mascot-widget {
+    body.uno-live-lock .mobile-nav,
+    body.uno-live-lock .currency-float,
+    body.uno-live-lock .mascot-widget {
       display: none !important;
+    }
+
+    body.uno-live-lock .top-app-nav {
+      display: none !important;
+    }
+
+    body.uno-live-lock .shell {
+      padding-top: 0;
     }
 
     html.battle-live-lock,
@@ -15140,7 +15253,7 @@ PAGE_TEMPLATE = """
     <div class="app-launcher-device">
       <div class="app-launcher-status">
         <span>09:41</span>
-        <span>Apps</span>
+        <span>Menu</span>
       </div>
       <div class="app-launcher-header">
         <strong>Выбери игру</strong>
@@ -15161,7 +15274,7 @@ PAGE_TEMPLATE = """
         <button type="button" class="app-launcher-mini" data-launch-app="domain"><i></i>Domain</button>
         <button type="button" class="app-launcher-mini uno" data-launch-app="uno" data-uno-entry="1" hidden><i></i>UNO</button>
       </div>
-      <div class="app-launcher-hint">Нажми на логотип сверху, чтобы открыть Apps снова.</div>
+      <div class="app-launcher-hint">Нажми на логотип сверху, чтобы открыть Menu снова.</div>
     </div>
   </div>
 
@@ -15201,11 +15314,11 @@ PAGE_TEMPLATE = """
         <button type="button" id="mascot-open-profile-btn">Profile</button>
         <button type="button" id="mascot-open-pack-btn">Cards</button>
         <button type="button" id="mascot-open-battle-btn">Battle</button>
-        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>Apps</button>
+        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>Menu</button>
         <button type="button" class="secondary" id="mascot-open-guide-btn">Guide</button>
       </div>
       <div class="mascot-popover-actions" id="mascot-uno-actions" hidden>
-        <button type="button" id="mascot-uno-home-btn">Apps</button>
+        <button type="button" id="mascot-uno-home-btn">Menu</button>
         <button type="button" id="mascot-uno-bot-btn">Bot</button>
         <button type="button" id="mascot-uno-quick-btn">Match</button>
         <button type="button" id="mascot-uno-room-btn">Room</button>
@@ -18487,7 +18600,7 @@ PAGE_TEMPLATE = """
       syncUnoSharedThemeChrome(unoContext ? currentUnoSharedTheme() : null);
       if (topNavProfile && topNavPack && topNavModes && topNavGuilds && topNavAchievements) {
         if (unoContext) {
-          topNavProfile.textContent = 'Apps';
+          topNavProfile.textContent = 'Menu';
           topNavPack.textContent = 'Profile';
           topNavModes.textContent = 'UNO';
           topNavGuilds.textContent = 'Clans';
@@ -18512,7 +18625,7 @@ PAGE_TEMPLATE = """
       }
       if (!navPack || !navModes || !navGuilds || !navAchievements) return;
       if (unoContext) {
-        navPack.textContent = 'Apps';
+        navPack.textContent = 'Menu';
         navModes.textContent = 'Profile';
         navGuilds.textContent = 'Clans';
         navAchievements.textContent = 'Pass';
@@ -19886,6 +19999,12 @@ PAGE_TEMPLATE = """
       const arenaTheme = cosmeticTheme('arena', arenaKey);
       const backTheme = cosmeticTheme('cardback', backKey);
       const frameTheme = cosmeticTheme('frame', frameKey || arenaKey || backKey);
+      const arenaAsset = cosmeticAssetUrl('arena', arenaKey);
+      const cardbackAsset = cosmeticAssetUrl('cardback', backKey);
+      const guildAsset = guildKey ? cosmeticAssetUrl('guild', guildKey) : '';
+      const arenaArt = arenaAsset ? `url("${arenaAsset}") center/cover no-repeat` : 'none';
+      const cardbackArt = cardbackAsset ? `url("${cardbackAsset}") center/cover no-repeat` : 'none';
+      const bannerArt = guildAsset ? `url("${guildAsset}") center/cover no-repeat` : 'none';
       const backSurface = giftCardbackSurface(backKey, emoji);
       const arenaSurface = giftArenaSurface(arenaKey, emoji);
       const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : `linear-gradient(135deg, ${hexToRgba(arenaTheme.secondary, 0.92)}, ${hexToRgba(frameTheme.accent, 0.82)})`;
@@ -19908,12 +20027,22 @@ PAGE_TEMPLATE = """
         frameTheme,
         hasCustomBack: !String(backKey || '').toLowerCase().includes('stock_plain'),
         frameAsset: cosmeticAssetUrl('frame', frameKey),
+        arenaAsset,
+        cardbackAsset,
+        guildAsset,
+        arenaArt,
+        cardbackArt,
+        bannerArt,
         bannerSurface,
         backSurface,
         arenaSurface,
-        tableSurface: unoReferenceSurface(colorKey, arenaSurface),
+        tableSurface: [
+          arenaArt,
+          unoReferenceSurface(colorKey, arenaSurface),
+        ].join(','),
         panelSurface: [
           'linear-gradient(180deg, rgba(8, 16, 27, 0.74), rgba(7, 12, 20, 0.92))',
+          arenaArt,
           arenaSurface,
         ].join(','),
         panelBorder: hexToRgba(arenaTheme.accent, 0.22),
@@ -19922,15 +20051,18 @@ PAGE_TEMPLATE = """
         frameSoft: hexToRgba(frameTheme.accent, 0.16),
         frameGlow: frameTheme.glow || hexToRgba(frameTheme.accent, 0.18),
         sharedNavSurface: [
+          bannerArt,
           'linear-gradient(180deg, rgba(12, 18, 30, 0.96), rgba(7, 11, 20, 0.98))',
           bannerSurface,
         ].join(','),
         sharedPanelSurface: [
           'linear-gradient(180deg, rgba(11, 17, 29, 0.96), rgba(7, 11, 21, 0.98))',
+          arenaArt,
           unoReferenceSurface(colorKey, arenaSurface),
         ].join(','),
         sharedCardSurface: [
           'linear-gradient(180deg, rgba(13, 18, 29, 0.94), rgba(8, 11, 20, 0.98))',
+          arenaArt,
           arenaSurface,
         ].join(','),
         sharedChipBg: hexToRgba(frameTheme.accent, 0.12),
@@ -20675,6 +20807,7 @@ PAGE_TEMPLATE = """
             <span class="uno-back-edge-mark tr${edgeMark ? '' : ' empty'}" aria-hidden="true">${escapeHtml(edgeMark || '')}</span>
             <span class="uno-back-edge-mark bl${edgeMark ? '' : ' empty'}" aria-hidden="true">${escapeHtml(edgeMark || '')}</span>
             <span class="uno-back-edge-mark br${edgeMark ? '' : ' empty'}" aria-hidden="true">${escapeHtml(edgeMark || '')}</span>
+            ${frameAsset ? `<img class="uno-back-frame" src="${frameAsset}" alt="" aria-hidden="true">` : ''}
             <span class="uno-back-brand" aria-hidden="true">
               <span class="uno-back-brand-mark">UNO</span>
             </span>
@@ -20979,24 +21112,33 @@ PAGE_TEMPLATE = """
       `;
     }
 
-    function unoSurfaceActionsMarkup(activeTab = '') {
+    function unoSurfaceActionsMarkup(activeTab = '', options = {}) {
+      const tiles = Boolean(options.tiles);
       const tabs = [
-        {key: 'apps', label: 'Apps'},
+        {key: 'menu', label: 'Menu'},
         {key: 'profile', label: 'Profile'},
         {key: 'guilds', label: 'Clans'},
         {key: 'achievements', label: 'Pass'},
       ];
       return `
-        <div class="actions uno-surface-actions compact">
-          ${tabs.map((tab) => `<button type="button" class="uno-surface-tab${activeTab === tab.key ? ' active' : ''}" data-uno-surface-link="${tab.key}">${tab.label}</button>`).join('')}
+        <div class="actions uno-surface-actions compact${tiles ? ' tiles' : ''}">
+          ${tabs.map((tab) => `<button type="button" class="uno-surface-tab${activeTab === tab.key ? ' active' : ''}" data-uno-surface-link="${tab.key}" data-uno-kicker="UNO">${tab.label}</button>`).join('')}
+        </div>
+      `;
+    }
+
+    function unoLiveControlsMarkup() {
+      return `
+        <div class="actions uno-live-controls">
+          <button type="button" class="secondary uno-live-exit" id="uno-exit-btn">Выйти</button>
         </div>
       `;
     }
 
     function bindUnoSurfaceActions(root = document) {
       root.querySelectorAll('[data-uno-surface-link]').forEach((button) => {
-        const target = String(button.dataset.unoSurfaceLink || 'apps');
-        const handler = target === 'apps'
+        const target = String(button.dataset.unoSurfaceLink || 'menu');
+        const handler = target === 'menu'
           ? () => openAppLauncher()
           : (target === 'profile'
             ? () => switchUnoSharedView('profile')
@@ -21005,6 +21147,44 @@ PAGE_TEMPLATE = """
               : () => switchUnoSharedView('achievements')));
         bindFunctionalControl(button, handler, 'click', {skipPrepare: true});
       });
+    }
+
+    async function exitUnoSession() {
+      if (!state.unoSession) {
+        rememberUnoSession(null);
+        renderUnoPanel();
+        return;
+      }
+      stopUnoStatusPolling();
+      stopUnoCountdownTicker();
+      clearUnoDragInteraction();
+      clearUnoDrawFx();
+      clearUnoEventFx();
+      const session = state.unoSession;
+      if (session.complete) {
+        state.unoSession = null;
+        state.unoPendingColorCardId = null;
+        state.unoLastEventKey = '';
+        rememberUnoSession(null);
+        renderUnoPanel();
+        return;
+      }
+      try {
+        await prepareFunctionalInteraction();
+        const data = await api('/api/uno/exit', {
+          method: 'POST',
+          body: unoActorPayload({ session_id: session.session_id })
+        });
+        if (data.player) {
+          state.playerProfile = data.player;
+        }
+      } catch (_) {
+      }
+      state.unoSession = null;
+      state.unoPendingColorCardId = null;
+      state.unoLastEventKey = '';
+      rememberUnoSession(null);
+      renderUnoPanel();
     }
 
     function renderUnoPanel() {
@@ -21042,7 +21222,7 @@ PAGE_TEMPLATE = """
         textColor: backTheme.text,
         edgeMark: backMark,
       };
-      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};`;
+      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
       const unoHeaderClass = bannerSurface ? 'uno-header skin-banner' : 'uno-header';
       const unoHeaderStyle = bannerSurface ? ` style="--uno-banner-surface:${escapeHtml(bannerSurface)};"` : '';
       const sessionStatus = String((session && session.status) || '');
@@ -21079,9 +21259,9 @@ PAGE_TEMPLATE = """
           <div class="uno-shell landing uno-home-shell" style="${shellVisualStyle}">
             <div class="uno-home-top">
               <div class="uno-home-title">${unoBrandBadge('UNO', bannerSurface)}</div>
-              ${unoSurfaceActionsMarkup()}
             </div>
             ${unoHomeStageMarkup(frameAsset, backSurface, backMark, backOptions)}
+            ${unoSurfaceActionsMarkup('menu', {tiles: true})}
             <div class="uno-meta-strip">
               <div class="uno-chip">${identity.progressEnabled ? `Профиль ${escapeHtml(identityLabel)}` : 'Guest-режим'}</div>
               <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Кошелёк не обязателен'}</div>
@@ -21176,7 +21356,6 @@ PAGE_TEMPLATE = """
                   <strong>${escapeHtml(unoModeLabel(session.mode))}</strong>
                   <div class="tiny">Код: ${escapeHtml(session.room_code || session.session_id || '—')} • ${participantCount}/${Number(session.max_players || 2)} игроков • профиль ${escapeHtml((viewerParticipant && viewerParticipant.domain) ? `${viewerParticipant.domain}.ton` : identity.displayName)}</div>
                 </div>
-                ${unoSurfaceActionsMarkup()}
               </div>
               <div class="uno-meta-strip">
                 <div class="uno-chip">${session.mode === 'quick' ? 'Публичная партия' : 'Приватная комната'}</div>
@@ -21193,6 +21372,7 @@ PAGE_TEMPLATE = """
                 <div class="uno-countdown ${countdownSeconds ? '' : 'ready'}">${countdownSeconds ? `${countdownSeconds}с` : `Ready ${readyCount}/${participantCount}`}</div>
               </div>
             </div>
+            ${unoSurfaceActionsMarkup('menu', {tiles: true})}
             <div class="uno-stage">
               <div class="uno-participants-grid">
                 ${(session.participants || []).map((item, index) => `
@@ -21249,7 +21429,7 @@ PAGE_TEMPLATE = """
                   <div class="tiny">${participantCount} игроков</div>
                 </div>
               `}
-              ${unoSurfaceActionsMarkup()}
+              ${session.complete ? unoSurfaceActionsMarkup('menu', {tiles: false}) : unoLiveControlsMarkup()}
             </div>
             <div class="uno-meta-strip">
               <div class="uno-chip current-color">${currentColorMarkup}</div>
@@ -21328,7 +21508,7 @@ PAGE_TEMPLATE = """
                   </div>
                   <div class="actions" style="margin-top:12px;">
                     <button type="button" id="uno-after-bot-btn">${session.mode === 'bot' ? (session.bot_profile === 'rookie' ? 'Новичкам ещё раз' : 'С ботом ещё раз') : 'Новая быстрая партия'}</button>
-                    <button type="button" class="secondary" id="uno-result-launcher-btn">Apps</button>
+                    <button type="button" class="secondary" id="uno-result-launcher-btn">Menu</button>
                   </div>
                 </div>
               ` : ''}
@@ -21369,6 +21549,7 @@ PAGE_TEMPLATE = """
       const unoRoomRefreshBtn = document.getElementById('uno-room-refresh-btn');
       const unoAfterBotBtn = document.getElementById('uno-after-bot-btn');
       const unoResultLauncherBtn = document.getElementById('uno-result-launcher-btn');
+      const unoExitBtn = document.getElementById('uno-exit-btn');
       if (unoAlertBtn) bindFunctionalControl(unoAlertBtn, () => runUnoAction('uno'), 'click', {skipPrepare: true});
       if (unoDrawPileBtn && !unoDrawPileBtn.disabled && session.can_draw) {
         bindFunctionalControl(unoDrawPileBtn, () => runUnoAction('draw'), 'click', {skipPrepare: true});
@@ -21380,6 +21561,7 @@ PAGE_TEMPLATE = """
       if (unoRoomRefreshBtn) bindFunctionalControl(unoRoomRefreshBtn, () => pollUnoStatus(), 'click', {skipPrepare: true});
       if (unoAfterBotBtn) bindFunctionalControl(unoAfterBotBtn, () => (session.mode === 'bot' ? startUnoMatch(session.bot_profile || 'standard') : searchUnoQuickMatch()), 'click', {skipPrepare: true});
       if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
+      if (unoExitBtn) bindFunctionalControl(unoExitBtn, exitUnoSession, 'click', {skipPrepare: true});
       bindUnoSurfaceActions(unoRoot);
       unoRoot.querySelectorAll('[data-uno-color]').forEach((button) => {
         bindFunctionalControl(button, () => runUnoAction('play', button.dataset.unoCardId, button.dataset.unoColor), 'click', {skipPrepare: true});
@@ -28878,6 +29060,46 @@ def leave_uno_multiplayer_room(session_id, wallet):
     state['auto_start_at'] = None
     state['last_action'] = f'{display_name_for_wallet(wallet)} покинул лобби.'
     state, _ = refresh_uno_quick_session(state)
+    save_uno_session(state)
+    return None
+
+
+def exit_uno_session(session_id, wallet):
+    state = load_uno_session(session_id)
+    mode = uno_state_mode(state)
+    actor_id = str(wallet or '').strip()
+    if mode == 'bot':
+        if actor_id != str(state.get('wallet') or ''):
+            raise ValueError('Нет доступа к этой UNO-сессии.')
+        if state.get('complete'):
+            return build_uno_session_payload(state, wallet)
+        state['winner'] = 'bot'
+        state['last_action'] = f'Ты вышел из матча. Победа у {state.get("bot_name") or "UNO Bot"}.'
+        state = finalize_uno_session(state)
+        save_uno_session(state)
+        return None
+    if uno_find_participant_index(state, actor_id) < 0:
+        raise ValueError('Нет доступа к этой UNO-сессии.')
+    if uno_state_status(state) == 'waiting':
+        return leave_uno_multiplayer_room(session_id, actor_id)
+    if state.get('complete'):
+        return build_uno_session_payload(state, wallet)
+    participants = uno_participants(state)
+    hands = dict(state.get('hands') or {})
+    remaining = [item for item in participants if str(item.get('wallet') or '') != actor_id]
+    if not remaining:
+        delete_uno_session(session_id)
+        return None
+    ranking = sorted(
+        remaining,
+        key=lambda item: (len(hands.get(item.get('wallet')) or []), uno_find_participant_index(state, item.get('wallet'))),
+    )
+    winner = ranking[0]
+    winner_wallet = str(winner.get('wallet') or '')
+    state['winner_wallet'] = winner_wallet
+    state['winner'] = winner_wallet
+    state['last_action'] = f'{display_name_for_wallet(actor_id)} вышел из матча. Победа у {uno_player_name(winner)}.'
+    state = finalize_uno_session(state)
     save_uno_session(state)
     return None
 
@@ -37581,6 +37803,26 @@ def api_uno_leave():
         return json_error('Не указан session_id.')
     try:
         session = leave_uno_multiplayer_room(session_id, actor_id)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    return jsonify({'ok': True, 'session': session, 'player': get_player(wallet) if valid_wallet_address(wallet) else None})
+
+
+@app.route('/api/uno/exit', methods=['POST'])
+def api_uno_exit():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    guest_id = normalize_uno_guest_id(payload.get('guest_id'))
+    actor_id = wallet if valid_wallet_address(wallet) else guest_id
+    session_id = (payload.get('session_id') or '').strip()
+    if not actor_id:
+        return json_error('Нужно подключить кошелёк или войти как guest.')
+    if not uno_private_access_allowed(wallet=wallet, guest_id=guest_id):
+        return json_error('Режим UNO сейчас недоступен.', 404)
+    if not session_id:
+        return json_error('Не указан session_id.')
+    try:
+        session = exit_uno_session(session_id, actor_id)
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'session': session, 'player': get_player(wallet) if valid_wallet_address(wallet) else None})
