@@ -3279,7 +3279,7 @@ PAGE_TEMPLATE = """
     .uno-deal-intro-stack {
       position: absolute;
       inset: 0;
-      animation: unoDealShuffle 1.4s ease-in-out infinite;
+      animation: unoDealShuffle 1.9s cubic-bezier(.22,.74,.28,1) infinite;
     }
 
     .uno-deal-intro-stack .uno-back-card {
@@ -3306,14 +3306,15 @@ PAGE_TEMPLATE = """
       opacity: 0;
       will-change: transform, opacity;
       filter: drop-shadow(0 18px 26px rgba(0,0,0,0.22));
+      backface-visibility: hidden;
     }
 
-    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponent 2.2s cubic-bezier(.16,.88,.22,1) infinite; }
-    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayer 2.2s cubic-bezier(.16,.88,.22,1) infinite 0.28s; }
-    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponent 2.2s cubic-bezier(.16,.88,.22,1) infinite 0.56s; }
-    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayer 2.2s cubic-bezier(.16,.88,.22,1) infinite 0.84s; }
-    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponent 2.2s cubic-bezier(.16,.88,.22,1) infinite 1.12s; }
-    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayer 2.2s cubic-bezier(.16,.88,.22,1) infinite 1.40s; }
+    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponent 2.8s cubic-bezier(.18,.82,.22,1) infinite; }
+    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayer 2.8s cubic-bezier(.18,.82,.22,1) infinite 0.36s; }
+    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponent 2.8s cubic-bezier(.18,.82,.22,1) infinite 0.92s; }
+    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayer 2.8s cubic-bezier(.18,.82,.22,1) infinite 1.28s; }
+    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponent 2.8s cubic-bezier(.18,.82,.22,1) infinite 1.84s; }
+    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayer 2.8s cubic-bezier(.18,.82,.22,1) infinite 2.20s; }
 
     .uno-deal-intro-seat {
       position: absolute;
@@ -3335,12 +3336,13 @@ PAGE_TEMPLATE = """
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .uno-deal-intro-slot {
-      width: 48px;
-      height: 70px;
+      position: relative;
+      width: 50px;
+      height: 74px;
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.12);
       background:
@@ -3348,6 +3350,31 @@ PAGE_TEMPLATE = """
         rgba(6, 12, 22, 0.42);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
       opacity: 0.88;
+      overflow: hidden;
+    }
+
+    .uno-deal-intro-slot::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255, 214, 74, 0.22), rgba(69, 215, 255, 0.18));
+      opacity: 0;
+      transform: scale(0.86);
+    }
+
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 0.36s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 1.28s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 2.20s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 0.72s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 1.64s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 2.56s; }
+
+    .uno-deal-intro-seat.opponent .uno-deal-intro-count { animation: unoDealCounterPulse 2.8s ease-out infinite 0.36s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-count { animation: unoDealCounterPulse 2.8s ease-out infinite 0.72s; }
+
+    .uno-deal-intro-seat .tiny {
+      transition: opacity 220ms ease;
     }
 
     .uno-deal-intro-count {
@@ -3383,9 +3410,9 @@ PAGE_TEMPLATE = """
 
     @keyframes unoDealShuffle {
       0%, 100% { transform: rotate(0deg) scale(1); }
-      18% { transform: rotate(-7deg) scale(1.02) translateY(-2px); }
-      50% { transform: rotate(7deg) scale(1.04) translateY(0px); }
-      82% { transform: rotate(-3deg) scale(1.01) translateY(1px); }
+      20% { transform: rotate(-4deg) scale(1.015) translateY(-1px); }
+      50% { transform: rotate(4deg) scale(1.028) translateY(0px); }
+      80% { transform: rotate(-2deg) scale(1.01) translateY(1px); }
     }
 
     @keyframes unoDealAura {
@@ -3394,17 +3421,30 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes unoDealToOpponent {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.84) rotate(0deg); }
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.88) rotate(0deg); }
       10% { opacity: 1; }
-      72% { opacity: 1; transform: translate(0px, -136px) scale(0.86) rotate(-5deg); }
-      100% { opacity: 0; transform: translate(0px, -154px) scale(0.8) rotate(-8deg); }
+      64% { opacity: 1; transform: translate3d(-2px, -118px, 0) scale(0.9) rotate(-4deg); }
+      84% { opacity: 0.98; transform: translate3d(0px, -144px, 0) scale(0.82) rotate(-7deg); }
+      100% { opacity: 0; transform: translate3d(0px, -154px, 0) scale(0.78) rotate(-8deg); }
     }
 
     @keyframes unoDealToPlayer {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.84) rotate(0deg); }
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.88) rotate(0deg); }
       10% { opacity: 1; }
-      72% { opacity: 1; transform: translate(0px, 118px) scale(0.86) rotate(5deg); }
-      100% { opacity: 0; transform: translate(0px, 136px) scale(0.8) rotate(8deg); }
+      64% { opacity: 1; transform: translate3d(2px, 104px, 0) scale(0.9) rotate(4deg); }
+      84% { opacity: 0.98; transform: translate3d(0px, 128px, 0) scale(0.82) rotate(7deg); }
+      100% { opacity: 0; transform: translate3d(0px, 140px, 0) scale(0.78) rotate(8deg); }
+    }
+
+    @keyframes unoDealSlotPulse {
+      0%, 55%, 100% { opacity: 0; transform: scale(0.86); }
+      68% { opacity: 1; transform: scale(1); }
+      82% { opacity: 0.82; transform: scale(0.98); }
+    }
+
+    @keyframes unoDealCounterPulse {
+      0%, 60%, 100% { transform: scale(1); border-color: rgba(255,255,255,0.12); }
+      72% { transform: scale(1.04); border-color: rgba(255, 214, 74, 0.26); }
     }
 
     .uno-discard-stack .uno-stack-top.fx-discard {
