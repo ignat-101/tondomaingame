@@ -3288,12 +3288,12 @@ PAGE_TEMPLATE = """
       will-change: transform, opacity;
     }
 
-    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponentOne 1.65s cubic-bezier(.16,.88,.22,1) infinite; }
-    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponentTwo 1.65s cubic-bezier(.16,.88,.22,1) infinite 0.12s; }
-    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponentThree 1.65s cubic-bezier(.16,.88,.22,1) infinite 0.24s; }
-    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayerOne 1.65s cubic-bezier(.16,.88,.22,1) infinite 0.48s; }
-    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayerTwo 1.65s cubic-bezier(.16,.88,.22,1) infinite 0.60s; }
-    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayerThree 1.65s cubic-bezier(.16,.88,.22,1) infinite 0.72s; }
+    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponent 1.8s cubic-bezier(.16,.88,.22,1) infinite; }
+    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayer 1.8s cubic-bezier(.16,.88,.22,1) infinite 0.24s; }
+    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponent 1.8s cubic-bezier(.16,.88,.22,1) infinite 0.48s; }
+    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayer 1.8s cubic-bezier(.16,.88,.22,1) infinite 0.72s; }
+    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponent 1.8s cubic-bezier(.16,.88,.22,1) infinite 0.96s; }
+    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayer 1.8s cubic-bezier(.16,.88,.22,1) infinite 1.20s; }
 
     .uno-deal-intro-seat {
       position: absolute;
@@ -3309,22 +3309,21 @@ PAGE_TEMPLATE = """
     .uno-deal-intro-seat.opponent { top: 18px; }
     .uno-deal-intro-seat.player { bottom: 18px; }
 
-    .uno-deal-intro-hand {
-      display: flex;
-      gap: 8px;
+    .uno-deal-intro-count {
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(245, 249, 255, 0.88);
     }
-
-    .uno-deal-intro-hand .uno-back-card {
-      width: 58px;
-      height: 86px;
-      box-shadow: 0 10px 18px rgba(0,0,0,0.24);
-    }
-
-    .uno-deal-intro-hand .uno-back-card:nth-child(1) { transform: rotate(-8deg); }
-    .uno-deal-intro-hand .uno-back-card:nth-child(2) { transform: translateY(-4px); }
-    .uno-deal-intro-hand .uno-back-card:nth-child(3) { transform: rotate(8deg); }
 
     .uno-deal-intro-copy {
       display: grid;
@@ -3347,46 +3346,18 @@ PAGE_TEMPLATE = """
       75% { transform: rotate(-3deg) scale(1.01); }
     }
 
-    @keyframes unoDealToOpponentOne {
+    @keyframes unoDealToOpponent {
       0% { opacity: 0; transform: translate(-50%, -50%) scale(0.86) rotate(0deg); }
       12% { opacity: 1; }
-      82% { opacity: 1; transform: translate(-136px, -138px) scale(0.82) rotate(-12deg); }
-      100% { opacity: 0; transform: translate(-148px, -150px) scale(0.8) rotate(-14deg); }
+      82% { opacity: 1; transform: translate(0px, -150px) scale(0.82) rotate(-4deg); }
+      100% { opacity: 0; transform: translate(0px, -164px) scale(0.8) rotate(-6deg); }
     }
 
-    @keyframes unoDealToOpponentTwo {
+    @keyframes unoDealToPlayer {
       0% { opacity: 0; transform: translate(-50%, -50%) scale(0.86) rotate(0deg); }
       12% { opacity: 1; }
-      82% { opacity: 1; transform: translate(0px, -148px) scale(0.82) rotate(0deg); }
-      100% { opacity: 0; transform: translate(0px, -160px) scale(0.8) rotate(0deg); }
-    }
-
-    @keyframes unoDealToOpponentThree {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      82% { opacity: 1; transform: translate(136px, -138px) scale(0.82) rotate(12deg); }
-      100% { opacity: 0; transform: translate(148px, -150px) scale(0.8) rotate(14deg); }
-    }
-
-    @keyframes unoDealToPlayerOne {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      82% { opacity: 1; transform: translate(-136px, 112px) scale(0.82) rotate(-12deg); }
-      100% { opacity: 0; transform: translate(-148px, 124px) scale(0.8) rotate(-14deg); }
-    }
-
-    @keyframes unoDealToPlayerTwo {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      82% { opacity: 1; transform: translate(0px, 122px) scale(0.82) rotate(0deg); }
-      100% { opacity: 0; transform: translate(0px, 134px) scale(0.8) rotate(0deg); }
-    }
-
-    @keyframes unoDealToPlayerThree {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      82% { opacity: 1; transform: translate(136px, 112px) scale(0.82) rotate(12deg); }
-      100% { opacity: 0; transform: translate(148px, 124px) scale(0.8) rotate(14deg); }
+      82% { opacity: 1; transform: translate(0px, 126px) scale(0.82) rotate(4deg); }
+      100% { opacity: 0; transform: translate(0px, 140px) scale(0.8) rotate(6deg); }
     }
 
     .uno-discard-stack .uno-stack-top.fx-discard {
@@ -21917,9 +21888,7 @@ PAGE_TEMPLATE = """
             <div class="uno-deal-intro-stage">
               <div class="uno-deal-intro-seat opponent">
                 <div class="tiny">${escapeHtml((leadOpponent && leadOpponent.display_name) || session.turn_display_name || 'Соперник')}</div>
-                <div class="uno-deal-intro-hand">
-                  ${Array.from({length: 3}).map(() => unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)).join('')}
-                </div>
+                <div class="uno-deal-intro-count">3 cards</div>
               </div>
               <div class="uno-deal-intro-center">
                 <div class="uno-deal-intro-stack">
@@ -21929,15 +21898,13 @@ PAGE_TEMPLATE = """
                 ${['one', 'two', 'three'].map((slot) => `<div class="uno-deal-intro-flight to-player ${slot}">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`).join('')}
               </div>
               <div class="uno-deal-intro-seat player">
-                <div class="uno-deal-intro-hand">
-                  ${Array.from({length: 3}).map(() => unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)).join('')}
-                </div>
+                <div class="uno-deal-intro-count">3 cards</div>
                 <div class="tiny">Твоя рука</div>
               </div>
             </div>
             <div class="uno-deal-intro-copy">
               <strong>Перемешиваем и раздаём</strong>
-              <div class="tiny">Сначала колода тасуется, потом карты летят игрокам. После этого стартует первый ход.</div>
+              <div class="tiny">Одна карта сопернику, одна тебе, и так по очереди до старта первого хода.</div>
             </div>
           </div>
         `;
