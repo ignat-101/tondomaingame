@@ -2655,6 +2655,154 @@ PAGE_TEMPLATE = """
       margin-top: 10px;
     }
 
+    .uno-result-box.outcome-win,
+    .uno-result-box.outcome-loss,
+    .uno-result-box.outcome-draw {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .uno-result-box.outcome-win {
+      border-color: rgba(83, 246, 184, 0.24);
+      background: linear-gradient(180deg, rgba(8, 34, 26, 0.88), rgba(7, 16, 29, 0.76));
+    }
+
+    .uno-result-box.outcome-loss {
+      border-color: rgba(255, 122, 134, 0.24);
+      background: linear-gradient(180deg, rgba(42, 12, 18, 0.88), rgba(7, 16, 29, 0.76));
+    }
+
+    .uno-result-box.outcome-draw {
+      border-color: rgba(255, 214, 74, 0.24);
+      background: linear-gradient(180deg, rgba(43, 31, 8, 0.88), rgba(7, 16, 29, 0.76));
+    }
+
+    .uno-result-box::after {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background: radial-gradient(circle at top, rgba(255,255,255,0.12), transparent 34%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .uno-result-box.outcome-win::after,
+    .uno-result-box.outcome-loss::after,
+    .uno-result-box.outcome-draw::after {
+      animation: unoResultGlow 1.35s ease-out forwards;
+    }
+
+    .uno-result-hero {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .uno-result-pill {
+      width: fit-content;
+      min-height: 28px;
+      padding: 0 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f7fbff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .uno-result-box.outcome-win .uno-result-pill { background: rgba(83, 246, 184, 0.16); border-color: rgba(83, 246, 184, 0.28); }
+    .uno-result-box.outcome-loss .uno-result-pill { background: rgba(255, 122, 134, 0.16); border-color: rgba(255, 122, 134, 0.28); }
+    .uno-result-box.outcome-draw .uno-result-pill { background: rgba(255, 214, 74, 0.16); border-color: rgba(255, 214, 74, 0.28); }
+
+    .uno-result-progress {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .uno-result-progress-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: rgba(236, 242, 255, 0.92);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .uno-result-progress-bar {
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .uno-result-progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(255, 122, 72, 0.96), rgba(255, 214, 74, 0.96));
+      box-shadow: 0 0 22px rgba(255, 180, 76, 0.28);
+      transition: width 320ms ease;
+    }
+
+    .uno-result-task-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .uno-result-task {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(242, 247, 255, 0.92);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .uno-result-task strong {
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .uno-result-task span {
+      flex: 0 0 auto;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #ffd97a;
+    }
+
+    .uno-result-bonus {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 214, 74, 0.24);
+      background: rgba(255, 214, 74, 0.08);
+      color: #fff0c6;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    @keyframes unoResultGlow {
+      0% { opacity: 0; transform: scale(0.88); }
+      28% { opacity: 1; }
+      100% { opacity: 0.18; transform: scale(1.04); }
+    }
+
     .uno-empty {
       padding: 18px;
       border-radius: 22px;
@@ -13045,6 +13193,7 @@ PAGE_TEMPLATE = """
       margin: 0;
       padding: 12px;
       border-radius: 24px;
+      clip-path: inset(0 round 24px);
       box-sizing: border-box;
       overflow-y: auto;
       padding-bottom: calc(132px + env(safe-area-inset-bottom));
@@ -21416,10 +21565,21 @@ PAGE_TEMPLATE = """
         clearUnoDrawFx();
         syncUnoCompletedMatchCounter(session);
         const rewardGain = session.reward_gain || {};
+        const progressReport = rewardGain.progress_report || {};
+        const completedTasks = Array.isArray(progressReport.completed_tasks) ? progressReport.completed_tasks : [];
         const playAgainLabel = session.mode === 'bot'
           ? (session.bot_profile === 'rookie' ? 'Новичкам ещё раз' : 'С ботом ещё раз')
           : 'Новая быстрая партия';
         const resultSummary = session.last_action || 'Матч завершён.';
+        const viewerWon = session.mode === 'bot'
+          ? session.winner === 'player'
+          : String(session.winner || '') === String(identity.wallet || state.wallet || '');
+        const outcomeClass = session.winner ? (viewerWon ? 'outcome-win' : 'outcome-loss') : 'outcome-draw';
+        const outcomePill = session.winner ? (viewerWon ? 'Victory' : 'Defeat') : 'Draw';
+        const levelBefore = Number(progressReport.season_before_level || rewards.season_level || 1);
+        const levelAfter = Number(progressReport.season_after_level || rewards.season_level || 1);
+        const progressPercent = Math.max(0, Math.min(100, Math.round(Number(progressReport.season_progress || rewards.season_progress || 0) * 100)));
+        const seasonTarget = Number(progressReport.season_target || rewards.season_target || 16);
         unoRoot.innerHTML = `
           <div class="uno-shell completed uno-home-shell" style="${shellVisualStyle}">
             <div class="uno-home-top">
@@ -21429,16 +21589,34 @@ PAGE_TEMPLATE = """
             <div class="uno-meta-strip">
               <div class="uno-chip">${escapeHtml(unoModeLabel(session.mode, session.bot_profile))}</div>
               <div class="uno-chip">${escapeHtml(session.winner_label || 'Матч завершён')}</div>
-              <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Guest-режим'}</div>
+              <div class="uno-chip">${identity.progressEnabled ? `Сезон ${levelAfter}` : 'Guest-режим'}</div>
             </div>
-            <div class="uno-result-box">
-              <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
-              <div class="tiny">${escapeHtml(resultSummary)}</div>
+            <div class="uno-result-box ${outcomeClass}">
+              <div class="uno-result-hero">
+                <span class="uno-result-pill">${escapeHtml(outcomePill)}</span>
+                <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
+                <div class="tiny">${escapeHtml(resultSummary)}</div>
+              </div>
               <div class="uno-reward-line">
                 <span class="summary-chip">💠 +${Number((rewardGain.pack_shards) || 0)}</span>
-                <span class="summary-chip">Сезон +${Number((rewardGain.season_points) || 0)}</span>
-                <span class="summary-chip">Колода ${Number(session.draw_remaining || 0)}</span>
+                <span class="summary-chip">XP +${Number((rewardGain.season_points) || 0)}</span>
+                ${Number((rewardGain.cosmetic_packs) || 0) ? `<span class="summary-chip">Пак +${Number(rewardGain.cosmetic_packs || 0)}</span>` : ''}
               </div>
+              ${identity.progressEnabled ? `
+                <div class="uno-result-progress">
+                  <div class="uno-result-progress-head">
+                    <strong>Уровень ${levelBefore}${levelAfter > levelBefore ? ` → ${levelAfter}` : ''}</strong>
+                    <span>${Number(progressReport.season_after_points || rewards.season_points || 0)}/${seasonTarget} XP</span>
+                  </div>
+                  <div class="uno-result-progress-bar"><div class="uno-result-progress-fill" style="width:${progressPercent}%;"></div></div>
+                </div>
+                ${completedTasks.length ? `
+                  <div class="uno-result-task-list">
+                    ${completedTasks.map((task) => `<div class="uno-result-task"><strong>${escapeHtml(task.label || 'Задание')}</strong><span>+${Number(task.reward_points || 0)} XP</span></div>`).join('')}
+                  </div>
+                ` : `<div class="tiny" style="margin-top:14px;">Новых заданий в этом матче не закрылось.</div>`}
+                ${Number(progressReport.post_cap_bonus_packs || 0) ? `<div class="uno-result-bonus">После максимального уровня каждые 4 уровня дают косметический пак. В этом матче начислено: +${Number(progressReport.post_cap_bonus_packs || 0)}.</div>` : ''}
+              ` : `<div class="tiny" style="margin-top:14px;">Guest-матч завершён. Подключи кошелёк и домен, чтобы видеть XP, задания и награды.</div>`}
               <div class="actions" style="margin-top:12px;">
                 <button type="button" id="uno-after-bot-btn">${escapeHtml(playAgainLabel)}</button>
                 <button type="button" class="secondary" id="uno-result-launcher-btn">Menu</button>
@@ -27488,6 +27666,9 @@ def season_pass_track_payload(wallet=None, rewards=None):
     return payload
 
 
+SEASON_PASS_MAX_LEVEL = max(int(item.get('level', 1) or 1) for item in SEASON_PASS_TRACK)
+SEASON_PASS_POST_CAP_PACK_INTERVAL = 4
+
 SEASON_PASS_LEVEL_POINTS = 16
 SEASON_PASS_TUTORIAL_POINTS = 3
 SEASON_PASS_DAILY_POINTS = 1
@@ -27522,6 +27703,67 @@ def normalize_reward_progress_fields(*, pack_shards, rare_tokens, lucky_tokens, 
         'season_level': season_level,
         'wins_for_quest': max(0, int(wins_for_quest or 0)),
         'wins_claimed': max(0, int(wins_claimed or 0)),
+    }
+
+
+def season_pass_post_cap_pack_count(before_level, after_level):
+    before_level = max(1, int(before_level or 1))
+    after_level = max(1, int(after_level or 1))
+    if after_level <= SEASON_PASS_MAX_LEVEL or after_level <= before_level:
+        return 0
+    before_steps = max(0, before_level - SEASON_PASS_MAX_LEVEL) // SEASON_PASS_POST_CAP_PACK_INTERVAL
+    after_steps = max(0, after_level - SEASON_PASS_MAX_LEVEL) // SEASON_PASS_POST_CAP_PACK_INTERVAL
+    return max(0, after_steps - before_steps)
+
+
+def uno_completed_task_snapshot(tasks):
+    result = {}
+    for item in tasks or []:
+        key = str(item.get('key') or '').strip()
+        if not key:
+            continue
+        progress = int(item.get('progress', 0) or 0)
+        target = max(1, int(item.get('target', 1) or 1))
+        result[key] = {
+            'key': key,
+            'label': item.get('label') or key,
+            'reward_points': int(item.get('reward_points', 0) or 0),
+            'completed': bool(item.get('claimed') or item.get('claimable') or progress >= target),
+        }
+    return result
+
+
+def uno_progress_report(before_rewards, after_rewards, reward_gain, *, bonus_packs=0):
+    before_rewards = before_rewards or {}
+    after_rewards = after_rewards or {}
+    before_tasks = uno_completed_task_snapshot(before_rewards.get('season_tasks') or [])
+    after_tasks = uno_completed_task_snapshot(after_rewards.get('season_tasks') or [])
+    completed_tasks = []
+    for key, item in after_tasks.items():
+        if item.get('completed') and not (before_tasks.get(key) or {}).get('completed'):
+            completed_tasks.append(
+                {
+                    'key': key,
+                    'label': item.get('label') or key,
+                    'reward_points': int(item.get('reward_points', 0) or 0),
+                }
+            )
+    completed_tasks.sort(key=lambda item: (-int(item.get('reward_points', 0) or 0), str(item.get('label') or '')))
+    before_level = int(before_rewards.get('season_level', 1) or 1)
+    after_level = int(after_rewards.get('season_level', 1) or 1)
+    return {
+        'completed_tasks': completed_tasks,
+        'completed_task_count': len(completed_tasks),
+        'season_before_level': before_level,
+        'season_after_level': after_level,
+        'season_before_points': int(before_rewards.get('season_points', 0) or 0),
+        'season_after_points': int(after_rewards.get('season_points', 0) or 0),
+        'season_target': int(after_rewards.get('season_target', SEASON_PASS_LEVEL_POINTS) or SEASON_PASS_LEVEL_POINTS),
+        'season_progress': float(after_rewards.get('season_progress', 0) or 0),
+        'season_gained_points': int((reward_gain or {}).get('season_points', 0) or 0),
+        'levels_gained': max(0, after_level - before_level),
+        'post_cap_bonus_packs': max(0, int(bonus_packs or 0)),
+        'cosmetic_packs_total': int(after_rewards.get('cosmetic_packs', 0) or 0),
     }
 
 
@@ -28727,8 +28969,9 @@ def create_uno_reward_payload(wallet, domain, result, *, turns, cards_left, tota
             'rare_tokens': 0,
             'lucky_tokens': 0,
             'season_points': 0,
+            'progress_report': None,
         }, uno_stock_reward_summary()
-    before_rewards = ensure_player_rewards(wallet)
+    before_rewards = reward_summary(wallet)
     premium_bonus = 1 if int(before_rewards.get('premium_pass', 0) or 0) else 0
     reward_gain = {
         'pack_shards': (2 if result == 'win' else 1) + premium_bonus,
@@ -28738,8 +28981,23 @@ def create_uno_reward_payload(wallet, domain, result, *, turns, cards_left, tota
     }
     record_non_ranked_game(wallet, domain)
     rewards_after = grant_match_rewards(wallet, won=result == 'win', ranked=False)
+    bonus_packs = season_pass_post_cap_pack_count(before_rewards.get('season_level', 1), rewards_after.get('season_level', 1))
+    if bonus_packs > 0:
+        with closing(get_db()) as conn:
+            conn.execute(
+                '''
+                UPDATE player_rewards
+                SET cosmetic_packs = cosmetic_packs + ?, updated_at = ?
+                WHERE wallet = ?
+                ''',
+                (bonus_packs, now_iso(), wallet),
+            )
+            conn.commit()
+        rewards_after = reward_summary(wallet)
+        reward_gain['cosmetic_packs'] = int(reward_gain.get('cosmetic_packs', 0) or 0) + bonus_packs
     grant_domain_experience(wallet, domain, 14 if result == 'win' else 10, won=result == 'win')
     record_uno_behavior(wallet, domain, result)
+    reward_gain['progress_report'] = uno_progress_report(before_rewards, rewards_after, reward_gain, bonus_packs=bonus_packs)
     metadata = get_domain_metadata_payload(domain, wallet=wallet) if domain else None
     log_domain_telemetry(
         'uno_match_complete',
@@ -28752,6 +29010,8 @@ def create_uno_reward_payload(wallet, domain, result, *, turns, cards_left, tota
             'turns': int(turns or 0),
             'cards_left': int(cards_left or 0),
             'players_total': int(total_players or 0),
+            'bonus_cosmetic_packs': int(bonus_packs or 0),
+            'completed_tasks': int((reward_gain.get('progress_report') or {}).get('completed_task_count', 0) or 0),
         },
     )
     return reward_gain, rewards_after
