@@ -3222,19 +3222,23 @@ PAGE_TEMPLATE = """
 
     .uno-deal-intro {
       display: grid;
-      gap: 14px;
-      min-height: 420px;
+      gap: 16px;
+      min-height: 430px;
       align-content: start;
     }
 
     .uno-deal-intro-stage {
       position: relative;
-      min-height: 280px;
-      border-radius: 24px;
+      min-height: 300px;
+      border-radius: 28px;
       border: 1px solid rgba(255,255,255,0.08);
       background:
-        radial-gradient(circle at 50% 48%, rgba(255,255,255,0.08), transparent 26%),
-        linear-gradient(180deg, rgba(7, 13, 23, 0.78), rgba(5, 10, 18, 0.92));
+        radial-gradient(circle at 50% 44%, rgba(255, 214, 74, 0.16), transparent 18%),
+        radial-gradient(circle at 50% 56%, rgba(69, 215, 255, 0.12), transparent 30%),
+        linear-gradient(180deg, rgba(7, 13, 23, 0.8), rgba(5, 10, 18, 0.94));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.03),
+        0 24px 44px rgba(0,0,0,0.24);
       overflow: hidden;
     }
 
@@ -3246,6 +3250,21 @@ PAGE_TEMPLATE = """
         linear-gradient(180deg, rgba(255,255,255,0.02), transparent 30%),
         repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 30px);
       pointer-events: none;
+    }
+
+    .uno-deal-intro-stage::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 180px;
+      height: 180px;
+      border-radius: 999px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255, 214, 74, 0.12), rgba(69, 215, 255, 0.06), transparent 72%);
+      filter: blur(10px);
+      pointer-events: none;
+      animation: unoDealAura 2.2s ease-in-out infinite;
     }
 
     .uno-deal-intro-center {
@@ -3260,7 +3279,7 @@ PAGE_TEMPLATE = """
     .uno-deal-intro-stack {
       position: absolute;
       inset: 0;
-      animation: unoDealShuffle 1.2s ease-in-out infinite;
+      animation: unoDealShuffle 1.4s ease-in-out infinite;
     }
 
     .uno-deal-intro-stack .uno-back-card {
@@ -3286,14 +3305,15 @@ PAGE_TEMPLATE = """
       transform: translate(-50%, -50%);
       opacity: 0;
       will-change: transform, opacity;
+      filter: drop-shadow(0 18px 26px rgba(0,0,0,0.22));
     }
 
-    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponent 1.8s cubic-bezier(.16,.88,.22,1) infinite; }
-    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayer 1.8s cubic-bezier(.16,.88,.22,1) infinite 0.24s; }
-    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponent 1.8s cubic-bezier(.16,.88,.22,1) infinite 0.48s; }
-    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayer 1.8s cubic-bezier(.16,.88,.22,1) infinite 0.72s; }
-    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponent 1.8s cubic-bezier(.16,.88,.22,1) infinite 0.96s; }
-    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayer 1.8s cubic-bezier(.16,.88,.22,1) infinite 1.20s; }
+    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponent 2.2s cubic-bezier(.16,.88,.22,1) infinite; }
+    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayer 2.2s cubic-bezier(.16,.88,.22,1) infinite 0.28s; }
+    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponent 2.2s cubic-bezier(.16,.88,.22,1) infinite 0.56s; }
+    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayer 2.2s cubic-bezier(.16,.88,.22,1) infinite 0.84s; }
+    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponent 2.2s cubic-bezier(.16,.88,.22,1) infinite 1.12s; }
+    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayer 2.2s cubic-bezier(.16,.88,.22,1) infinite 1.40s; }
 
     .uno-deal-intro-seat {
       position: absolute;
@@ -3304,14 +3324,35 @@ PAGE_TEMPLATE = """
       justify-items: center;
       color: rgba(240, 246, 255, 0.84);
       text-align: center;
+      width: min(100% - 36px, 240px);
     }
 
     .uno-deal-intro-seat.opponent { top: 18px; }
     .uno-deal-intro-seat.player { bottom: 18px; }
 
+    .uno-deal-intro-slotline {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .uno-deal-intro-slot {
+      width: 48px;
+      height: 70px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+        rgba(6, 12, 22, 0.42);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+      opacity: 0.88;
+    }
+
     .uno-deal-intro-count {
-      min-height: 26px;
-      padding: 0 10px;
+      min-height: 28px;
+      padding: 0 12px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.06);
@@ -3330,10 +3371,11 @@ PAGE_TEMPLATE = """
       gap: 6px;
       text-align: center;
       color: rgba(242, 247, 255, 0.9);
+      padding-inline: 12px;
     }
 
     .uno-deal-intro-copy strong {
-      font-size: 20px;
+      font-size: 22px;
       line-height: 1.05;
       letter-spacing: -0.04em;
       color: #fffaf3;
@@ -3341,23 +3383,28 @@ PAGE_TEMPLATE = """
 
     @keyframes unoDealShuffle {
       0%, 100% { transform: rotate(0deg) scale(1); }
-      25% { transform: rotate(-6deg) scale(1.02); }
-      50% { transform: rotate(6deg) scale(1.03); }
-      75% { transform: rotate(-3deg) scale(1.01); }
+      18% { transform: rotate(-7deg) scale(1.02) translateY(-2px); }
+      50% { transform: rotate(7deg) scale(1.04) translateY(0px); }
+      82% { transform: rotate(-3deg) scale(1.01) translateY(1px); }
+    }
+
+    @keyframes unoDealAura {
+      0%, 100% { opacity: 0.62; transform: translate(-50%, -50%) scale(0.94); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
     }
 
     @keyframes unoDealToOpponent {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      82% { opacity: 1; transform: translate(0px, -150px) scale(0.82) rotate(-4deg); }
-      100% { opacity: 0; transform: translate(0px, -164px) scale(0.8) rotate(-6deg); }
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.84) rotate(0deg); }
+      10% { opacity: 1; }
+      72% { opacity: 1; transform: translate(0px, -136px) scale(0.86) rotate(-5deg); }
+      100% { opacity: 0; transform: translate(0px, -154px) scale(0.8) rotate(-8deg); }
     }
 
     @keyframes unoDealToPlayer {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      82% { opacity: 1; transform: translate(0px, 126px) scale(0.82) rotate(4deg); }
-      100% { opacity: 0; transform: translate(0px, 140px) scale(0.8) rotate(6deg); }
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.84) rotate(0deg); }
+      10% { opacity: 1; }
+      72% { opacity: 1; transform: translate(0px, 118px) scale(0.86) rotate(5deg); }
+      100% { opacity: 0; transform: translate(0px, 136px) scale(0.8) rotate(8deg); }
     }
 
     .uno-discard-stack .uno-stack-top.fx-discard {
@@ -21888,6 +21935,11 @@ PAGE_TEMPLATE = """
             <div class="uno-deal-intro-stage">
               <div class="uno-deal-intro-seat opponent">
                 <div class="tiny">${escapeHtml((leadOpponent && leadOpponent.display_name) || session.turn_display_name || 'Соперник')}</div>
+                <div class="uno-deal-intro-slotline">
+                  <i class="uno-deal-intro-slot"></i>
+                  <i class="uno-deal-intro-slot"></i>
+                  <i class="uno-deal-intro-slot"></i>
+                </div>
                 <div class="uno-deal-intro-count">3 cards</div>
               </div>
               <div class="uno-deal-intro-center">
@@ -21898,13 +21950,18 @@ PAGE_TEMPLATE = """
                 ${['one', 'two', 'three'].map((slot) => `<div class="uno-deal-intro-flight to-player ${slot}">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`).join('')}
               </div>
               <div class="uno-deal-intro-seat player">
+                <div class="uno-deal-intro-slotline">
+                  <i class="uno-deal-intro-slot"></i>
+                  <i class="uno-deal-intro-slot"></i>
+                  <i class="uno-deal-intro-slot"></i>
+                </div>
                 <div class="uno-deal-intro-count">3 cards</div>
                 <div class="tiny">Твоя рука</div>
               </div>
             </div>
             <div class="uno-deal-intro-copy">
               <strong>Перемешиваем и раздаём</strong>
-              <div class="tiny">Одна карта сопернику, одна тебе, и так по очереди до старта первого хода.</div>
+              <div class="tiny">Колода мягко тасуется, затем карты по одной уходят вверх и вниз до первого хода.</div>
             </div>
           </div>
         `;
