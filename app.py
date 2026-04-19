@@ -15258,6 +15258,18 @@ PAGE_TEMPLATE = """
       font-size: 9px;
     }
 
+    body.tma-app:not(.tma-ios) .mobile-nav {
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      padding: 7px;
+    }
+
+    body.tma-app:not(.tma-ios) .mobile-nav button {
+      min-height: 40px;
+      height: 40px;
+      padding: 6px 4px;
+      font-size: 10px;
+    }
+
     @media (max-width: 425px) {
       body {
         overflow-x: hidden;
