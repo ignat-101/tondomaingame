@@ -1203,6 +1203,8 @@ PAGE_TEMPLATE = """
       align-content: stretch;
       gap: 12px;
       overflow: hidden;
+      min-height: 100%;
+      border-radius: inherit;
     }
 
     .uno-home-scroller {
@@ -1258,6 +1260,7 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 18% 86%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.14)), transparent 28%),
         radial-gradient(circle at 84% 76%, rgba(46, 132, 255, 0.16), transparent 26%),
         var(--uno-arena-art, none),
+        var(--uno-arena-surface, none),
         var(--uno-panel-surface, linear-gradient(180deg, rgba(12, 18, 30, 0.74), rgba(7, 11, 20, 0.94)));
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
     }
@@ -1441,7 +1444,7 @@ PAGE_TEMPLATE = """
     }
 
     .uno-surface-actions.tiles button::before {
-      content: attr(data-uno-kicker);
+      content: none;
       position: relative;
       display: block;
       font-size: 11px;
@@ -1483,6 +1486,42 @@ PAGE_TEMPLATE = """
         0 0 0 1px rgba(255,255,255,0.05);
     }
 
+    .uno-surface-tab-kicker,
+    .uno-mobile-nav-kicker {
+      position: relative;
+      z-index: 1;
+      display: block;
+      font-size: 10px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.62);
+    }
+
+    .uno-surface-tab-label,
+    .uno-mobile-nav-label {
+      position: relative;
+      z-index: 1;
+      display: block;
+      font-size: 17px;
+      line-height: 1.02;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: inherit;
+    }
+
+    .uno-surface-tab-note,
+    .uno-mobile-nav-note {
+      position: relative;
+      z-index: 1;
+      display: block;
+      color: rgba(239, 245, 255, 0.66);
+      font-size: 11px;
+      line-height: 1.24;
+      font-weight: 700;
+    }
+
     .uno-surface-actions.tiles .uno-surface-tab {
       min-height: 96px;
       padding: 16px 14px;
@@ -1493,6 +1532,7 @@ PAGE_TEMPLATE = """
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
         0 18px 30px rgba(0, 0, 0, 0.18);
+      gap: 8px;
     }
 
     .uno-surface-actions.tiles .uno-surface-tab.active {
@@ -1502,6 +1542,16 @@ PAGE_TEMPLATE = """
       box-shadow:
         0 18px 32px rgba(0, 0, 0, 0.22),
         0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .uno-surface-actions.tiles .uno-surface-tab.active .uno-surface-tab-kicker,
+    .uno-surface-actions.tiles .uno-surface-tab.active .uno-surface-tab-note {
+      color: rgba(28, 18, 7, 0.78);
+    }
+
+    .uno-shared-nav {
+      display: grid;
+      gap: 12px;
     }
 
     .uno-shared-shell {
@@ -1761,7 +1811,7 @@ PAGE_TEMPLATE = """
     .uno-guide-hand-row {
       position: absolute;
       left: 50%;
-      bottom: 22px;
+      bottom: 72px;
       transform: translateX(-50%);
       display: flex;
       gap: 0;
@@ -1785,23 +1835,25 @@ PAGE_TEMPLATE = """
 
     .uno-guide-control-row {
       position: absolute;
-      left: 16px;
-      right: 16px;
-      bottom: 14px;
+      left: 14px;
+      right: 14px;
+      bottom: 10px;
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       justify-content: center;
     }
 
     .uno-guide-control-row button {
-      min-height: 36px;
-      padding: 0 14px;
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 38px;
+      padding: 0 12px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.06);
       color: #fff8ef;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
     }
 
@@ -2473,16 +2525,35 @@ PAGE_TEMPLATE = """
       inset: 0;
       border-radius: inherit;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.52), rgba(8, 12, 20, 0.68)),
+        linear-gradient(180deg, rgba(8, 14, 24, 0.18), rgba(8, 12, 20, 0.36)),
         radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.14), transparent 28%),
         radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.12), transparent 32%),
+        var(--uno-arena-surface, none),
         var(--uno-arena-art, none),
         var(--uno-panel-art, none);
-      opacity: 0.74;
+      opacity: 0.92;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.04),
         inset 0 18px 36px rgba(255,255,255,0.02);
       pointer-events: none;
+    }
+
+    .uno-center::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.06), transparent 42%),
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.08), transparent 24%),
+        var(--uno-arena-art, none),
+        var(--uno-arena-surface, none);
+      opacity: 0.28;
+      pointer-events: none;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.02),
+        0 16px 26px rgba(0, 0, 0, 0.12);
     }
 
     .uno-center > * {
@@ -3253,6 +3324,7 @@ PAGE_TEMPLATE = """
         linear-gradient(180deg, rgba(8, 18, 30, 0.82), rgba(7, 12, 22, 0.92)),
         radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 62%),
         var(--uno-arena-art, none),
+        var(--uno-arena-surface, none),
         var(--uno-panel-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -3267,11 +3339,12 @@ PAGE_TEMPLATE = """
       inset: 14px;
       border-radius: 22px;
       background:
-        linear-gradient(180deg, rgba(8, 14, 23, 0.2), rgba(8, 12, 18, 0.38)),
+        linear-gradient(180deg, rgba(8, 14, 23, 0.14), rgba(8, 12, 18, 0.28)),
         radial-gradient(circle at 50% 44%, rgba(255,255,255,0.06), transparent 20%),
         var(--uno-panel-art, none),
+        var(--uno-arena-surface, none),
         var(--uno-arena-art, none);
-      opacity: 0.58;
+      opacity: 0.82;
       pointer-events: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
     }
@@ -3475,6 +3548,7 @@ PAGE_TEMPLATE = """
       height: 146px;
       display: grid;
       place-items: center;
+      transform-style: preserve-3d;
     }
 
     .uno-deal-intro-center::before {
@@ -3492,7 +3566,9 @@ PAGE_TEMPLATE = """
     .uno-deal-intro-stack {
       position: absolute;
       inset: 0;
-      animation: unoDealShuffle 2.4s cubic-bezier(.22,.74,.28,1) infinite;
+      animation: unoDealShuffle 4.6s cubic-bezier(.22,.74,.28,1) infinite;
+      will-change: transform;
+      transform-style: preserve-3d;
     }
 
     .uno-deal-intro-stack .uno-back-card {
@@ -3520,14 +3596,18 @@ PAGE_TEMPLATE = """
       will-change: transform, opacity;
       filter: drop-shadow(0 18px 28px rgba(0,0,0,0.24));
       backface-visibility: hidden;
+      transform-style: preserve-3d;
+      -webkit-transform: translate3d(-50%, -50%, 0);
     }
 
-    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponentOne 3.6s cubic-bezier(.16,.88,.22,1) infinite; }
-    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayerOne 3.6s cubic-bezier(.16,.88,.22,1) infinite 0.34s; }
-    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponentTwo 3.6s cubic-bezier(.16,.88,.22,1) infinite 0.92s; }
-    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayerTwo 3.6s cubic-bezier(.16,.88,.22,1) infinite 1.26s; }
-    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponentThree 3.6s cubic-bezier(.16,.88,.22,1) infinite 1.84s; }
-    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayerThree 3.6s cubic-bezier(.16,.88,.22,1) infinite 2.18s; }
+    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponentOne 4.6s cubic-bezier(.16,.88,.22,1) infinite; }
+    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayerOne 4.6s cubic-bezier(.16,.88,.22,1) infinite 0.34s; }
+    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponentTwo 4.6s cubic-bezier(.16,.88,.22,1) infinite 1.02s; }
+    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayerTwo 4.6s cubic-bezier(.16,.88,.22,1) infinite 1.36s; }
+    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponentThree 4.6s cubic-bezier(.16,.88,.22,1) infinite 2.04s; }
+    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayerThree 4.6s cubic-bezier(.16,.88,.22,1) infinite 2.38s; }
+    .uno-deal-intro-flight.to-opponent.four { animation: unoDealToOpponentFour 4.6s cubic-bezier(.16,.88,.22,1) infinite 3.06s; }
+    .uno-deal-intro-flight.to-player.four { animation: unoDealToPlayerFour 4.6s cubic-bezier(.16,.88,.22,1) infinite 3.4s; }
 
     .uno-deal-intro-seat {
       position: absolute;
@@ -3549,7 +3629,7 @@ PAGE_TEMPLATE = """
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
+      gap: 12px;
     }
 
     .uno-deal-intro-slot {
@@ -3581,15 +3661,17 @@ PAGE_TEMPLATE = """
       transform: scale(0.92);
     }
 
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 0.32s; }
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 1.22s; }
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 2.12s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 0.66s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 1.56s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 2.46s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 0.16s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 1.02s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 2.04s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(4)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 3.06s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 0.5s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 1.36s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 2.38s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(4)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 3.4s; }
 
-    .uno-deal-intro-seat.opponent .uno-deal-intro-count { animation: unoDealCounterPulse 3.6s ease-out infinite 0.32s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-count { animation: unoDealCounterPulse 3.6s ease-out infinite 0.66s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-count { animation: unoDealCounterPulse 4.6s ease-out infinite 0.16s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-count { animation: unoDealCounterPulse 4.6s ease-out infinite 0.5s; }
 
     .uno-deal-intro-seat .tiny {
       transition: opacity 220ms ease;
@@ -3628,9 +3710,10 @@ PAGE_TEMPLATE = """
 
     @keyframes unoDealShuffle {
       0%, 100% { transform: rotate(0deg) scale(1); }
-      18% { transform: rotate(-5deg) scale(1.014) translateY(-2px); }
-      46% { transform: rotate(5deg) scale(1.022) translateY(0px); }
-      78% { transform: rotate(-2deg) scale(1.008) translateY(2px); }
+      14% { transform: rotate(-4deg) scale(1.014) translateY(-3px); }
+      32% { transform: rotate(4deg) scale(1.022) translateY(1px); }
+      56% { transform: rotate(-3deg) scale(1.016) translateY(-1px); }
+      80% { transform: rotate(2deg) scale(1.008) translateY(2px); }
     }
 
     @keyframes unoDealAura {
@@ -3640,55 +3723,69 @@ PAGE_TEMPLATE = """
 
     @keyframes unoDealToOpponentOne {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(-114px, -132px, 0) scale(0.92) rotate(-14deg); }
-      100% { opacity: 0; transform: translate3d(-132px, -146px, 0) scale(0.84) rotate(-18deg); }
+      10% { opacity: 1; }
+      66% { opacity: 1; transform: translate3d(-150px, -134px, 0) scale(0.94) rotate(-16deg); }
+      100% { opacity: 0; transform: translate3d(-166px, -148px, 0) scale(0.84) rotate(-20deg); }
     }
 
     @keyframes unoDealToOpponentTwo {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      70% { opacity: 1; transform: translate3d(0px, -144px, 0) scale(0.92) rotate(-1deg); }
-      100% { opacity: 0; transform: translate3d(0px, -158px, 0) scale(0.84) rotate(0deg); }
+      10% { opacity: 1; }
+      66% { opacity: 1; transform: translate3d(-52px, -146px, 0) scale(0.94) rotate(-6deg); }
+      100% { opacity: 0; transform: translate3d(-64px, -158px, 0) scale(0.84) rotate(-8deg); }
     }
 
     @keyframes unoDealToOpponentThree {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(114px, -132px, 0) scale(0.92) rotate(14deg); }
-      100% { opacity: 0; transform: translate3d(132px, -146px, 0) scale(0.84) rotate(18deg); }
+      10% { opacity: 1; }
+      66% { opacity: 1; transform: translate3d(52px, -146px, 0) scale(0.94) rotate(6deg); }
+      100% { opacity: 0; transform: translate3d(64px, -158px, 0) scale(0.84) rotate(8deg); }
+    }
+
+    @keyframes unoDealToOpponentFour {
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
+      10% { opacity: 1; }
+      66% { opacity: 1; transform: translate3d(150px, -134px, 0) scale(0.94) rotate(16deg); }
+      100% { opacity: 0; transform: translate3d(166px, -148px, 0) scale(0.84) rotate(20deg); }
     }
 
     @keyframes unoDealToPlayerOne {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(-114px, 122px, 0) scale(0.92) rotate(14deg); }
-      100% { opacity: 0; transform: translate3d(-132px, 136px, 0) scale(0.84) rotate(18deg); }
+      10% { opacity: 1; }
+      66% { opacity: 1; transform: translate3d(-150px, 124px, 0) scale(0.94) rotate(16deg); }
+      100% { opacity: 0; transform: translate3d(-166px, 138px, 0) scale(0.84) rotate(20deg); }
     }
 
     @keyframes unoDealToPlayerTwo {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      70% { opacity: 1; transform: translate3d(0px, 134px, 0) scale(0.92) rotate(1deg); }
-      100% { opacity: 0; transform: translate3d(0px, 148px, 0) scale(0.84) rotate(0deg); }
+      10% { opacity: 1; }
+      66% { opacity: 1; transform: translate3d(-52px, 136px, 0) scale(0.94) rotate(6deg); }
+      100% { opacity: 0; transform: translate3d(-64px, 148px, 0) scale(0.84) rotate(8deg); }
     }
 
     @keyframes unoDealToPlayerThree {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      12% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(114px, 122px, 0) scale(0.92) rotate(-14deg); }
-      100% { opacity: 0; transform: translate3d(132px, 136px, 0) scale(0.84) rotate(-18deg); }
+      10% { opacity: 1; }
+      66% { opacity: 1; transform: translate3d(52px, 136px, 0) scale(0.94) rotate(-6deg); }
+      100% { opacity: 0; transform: translate3d(64px, 148px, 0) scale(0.84) rotate(-8deg); }
+    }
+
+    @keyframes unoDealToPlayerFour {
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
+      10% { opacity: 1; }
+      66% { opacity: 1; transform: translate3d(150px, 124px, 0) scale(0.94) rotate(-16deg); }
+      100% { opacity: 0; transform: translate3d(166px, 138px, 0) scale(0.84) rotate(-20deg); }
     }
 
     @keyframes unoDealSlotPulse {
-      0%, 56%, 100% { opacity: 0; transform: scale(0.92); }
-      68% { opacity: 1; transform: scale(1.02); }
-      82% { opacity: 0.9; transform: scale(1); }
+      0%, 52%, 100% { opacity: 0; transform: scale(0.92); }
+      66% { opacity: 1; transform: scale(1.03); }
+      82% { opacity: 0.92; transform: scale(1); }
     }
 
     @keyframes unoDealCounterPulse {
-      0%, 60%, 100% { transform: scale(1); border-color: rgba(255,255,255,0.12); }
-      72% { transform: scale(1.04); border-color: rgba(255, 214, 74, 0.26); }
+      0%, 58%, 100% { transform: scale(1); border-color: rgba(255,255,255,0.12); }
+      72% { transform: scale(1.05); border-color: rgba(255, 214, 74, 0.3); }
     }
 
     .uno-discard-stack .uno-stack-top.fx-discard {
@@ -3936,11 +4033,11 @@ PAGE_TEMPLATE = """
       }
 
       .uno-startup-guide .startup-guide-stage {
-        min-height: 188px;
+        min-height: 224px;
       }
 
       .uno-guide-scene {
-        min-height: 188px;
+        min-height: 224px;
       }
 
       .uno-guide-menu-grid {
@@ -3962,12 +4059,33 @@ PAGE_TEMPLATE = """
 
       .uno-guide-deck-stage {
         grid-template-columns: 90px minmax(0, 1fr);
-        padding: 18px 16px 72px;
+        padding: 18px 14px 86px;
         gap: 14px;
       }
 
       .uno-guide-draw-track {
         min-height: 132px;
+      }
+
+      .uno-guide-hand-row {
+        bottom: 68px;
+      }
+
+      .uno-guide-hand-row .uno-card-btn {
+        width: 70px;
+        height: 108px;
+      }
+
+      .uno-guide-control-row {
+        left: 12px;
+        right: 12px;
+        bottom: 8px;
+      }
+
+      .uno-guide-control-row button {
+        min-height: 36px;
+        font-size: 10px;
+        padding: 0 10px;
       }
 
       .uno-live-board {
@@ -13684,6 +13802,7 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       margin: 0;
       padding: 12px;
+      min-height: calc(var(--app-height, 100vh) - 136px - env(safe-area-inset-bottom));
       border-radius: 24px;
       clip-path: inset(0 round 24px);
       box-sizing: border-box;
@@ -14146,6 +14265,13 @@ PAGE_TEMPLATE = """
       color: var(--uno-tab-text, #fff6ea);
       font-weight: 800;
       letter-spacing: 0.02em;
+      display: grid;
+      align-content: center;
+      justify-items: start;
+      text-align: left;
+      gap: 3px;
+      padding: 7px 10px 8px;
+      border-radius: 16px;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
         0 12px 22px rgba(0, 0, 0, 0.18);
@@ -14160,6 +14286,11 @@ PAGE_TEMPLATE = """
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.06),
         0 14px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    body.uno-app-context .mobile-nav button.active .uno-mobile-nav-kicker,
+    body.uno-app-context .mobile-nav button.active .uno-mobile-nav-note {
+      color: rgba(28, 18, 7, 0.74);
     }
 
     body.uno-app-context .top-app-nav-link {
@@ -14325,6 +14456,22 @@ PAGE_TEMPLATE = """
       transform: translateY(-2px);
     }
 
+    body.uno-live-lock .mascot-side-launch {
+      position: fixed;
+      left: 10px;
+      top: calc(50% + 4px);
+      transform: translateY(-50%);
+      min-width: 48px;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 14px;
+      z-index: 55;
+    }
+
+    body.uno-live-lock .mascot-side-launch:hover:not(:disabled) {
+      transform: translateY(calc(-50% - 1px));
+    }
+
     @media (max-height: 760px) {
       body.tma-app.uno-live-lock .uno-shell.playing {
         padding: 6px;
@@ -14355,9 +14502,25 @@ PAGE_TEMPLATE = """
     }
 
     body.uno-live-lock .mobile-nav,
-    body.uno-live-lock .currency-float,
-    body.uno-live-lock .mascot-widget {
+    body.uno-live-lock .currency-float {
       display: none !important;
+    }
+
+    body.uno-live-lock .mascot-widget {
+      display: grid !important;
+      pointer-events: none;
+      background: none !important;
+      box-shadow: none !important;
+    }
+
+    body.uno-live-lock .mascot-fab,
+    body.uno-live-lock .mascot-popover {
+      display: none !important;
+    }
+
+    body.uno-live-lock .mascot-side-launch {
+      display: inline-flex !important;
+      pointer-events: auto;
     }
 
     body.uno-live-lock .top-app-nav {
@@ -14756,11 +14919,11 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app .uno-startup-guide .startup-guide-stage {
-      min-height: min(208px, 30vh);
+      min-height: min(236px, 34vh);
     }
 
     body.tma-app .uno-startup-guide .uno-guide-scene {
-      min-height: min(188px, 28vh);
+      min-height: min(220px, 32vh);
     }
 
     body.tma-app .startup-guide-card {
@@ -17330,13 +17493,19 @@ PAGE_TEMPLATE = """
         const memory = Number(navigator.deviceMemory || 0);
         const cores = Number(navigator.hardwareConcurrency || 0);
         const androidLike = ua.includes('android');
+        const iosLike = ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') || isTelegramIosWebView();
         const cheapMemory = memory > 0 && memory <= 4;
         const cheapCpu = cores > 0 && cores <= 4;
         const compactTma = document.body.classList.contains('tma-app') && !document.body.classList.contains('tma-desktop');
         const prefersReduced = typeof window.matchMedia === 'function'
           ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
           : false;
-        return Boolean(prefersReduced || cheapMemory || cheapCpu || (androidLike && compactTma));
+        const extremelyCheap = (memory > 0 && memory <= 2) || (cores > 0 && cores <= 2);
+        return Boolean(
+          prefersReduced
+          || extremelyCheap
+          || (compactTma && !iosLike && (cheapMemory || cheapCpu || androidLike))
+        );
       } catch (_) {
         return false;
       }
@@ -19417,6 +19586,15 @@ PAGE_TEMPLATE = """
       }
     }
 
+    function setUnoMobileNavButton(button, label, note = '') {
+      if (!button) return;
+      button.innerHTML = `
+        <span class="uno-mobile-nav-kicker">UNO</span>
+        <span class="uno-mobile-nav-label">${escapeHtml(label || '')}</span>
+        <span class="uno-mobile-nav-note">${escapeHtml(note || '')}</span>
+      `;
+    }
+
     function syncMobileNavContext() {
       const unoContext = hasUnoTesterAccess() && state.activeApp === 'uno';
       const activeView = String(document.body.dataset.activeView || 'profile');
@@ -19450,10 +19628,10 @@ PAGE_TEMPLATE = """
       }
       if (!navPack || !navModes || !navGuilds || !navAchievements) return;
       if (unoContext) {
-        navPack.textContent = 'Menu';
-        navModes.textContent = 'Profile';
-        navGuilds.textContent = 'Clans';
-        navAchievements.textContent = 'Pass';
+        setUnoMobileNavButton(navPack, 'Menu', 'Lobby');
+        setUnoMobileNavButton(navModes, 'Profile', 'Domain');
+        setUnoMobileNavButton(navGuilds, 'Clans', 'Rooms');
+        setUnoMobileNavButton(navAchievements, 'Pass', 'Season');
         [navPack, navModes, navGuilds, navAchievements].forEach((button) => button.classList.remove('active'));
         const activeButton = activeView === 'profile'
           ? navModes
@@ -20997,6 +21175,8 @@ PAGE_TEMPLATE = """
         view.classList.remove('uno-shared-shell');
         const existing = view.querySelector(`[data-uno-shared-hero="${viewName}"]`);
         if (existing) existing.remove();
+        const existingNav = view.querySelector(`[data-uno-shared-nav="${viewName}"]`);
+        if (existingNav) existingNav.remove();
       });
       if (state.activeApp !== 'uno') return;
       const safeView = String(activeView || document.body.dataset.activeView || '').trim().toLowerCase();
@@ -21005,6 +21185,10 @@ PAGE_TEMPLATE = """
       const view = document.getElementById(`view-${safeView}`);
       if (!view) return;
       const theme = currentUnoSharedTheme();
+      const nav = document.createElement('div');
+      nav.className = 'uno-shared-nav';
+      nav.dataset.unoSharedNav = safeView;
+      nav.innerHTML = unoSurfaceActionsMarkup(safeView, {tiles: true});
       const hero = document.createElement('div');
       hero.className = 'uno-shared-hero-card';
       hero.dataset.unoSharedHero = safeView;
@@ -21017,10 +21201,13 @@ PAGE_TEMPLATE = """
       `;
       const firstElement = Array.from(view.children).find((node) => node.nodeType === 1);
       if (firstElement) {
+        view.insertBefore(nav, firstElement);
         view.insertBefore(hero, firstElement);
       } else {
+        view.appendChild(nav);
         view.appendChild(hero);
       }
+      bindUnoSurfaceActions(nav);
       view.classList.add('uno-shared-shell');
     }
 
@@ -22046,14 +22233,14 @@ PAGE_TEMPLATE = """
     function unoSurfaceActionsMarkup(activeTab = '', options = {}) {
       const tiles = Boolean(options.tiles);
       const tabs = [
-        {key: 'menu', label: 'Menu'},
-        {key: 'profile', label: 'Profile'},
-        {key: 'guilds', label: 'Clans'},
-        {key: 'achievements', label: 'Pass'},
+        {key: 'menu', label: 'Menu', note: 'Lobby'},
+        {key: 'profile', label: 'Profile', note: 'Domain'},
+        {key: 'guilds', label: 'Clans', note: 'Rooms'},
+        {key: 'achievements', label: 'Pass', note: 'Season'},
       ];
       return `
         <div class="actions uno-surface-actions compact${tiles ? ' tiles' : ''}">
-          ${tabs.map((tab) => `<button type="button" class="uno-surface-tab${activeTab === tab.key ? ' active' : ''}" data-uno-surface-link="${tab.key}" data-uno-kicker="UNO">${tab.label}</button>`).join('')}
+          ${tabs.map((tab) => `<button type="button" class="uno-surface-tab${activeTab === tab.key ? ' active' : ''}" data-uno-surface-link="${tab.key}" data-uno-kicker="UNO"><span class="uno-surface-tab-kicker">UNO</span><span class="uno-surface-tab-label">${tab.label}</span><span class="uno-surface-tab-note">${tab.note}</span></button>`).join('')}
         </div>
       `;
     }
@@ -22158,7 +22345,7 @@ PAGE_TEMPLATE = """
         textColor: backTheme.text,
         edgeMark: backMark,
       };
-      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
+      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-surface:${escapeHtml(unoTheme.arenaSurface || 'none')};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
       const unoHeaderClass = bannerSurface ? 'uno-header skin-banner' : 'uno-header';
       const unoHeaderStyle = bannerSurface ? ` style="--uno-banner-surface:${escapeHtml(bannerSurface)};"` : '';
       const sessionStatus = String((session && session.status) || '');
@@ -22168,7 +22355,8 @@ PAGE_TEMPLATE = """
         && !session.complete
         && sessionStatus !== 'waiting'
       );
-      const compactUnoLive = Boolean(isCompactTmaLayout() && unoLiveScreen);
+      const compactUnoViewport = Boolean(isCompactTmaLayout() || window.innerWidth <= 720);
+      const compactUnoLive = Boolean(compactUnoViewport && unoLiveScreen);
       setUnoLiveLock(unoLiveScreen);
       syncMobileNavContext();
       const identityLabel = identity.progressEnabled
@@ -22423,10 +22611,10 @@ PAGE_TEMPLATE = """
           <div class="uno-shell playing uno-deal-intro" style="${shellVisualStyle}">
             <div class="${unoHeaderClass}"${unoHeaderStyle}>
               <div class="uno-header-top">
-                <div class="uno-title">
+                ${compactUnoViewport ? '' : `<div class="uno-title">
                   <strong>${escapeHtml(unoModeLabel(session.mode, session.bot_profile))}</strong>
                   <div class="tiny">${escapeHtml(session.room_code || session.session_id || 'MATCH')} • ${participantCount} игроков</div>
-                </div>
+                </div>`}
                 ${unoLiveControlsMarkup()}
               </div>
             </div>
@@ -22437,29 +22625,31 @@ PAGE_TEMPLATE = """
                   <i class="uno-deal-intro-slot"></i>
                   <i class="uno-deal-intro-slot"></i>
                   <i class="uno-deal-intro-slot"></i>
+                  <i class="uno-deal-intro-slot"></i>
                 </div>
-                <div class="uno-deal-intro-count">7 cards</div>
+                <div class="uno-deal-intro-count">7 карт</div>
               </div>
               <div class="uno-deal-intro-center">
                 <div class="uno-deal-intro-stack">
                   ${Array.from({length: 3}).map(() => unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)).join('')}
                 </div>
-                ${['one', 'two', 'three'].map((slot) => `<div class="uno-deal-intro-flight to-opponent ${slot}">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`).join('')}
-                ${['one', 'two', 'three'].map((slot) => `<div class="uno-deal-intro-flight to-player ${slot}">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`).join('')}
+                ${['one', 'two', 'three', 'four'].map((slot) => `<div class="uno-deal-intro-flight to-opponent ${slot}">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`).join('')}
+                ${['one', 'two', 'three', 'four'].map((slot) => `<div class="uno-deal-intro-flight to-player ${slot}">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`).join('')}
               </div>
               <div class="uno-deal-intro-seat player">
                 <div class="uno-deal-intro-slotline">
                   <i class="uno-deal-intro-slot"></i>
                   <i class="uno-deal-intro-slot"></i>
                   <i class="uno-deal-intro-slot"></i>
+                  <i class="uno-deal-intro-slot"></i>
                 </div>
-                <div class="uno-deal-intro-count">7 cards</div>
+                <div class="uno-deal-intro-count">7 карт</div>
                 <div class="tiny">Твоя рука</div>
               </div>
             </div>
             <div class="uno-deal-intro-copy">
               <strong>Стартовая раздача</strong>
-              <div class="tiny">Колода мягко тасуется, после чего карты по одной садятся в руку соперника и в твою руку перед первым ходом.</div>
+              <div class="tiny">Центральная колода сдаёт карты по одной: сначала вверх сопернику, потом вниз тебе. После раздачи матч сразу переходит к первому ходу.</div>
             </div>
           </div>
         `;
