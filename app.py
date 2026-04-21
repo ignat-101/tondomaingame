@@ -527,6 +527,59 @@ PAGE_TEMPLATE = """
 
     a { color: var(--accent); }
 
+    html.performance-lite,
+    body.performance-lite {
+      scroll-behavior: auto;
+    }
+
+    body.performance-lite .app-launcher,
+    body.performance-lite .mobile-nav,
+    body.performance-lite .currency-float,
+    body.performance-lite .panel,
+    body.performance-lite .mascot-popover,
+    body.performance-lite .uno-shell,
+    body.performance-lite .interactive-battle-panel,
+    body.performance-lite .arena-choice-panel,
+    body.performance-lite .top-app-nav {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    body.performance-lite .app-launcher,
+    body.performance-lite .mobile-nav,
+    body.performance-lite .currency-float,
+    body.performance-lite .panel,
+    body.performance-lite .mascot-popover,
+    body.performance-lite .uno-shell,
+    body.performance-lite .interactive-battle-panel,
+    body.performance-lite .arena-choice-panel {
+      box-shadow: none !important;
+    }
+
+    body.performance-lite .showdown-fullscreen::after,
+    body.performance-lite .showdown-fullscreen::before,
+    body.performance-lite .interactive-battle-panel::before,
+    body.performance-lite .interactive-battle-panel::after,
+    body.performance-lite .uno-shell::before,
+    body.performance-lite .uno-deal-intro-stage::after,
+    body.performance-lite .uno-live-board.event-beat::after {
+      display: none !important;
+      animation: none !important;
+    }
+
+    body.performance-lite .uno-deal-intro-stack,
+    body.performance-lite .uno-deal-intro-flight,
+    body.performance-lite .uno-event-burst,
+    body.performance-lite .uno-event-deal-card,
+    body.performance-lite .pack-card-fan-card,
+    body.performance-lite .pack-card-fan-copy,
+    body.performance-lite .pack-card-fan-panel,
+    body.performance-lite .pack-card-fan-aura {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+
     .shell {
       width: 100%;
       max-width: none;
@@ -1146,9 +1199,24 @@ PAGE_TEMPLATE = """
 
     .uno-home-shell {
       display: grid;
-      grid-template-rows: auto auto auto auto;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      align-content: stretch;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .uno-home-scroller {
+      min-height: 0;
+      display: grid;
       align-content: start;
       gap: 12px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      padding-right: 2px;
+      padding-bottom: 10px;
     }
 
     .uno-home-top {
@@ -1273,6 +1341,26 @@ PAGE_TEMPLATE = """
         linear-gradient(135deg, rgba(56, 19, 14, 0.94), rgba(116, 42, 17, 0.86)),
         var(--uno-banner-art, none),
         var(--uno-banner-surface, radial-gradient(circle at top, rgba(255, 214, 74, 0.18), transparent 68%));
+    }
+
+    .uno-home-tile.wide .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .uno-home-tile.wide .actions button {
+      min-width: 116px;
+    }
+
+    .uno-home-tile.wide .actions button.secondary {
+      background:
+        linear-gradient(180deg, rgba(14, 20, 32, 0.78), rgba(10, 15, 24, 0.92)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.12), transparent 72%);
+      color: #fff3d6;
+      border-color: rgba(255, 214, 74, 0.22);
     }
 
     .uno-home-tile::before,
@@ -1414,6 +1502,75 @@ PAGE_TEMPLATE = """
       box-shadow:
         0 18px 32px rgba(0, 0, 0, 0.22),
         0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .uno-shared-shell {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .uno-shared-hero-card {
+      position: relative;
+      min-height: 112px;
+      padding: 18px;
+      border-radius: 26px;
+      border: 1px solid var(--uno-shared-card-border, rgba(255, 214, 74, 0.16));
+      background:
+        linear-gradient(180deg, rgba(10, 16, 27, 0.76), rgba(8, 12, 20, 0.94)),
+        var(--uno-banner-art, none),
+        var(--uno-banner-surface, linear-gradient(135deg, rgba(255, 186, 48, 0.22), rgba(255, 88, 74, 0.16)));
+      box-shadow:
+        0 22px 38px rgba(0, 0, 0, 0.22),
+        inset 0 0 0 1px rgba(255,255,255,0.03);
+      overflow: hidden;
+    }
+
+    .uno-shared-hero-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.08), transparent 44%),
+        radial-gradient(circle at 84% 18%, rgba(255, 214, 74, 0.16), transparent 28%);
+      pointer-events: none;
+    }
+
+    .uno-shared-kicker {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      min-height: 28px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      align-items: center;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255, 243, 214, 0.84);
+      background: rgba(8, 14, 24, 0.42);
+    }
+
+    .uno-shared-hero-card h2 {
+      position: relative;
+      z-index: 1;
+      margin: 14px 0 8px;
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      color: #fffaf3;
+    }
+
+    .uno-shared-hero-card p {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      max-width: 560px;
+      color: rgba(255, 243, 214, 0.76);
+      line-height: 1.38;
     }
 
     .uno-live-controls {
@@ -2297,6 +2454,7 @@ PAGE_TEMPLATE = """
     }
 
     .uno-center {
+      position: relative;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 112px));
       justify-content: center;
@@ -2304,7 +2462,32 @@ PAGE_TEMPLATE = """
       align-items: center;
       align-content: center;
       min-height: 100%;
-      padding: 2px 0;
+      padding: 18px 16px 8px;
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .uno-center::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(180deg, rgba(8, 14, 24, 0.52), rgba(8, 12, 20, 0.68)),
+        radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.14), transparent 28%),
+        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.12), transparent 32%),
+        var(--uno-arena-art, none),
+        var(--uno-panel-art, none);
+      opacity: 0.74;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.04),
+        inset 0 18px 36px rgba(255,255,255,0.02);
+      pointer-events: none;
+    }
+
+    .uno-center > * {
+      position: relative;
+      z-index: 1;
     }
 
     .uno-stack {
@@ -3078,6 +3261,21 @@ PAGE_TEMPLATE = """
       overflow: hidden;
     }
 
+    .uno-live-board::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(8, 14, 23, 0.2), rgba(8, 12, 18, 0.38)),
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.06), transparent 20%),
+        var(--uno-panel-art, none),
+        var(--uno-arena-art, none);
+      opacity: 0.58;
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+
     .uno-live-board.event-beat::after {
       content: "";
       position: absolute;
@@ -3229,16 +3427,17 @@ PAGE_TEMPLATE = """
 
     .uno-deal-intro-stage {
       position: relative;
-      min-height: 300px;
-      border-radius: 28px;
+      min-height: 332px;
+      border-radius: 30px;
       border: 1px solid rgba(255,255,255,0.08);
       background:
-        radial-gradient(circle at 50% 44%, rgba(255, 214, 74, 0.16), transparent 18%),
-        radial-gradient(circle at 50% 56%, rgba(69, 215, 255, 0.12), transparent 30%),
-        linear-gradient(180deg, rgba(7, 13, 23, 0.8), rgba(5, 10, 18, 0.94));
+        radial-gradient(circle at 50% 18%, rgba(255, 214, 74, 0.18), transparent 22%),
+        radial-gradient(circle at 18% 84%, rgba(255, 91, 87, 0.12), transparent 24%),
+        radial-gradient(circle at 82% 18%, rgba(78, 186, 255, 0.12), transparent 26%),
+        linear-gradient(180deg, rgba(7, 13, 23, 0.82), rgba(5, 10, 18, 0.95));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
-        0 24px 44px rgba(0,0,0,0.24);
+        0 28px 48px rgba(0,0,0,0.24);
       overflow: hidden;
     }
 
@@ -3257,14 +3456,14 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 180px;
-      height: 180px;
+      width: 220px;
+      height: 220px;
       border-radius: 999px;
       transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(255, 214, 74, 0.12), rgba(69, 215, 255, 0.06), transparent 72%);
-      filter: blur(10px);
+      background: radial-gradient(circle, rgba(255, 214, 74, 0.16), rgba(69, 215, 255, 0.08), transparent 74%);
+      filter: blur(12px);
       pointer-events: none;
-      animation: unoDealAura 2.2s ease-in-out infinite;
+      animation: unoDealAura 2.8s ease-in-out infinite;
     }
 
     .uno-deal-intro-center {
@@ -3272,49 +3471,63 @@ PAGE_TEMPLATE = """
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: 88px;
-      height: 128px;
+      width: 106px;
+      height: 146px;
+      display: grid;
+      place-items: center;
+    }
+
+    .uno-deal-intro-center::before {
+      content: "";
+      position: absolute;
+      inset: -20px;
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.12), transparent 62%);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
     }
 
     .uno-deal-intro-stack {
       position: absolute;
       inset: 0;
-      animation: unoDealShuffle 1.9s cubic-bezier(.22,.74,.28,1) infinite;
+      animation: unoDealShuffle 2.4s cubic-bezier(.22,.74,.28,1) infinite;
     }
 
     .uno-deal-intro-stack .uno-back-card {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 88px;
-      height: 128px;
+      width: 94px;
+      height: 136px;
       transform: translate(-50%, -50%);
       box-shadow: 0 16px 24px rgba(0,0,0,0.28);
     }
 
-    .uno-deal-intro-stack .uno-back-card:nth-child(1) { transform: translate(-50%, -50%) rotate(-9deg); }
-    .uno-deal-intro-stack .uno-back-card:nth-child(2) { transform: translate(-50%, -50%) rotate(7deg); }
-    .uno-deal-intro-stack .uno-back-card:nth-child(3) { transform: translate(-50%, -50%) rotate(-3deg); }
+    .uno-deal-intro-stack .uno-back-card:nth-child(1) { transform: translate(-50%, -50%) rotate(-10deg) translateY(3px); }
+    .uno-deal-intro-stack .uno-back-card:nth-child(2) { transform: translate(-50%, -50%) rotate(8deg) translateY(-1px); }
+    .uno-deal-intro-stack .uno-back-card:nth-child(3) { transform: translate(-50%, -50%) rotate(-3deg) translateY(-4px); }
 
     .uno-deal-intro-flight {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 88px;
-      height: 128px;
+      width: 94px;
+      height: 136px;
       transform: translate(-50%, -50%);
       opacity: 0;
       will-change: transform, opacity;
-      filter: drop-shadow(0 18px 26px rgba(0,0,0,0.22));
+      filter: drop-shadow(0 18px 28px rgba(0,0,0,0.24));
       backface-visibility: hidden;
     }
 
-    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponent 2.8s cubic-bezier(.18,.82,.22,1) infinite; }
-    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayer 2.8s cubic-bezier(.18,.82,.22,1) infinite 0.36s; }
-    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponent 2.8s cubic-bezier(.18,.82,.22,1) infinite 0.92s; }
-    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayer 2.8s cubic-bezier(.18,.82,.22,1) infinite 1.28s; }
-    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponent 2.8s cubic-bezier(.18,.82,.22,1) infinite 1.84s; }
-    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayer 2.8s cubic-bezier(.18,.82,.22,1) infinite 2.20s; }
+    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponentOne 3.6s cubic-bezier(.16,.88,.22,1) infinite; }
+    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayerOne 3.6s cubic-bezier(.16,.88,.22,1) infinite 0.34s; }
+    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponentTwo 3.6s cubic-bezier(.16,.88,.22,1) infinite 0.92s; }
+    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayerTwo 3.6s cubic-bezier(.16,.88,.22,1) infinite 1.26s; }
+    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponentThree 3.6s cubic-bezier(.16,.88,.22,1) infinite 1.84s; }
+    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayerThree 3.6s cubic-bezier(.16,.88,.22,1) infinite 2.18s; }
 
     .uno-deal-intro-seat {
       position: absolute;
@@ -3325,64 +3538,69 @@ PAGE_TEMPLATE = """
       justify-items: center;
       color: rgba(240, 246, 255, 0.84);
       text-align: center;
-      width: min(100% - 36px, 240px);
+      width: min(100% - 44px, 320px);
     }
 
-    .uno-deal-intro-seat.opponent { top: 18px; }
-    .uno-deal-intro-seat.player { bottom: 18px; }
+    .uno-deal-intro-seat.opponent { top: 20px; }
+    .uno-deal-intro-seat.player { bottom: 20px; }
 
     .uno-deal-intro-slotline {
       width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 16px;
     }
 
     .uno-deal-intro-slot {
       position: relative;
-      width: 50px;
-      height: 74px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.12);
+      width: 62px;
+      height: 90px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
-        rgba(6, 12, 22, 0.42);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
-      opacity: 0.88;
+        var(--uno-cardback-art, none),
+        var(--uno-cardback-surface, rgba(6, 12, 22, 0.42));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.02),
+        0 10px 18px rgba(0,0,0,0.12);
+      opacity: 0.32;
       overflow: hidden;
     }
 
     .uno-deal-intro-slot::after {
       content: "";
       position: absolute;
-      inset: 6px;
-      border-radius: 12px;
-      background: linear-gradient(180deg, rgba(255, 214, 74, 0.22), rgba(69, 215, 255, 0.18));
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0)),
+        radial-gradient(circle at 50% 42%, rgba(255, 214, 74, 0.24), transparent 36%);
       opacity: 0;
-      transform: scale(0.86);
+      transform: scale(0.92);
     }
 
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 0.36s; }
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 1.28s; }
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 2.20s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 0.72s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 1.64s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 2.8s ease-out infinite 2.56s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 0.32s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 1.22s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 2.12s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 0.66s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 1.56s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 3.6s ease-out infinite 2.46s; }
 
-    .uno-deal-intro-seat.opponent .uno-deal-intro-count { animation: unoDealCounterPulse 2.8s ease-out infinite 0.36s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-count { animation: unoDealCounterPulse 2.8s ease-out infinite 0.72s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-count { animation: unoDealCounterPulse 3.6s ease-out infinite 0.32s; }
+    .uno-deal-intro-seat.player .uno-deal-intro-count { animation: unoDealCounterPulse 3.6s ease-out infinite 0.66s; }
 
     .uno-deal-intro-seat .tiny {
       transition: opacity 220ms ease;
     }
 
     .uno-deal-intro-count {
-      min-height: 28px;
+      min-height: 30px;
       padding: 0 12px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.08);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -3410,36 +3628,62 @@ PAGE_TEMPLATE = """
 
     @keyframes unoDealShuffle {
       0%, 100% { transform: rotate(0deg) scale(1); }
-      20% { transform: rotate(-4deg) scale(1.015) translateY(-1px); }
-      50% { transform: rotate(4deg) scale(1.028) translateY(0px); }
-      80% { transform: rotate(-2deg) scale(1.01) translateY(1px); }
+      18% { transform: rotate(-5deg) scale(1.014) translateY(-2px); }
+      46% { transform: rotate(5deg) scale(1.022) translateY(0px); }
+      78% { transform: rotate(-2deg) scale(1.008) translateY(2px); }
     }
 
     @keyframes unoDealAura {
-      0%, 100% { opacity: 0.62; transform: translate(-50%, -50%) scale(0.94); }
-      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+      0%, 100% { opacity: 0.58; transform: translate(-50%, -50%) scale(0.94); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
     }
 
-    @keyframes unoDealToOpponent {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.88) rotate(0deg); }
-      10% { opacity: 1; }
-      64% { opacity: 1; transform: translate3d(-2px, -118px, 0) scale(0.9) rotate(-4deg); }
-      84% { opacity: 0.98; transform: translate3d(0px, -144px, 0) scale(0.82) rotate(-7deg); }
-      100% { opacity: 0; transform: translate3d(0px, -154px, 0) scale(0.78) rotate(-8deg); }
+    @keyframes unoDealToOpponentOne {
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
+      12% { opacity: 1; }
+      68% { opacity: 1; transform: translate3d(-114px, -132px, 0) scale(0.92) rotate(-14deg); }
+      100% { opacity: 0; transform: translate3d(-132px, -146px, 0) scale(0.84) rotate(-18deg); }
     }
 
-    @keyframes unoDealToPlayer {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.88) rotate(0deg); }
-      10% { opacity: 1; }
-      64% { opacity: 1; transform: translate3d(2px, 104px, 0) scale(0.9) rotate(4deg); }
-      84% { opacity: 0.98; transform: translate3d(0px, 128px, 0) scale(0.82) rotate(7deg); }
-      100% { opacity: 0; transform: translate3d(0px, 140px, 0) scale(0.78) rotate(8deg); }
+    @keyframes unoDealToOpponentTwo {
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
+      12% { opacity: 1; }
+      70% { opacity: 1; transform: translate3d(0px, -144px, 0) scale(0.92) rotate(-1deg); }
+      100% { opacity: 0; transform: translate3d(0px, -158px, 0) scale(0.84) rotate(0deg); }
+    }
+
+    @keyframes unoDealToOpponentThree {
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
+      12% { opacity: 1; }
+      68% { opacity: 1; transform: translate3d(114px, -132px, 0) scale(0.92) rotate(14deg); }
+      100% { opacity: 0; transform: translate3d(132px, -146px, 0) scale(0.84) rotate(18deg); }
+    }
+
+    @keyframes unoDealToPlayerOne {
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
+      12% { opacity: 1; }
+      68% { opacity: 1; transform: translate3d(-114px, 122px, 0) scale(0.92) rotate(14deg); }
+      100% { opacity: 0; transform: translate3d(-132px, 136px, 0) scale(0.84) rotate(18deg); }
+    }
+
+    @keyframes unoDealToPlayerTwo {
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
+      12% { opacity: 1; }
+      70% { opacity: 1; transform: translate3d(0px, 134px, 0) scale(0.92) rotate(1deg); }
+      100% { opacity: 0; transform: translate3d(0px, 148px, 0) scale(0.84) rotate(0deg); }
+    }
+
+    @keyframes unoDealToPlayerThree {
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
+      12% { opacity: 1; }
+      68% { opacity: 1; transform: translate3d(114px, 122px, 0) scale(0.92) rotate(-14deg); }
+      100% { opacity: 0; transform: translate3d(132px, 136px, 0) scale(0.84) rotate(-18deg); }
     }
 
     @keyframes unoDealSlotPulse {
-      0%, 55%, 100% { opacity: 0; transform: scale(0.86); }
-      68% { opacity: 1; transform: scale(1); }
-      82% { opacity: 0.82; transform: scale(0.98); }
+      0%, 56%, 100% { opacity: 0; transform: scale(0.92); }
+      68% { opacity: 1; transform: scale(1.02); }
+      82% { opacity: 0.9; transform: scale(1); }
     }
 
     @keyframes unoDealCounterPulse {
@@ -13293,6 +13537,27 @@ PAGE_TEMPLATE = """
       overflow-y: auto;
     }
 
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing,
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting,
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
+      overflow: hidden;
+    }
+
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-scroller,
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage,
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-scroller,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller {
+      min-height: 0;
+      overflow-y: auto;
+      padding-bottom: 18px;
+      -webkit-overflow-scrolling: touch;
+    }
+
     html.uno-live-lock,
     body.uno-live-lock:not(.tma-app) {
       overflow: hidden;
@@ -13354,7 +13619,7 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) {
       overflow: hidden;
       overscroll-behavior: none;
-      touch-action: manipulation;
+      touch-action: pan-y;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .shell {
@@ -13422,13 +13687,24 @@ PAGE_TEMPLATE = """
       border-radius: 24px;
       clip-path: inset(0 round 24px);
       box-sizing: border-box;
-      overflow-y: auto;
-      padding-bottom: calc(132px + env(safe-area-inset-bottom));
+      overflow: hidden;
+      padding-bottom: 12px;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
+      padding-bottom: 12px;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-scroller,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-stage {
+      min-height: 0;
       overflow-y: auto;
-      padding-bottom: calc(148px + env(safe-area-inset-bottom));
+      padding-bottom: calc(138px + env(safe-area-inset-bottom));
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
@@ -13490,6 +13766,31 @@ PAGE_TEMPLATE = """
 
     body.tma-app.tma-desktop[data-active-view="uno"] .uno-live-board {
       min-height: clamp(220px, 32vh, 288px);
+    }
+
+    @media (min-width: 980px) {
+      body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-grid,
+      body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-tile,
+      body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-control,
+      body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-tile,
+      body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-control {
+        min-height: 148px;
+      }
+
+      body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-tile.wide,
+      body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-tile.wide {
+        grid-column: span 2;
+        min-height: 148px;
+      }
+
+      body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-control.code-entry,
+      body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-control.code-entry {
+        grid-column: span 2;
+      }
     }
 
     html.tma-app.uno-live-lock,
@@ -13884,11 +14185,42 @@ PAGE_TEMPLATE = """
     body.uno-app-context #view-profile .panel,
     body.uno-app-context #view-achievements .panel,
     body.uno-app-context #view-guilds .panel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 26px;
       border-color: var(--uno-shared-panel-border, rgba(255, 214, 74, 0.18));
       background: var(--uno-shared-panel-surface, linear-gradient(180deg, rgba(11, 17, 29, 0.98), rgba(7, 11, 21, 0.98)));
       box-shadow:
         0 24px 48px var(--uno-shared-shadow, rgba(0, 0, 0, 0.26)),
         inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+
+    body.uno-app-context #view-profile.active,
+    body.uno-app-context #view-achievements.active,
+    body.uno-app-context #view-guilds.active {
+      display: grid;
+      gap: 14px;
+      border-radius: 28px;
+      border-color: var(--uno-shared-panel-border, rgba(255, 214, 74, 0.2));
+      background:
+        linear-gradient(180deg, rgba(7, 12, 20, 0.84), rgba(6, 10, 18, 0.96)),
+        var(--uno-shared-panel-surface, linear-gradient(180deg, rgba(11, 17, 29, 0.96), rgba(7, 11, 21, 0.98)));
+      box-shadow:
+        0 28px 52px rgba(0, 0, 0, 0.24),
+        inset 0 0 0 1px rgba(255,255,255,0.03);
+      overflow: hidden;
+    }
+
+    body.uno-app-context #view-profile .panel::before,
+    body.uno-app-context #view-achievements .panel::before,
+    body.uno-app-context #view-guilds .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.06), transparent 46%),
+        radial-gradient(circle at 88% 14%, rgba(255, 214, 74, 0.12), transparent 24%);
+      pointer-events: none;
     }
 
     body.uno-app-context #view-profile .profile-preview-hero,
@@ -13920,6 +14252,25 @@ PAGE_TEMPLATE = """
       border-color: var(--uno-shared-card-border, rgba(255, 214, 74, 0.16));
       background: var(--uno-shared-card-surface, linear-gradient(180deg, rgba(18, 22, 35, 0.92), rgba(8, 11, 20, 0.98)));
       box-shadow: 0 16px 30px var(--uno-shared-shadow, rgba(0, 0, 0, 0.16));
+    }
+
+    body.uno-app-context #view-profile button:not(.secondary),
+    body.uno-app-context #view-achievements button:not(.secondary),
+    body.uno-app-context #view-guilds button:not(.secondary) {
+      border-color: rgba(255, 214, 74, 0.36);
+      background: linear-gradient(135deg, rgba(255, 91, 87, 0.88), rgba(255, 214, 74, 0.8));
+      color: #1b1208;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    body.uno-app-context #view-profile button.secondary,
+    body.uno-app-context #view-achievements button.secondary,
+    body.uno-app-context #view-guilds button.secondary {
+      border-color: rgba(255, 214, 74, 0.22);
+      background:
+        linear-gradient(180deg, rgba(14, 20, 32, 0.78), rgba(10, 15, 24, 0.92)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.12), transparent 72%);
+      color: #fff4d5;
     }
 
     body.uno-app-context #view-profile .summary-chip,
@@ -15878,6 +16229,7 @@ PAGE_TEMPLATE = """
       unoUiScroll: null,
       activeApp: 'domain',
       launcherOpen: false,
+      performanceLite: false,
       seasonPassLevelIndex: 0,
       tmaFullscreenRequestedAt: 0,
       currencyFloatCollapsed: false,
@@ -16900,8 +17252,8 @@ PAGE_TEMPLATE = """
 
     function showUnoGuideIfNeeded(options = {}) {
       if (!unoStartupGuide || state.launcherOpen || document.body.dataset.activeView !== 'uno') return;
-      if (rememberedUnoSessionId()) return;
-      if (state.unoSession && !state.unoSession.complete) return;
+      if (!options.force && rememberedUnoSessionId()) return;
+      if (!options.force && state.unoSession && !state.unoSession.complete) return;
       if (!options.force && !shouldShowUnoGuide()) return;
       unoGuideStepIndex = 0;
       renderUnoGuideStep();
@@ -16972,6 +17324,33 @@ PAGE_TEMPLATE = """
       return document.body.classList.contains('tma-app') && !document.body.classList.contains('tma-desktop');
     }
 
+    function shouldUsePerformanceLite() {
+      try {
+        const ua = String(navigator.userAgent || '').toLowerCase();
+        const memory = Number(navigator.deviceMemory || 0);
+        const cores = Number(navigator.hardwareConcurrency || 0);
+        const androidLike = ua.includes('android');
+        const cheapMemory = memory > 0 && memory <= 4;
+        const cheapCpu = cores > 0 && cores <= 4;
+        const compactTma = document.body.classList.contains('tma-app') && !document.body.classList.contains('tma-desktop');
+        const prefersReduced = typeof window.matchMedia === 'function'
+          ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          : false;
+        return Boolean(prefersReduced || cheapMemory || cheapCpu || (androidLike && compactTma));
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function syncPerformanceMode() {
+      const lite = shouldUsePerformanceLite();
+      state.performanceLite = lite;
+      document.body.classList.toggle('performance-lite', lite);
+      document.documentElement.classList.toggle('performance-lite', lite);
+      document.body.dataset.performanceMode = lite ? 'lite' : 'full';
+      return lite;
+    }
+
     function syncTmaMode() {
       const active = isTelegramMiniApp();
       const iosTma = active && isTelegramIosWebView();
@@ -16983,6 +17362,7 @@ PAGE_TEMPLATE = """
       document.documentElement.classList.toggle('tma-ios', iosTma);
       document.documentElement.classList.toggle('tma-desktop', desktopTma);
       document.body.dataset.appMode = active ? 'tma' : 'site';
+      syncPerformanceMode();
       return active;
     }
 
@@ -19152,6 +19532,7 @@ PAGE_TEMPLATE = """
       state.activeApp = 'uno';
       syncMascotPopover();
       syncMobileNavContext();
+      syncUnoSharedViewHero(name);
       try {
         window.localStorage.setItem(appLauncherStorageKey, 'uno');
       } catch (_) {
@@ -19416,6 +19797,7 @@ PAGE_TEMPLATE = """
       renderGuildPanel();
       renderTutorialPanel();
       renderClanSeasonHub();
+      syncUnoSharedViewHero(document.body.dataset.activeView || '');
       const profileView = document.getElementById('view-profile');
       if (profileView && profileView.classList.contains('active')) {
         queueTmaModeSync();
@@ -20591,6 +20973,57 @@ PAGE_TEMPLATE = """
       `;
     }
 
+    function unoSharedViewHeroContent(viewName) {
+      return {
+        profile: {
+          title: 'UNO Profile',
+          body: 'Общий профиль, домен и активные скины для матчей UNO.'
+        },
+        guilds: {
+          title: 'UNO Clans',
+          body: 'Кланы, комнаты и командный прогресс в том же живом стиле, что и меню UNO.'
+        },
+        achievements: {
+          title: 'UNO Pass',
+          body: 'Сезонный пропуск, задания и награды в отдельной UNO-витрине.'
+        }
+      }[String(viewName || '')] || null;
+    }
+
+    function syncUnoSharedViewHero(activeView = '') {
+      ['profile', 'guilds', 'achievements'].forEach((viewName) => {
+        const view = document.getElementById(`view-${viewName}`);
+        if (!view) return;
+        view.classList.remove('uno-shared-shell');
+        const existing = view.querySelector(`[data-uno-shared-hero="${viewName}"]`);
+        if (existing) existing.remove();
+      });
+      if (state.activeApp !== 'uno') return;
+      const safeView = String(activeView || document.body.dataset.activeView || '').trim().toLowerCase();
+      const content = unoSharedViewHeroContent(safeView);
+      if (!content) return;
+      const view = document.getElementById(`view-${safeView}`);
+      if (!view) return;
+      const theme = currentUnoSharedTheme();
+      const hero = document.createElement('div');
+      hero.className = 'uno-shared-hero-card';
+      hero.dataset.unoSharedHero = safeView;
+      hero.style.setProperty('--uno-banner-surface', theme.bannerSurface || '');
+      hero.style.setProperty('--uno-banner-art', theme.bannerArt || 'none');
+      hero.innerHTML = `
+        <span class="uno-shared-kicker">UNO</span>
+        <h2>${escapeHtml(content.title)}</h2>
+        <p>${escapeHtml(content.body)}</p>
+      `;
+      const firstElement = Array.from(view.children).find((node) => node.nodeType === 1);
+      if (firstElement) {
+        view.insertBefore(hero, firstElement);
+      } else {
+        view.appendChild(hero);
+      }
+      view.classList.add('uno-shared-shell');
+    }
+
     function unoCardReasonLabel(card, topCard, currentColor) {
       if (!card) return '';
       const value = String(card.value || '').toLowerCase();
@@ -20901,6 +21334,11 @@ PAGE_TEMPLATE = """
     function runUnoDrawFxAnimation(session, frameAsset) {
       const fx = state.unoDrawFx;
       if (!unoRoot || !session || !fx || fx.started || fx.sessionId !== String(session.session_id || '')) return;
+      if (state.performanceLite) {
+        fx.started = true;
+        queueUnoDrawFxReveal(180);
+        return;
+      }
       const deckCard = unoRoot.querySelector('#uno-draw-pile-btn .uno-stack-top .uno-back-card');
       const handRow = unoRoot.querySelector('.uno-player-hand');
       if (!deckCard) {
@@ -21525,15 +21963,16 @@ PAGE_TEMPLATE = """
       const status = String(session.status || (session.complete ? 'completed' : 'active'));
       const hasUnoAlert = Boolean(session.uno_alert && session.uno_alert.active);
       if (status === 'completed') return;
-      const delay = immediate
-        ? 260
+      const delayBase = immediate
+        ? (state.performanceLite ? 340 : 260)
         : (state.unoDrag
-          ? 260
+          ? (state.performanceLite ? 340 : 260)
         : (hasUnoAlert
-          ? 420
+          ? (state.performanceLite ? 520 : 420)
           : (status === 'waiting'
-            ? 1200
-            : (session.your_turn ? 820 : 980))));
+            ? (state.performanceLite ? 1460 : 1200)
+            : (session.your_turn ? (state.performanceLite ? 980 : 820) : (state.performanceLite ? 1240 : 980)))));
+      const delay = Math.max(220, delayBase);
       unoStatusPollTimer = window.setTimeout(() => {
         pollUnoStatus().catch(() => {});
       }, delay);
@@ -21753,7 +22192,7 @@ PAGE_TEMPLATE = """
           restoreUnoSession().catch(() => {});
           return;
         }
-        unoRoot.innerHTML = `
+      unoRoot.innerHTML = `
           <div class="uno-shell landing uno-home-shell" style="${shellVisualStyle}">
             <div class="uno-home-top">
               <div class="uno-home-title">${unoBrandBadge('UNO', bannerSurface)}</div>
@@ -21764,57 +22203,62 @@ PAGE_TEMPLATE = """
               <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Кошелёк не обязателен'}</div>
               ${identity.progressEnabled ? `<div class="uno-chip">Общий пропуск и XP</div>` : '<div class="uno-chip">Домен нужен только для общего прогресса</div>'}
             </div>
-            <div class="uno-home-grid">
-              <article class="uno-home-tile wide">
-                <strong>Новичкам</strong>
-                <div class="actions">
-                  <button type="button" id="uno-rookie-start-btn">Старт</button>
-                </div>
-              </article>
-              <article class="uno-home-tile">
-                <strong>Bot</strong>
-                <div class="actions">
-                  <button type="button" id="uno-start-btn">Играть</button>
-                </div>
-              </article>
-              <article class="uno-home-tile">
-                <strong>Match</strong>
-                <div class="actions">
-                  <button type="button" id="uno-quick-search-btn">Найти матч</button>
-                </div>
-              </article>
-              <article class="uno-home-control">
-                <strong>Room</strong>
-                <div class="actions">
-                  <select id="uno-room-size-select">
-                    ${[2,3,4,5,6].map((value) => `<option value="${value}"${value === 6 ? ' selected' : ''}>${value} игроков</option>`).join('')}
-                  </select>
-                  <button type="button" id="uno-create-room-btn">Создать</button>
-                </div>
-              </article>
-              <article class="uno-home-control code-entry">
-                <strong>Code</strong>
-                <div class="actions">
-                  <input type="text" id="uno-room-code-input" placeholder="CODE" style="text-transform:uppercase;">
-                  <button type="button" id="uno-join-room-btn">Войти</button>
-                </div>
-              </article>
-            </div>
-            ${identity.progressEnabled ? '' : `
-              <div class="uno-identity-card">
-                <strong>Ник в UNO</strong>
-                <input type="text" id="uno-guest-name-input" class="uno-identity-input" maxlength="24" value="${escapeHtml(identity.displayName)}" placeholder="Твой ник">
+            <div class="uno-home-scroller uno-stage">
+              <div class="uno-home-grid">
+                <article class="uno-home-tile wide">
+                  <strong>Новичкам</strong>
+                  <div class="actions">
+                    <button type="button" id="uno-rookie-start-btn">Старт</button>
+                    <button type="button" class="secondary" id="uno-open-guide-btn">Туториал</button>
+                  </div>
+                </article>
+                <article class="uno-home-tile">
+                  <strong>Bot</strong>
+                  <div class="actions">
+                    <button type="button" id="uno-start-btn">Играть</button>
+                  </div>
+                </article>
+                <article class="uno-home-tile">
+                  <strong>Match</strong>
+                  <div class="actions">
+                    <button type="button" id="uno-quick-search-btn">Найти матч</button>
+                  </div>
+                </article>
+                <article class="uno-home-control">
+                  <strong>Room</strong>
+                  <div class="actions">
+                    <select id="uno-room-size-select">
+                      ${[2,3,4,5,6].map((value) => `<option value="${value}"${value === 6 ? ' selected' : ''}>${value} игроков</option>`).join('')}
+                    </select>
+                    <button type="button" id="uno-create-room-btn">Создать</button>
+                  </div>
+                </article>
+                <article class="uno-home-control code-entry">
+                  <strong>Code</strong>
+                  <div class="actions">
+                    <input type="text" id="uno-room-code-input" placeholder="CODE" style="text-transform:uppercase;">
+                    <button type="button" id="uno-join-room-btn">Войти</button>
+                  </div>
+                </article>
               </div>
-            `}
+              ${identity.progressEnabled ? '' : `
+                <div class="uno-identity-card">
+                  <strong>Ник в UNO</strong>
+                  <input type="text" id="uno-guest-name-input" class="uno-identity-input" maxlength="24" value="${escapeHtml(identity.displayName)}" placeholder="Твой ник">
+                </div>
+              `}
+            </div>
           </div>
         `;
         const unoRookieStartBtn = document.getElementById('uno-rookie-start-btn');
+        const unoOpenGuideBtn = document.getElementById('uno-open-guide-btn');
         const unoStartBtn = document.getElementById('uno-start-btn');
         const unoQuickSearchBtn = document.getElementById('uno-quick-search-btn');
         const unoCreateRoomBtn = document.getElementById('uno-create-room-btn');
         const unoJoinRoomBtn = document.getElementById('uno-join-room-btn');
         const unoGuestNameInput = document.getElementById('uno-guest-name-input');
         if (unoRookieStartBtn) bindFunctionalControl(unoRookieStartBtn, startUnoRookieMatch, 'click', {skipPrepare: true});
+        if (unoOpenGuideBtn) bindFunctionalControl(unoOpenGuideBtn, () => showUnoGuideIfNeeded({force: true}), 'click', {skipPrepare: true});
         if (unoStartBtn) bindFunctionalControl(unoStartBtn, startUnoMatch, 'click', {skipPrepare: true});
         if (unoQuickSearchBtn) bindFunctionalControl(unoQuickSearchBtn, searchUnoQuickMatch, 'click', {skipPrepare: true});
         if (unoCreateRoomBtn) bindFunctionalControl(unoCreateRoomBtn, createUnoRoom, 'click', {skipPrepare: true});
@@ -21864,35 +22308,37 @@ PAGE_TEMPLATE = """
               <div class="uno-chip">${escapeHtml(session.winner_label || 'Матч завершён')}</div>
               <div class="uno-chip">${identity.progressEnabled ? `Сезон ${levelAfter}` : 'Guest-режим'}</div>
             </div>
-            <div class="uno-result-box ${outcomeClass}">
-              <div class="uno-result-hero">
-                <span class="uno-result-pill">${escapeHtml(outcomePill)}</span>
-                <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
-                <div class="tiny">${escapeHtml(resultSummary)}</div>
-              </div>
-              <div class="uno-reward-line">
-                <span class="summary-chip">💠 +${Number((rewardGain.pack_shards) || 0)}</span>
-                <span class="summary-chip">XP +${Number((rewardGain.season_points) || 0)}</span>
-                ${Number((rewardGain.cosmetic_packs) || 0) ? `<span class="summary-chip">Пак +${Number(rewardGain.cosmetic_packs || 0)}</span>` : ''}
-              </div>
-              ${identity.progressEnabled ? `
-                <div class="uno-result-progress">
-                  <div class="uno-result-progress-head">
-                    <strong>Уровень ${levelBefore}${levelAfter > levelBefore ? ` → ${levelAfter}` : ''}</strong>
-                    <span>${Number(progressReport.season_after_points || rewards.season_points || 0)}/${seasonTarget} XP</span>
-                  </div>
-                  <div class="uno-result-progress-bar"><div class="uno-result-progress-fill" style="width:${progressPercent}%;"></div></div>
+            <div class="uno-home-scroller uno-stage">
+              <div class="uno-result-box ${outcomeClass}">
+                <div class="uno-result-hero">
+                  <span class="uno-result-pill">${escapeHtml(outcomePill)}</span>
+                  <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
+                  <div class="tiny">${escapeHtml(resultSummary)}</div>
                 </div>
-                ${completedTasks.length ? `
-                  <div class="uno-result-task-list">
-                    ${completedTasks.map((task) => `<div class="uno-result-task"><strong>${escapeHtml(task.label || 'Задание')}</strong><span>+${Number(task.reward_points || 0)} XP</span></div>`).join('')}
+                <div class="uno-reward-line">
+                  <span class="summary-chip">💠 +${Number((rewardGain.pack_shards) || 0)}</span>
+                  <span class="summary-chip">XP +${Number((rewardGain.season_points) || 0)}</span>
+                  ${Number((rewardGain.cosmetic_packs) || 0) ? `<span class="summary-chip">Пак +${Number(rewardGain.cosmetic_packs || 0)}</span>` : ''}
+                </div>
+                ${identity.progressEnabled ? `
+                  <div class="uno-result-progress">
+                    <div class="uno-result-progress-head">
+                      <strong>Уровень ${levelBefore}${levelAfter > levelBefore ? ` → ${levelAfter}` : ''}</strong>
+                      <span>${Number(progressReport.season_after_points || rewards.season_points || 0)}/${seasonTarget} XP</span>
+                    </div>
+                    <div class="uno-result-progress-bar"><div class="uno-result-progress-fill" style="width:${progressPercent}%;"></div></div>
                   </div>
-                ` : `<div class="tiny" style="margin-top:14px;">Новых заданий в этом матче не закрылось.</div>`}
-                ${Number(progressReport.post_cap_bonus_packs || 0) ? `<div class="uno-result-bonus">После максимального уровня каждые 4 уровня дают косметический пак. В этом матче начислено: +${Number(progressReport.post_cap_bonus_packs || 0)}.</div>` : ''}
-              ` : `<div class="tiny" style="margin-top:14px;">Guest-матч завершён. Подключи кошелёк и домен, чтобы видеть XP, задания и награды.</div>`}
-              <div class="actions" style="margin-top:12px;">
-                <button type="button" id="uno-after-bot-btn">${escapeHtml(playAgainLabel)}</button>
-                <button type="button" class="secondary" id="uno-result-launcher-btn">Menu</button>
+                  ${completedTasks.length ? `
+                    <div class="uno-result-task-list">
+                      ${completedTasks.map((task) => `<div class="uno-result-task"><strong>${escapeHtml(task.label || 'Задание')}</strong><span>+${Number(task.reward_points || 0)} XP</span></div>`).join('')}
+                    </div>
+                  ` : `<div class="tiny" style="margin-top:14px;">Новых заданий в этом матче не закрылось.</div>`}
+                  ${Number(progressReport.post_cap_bonus_packs || 0) ? `<div class="uno-result-bonus">После максимального уровня каждые 4 уровня дают косметический пак. В этом матче начислено: +${Number(progressReport.post_cap_bonus_packs || 0)}.</div>` : ''}
+                ` : `<div class="tiny" style="margin-top:14px;">Guest-матч завершён. Подключи кошелёк и домен, чтобы видеть XP, задания и награды.</div>`}
+                <div class="actions" style="margin-top:12px;">
+                  <button type="button" id="uno-after-bot-btn">${escapeHtml(playAgainLabel)}</button>
+                  <button type="button" class="secondary" id="uno-result-launcher-btn">Menu</button>
+                </div>
               </div>
             </div>
           </div>
@@ -21992,7 +22438,7 @@ PAGE_TEMPLATE = """
                   <i class="uno-deal-intro-slot"></i>
                   <i class="uno-deal-intro-slot"></i>
                 </div>
-                <div class="uno-deal-intro-count">3 cards</div>
+                <div class="uno-deal-intro-count">7 cards</div>
               </div>
               <div class="uno-deal-intro-center">
                 <div class="uno-deal-intro-stack">
@@ -22007,13 +22453,13 @@ PAGE_TEMPLATE = """
                   <i class="uno-deal-intro-slot"></i>
                   <i class="uno-deal-intro-slot"></i>
                 </div>
-                <div class="uno-deal-intro-count">3 cards</div>
+                <div class="uno-deal-intro-count">7 cards</div>
                 <div class="tiny">Твоя рука</div>
               </div>
             </div>
             <div class="uno-deal-intro-copy">
-              <strong>Перемешиваем и раздаём</strong>
-              <div class="tiny">Колода мягко тасуется, затем карты по одной уходят вверх и вниз до первого хода.</div>
+              <strong>Стартовая раздача</strong>
+              <div class="tiny">Колода мягко тасуется, после чего карты по одной садятся в руку соперника и в твою руку перед первым ходом.</div>
             </div>
           </div>
         `;
