@@ -2514,6 +2514,14 @@ PAGE_TEMPLATE = """
       padding: 18px 16px 8px;
       border-radius: 24px;
       overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(8, 14, 24, 0.28), rgba(7, 12, 21, 0.42)),
+        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.12), transparent 30%),
+        var(--uno-arena-surface, none),
+        var(--uno-arena-art, none);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.03),
+        inset 0 18px 34px rgba(255,255,255,0.02);
     }
 
     .uno-center::before {
@@ -2522,16 +2530,13 @@ PAGE_TEMPLATE = """
       inset: 0;
       border-radius: inherit;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.18), rgba(8, 12, 20, 0.36)),
-        radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.14), transparent 28%),
-        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.12), transparent 32%),
+        linear-gradient(180deg, rgba(8, 14, 24, 0.08), rgba(8, 12, 20, 0.18)),
+        radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.12), transparent 26%),
+        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.1), transparent 30%),
         var(--uno-arena-surface, none),
         var(--uno-arena-art, none),
         var(--uno-panel-art, none);
-      opacity: 0.92;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.04),
-        inset 0 18px 36px rgba(255,255,255,0.02);
+      opacity: 0.8;
       pointer-events: none;
     }
 
@@ -2542,11 +2547,11 @@ PAGE_TEMPLATE = """
       border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.06);
       background:
-        linear-gradient(135deg, rgba(255,255,255,0.06), transparent 42%),
-        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.08), transparent 24%),
+        linear-gradient(135deg, rgba(255,255,255,0.04), transparent 42%),
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.05), transparent 24%),
         var(--uno-arena-art, none),
         var(--uno-arena-surface, none);
-      opacity: 0.28;
+      opacity: 0.18;
       pointer-events: none;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -3318,8 +3323,8 @@ PAGE_TEMPLATE = """
       border-radius: 28px;
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
-        linear-gradient(180deg, rgba(8, 18, 30, 0.82), rgba(7, 12, 22, 0.92)),
-        radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 62%),
+        linear-gradient(180deg, rgba(8, 18, 30, 0.62), rgba(7, 12, 22, 0.78)),
+        radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 62%),
         var(--uno-arena-art, none),
         var(--uno-arena-surface, none),
         var(--uno-panel-surface, rgba(7, 16, 29, 0.76));
@@ -3336,12 +3341,12 @@ PAGE_TEMPLATE = """
       inset: 14px;
       border-radius: 22px;
       background:
-        linear-gradient(180deg, rgba(8, 14, 23, 0.14), rgba(8, 12, 18, 0.28)),
-        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.06), transparent 20%),
+        linear-gradient(180deg, rgba(8, 14, 23, 0.08), rgba(8, 12, 18, 0.18)),
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.04), transparent 20%),
         var(--uno-panel-art, none),
         var(--uno-arena-surface, none),
         var(--uno-arena-art, none);
-      opacity: 0.82;
+      opacity: 0.62;
       pointer-events: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
     }
@@ -3491,19 +3496,21 @@ PAGE_TEMPLATE = """
     .uno-deal-intro {
       display: grid;
       gap: 16px;
-      min-height: 430px;
+      min-height: 456px;
       align-content: start;
     }
 
     .uno-deal-intro-stage {
       position: relative;
-      min-height: 332px;
+      min-height: 364px;
       border-radius: 30px;
       border: 1px solid rgba(255,255,255,0.08);
       background:
         radial-gradient(circle at 50% 18%, rgba(255, 214, 74, 0.18), transparent 22%),
         radial-gradient(circle at 18% 84%, rgba(255, 91, 87, 0.12), transparent 24%),
         radial-gradient(circle at 82% 18%, rgba(78, 186, 255, 0.12), transparent 26%),
+        var(--uno-arena-surface, none),
+        var(--uno-arena-art, none),
         linear-gradient(180deg, rgba(7, 13, 23, 0.82), rgba(5, 10, 18, 0.95));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
@@ -3546,6 +3553,7 @@ PAGE_TEMPLATE = """
       display: grid;
       place-items: center;
       transform-style: preserve-3d;
+      z-index: 3;
     }
 
     .uno-deal-intro-center::before {
@@ -3595,6 +3603,7 @@ PAGE_TEMPLATE = """
       backface-visibility: hidden;
       transform-style: preserve-3d;
       -webkit-transform: translate3d(-50%, -50%, 0);
+      z-index: 4;
     }
 
     .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponentOne 4.6s cubic-bezier(.16,.88,.22,1) infinite; }
@@ -3616,10 +3625,11 @@ PAGE_TEMPLATE = """
       color: rgba(240, 246, 255, 0.84);
       text-align: center;
       width: min(100% - 44px, 320px);
+      z-index: 2;
     }
 
-    .uno-deal-intro-seat.opponent { top: 20px; }
-    .uno-deal-intro-seat.player { bottom: 20px; }
+    .uno-deal-intro-seat.opponent { top: 14px; }
+    .uno-deal-intro-seat.player { bottom: 14px; }
 
     .uno-deal-intro-slotline {
       width: 100%;
@@ -3627,12 +3637,22 @@ PAGE_TEMPLATE = """
       align-items: center;
       justify-content: center;
       gap: 12px;
+      padding: 10px 14px;
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(8, 16, 27, 0.74), rgba(7, 12, 20, 0.88)),
+        var(--uno-arena-surface, none),
+        var(--uno-arena-art, none);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.02),
+        0 14px 24px rgba(0,0,0,0.16);
     }
 
     .uno-deal-intro-slot {
       position: relative;
-      width: 62px;
-      height: 90px;
+      width: 64px;
+      height: 92px;
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.1);
       background:
@@ -3721,57 +3741,65 @@ PAGE_TEMPLATE = """
     @keyframes unoDealToOpponentOne {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
       10% { opacity: 1; }
-      66% { opacity: 1; transform: translate3d(-150px, -134px, 0) scale(0.94) rotate(-16deg); }
-      100% { opacity: 0; transform: translate3d(-166px, -148px, 0) scale(0.84) rotate(-20deg); }
+      68% { opacity: 1; transform: translate3d(-154px, -160px, 0) scale(0.96) rotate(-15deg); }
+      82% { opacity: 1; transform: translate3d(-160px, -172px, 0) scale(0.92) rotate(-18deg); }
+      100% { opacity: 0; transform: translate3d(-164px, -178px, 0) scale(0.84) rotate(-20deg); }
     }
 
     @keyframes unoDealToOpponentTwo {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
       10% { opacity: 1; }
-      66% { opacity: 1; transform: translate3d(-52px, -146px, 0) scale(0.94) rotate(-6deg); }
-      100% { opacity: 0; transform: translate3d(-64px, -158px, 0) scale(0.84) rotate(-8deg); }
+      68% { opacity: 1; transform: translate3d(-56px, -170px, 0) scale(0.96) rotate(-5deg); }
+      82% { opacity: 1; transform: translate3d(-62px, -182px, 0) scale(0.92) rotate(-7deg); }
+      100% { opacity: 0; transform: translate3d(-66px, -188px, 0) scale(0.84) rotate(-8deg); }
     }
 
     @keyframes unoDealToOpponentThree {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
       10% { opacity: 1; }
-      66% { opacity: 1; transform: translate3d(52px, -146px, 0) scale(0.94) rotate(6deg); }
-      100% { opacity: 0; transform: translate3d(64px, -158px, 0) scale(0.84) rotate(8deg); }
+      68% { opacity: 1; transform: translate3d(56px, -170px, 0) scale(0.96) rotate(5deg); }
+      82% { opacity: 1; transform: translate3d(62px, -182px, 0) scale(0.92) rotate(7deg); }
+      100% { opacity: 0; transform: translate3d(66px, -188px, 0) scale(0.84) rotate(8deg); }
     }
 
     @keyframes unoDealToOpponentFour {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
       10% { opacity: 1; }
-      66% { opacity: 1; transform: translate3d(150px, -134px, 0) scale(0.94) rotate(16deg); }
-      100% { opacity: 0; transform: translate3d(166px, -148px, 0) scale(0.84) rotate(20deg); }
+      68% { opacity: 1; transform: translate3d(154px, -160px, 0) scale(0.96) rotate(15deg); }
+      82% { opacity: 1; transform: translate3d(160px, -172px, 0) scale(0.92) rotate(18deg); }
+      100% { opacity: 0; transform: translate3d(164px, -178px, 0) scale(0.84) rotate(20deg); }
     }
 
     @keyframes unoDealToPlayerOne {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
       10% { opacity: 1; }
-      66% { opacity: 1; transform: translate3d(-150px, 124px, 0) scale(0.94) rotate(16deg); }
-      100% { opacity: 0; transform: translate3d(-166px, 138px, 0) scale(0.84) rotate(20deg); }
+      68% { opacity: 1; transform: translate3d(-154px, 148px, 0) scale(0.96) rotate(15deg); }
+      82% { opacity: 1; transform: translate3d(-160px, 160px, 0) scale(0.92) rotate(18deg); }
+      100% { opacity: 0; transform: translate3d(-164px, 166px, 0) scale(0.84) rotate(20deg); }
     }
 
     @keyframes unoDealToPlayerTwo {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
       10% { opacity: 1; }
-      66% { opacity: 1; transform: translate3d(-52px, 136px, 0) scale(0.94) rotate(6deg); }
-      100% { opacity: 0; transform: translate3d(-64px, 148px, 0) scale(0.84) rotate(8deg); }
+      68% { opacity: 1; transform: translate3d(-56px, 160px, 0) scale(0.96) rotate(5deg); }
+      82% { opacity: 1; transform: translate3d(-62px, 172px, 0) scale(0.92) rotate(7deg); }
+      100% { opacity: 0; transform: translate3d(-66px, 178px, 0) scale(0.84) rotate(8deg); }
     }
 
     @keyframes unoDealToPlayerThree {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
       10% { opacity: 1; }
-      66% { opacity: 1; transform: translate3d(52px, 136px, 0) scale(0.94) rotate(-6deg); }
-      100% { opacity: 0; transform: translate3d(64px, 148px, 0) scale(0.84) rotate(-8deg); }
+      68% { opacity: 1; transform: translate3d(56px, 160px, 0) scale(0.96) rotate(-5deg); }
+      82% { opacity: 1; transform: translate3d(62px, 172px, 0) scale(0.92) rotate(-7deg); }
+      100% { opacity: 0; transform: translate3d(66px, 178px, 0) scale(0.84) rotate(-8deg); }
     }
 
     @keyframes unoDealToPlayerFour {
       0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
       10% { opacity: 1; }
-      66% { opacity: 1; transform: translate3d(150px, 124px, 0) scale(0.94) rotate(-16deg); }
-      100% { opacity: 0; transform: translate3d(166px, 138px, 0) scale(0.84) rotate(-20deg); }
+      68% { opacity: 1; transform: translate3d(154px, 148px, 0) scale(0.96) rotate(-15deg); }
+      82% { opacity: 1; transform: translate3d(160px, 160px, 0) scale(0.92) rotate(-18deg); }
+      100% { opacity: 0; transform: translate3d(164px, 166px, 0) scale(0.84) rotate(-20deg); }
     }
 
     @keyframes unoDealSlotPulse {
@@ -3783,6 +3811,24 @@ PAGE_TEMPLATE = """
     @keyframes unoDealCounterPulse {
       0%, 58%, 100% { transform: scale(1); border-color: rgba(255,255,255,0.12); }
       72% { transform: scale(1.05); border-color: rgba(255, 214, 74, 0.3); }
+    }
+
+    body.tma-app.tma-ios:not(.performance-lite) .uno-deal-intro-stack,
+    body.tma-app.tma-ios:not(.performance-lite) .uno-deal-intro-flight,
+    body.tma-app.tma-ios:not(.performance-lite) .uno-event-burst,
+    body.tma-app.tma-ios:not(.performance-lite) .uno-event-deal-card,
+    body.tma-app.tma-ios:not(.performance-lite) .uno-discard-stack .uno-stack-top.fx-discard,
+    body.tma-app.tma-ios:not(.performance-lite) .uno-live-board.event-beat::after {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      will-change: transform, opacity;
+    }
+
+    body.tma-app.tma-ios:not(.performance-lite) .uno-event-deal-card,
+    body.tma-app.tma-ios:not(.performance-lite) .uno-deal-intro-flight {
+      filter: drop-shadow(0 14px 22px rgba(0,0,0,0.2));
     }
 
     .uno-discard-stack .uno-stack-top.fx-discard {
