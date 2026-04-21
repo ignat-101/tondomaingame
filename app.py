@@ -1004,6 +1004,18 @@ PAGE_TEMPLATE = """
       z-index: -1;
     }
 
+    .uno-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      box-shadow:
+        inset 0 -1px 0 rgba(255,255,255,0.12),
+        inset 0 0 0 1px rgba(255,255,255,0.05);
+      opacity: 0.92;
+    }
+
     .uno-header {
       display: grid;
       gap: 10px;
@@ -1224,7 +1236,7 @@ PAGE_TEMPLATE = """
     .uno-home-top {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 12px;
       flex-wrap: wrap;
     }
@@ -1322,15 +1334,20 @@ PAGE_TEMPLATE = """
       min-height: 132px;
       padding: 16px;
       border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       background:
-        linear-gradient(180deg, rgba(10, 16, 27, 0.82), rgba(8, 12, 20, 0.94)),
+        linear-gradient(180deg, rgba(8, 13, 24, 0.5), rgba(7, 11, 19, 0.72)),
+        radial-gradient(circle at 18% 12%, rgba(255,255,255,0.05), transparent 28%),
+        var(--uno-arena-art, none),
+        var(--uno-arena-surface, none),
         var(--uno-panel-art, none),
         var(--uno-panel-surface, radial-gradient(circle at top, rgba(255, 214, 74, 0.08), transparent 70%));
       display: grid;
       gap: 10px;
       align-content: start;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.02),
+        0 16px 28px rgba(0, 0, 0, 0.14);
     }
 
     .uno-home-tile.wide {
@@ -1430,14 +1447,15 @@ PAGE_TEMPLATE = """
 
     .uno-surface-actions.tiles button {
       width: 100%;
-      min-height: 96px;
-      padding: 16px 14px;
+      min-height: 102px;
+      padding: 16px 15px 15px;
       justify-content: flex-start;
       text-align: left;
-      border-radius: 22px;
+      border-radius: 24px;
       display: grid;
-      align-content: start;
-      gap: 6px;
+      grid-template-rows: auto auto 1fr;
+      align-content: stretch;
+      gap: 8px;
       white-space: normal;
       position: relative;
       overflow: hidden;
@@ -1477,6 +1495,58 @@ PAGE_TEMPLATE = """
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
     }
 
+    .uno-surface-tab[data-uno-tab-key="menu"] {
+      --uno-tab-surface:
+        linear-gradient(180deg, rgba(108, 76, 16, 0.96), rgba(57, 34, 7, 0.98)),
+        radial-gradient(circle at top, rgba(255, 237, 145, 0.26), transparent 72%);
+      --uno-tab-border: rgba(255, 219, 112, 0.24);
+      --uno-tab-text: #fff8e7;
+      --uno-tab-active-surface:
+        linear-gradient(180deg, rgba(255, 216, 104, 0.98), rgba(210, 131, 22, 0.98)),
+        radial-gradient(circle at top, rgba(255,255,255,0.18), transparent 72%);
+      --uno-tab-active-border: rgba(255, 236, 170, 0.42);
+      --uno-tab-active-text: #2f1702;
+    }
+
+    .uno-surface-tab[data-uno-tab-key="profile"] {
+      --uno-tab-surface:
+        linear-gradient(180deg, rgba(18, 58, 112, 0.96), rgba(8, 20, 48, 0.98)),
+        radial-gradient(circle at top, rgba(116, 212, 255, 0.24), transparent 72%);
+      --uno-tab-border: rgba(124, 207, 255, 0.24);
+      --uno-tab-text: #eef8ff;
+      --uno-tab-active-surface:
+        linear-gradient(180deg, rgba(123, 213, 255, 0.98), rgba(30, 114, 232, 0.98)),
+        radial-gradient(circle at top, rgba(255,255,255,0.18), transparent 72%);
+      --uno-tab-active-border: rgba(164, 228, 255, 0.42);
+      --uno-tab-active-text: #071838;
+    }
+
+    .uno-surface-tab[data-uno-tab-key="guilds"] {
+      --uno-tab-surface:
+        linear-gradient(180deg, rgba(17, 82, 54, 0.96), rgba(7, 33, 22, 0.98)),
+        radial-gradient(circle at top, rgba(120, 248, 188, 0.22), transparent 72%);
+      --uno-tab-border: rgba(120, 248, 188, 0.22);
+      --uno-tab-text: #effff7;
+      --uno-tab-active-surface:
+        linear-gradient(180deg, rgba(130, 246, 193, 0.98), rgba(20, 157, 98, 0.98)),
+        radial-gradient(circle at top, rgba(255,255,255,0.18), transparent 72%);
+      --uno-tab-active-border: rgba(171, 255, 221, 0.4);
+      --uno-tab-active-text: #072619;
+    }
+
+    .uno-surface-tab[data-uno-tab-key="achievements"] {
+      --uno-tab-surface:
+        linear-gradient(180deg, rgba(107, 30, 30, 0.96), rgba(50, 11, 14, 0.98)),
+        radial-gradient(circle at top, rgba(255, 146, 116, 0.22), transparent 72%);
+      --uno-tab-border: rgba(255, 146, 116, 0.24);
+      --uno-tab-text: #fff1f1;
+      --uno-tab-active-surface:
+        linear-gradient(180deg, rgba(255, 165, 120, 0.98), rgba(232, 81, 74, 0.98)),
+        radial-gradient(circle at top, rgba(255,255,255,0.18), transparent 72%);
+      --uno-tab-active-border: rgba(255, 191, 172, 0.42);
+      --uno-tab-active-text: #421010;
+    }
+
     .uno-surface-actions .uno-surface-tab.active {
       border-color: var(--uno-tab-active-border, rgba(255, 214, 74, 0.32));
       background: var(--uno-tab-active-surface, linear-gradient(135deg, rgba(255, 91, 87, 0.92), rgba(255, 214, 74, 0.84)));
@@ -1498,6 +1568,10 @@ PAGE_TEMPLATE = """
       color: rgba(255,255,255,0.62);
     }
 
+    .uno-surface-actions.tiles .uno-surface-tab-kicker {
+      color: rgba(255,255,255,0.76);
+    }
+
     .uno-surface-tab-label {
       position: relative;
       z-index: 1;
@@ -1517,28 +1591,42 @@ PAGE_TEMPLATE = """
       font-size: 11px;
       line-height: 1.24;
       font-weight: 700;
+      align-self: end;
     }
 
     .uno-surface-actions.tiles .uno-surface-tab {
-      min-height: 96px;
-      padding: 16px 14px;
-      border-radius: 22px;
+      min-height: 102px;
+      padding: 16px 15px 15px;
+      border-radius: 24px;
       background:
-        linear-gradient(180deg, rgba(10, 16, 27, 0.82), rgba(8, 12, 20, 0.94)),
+        linear-gradient(180deg, rgba(10, 16, 27, 0.18), rgba(8, 12, 20, 0.12)),
         var(--uno-tab-surface, linear-gradient(180deg, rgba(16, 22, 36, 0.92), rgba(10, 15, 24, 0.96)));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
-        0 18px 30px rgba(0, 0, 0, 0.18);
+        0 18px 30px rgba(0, 0, 0, 0.22);
       gap: 8px;
     }
 
     .uno-surface-actions.tiles .uno-surface-tab.active {
       background:
-        linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0)),
+        linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0)),
         var(--uno-tab-active-surface, linear-gradient(135deg, rgba(255, 91, 87, 0.92), rgba(255, 214, 74, 0.84)));
       box-shadow:
         0 18px 32px rgba(0, 0, 0, 0.22),
         0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .uno-surface-actions.tiles .uno-surface-tab.active::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 10px;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.78);
+      opacity: 0.82;
+      pointer-events: none;
     }
 
     .uno-surface-actions.tiles .uno-surface-tab.active .uno-surface-tab-kicker,
@@ -2515,8 +2603,8 @@ PAGE_TEMPLATE = """
       border-radius: 24px;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.28), rgba(7, 12, 21, 0.42)),
-        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.12), transparent 30%),
+        linear-gradient(180deg, rgba(8, 14, 24, 0.08), rgba(7, 12, 21, 0.18)),
+        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.1), transparent 30%),
         var(--uno-arena-surface, none),
         var(--uno-arena-art, none);
       box-shadow:
@@ -2530,13 +2618,13 @@ PAGE_TEMPLATE = """
       inset: 0;
       border-radius: inherit;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.08), rgba(8, 12, 20, 0.18)),
-        radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.12), transparent 26%),
-        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.1), transparent 30%),
+        linear-gradient(180deg, rgba(8, 14, 24, 0.01), rgba(8, 12, 20, 0.09)),
+        radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.08), transparent 26%),
+        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.08), transparent 30%),
         var(--uno-arena-surface, none),
         var(--uno-arena-art, none),
         var(--uno-panel-art, none);
-      opacity: 0.8;
+      opacity: 0.92;
       pointer-events: none;
     }
 
@@ -2551,7 +2639,7 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 18% 18%, rgba(255,255,255,0.05), transparent 24%),
         var(--uno-arena-art, none),
         var(--uno-arena-surface, none);
-      opacity: 0.18;
+      opacity: 0.28;
       pointer-events: none;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -2561,6 +2649,35 @@ PAGE_TEMPLATE = """
     .uno-center > * {
       position: relative;
       z-index: 1;
+    }
+
+    .uno-center-skin {
+      position: absolute;
+      inset: 8px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(7, 12, 20, 0.01), rgba(7, 12, 20, 0.08)),
+        var(--uno-arena-art, none),
+        var(--uno-arena-surface, none);
+      opacity: 1;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.05),
+        0 14px 26px rgba(0,0,0,0.1);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .uno-center-skin::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 54%),
+        linear-gradient(135deg, rgba(255,255,255,0.04), transparent 48%),
+        var(--uno-arena-art, none),
+        var(--uno-arena-surface, none);
+      opacity: 0.96;
     }
 
     .uno-stack {
@@ -2954,6 +3071,114 @@ PAGE_TEMPLATE = """
       margin-bottom: 12px;
     }
 
+    .uno-result-scene {
+      position: relative;
+      min-height: 118px;
+      margin: 6px 0 14px;
+      border-radius: 24px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(8, 13, 20, 0.48), rgba(8, 13, 20, 0.78)),
+        radial-gradient(circle at 50% 24%, rgba(255,255,255,0.08), transparent 28%);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+
+    .uno-result-scene::before,
+    .uno-result-scene::after {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 999px;
+      filter: blur(18px);
+      opacity: 0.56;
+      pointer-events: none;
+    }
+
+    .uno-result-scene::before {
+      left: -28px;
+      top: -44px;
+      background: radial-gradient(circle, rgba(255, 214, 74, 0.4), transparent 66%);
+    }
+
+    .uno-result-scene::after {
+      right: -34px;
+      bottom: -56px;
+      background: radial-gradient(circle, rgba(69, 215, 255, 0.28), transparent 68%);
+    }
+
+    .uno-result-scene-badge {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 132px;
+      min-height: 54px;
+      padding: 0 20px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fffaf3;
+      background: rgba(8, 13, 20, 0.52);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(10px);
+      z-index: 1;
+    }
+
+    .uno-result-box.outcome-win .uno-result-scene-badge {
+      background: rgba(14, 45, 30, 0.6);
+      border-color: rgba(113, 248, 190, 0.24);
+      color: #effff6;
+    }
+
+    .uno-result-box.outcome-loss .uno-result-scene-badge {
+      background: rgba(62, 17, 24, 0.62);
+      border-color: rgba(255, 131, 145, 0.22);
+      color: #fff1f3;
+    }
+
+    .uno-result-box.outcome-draw .uno-result-scene-badge {
+      background: rgba(65, 48, 11, 0.6);
+      border-color: rgba(255, 214, 74, 0.24);
+      color: #fff5d9;
+    }
+
+    .uno-result-scene-particle {
+      position: absolute;
+      width: 18px;
+      height: 58px;
+      border-radius: 999px;
+      opacity: 0;
+      transform-origin: center top;
+      animation: unoResultParticle 1.3s cubic-bezier(.18,.88,.22,1) forwards;
+    }
+
+    .uno-result-scene-particle.p1 { left: 14%; top: 14%; animation-delay: 0.04s; }
+    .uno-result-scene-particle.p2 { left: 28%; top: 8%; animation-delay: 0.1s; }
+    .uno-result-scene-particle.p3 { left: 42%; top: 6%; animation-delay: 0.16s; }
+    .uno-result-scene-particle.p4 { right: 42%; top: 8%; animation-delay: 0.08s; }
+    .uno-result-scene-particle.p5 { right: 28%; top: 10%; animation-delay: 0.14s; }
+    .uno-result-scene-particle.p6 { right: 14%; top: 18%; animation-delay: 0.2s; }
+
+    .uno-result-box.outcome-win .uno-result-scene-particle {
+      background: linear-gradient(180deg, rgba(113, 248, 190, 0.94), rgba(255, 214, 74, 0.18));
+    }
+
+    .uno-result-box.outcome-loss .uno-result-scene-particle {
+      background: linear-gradient(180deg, rgba(255, 131, 145, 0.94), rgba(255, 214, 74, 0.12));
+    }
+
+    .uno-result-box.outcome-draw .uno-result-scene-particle {
+      background: linear-gradient(180deg, rgba(255, 214, 74, 0.92), rgba(121, 217, 255, 0.14));
+    }
+
     .uno-result-pill {
       width: fit-content;
       min-height: 28px;
@@ -3053,10 +3278,77 @@ PAGE_TEMPLATE = """
       line-height: 1.4;
     }
 
+    .uno-reaction-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .uno-reaction-btn {
+      min-width: 0;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background:
+        linear-gradient(180deg, rgba(17, 23, 36, 0.92), rgba(10, 15, 24, 0.98)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.1), transparent 68%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
+    }
+
+    .uno-reaction-btn:disabled {
+      opacity: 0.56;
+    }
+
+    .uno-reaction-float {
+      position: absolute;
+      top: -8px;
+      right: 0;
+      min-width: 44px;
+      height: 44px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background:
+        linear-gradient(180deg, rgba(13, 20, 32, 0.94), rgba(9, 14, 22, 0.98)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.14), transparent 72%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+      animation: unoReactionFloat 1.8s ease-out both;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .uno-player-row,
+    .uno-opponent-row {
+      position: relative;
+    }
+
+    @keyframes unoReactionFloat {
+      0% { opacity: 0; transform: translateY(14px) scale(0.82); }
+      18% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-14px) scale(1.04); }
+    }
+
     @keyframes unoResultGlow {
       0% { opacity: 0; transform: scale(0.88); }
       28% { opacity: 1; }
       100% { opacity: 0.18; transform: scale(1.04); }
+    }
+
+    @keyframes unoResultParticle {
+      0% { opacity: 0; transform: translateY(12px) rotate(0deg) scale(0.72); }
+      24% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(82px) rotate(18deg) scale(1.08); }
     }
 
     .uno-empty {
@@ -3323,7 +3615,7 @@ PAGE_TEMPLATE = """
       border-radius: 28px;
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
-        linear-gradient(180deg, rgba(8, 18, 30, 0.62), rgba(7, 12, 22, 0.78)),
+        linear-gradient(180deg, rgba(8, 18, 30, 0.36), rgba(7, 12, 22, 0.54)),
         radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 62%),
         var(--uno-arena-art, none),
         var(--uno-arena-surface, none),
@@ -3341,12 +3633,12 @@ PAGE_TEMPLATE = """
       inset: 14px;
       border-radius: 22px;
       background:
-        linear-gradient(180deg, rgba(8, 14, 23, 0.08), rgba(8, 12, 18, 0.18)),
+        linear-gradient(180deg, rgba(8, 14, 23, 0.02), rgba(8, 12, 18, 0.1)),
         radial-gradient(circle at 50% 44%, rgba(255,255,255,0.04), transparent 20%),
         var(--uno-panel-art, none),
         var(--uno-arena-surface, none),
         var(--uno-arena-art, none);
-      opacity: 0.62;
+      opacity: 0.78;
       pointer-events: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
     }
@@ -3406,7 +3698,9 @@ PAGE_TEMPLATE = """
       border: 1px solid rgba(255, 255, 255, 0.14);
       background:
         linear-gradient(180deg, rgba(8, 21, 35, 0.94), rgba(7, 14, 24, 0.92)),
-        radial-gradient(circle at top, rgba(255, 211, 110, 0.12), transparent 62%);
+        radial-gradient(circle at top, rgba(255, 211, 110, 0.12), transparent 62%),
+        var(--uno-arena-art, none),
+        var(--uno-arena-surface, none);
       box-shadow:
         0 22px 44px rgba(0, 0, 0, 0.32),
         0 0 34px rgba(69, 215, 255, 0.1);
@@ -3496,13 +3790,13 @@ PAGE_TEMPLATE = """
     .uno-deal-intro {
       display: grid;
       gap: 16px;
-      min-height: 456px;
+      min-height: 468px;
       align-content: start;
     }
 
     .uno-deal-intro-stage {
       position: relative;
-      min-height: 364px;
+      min-height: 392px;
       border-radius: 30px;
       border: 1px solid rgba(255,255,255,0.08);
       background:
@@ -3533,14 +3827,14 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 220px;
-      height: 220px;
+      width: 240px;
+      height: 240px;
       border-radius: 999px;
       transform: translate(-50%, -50%);
       background: radial-gradient(circle, rgba(255, 214, 74, 0.16), rgba(69, 215, 255, 0.08), transparent 74%);
       filter: blur(12px);
       pointer-events: none;
-      animation: unoDealAura 2.8s ease-in-out infinite;
+      animation: unoDealAura 3.4s ease-in-out infinite;
     }
 
     .uno-deal-intro-center {
@@ -3548,8 +3842,8 @@ PAGE_TEMPLATE = """
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: 106px;
-      height: 146px;
+      width: 108px;
+      height: 148px;
       display: grid;
       place-items: center;
       transform-style: preserve-3d;
@@ -3559,8 +3853,8 @@ PAGE_TEMPLATE = """
     .uno-deal-intro-center::before {
       content: "";
       position: absolute;
-      inset: -20px;
-      border-radius: 28px;
+      inset: -22px;
+      border-radius: 30px;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01)),
         radial-gradient(circle at top, rgba(255, 214, 74, 0.12), transparent 62%);
@@ -3571,7 +3865,7 @@ PAGE_TEMPLATE = """
     .uno-deal-intro-stack {
       position: absolute;
       inset: 0;
-      animation: unoDealShuffle 4.6s cubic-bezier(.22,.74,.28,1) infinite;
+      animation: unoDealShuffle 4.9s cubic-bezier(.22,.74,.28,1) both;
       will-change: transform;
       transform-style: preserve-3d;
     }
@@ -3586,16 +3880,18 @@ PAGE_TEMPLATE = """
       box-shadow: 0 16px 24px rgba(0,0,0,0.28);
     }
 
-    .uno-deal-intro-stack .uno-back-card:nth-child(1) { transform: translate(-50%, -50%) rotate(-10deg) translateY(3px); }
-    .uno-deal-intro-stack .uno-back-card:nth-child(2) { transform: translate(-50%, -50%) rotate(8deg) translateY(-1px); }
-    .uno-deal-intro-stack .uno-back-card:nth-child(3) { transform: translate(-50%, -50%) rotate(-3deg) translateY(-4px); }
+    .uno-deal-intro-stack .uno-back-card:nth-child(1) { transform: translate(-50%, -50%) rotate(-11deg) translateY(5px); }
+    .uno-deal-intro-stack .uno-back-card:nth-child(2) { transform: translate(-50%, -50%) rotate(8deg) translateY(1px); }
+    .uno-deal-intro-stack .uno-back-card:nth-child(3) { transform: translate(-50%, -50%) rotate(-4deg) translateY(-3px); }
+    .uno-deal-intro-stack .uno-back-card:nth-child(4) { transform: translate(-50%, -50%) rotate(5deg) translateY(-6px); }
+    .uno-deal-intro-stack .uno-back-card:nth-child(5) { transform: translate(-50%, -50%) rotate(0deg) translateY(-8px); }
 
     .uno-deal-intro-flight {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 94px;
-      height: 136px;
+      width: 82px;
+      height: 120px;
       transform: translate(-50%, -50%);
       opacity: 0;
       will-change: transform, opacity;
@@ -3604,16 +3900,9 @@ PAGE_TEMPLATE = """
       transform-style: preserve-3d;
       -webkit-transform: translate3d(-50%, -50%, 0);
       z-index: 4;
+      animation: unoDealToSeat 1.08s cubic-bezier(.16,.88,.22,1) both;
+      animation-delay: var(--uno-deal-delay, 0s);
     }
-
-    .uno-deal-intro-flight.to-opponent.one { animation: unoDealToOpponentOne 4.6s cubic-bezier(.16,.88,.22,1) infinite; }
-    .uno-deal-intro-flight.to-player.one { animation: unoDealToPlayerOne 4.6s cubic-bezier(.16,.88,.22,1) infinite 0.34s; }
-    .uno-deal-intro-flight.to-opponent.two { animation: unoDealToOpponentTwo 4.6s cubic-bezier(.16,.88,.22,1) infinite 1.02s; }
-    .uno-deal-intro-flight.to-player.two { animation: unoDealToPlayerTwo 4.6s cubic-bezier(.16,.88,.22,1) infinite 1.36s; }
-    .uno-deal-intro-flight.to-opponent.three { animation: unoDealToOpponentThree 4.6s cubic-bezier(.16,.88,.22,1) infinite 2.04s; }
-    .uno-deal-intro-flight.to-player.three { animation: unoDealToPlayerThree 4.6s cubic-bezier(.16,.88,.22,1) infinite 2.38s; }
-    .uno-deal-intro-flight.to-opponent.four { animation: unoDealToOpponentFour 4.6s cubic-bezier(.16,.88,.22,1) infinite 3.06s; }
-    .uno-deal-intro-flight.to-player.four { animation: unoDealToPlayerFour 4.6s cubic-bezier(.16,.88,.22,1) infinite 3.4s; }
 
     .uno-deal-intro-seat {
       position: absolute;
@@ -3624,20 +3913,20 @@ PAGE_TEMPLATE = """
       justify-items: center;
       color: rgba(240, 246, 255, 0.84);
       text-align: center;
-      width: min(100% - 44px, 320px);
+      width: min(100% - 30px, 332px);
       z-index: 2;
     }
 
-    .uno-deal-intro-seat.opponent { top: 14px; }
-    .uno-deal-intro-seat.player { bottom: 14px; }
+    .uno-deal-intro-seat.opponent { top: 12px; }
+    .uno-deal-intro-seat.player { bottom: 12px; }
 
     .uno-deal-intro-slotline {
       width: 100%;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
-      gap: 12px;
-      padding: 10px 14px;
+      gap: 0;
+      padding: 12px 14px;
       border-radius: 24px;
       background:
         linear-gradient(180deg, rgba(8, 16, 27, 0.74), rgba(7, 12, 20, 0.88)),
@@ -3647,13 +3936,15 @@ PAGE_TEMPLATE = """
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
         0 14px 24px rgba(0,0,0,0.16);
+      overflow: hidden;
     }
 
     .uno-deal-intro-slot {
       position: relative;
-      width: 64px;
-      height: 92px;
-      border-radius: 18px;
+      width: 52px;
+      height: 76px;
+      margin-left: -16px;
+      border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.1);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
@@ -3662,8 +3953,13 @@ PAGE_TEMPLATE = """
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
         0 10px 18px rgba(0,0,0,0.12);
-      opacity: 0.32;
+      opacity: 0.34;
       overflow: hidden;
+      transform: rotate(var(--uno-slot-angle, 0deg));
+    }
+
+    .uno-deal-intro-slot:first-child {
+      margin-left: 0;
     }
 
     .uno-deal-intro-slot::after {
@@ -3676,19 +3972,15 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 50% 42%, rgba(255, 214, 74, 0.24), transparent 36%);
       opacity: 0;
       transform: scale(0.92);
+      animation: unoDealSlotPulse 1.02s ease-out both;
+      animation-delay: var(--uno-slot-delay, 0s);
     }
 
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 0.16s; }
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 1.02s; }
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 2.04s; }
-    .uno-deal-intro-seat.opponent .uno-deal-intro-slot:nth-child(4)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 3.06s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(1)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 0.5s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(2)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 1.36s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(3)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 2.38s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-slot:nth-child(4)::after { animation: unoDealSlotPulse 4.6s ease-out infinite 3.4s; }
-
-    .uno-deal-intro-seat.opponent .uno-deal-intro-count { animation: unoDealCounterPulse 4.6s ease-out infinite 0.16s; }
-    .uno-deal-intro-seat.player .uno-deal-intro-count { animation: unoDealCounterPulse 4.6s ease-out infinite 0.5s; }
+    .uno-deal-intro-seat.opponent .uno-deal-intro-count,
+    .uno-deal-intro-seat.player .uno-deal-intro-count {
+      animation: unoDealCounterPulse 0.94s ease-out both;
+      animation-delay: var(--uno-counter-delay, 0.18s);
+    }
 
     .uno-deal-intro-seat .tiny {
       transition: opacity 220ms ease;
@@ -3726,11 +4018,13 @@ PAGE_TEMPLATE = """
     }
 
     @keyframes unoDealShuffle {
-      0%, 100% { transform: rotate(0deg) scale(1); }
-      14% { transform: rotate(-4deg) scale(1.014) translateY(-3px); }
-      32% { transform: rotate(4deg) scale(1.022) translateY(1px); }
-      56% { transform: rotate(-3deg) scale(1.016) translateY(-1px); }
-      80% { transform: rotate(2deg) scale(1.008) translateY(2px); }
+      0% { transform: rotate(0deg) scale(1); }
+      12% { transform: rotate(-4deg) scale(1.014) translateY(-3px); }
+      26% { transform: rotate(4deg) scale(1.02) translateY(1px); }
+      42% { transform: rotate(-3deg) scale(1.016) translateY(-1px); }
+      58% { transform: rotate(3deg) scale(1.014) translateY(1px); }
+      76% { transform: rotate(-2deg) scale(1.01) translateY(-1px); }
+      100% { transform: rotate(0deg) scale(1); }
     }
 
     @keyframes unoDealAura {
@@ -3738,79 +4032,24 @@ PAGE_TEMPLATE = """
       50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
     }
 
-    @keyframes unoDealToOpponentOne {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      10% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(-154px, -160px, 0) scale(0.96) rotate(-15deg); }
-      82% { opacity: 1; transform: translate3d(-160px, -172px, 0) scale(0.92) rotate(-18deg); }
-      100% { opacity: 0; transform: translate3d(-164px, -178px, 0) scale(0.84) rotate(-20deg); }
-    }
-
-    @keyframes unoDealToOpponentTwo {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      10% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(-56px, -170px, 0) scale(0.96) rotate(-5deg); }
-      82% { opacity: 1; transform: translate3d(-62px, -182px, 0) scale(0.92) rotate(-7deg); }
-      100% { opacity: 0; transform: translate3d(-66px, -188px, 0) scale(0.84) rotate(-8deg); }
-    }
-
-    @keyframes unoDealToOpponentThree {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      10% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(56px, -170px, 0) scale(0.96) rotate(5deg); }
-      82% { opacity: 1; transform: translate3d(62px, -182px, 0) scale(0.92) rotate(7deg); }
-      100% { opacity: 0; transform: translate3d(66px, -188px, 0) scale(0.84) rotate(8deg); }
-    }
-
-    @keyframes unoDealToOpponentFour {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      10% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(154px, -160px, 0) scale(0.96) rotate(15deg); }
-      82% { opacity: 1; transform: translate3d(160px, -172px, 0) scale(0.92) rotate(18deg); }
-      100% { opacity: 0; transform: translate3d(164px, -178px, 0) scale(0.84) rotate(20deg); }
-    }
-
-    @keyframes unoDealToPlayerOne {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      10% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(-154px, 148px, 0) scale(0.96) rotate(15deg); }
-      82% { opacity: 1; transform: translate3d(-160px, 160px, 0) scale(0.92) rotate(18deg); }
-      100% { opacity: 0; transform: translate3d(-164px, 166px, 0) scale(0.84) rotate(20deg); }
-    }
-
-    @keyframes unoDealToPlayerTwo {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      10% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(-56px, 160px, 0) scale(0.96) rotate(5deg); }
-      82% { opacity: 1; transform: translate3d(-62px, 172px, 0) scale(0.92) rotate(7deg); }
-      100% { opacity: 0; transform: translate3d(-66px, 178px, 0) scale(0.84) rotate(8deg); }
-    }
-
-    @keyframes unoDealToPlayerThree {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      10% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(56px, 160px, 0) scale(0.96) rotate(-5deg); }
-      82% { opacity: 1; transform: translate3d(62px, 172px, 0) scale(0.92) rotate(-7deg); }
-      100% { opacity: 0; transform: translate3d(66px, 178px, 0) scale(0.84) rotate(-8deg); }
-    }
-
-    @keyframes unoDealToPlayerFour {
-      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.86) rotate(0deg); }
-      10% { opacity: 1; }
-      68% { opacity: 1; transform: translate3d(154px, 148px, 0) scale(0.96) rotate(-15deg); }
-      82% { opacity: 1; transform: translate3d(160px, 160px, 0) scale(0.92) rotate(-18deg); }
-      100% { opacity: 0; transform: translate3d(164px, 166px, 0) scale(0.84) rotate(-20deg); }
+    @keyframes unoDealToSeat {
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.82) rotate(0deg); }
+      10% { opacity: 0; }
+      18% { opacity: 1; }
+      70% { opacity: 1; transform: translate3d(var(--uno-deal-x, 0px), var(--uno-deal-y, 0px), 0) scale(0.98) rotate(var(--uno-deal-rot, 0deg)); }
+      86% { opacity: 1; transform: translate3d(var(--uno-deal-settle-x, 0px), var(--uno-deal-settle-y, 0px), 0) scale(0.94) rotate(var(--uno-deal-settle-rot, 0deg)); }
+      100% { opacity: 0; transform: translate3d(var(--uno-deal-fade-x, 0px), var(--uno-deal-fade-y, 0px), 0) scale(0.84) rotate(var(--uno-deal-fade-rot, 0deg)); }
     }
 
     @keyframes unoDealSlotPulse {
-      0%, 52%, 100% { opacity: 0; transform: scale(0.92); }
-      66% { opacity: 1; transform: scale(1.03); }
-      82% { opacity: 0.92; transform: scale(1); }
+      0%, 58%, 100% { opacity: 0; transform: scale(0.92); }
+      72% { opacity: 1; transform: scale(1.03); }
+      86% { opacity: 0.92; transform: scale(1); }
     }
 
     @keyframes unoDealCounterPulse {
-      0%, 58%, 100% { transform: scale(1); border-color: rgba(255,255,255,0.12); }
-      72% { transform: scale(1.05); border-color: rgba(255, 214, 74, 0.3); }
+      0%, 62%, 100% { transform: scale(1); border-color: rgba(255,255,255,0.12); }
+      76% { transform: scale(1.05); border-color: rgba(255, 214, 74, 0.3); }
     }
 
     body.tma-app.tma-ios:not(.performance-lite) .uno-deal-intro-stack,
@@ -13698,6 +13937,12 @@ PAGE_TEMPLATE = """
       overflow-y: auto;
     }
 
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.playing,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.playing {
+      grid-template-rows: auto minmax(0, 1fr);
+      align-content: stretch;
+    }
+
     body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing,
     body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting,
     body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed,
@@ -13717,6 +13962,17 @@ PAGE_TEMPLATE = """
       overflow-y: auto;
       padding-bottom: 18px;
       -webkit-overflow-scrolling: touch;
+    }
+
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.playing .uno-stage,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.playing .uno-stage {
+      grid-template-rows: auto minmax(280px, 1fr) auto auto;
+      align-content: stretch;
+    }
+
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-live-board,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-live-board {
+      min-height: clamp(280px, 38vh, 420px);
     }
 
     html.uno-live-lock,
@@ -13767,7 +14023,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) #view-uno {
-      padding: 12px;
+      padding: calc(42px + env(safe-area-inset-top)) 12px calc(124px + env(safe-area-inset-bottom));
       border-radius: 20px;
     }
 
@@ -13845,12 +14101,13 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       margin: 0;
       padding: 12px;
-      min-height: calc(var(--app-height, 100vh) - 136px - env(safe-area-inset-bottom));
+      min-height: calc(var(--app-height, 100vh) - 188px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       border-radius: 24px;
       clip-path: inset(0 round 24px);
       box-sizing: border-box;
       overflow: hidden;
-      padding-bottom: 12px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      background-clip: padding-box;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
@@ -13863,7 +14120,7 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-stage {
       min-height: 0;
       overflow-y: auto;
-      padding-bottom: calc(138px + env(safe-area-inset-bottom));
+      padding-bottom: calc(176px + env(safe-area-inset-bottom));
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
@@ -14256,6 +14513,24 @@ PAGE_TEMPLATE = """
     body.tma-app.uno-live-lock .uno-color-cancel {
       min-height: 34px;
       min-width: 132px;
+    }
+
+    body.tma-app.uno-live-lock .uno-reaction-bar {
+      gap: 6px;
+    }
+
+    body.tma-app.uno-live-lock .uno-reaction-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      font-size: 17px;
+    }
+
+    body.tma-app.uno-live-lock .uno-reaction-float {
+      min-width: 38px;
+      height: 38px;
+      font-size: 18px;
+      top: -4px;
     }
 
     body.tma-app.uno-live-lock .uno-opponent-zone,
@@ -16288,7 +16563,7 @@ PAGE_TEMPLATE = """
         <button type="button" id="mascot-open-profile-btn">Profile</button>
         <button type="button" id="mascot-open-pack-btn">Cards</button>
         <button type="button" id="mascot-open-battle-btn">Battle</button>
-        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>Menu</button>
+        <button type="button" id="mascot-open-uno-btn" data-uno-entry="1" hidden>Apps</button>
         <button type="button" class="secondary" id="mascot-open-guide-btn">Guide</button>
       </div>
       <div class="mascot-popover-actions" id="mascot-uno-actions" hidden>
@@ -21243,6 +21518,7 @@ PAGE_TEMPLATE = """
         String(session.recycle_count || 0),
         session.discard_top && session.discard_top.id ? String(session.discard_top.id) : '',
         activeAlert ? `${String(activeAlert.target_wallet || '')}:${String(activeAlert.viewer_role || '')}:${String(activeAlert.penalty_cards || 0)}` : '',
+        (session.active_reactions || []).map((item) => `${String(item && item.actor_id || '')}:${String(item && item.key || '')}`).join(','),
         playerHand.map((card) => String(card && card.id || '')).join(','),
         opponents.map((item) => `${String(item && item.wallet || '')}:${Number(item && item.card_count || 0)}:${item && item.is_current_turn ? '1' : '0'}`).join(','),
       ].join('|');
@@ -21316,6 +21592,7 @@ PAGE_TEMPLATE = """
         session.discard_top && session.discard_top.id ? session.discard_top.id : '',
         Number(session.draw_remaining || 0),
         session.uno_alert && session.uno_alert.active ? `${session.uno_alert.target_wallet || ''}:${session.uno_alert.viewer_role || ''}` : '',
+        (session.active_reactions || []).map((item) => `${String(item && item.actor_id || '')}:${String(item && item.key || '')}`).join(','),
         session.complete ? '1' : '0',
       ].join('|');
     }
@@ -21362,10 +21639,10 @@ PAGE_TEMPLATE = """
       clearUnoDealIntro(false);
       state.unoDealIntroSeenSessionId = nextId;
       state.unoDealIntroSessionId = nextId;
-      state.unoDealIntroUntil = Date.now() + 2150;
+      state.unoDealIntroUntil = Date.now() + 4680;
       state.unoDealIntroTimer = window.setTimeout(() => {
         clearUnoDealIntro(true);
-      }, 2180);
+      }, 4720);
       return true;
     }
 
@@ -22232,7 +22509,7 @@ PAGE_TEMPLATE = """
       ];
       return `
         <div class="actions uno-surface-actions compact${tiles ? ' tiles' : ''}">
-          ${tabs.map((tab) => `<button type="button" class="uno-surface-tab${activeTab === tab.key ? ' active' : ''}" data-uno-surface-link="${tab.key}" data-uno-kicker="UNO"><span class="uno-surface-tab-kicker">UNO</span><span class="uno-surface-tab-label">${tab.label}</span><span class="uno-surface-tab-note">${tab.note}</span></button>`).join('')}
+          ${tabs.map((tab) => `<button type="button" class="uno-surface-tab${activeTab === tab.key ? ' active' : ''}" data-uno-surface-link="${tab.key}" data-uno-tab-key="${tab.key}" data-uno-kicker="UNO"><span class="uno-surface-tab-kicker">UNO</span><span class="uno-surface-tab-label">${tab.label}</span><span class="uno-surface-tab-note">${tab.note}</span></button>`).join('')}
         </div>
       `;
     }
@@ -22240,9 +22517,25 @@ PAGE_TEMPLATE = """
     function unoLiveControlsMarkup() {
       return `
         <div class="actions uno-live-controls">
+          <button type="button" class="secondary" id="uno-surrender-btn">Сдаться</button>
           <button type="button" class="secondary uno-live-exit" id="uno-exit-btn">Выйти</button>
         </div>
       `;
+    }
+
+    function unoReactionBarMarkup(session, actionLocked = false) {
+      const reactions = Array.isArray(session && session.available_reactions) ? session.available_reactions : [];
+      if (!reactions.length || !session || session.complete) return '';
+      return `
+        <div class="uno-reaction-bar">
+          ${reactions.map((item) => `<button type="button" class="uno-reaction-btn" data-uno-reaction="${escapeHtml(item.key || '')}" title="${escapeHtml(item.label || item.key || '')}"${actionLocked ? ' disabled' : ''}>${escapeHtml(item.emoji || '🙂')}</button>`).join('')}
+        </div>
+      `;
+    }
+
+    function unoReactionBubbleMarkup(reaction) {
+      if (!reaction || !reaction.emoji) return '';
+      return `<div class="uno-reaction-float" aria-hidden="true">${escapeHtml(reaction.emoji)}</div>`;
     }
 
     function bindUnoSurfaceActions(root = document) {
@@ -22495,6 +22788,15 @@ PAGE_TEMPLATE = """
                   <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
                   <div class="tiny">${escapeHtml(resultSummary)}</div>
                 </div>
+                <div class="uno-result-scene">
+                  <div class="uno-result-scene-badge">${escapeHtml(outcomePill)}</div>
+                  <i class="uno-result-scene-particle p1"></i>
+                  <i class="uno-result-scene-particle p2"></i>
+                  <i class="uno-result-scene-particle p3"></i>
+                  <i class="uno-result-scene-particle p4"></i>
+                  <i class="uno-result-scene-particle p5"></i>
+                  <i class="uno-result-scene-particle p6"></i>
+                </div>
                 <div class="uno-reward-line">
                   <span class="summary-chip">💠 +${Number((rewardGain.pack_shards) || 0)}</span>
                   <span class="summary-chip">XP +${Number((rewardGain.season_points) || 0)}</span>
@@ -22599,6 +22901,21 @@ PAGE_TEMPLATE = """
       }
       if (dealIntroActive) {
         const leadOpponent = opponents[0] || null;
+        const introSeatOffsets = [-108, -72, -36, 0, 36, 72, 108];
+        const introSeatAngles = [-18, -12, -6, 0, 6, 12, 18];
+        const introSlotsMarkup = introSeatOffsets.map((_, index) => `<i class="uno-deal-intro-slot" style="--uno-slot-delay:${(0.22 + index * 0.32).toFixed(2)}s;--uno-slot-angle:${introSeatAngles[index]}deg;"></i>`).join('');
+        const introOpponentFlights = introSeatOffsets.map((x, index) => {
+          const rotate = introSeatAngles[index];
+          const delay = (0.16 + index * 0.32).toFixed(2);
+          return `<div class="uno-deal-intro-flight" style="--uno-deal-delay:${delay}s;--uno-deal-x:${x}px;--uno-deal-y:-158px;--uno-deal-rot:${rotate}deg;--uno-deal-settle-x:${x}px;--uno-deal-settle-y:-166px;--uno-deal-settle-rot:${rotate}deg;--uno-deal-fade-x:${x}px;--uno-deal-fade-y:-170px;--uno-deal-fade-rot:${rotate}deg;">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`;
+        }).join('');
+        const introPlayerFlights = introSeatOffsets.map((x, index) => {
+          const rotate = introSeatAngles[index];
+          const delay = (0.32 + index * 0.32).toFixed(2);
+          return `<div class="uno-deal-intro-flight" style="--uno-deal-delay:${delay}s;--uno-deal-x:${x}px;--uno-deal-y:148px;--uno-deal-rot:${-rotate}deg;--uno-deal-settle-x:${x}px;--uno-deal-settle-y:156px;--uno-deal-settle-rot:${-rotate}deg;--uno-deal-fade-x:${x}px;--uno-deal-fade-y:162px;--uno-deal-fade-rot:${-rotate}deg;">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`;
+        }).join('');
+        const introOpponentCount = Number((leadOpponent && leadOpponent.card_count) || session.bot_count || 7) || 7;
+        const introPlayerCount = Number((session.player_hand || []).length || 7) || 7;
         unoRoot.innerHTML = `
           <div class="uno-shell playing uno-deal-intro" style="${shellVisualStyle}">
             <div class="${unoHeaderClass}"${unoHeaderStyle}>
@@ -22611,42 +22928,38 @@ PAGE_TEMPLATE = """
               </div>
             </div>
             <div class="uno-deal-intro-stage">
-              <div class="uno-deal-intro-seat opponent">
+              <div class="uno-deal-intro-seat opponent" style="--uno-counter-delay:2.16s;">
                 <div class="tiny">${escapeHtml((leadOpponent && leadOpponent.display_name) || session.turn_display_name || 'Соперник')}</div>
                 <div class="uno-deal-intro-slotline">
-                  <i class="uno-deal-intro-slot"></i>
-                  <i class="uno-deal-intro-slot"></i>
-                  <i class="uno-deal-intro-slot"></i>
-                  <i class="uno-deal-intro-slot"></i>
+                  ${introSlotsMarkup}
                 </div>
-                <div class="uno-deal-intro-count">7 карт</div>
+                <div class="uno-deal-intro-count">${introOpponentCount} карт</div>
               </div>
               <div class="uno-deal-intro-center">
                 <div class="uno-deal-intro-stack">
-                  ${Array.from({length: 3}).map(() => unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)).join('')}
+                  ${Array.from({length: 5}).map(() => unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)).join('')}
                 </div>
-                ${['one', 'two', 'three', 'four'].map((slot) => `<div class="uno-deal-intro-flight to-opponent ${slot}">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`).join('')}
-                ${['one', 'two', 'three', 'four'].map((slot) => `<div class="uno-deal-intro-flight to-player ${slot}">${unoBackCardMarkup(backSurface, frameAsset, backMark, backOptions)}</div>`).join('')}
+                ${introOpponentFlights}
+                ${introPlayerFlights}
               </div>
-              <div class="uno-deal-intro-seat player">
+              <div class="uno-deal-intro-seat player" style="--uno-counter-delay:2.36s;">
                 <div class="uno-deal-intro-slotline">
-                  <i class="uno-deal-intro-slot"></i>
-                  <i class="uno-deal-intro-slot"></i>
-                  <i class="uno-deal-intro-slot"></i>
-                  <i class="uno-deal-intro-slot"></i>
+                  ${introSlotsMarkup}
                 </div>
-                <div class="uno-deal-intro-count">7 карт</div>
+                <div class="uno-deal-intro-count">${introPlayerCount} карт</div>
                 <div class="tiny">Твоя рука</div>
               </div>
             </div>
             <div class="uno-deal-intro-copy">
               <strong>Стартовая раздача</strong>
-              <div class="tiny">Центральная колода сдаёт карты по одной: сначала вверх сопернику, потом вниз тебе. После раздачи матч сразу переходит к первому ходу.</div>
+              <div class="tiny">Колода в центре сдаёт полные руки по одной карте. Семь карт уходят сопернику и семь тебе, после чего стол сразу переходит в первый ход.</div>
             </div>
           </div>
         `;
         const unoExitBtn = document.getElementById('uno-exit-btn');
+        const unoSurrenderBtn = document.getElementById('uno-surrender-btn');
         if (unoExitBtn) bindFunctionalControl(unoExitBtn, exitUnoSession, 'click', {skipPrepare: true});
+        if (unoSurrenderBtn) bindFunctionalControl(unoSurrenderBtn, () => runUnoAction('surrender'), 'click', {skipPrepare: true});
         return;
       }
       scheduleUnoStatusPolling();
@@ -22658,6 +22971,9 @@ PAGE_TEMPLATE = """
       const shouldAnimateUnoIntro = Boolean(nextUnoEventKey && !state.unoLastEventKey && !session.complete);
       const canTapDraw = Boolean(session.can_draw && !unoAlert && !actionLocked && !pendingWildCardId && !state.unoDrawFx);
       const currentColorMarkup = unoColorIndicatorMarkup(session.current_color, session.current_color_label, {compact: true});
+      const activeReactions = Array.isArray(session.active_reactions) ? session.active_reactions : [];
+      const reactionMap = new Map(activeReactions.map((item) => [String(item && item.actor_id || ''), item]));
+      const viewerActorId = String((identity && (identity.wallet || identity.guest_id)) || (state.wallet || '') || '');
       const deckCounterLabel = Number(session.draw_remaining || 0);
       const recycleCounterLabel = Number(session.recycle_count || 0) > 0 ? `Перемешано ${Number(session.recycle_count || 0)}x` : '';
       const turnCountdownLabel = !session.complete && !unoAlert && Number(session.turn_remaining_ms || 0) > 0
@@ -22689,6 +23005,7 @@ PAGE_TEMPLATE = """
               ${recycleCounterLabel ? `<div class="uno-chip">${escapeHtml(recycleCounterLabel)}</div>` : ''}
               ${turnCountdownLabel ? `<div class="uno-chip" data-uno-turn-countdown data-deadline-ts="${turnDeadlineTs}">Ход: ${escapeHtml(turnCountdownLabel)}</div>` : ''}
             </div>
+            ${unoReactionBarMarkup(session, actionLocked)}
           </div>
           ${unoAlert ? `
             <div class="uno-alert-banner ${unoAlert.viewer_role === 'call' ? 'call' : 'catch'}">
@@ -22713,6 +23030,7 @@ PAGE_TEMPLATE = """
             <div class="uno-opponent-zone">
               ${opponents.map((opponent) => `
                 <div class="uno-opponent-row" data-uno-opponent-wallet="${escapeHtml(opponent.wallet || '')}">
+                  ${unoReactionBubbleMarkup(reactionMap.get(String(opponent.wallet || '')))}
                   <div class="team-line">
                     <strong>${escapeHtml(opponent.display_name || 'Игрок')}</strong>
                     <strong>${Number(opponent.card_count || 0)} карт${opponent.is_current_turn ? ' • ход' : ''}</strong>
@@ -22730,6 +23048,7 @@ PAGE_TEMPLATE = """
                 <span>${session.your_turn && !session.complete ? `Бросай сюда • ${escapeHtml(session.current_color_label || '—')}` : `Стол • ${escapeHtml(session.current_color_label || '—')}`}</span>
               </div>
               <div class="uno-center">
+                <div class="uno-center-skin" aria-hidden="true"></div>
                 <div>
                   <button type="button" class="uno-stack-action ${canTapDraw ? 'can-draw' : ''}" id="uno-draw-pile-btn"${canTapDraw ? '' : ' disabled'}>
                     <span class="sr-only">Взять одну карту из колоды</span>
@@ -22764,6 +23083,7 @@ PAGE_TEMPLATE = """
               ` : ''}
             </div>
             <div class="uno-player-row">
+              ${unoReactionBubbleMarkup(reactionMap.get(viewerActorId))}
               <div class="uno-player-meta">
                 <strong>Твои карты</strong>
                 <strong>${Number((session.player_hand || []).length || 0)} карт</strong>
@@ -22800,6 +23120,7 @@ PAGE_TEMPLATE = """
       const unoAfterBotBtn = document.getElementById('uno-after-bot-btn');
       const unoResultLauncherBtn = document.getElementById('uno-result-launcher-btn');
       const unoExitBtn = document.getElementById('uno-exit-btn');
+      const unoSurrenderBtn = document.getElementById('uno-surrender-btn');
       if (unoAlertBtn) bindFunctionalControl(unoAlertBtn, () => runUnoAction('uno'), 'click', {skipPrepare: true});
       if (unoDrawPileBtn && !unoDrawPileBtn.disabled && session.can_draw) {
         bindFunctionalControl(unoDrawPileBtn, () => runUnoAction('draw'), 'click', {skipPrepare: true});
@@ -22812,9 +23133,13 @@ PAGE_TEMPLATE = """
       if (unoAfterBotBtn) bindFunctionalControl(unoAfterBotBtn, () => (session.mode === 'bot' ? startUnoMatch(session.bot_profile || 'standard') : searchUnoQuickMatch()), 'click', {skipPrepare: true});
       if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
       if (unoExitBtn) bindFunctionalControl(unoExitBtn, exitUnoSession, 'click', {skipPrepare: true});
+      if (unoSurrenderBtn && session.can_surrender) bindFunctionalControl(unoSurrenderBtn, () => runUnoAction('surrender'), 'click', {skipPrepare: true});
       bindUnoSurfaceActions(unoRoot);
       unoRoot.querySelectorAll('[data-uno-color]').forEach((button) => {
         bindFunctionalControl(button, () => runUnoAction('play', button.dataset.unoCardId, button.dataset.unoColor), 'click', {skipPrepare: true});
+      });
+      unoRoot.querySelectorAll('[data-uno-reaction]').forEach((button) => {
+        bindFunctionalControl(button, () => sendUnoReaction(button.dataset.unoReaction), 'click', {skipPrepare: true});
       });
       setupUnoDragInteractions(session, playableIds, {
         actionLocked,
@@ -23083,6 +23408,34 @@ PAGE_TEMPLATE = """
         state.unoActionInFlight = false;
         if (!state.unoDrawFx || !sessionUpdated) {
           renderUnoPanel();
+        }
+      }
+    }
+
+    async function sendUnoReaction(reactionKey = '') {
+      if (!unoTesterGuard()) return;
+      if (!state.unoSession || !state.unoSession.session_id) return;
+      const normalized = String(reactionKey || '').trim().toLowerCase();
+      if (!normalized) return;
+      try {
+        const data = await api('/api/uno/action', {
+          method: 'POST',
+          body: unoActorPayload({
+            session_id: state.unoSession.session_id,
+            action: 'react',
+            reaction_key: normalized,
+          })
+        });
+        state.unoSession = data.session || state.unoSession;
+        rememberUnoSession(state.unoSession);
+        if (data.player) {
+          state.playerProfile = data.player;
+        }
+        renderUnoPanel();
+        scheduleUnoStatusPolling(true);
+      } catch (error) {
+        if (unoRoot) {
+          unoRoot.insertAdjacentHTML('afterbegin', `<div class="uno-log"><strong class="error">${escapeHtml(error.message)}</strong></div>`);
         }
       }
     }
@@ -29242,7 +29595,6 @@ def uno_sort_hand(cards):
 
 
 def build_uno_deck(seed_text):
-    rng = random.Random(hashlib.sha256(f'uno-deck:{seed_text}'.encode()).hexdigest())
     deck = []
     for color in UNO_COLORS:
         for value in [str(number) for number in range(1, 10)] + ['skip', 'reverse', 'draw2']:
@@ -29251,11 +29603,40 @@ def build_uno_deck(seed_text):
     for _ in range(4):
         deck.append({'color': 'wild', 'value': 'wild'})
         deck.append({'color': 'wild', 'value': 'wild4'})
-    rng.shuffle(deck)
+    deck = uno_shuffle_cards(deck, f'deck:{seed_text}')
     digest = hashlib.sha256(str(seed_text).encode()).hexdigest()[:8]
     for index, card in enumerate(deck):
         card['id'] = f"{card['color']}-{card['value']}-{index}-{digest}"
     return deck
+
+
+def uno_shuffle_cards(cards, seed_text):
+    shuffled = [dict(card or {}) for card in (cards or [])]
+    if len(shuffled) <= 1:
+        return shuffled
+    rng = random.Random(hashlib.sha256(f'uno-shuffle:{seed_text}'.encode()).hexdigest())
+    for round_index in range(3):
+        rng.shuffle(shuffled)
+        if len(shuffled) > 4:
+            cut = rng.randrange(1, len(shuffled))
+            shuffled = shuffled[cut:] + shuffled[:cut]
+        midpoint = max(1, len(shuffled) // 2)
+        left = shuffled[:midpoint]
+        right = shuffled[midpoint:]
+        merged = []
+        while left or right:
+            take_left = bool(left) and (not right or rng.random() < 0.5)
+            if take_left:
+                take = min(len(left), 1 + int(rng.random() * 2))
+                merged.extend(left[:take])
+                left = left[take:]
+            elif right:
+                take = min(len(right), 1 + int(rng.random() * 2))
+                merged.extend(right[:take])
+                right = right[take:]
+        shuffled = list(reversed(merged)) if round_index == 1 and rng.random() < 0.5 else merged
+    rng.shuffle(shuffled)
+    return shuffled
 
 
 def uno_recycle_discard_into_draw(state):
@@ -29264,9 +29645,7 @@ def uno_recycle_discard_into_draw(state):
         return 0
     top_card = discard[-1]
     recycle = discard[:-1]
-    rng = random.Random(hashlib.sha256(f"uno-recycle:{state.get('id')}:{state.get('turn_index', 0)}:{len(recycle)}".encode()).hexdigest())
-    rng.shuffle(recycle)
-    state['draw_pile'] = recycle
+    state['draw_pile'] = uno_shuffle_cards(recycle, f"recycle:{state.get('id')}:{state.get('turn_index', 0)}:{len(recycle)}")
     state['discard'] = [top_card]
     state['recycle_count'] = int(state.get('recycle_count', 0) or 0) + 1
     state['last_recycle_count'] = len(recycle)
@@ -29413,6 +29792,16 @@ UNO_TURN_TIMEOUT_SECONDS = 18
 UNO_STALL_PENALTY_CARDS = 1
 UNO_BOT_UNO_REACTION_MIN_SECONDS = 1.15
 UNO_BOT_UNO_REACTION_MAX_SECONDS = 2.45
+UNO_REACTION_VISIBLE_SECONDS = 3.8
+UNO_FREE_REACTIONS = [
+    {'key': 'fire', 'emoji': '🔥', 'label': 'Огонь'},
+    {'key': 'laugh', 'emoji': '😂', 'label': 'Смешно'},
+    {'key': 'wow', 'emoji': '😮', 'label': 'Вау'},
+    {'key': 'thumbs', 'emoji': '👍', 'label': 'Ок'},
+    {'key': 'clap', 'emoji': '👏', 'label': 'Аплодисменты'},
+    {'key': 'skull', 'emoji': '💀', 'label': 'Разнос'},
+]
+UNO_REACTION_BY_KEY = {item['key']: item for item in UNO_FREE_REACTIONS}
 
 
 def uno_bot_actor_id(state, actor):
@@ -29449,14 +29838,14 @@ def uno_get_actor_hand(state, actor_id):
 
 
 def uno_set_actor_hand(state, actor_id, cards):
-    sorted_cards = uno_sort_hand(cards)
+    hand_cards = list(cards or [])
     actor_key = str(actor_id or '').strip()
     if uno_state_mode(state) == 'bot':
         hand_key = 'player_hand' if uno_bot_actor_from_id(state, actor_key) == 'player' else 'bot_hand'
-        state[hand_key] = sorted_cards
+        state[hand_key] = hand_cards
         return state
     hands = dict(state.get('hands') or {})
-    hands[actor_key] = sorted_cards
+    hands[actor_key] = hand_cards
     state['hands'] = hands
     return state
 
@@ -29551,6 +29940,70 @@ def uno_touch_turn_timer(state):
         state.pop('turn_started_at', None)
         return state
     state['turn_started_at'] = now_iso()
+    return state
+
+
+def normalize_uno_reaction_key(value):
+    return str(value or '').strip().lower()
+
+
+def uno_prune_reactions(state, reference_time=None):
+    now_value = reference_time or now_utc()
+    cutoff = now_value - timedelta(seconds=UNO_REACTION_VISIBLE_SECONDS)
+    pruned = []
+    for item in list((state or {}).get('reactions') or []):
+        key = normalize_uno_reaction_key(item.get('key'))
+        if key not in UNO_REACTION_BY_KEY:
+            continue
+        try:
+            created_at = parse_iso(item.get('created_at'))
+        except Exception:
+            continue
+        if created_at < cutoff:
+            continue
+        normalized = dict(item)
+        normalized['key'] = key
+        normalized['emoji'] = UNO_REACTION_BY_KEY[key]['emoji']
+        normalized['label'] = UNO_REACTION_BY_KEY[key]['label']
+        pruned.append(normalized)
+    state['reactions'] = pruned[-10:]
+    return state['reactions']
+
+
+def build_uno_reaction_payload(state):
+    latest_by_actor = {}
+    for item in uno_prune_reactions(state):
+        actor_id = str(item.get('actor_id') or '').strip()
+        if not actor_id:
+            continue
+        latest_by_actor[actor_id] = {
+            'actor_id': actor_id,
+            'actor_label': uno_actor_label(state, actor_id),
+            'key': item.get('key'),
+            'emoji': item.get('emoji'),
+            'label': item.get('label'),
+            'created_at': item.get('created_at'),
+        }
+    return list(latest_by_actor.values())
+
+
+def uno_record_reaction(state, actor_id, reaction_key):
+    actor_key = str(actor_id or '').strip()
+    key = normalize_uno_reaction_key(reaction_key)
+    reaction = UNO_REACTION_BY_KEY.get(key)
+    if not actor_key:
+        raise ValueError('Игрок для эмодзи не найден.')
+    if not reaction:
+        raise ValueError('Неизвестный эмодзи-реакшен.')
+    existing = [item for item in uno_prune_reactions(state) if str(item.get('actor_id') or '').strip() != actor_key]
+    existing.append({
+        'actor_id': actor_key,
+        'key': key,
+        'emoji': reaction['emoji'],
+        'label': reaction['label'],
+        'created_at': now_iso(),
+    })
+    state['reactions'] = existing[-10:]
     return state
 
 
@@ -30035,7 +30488,7 @@ def build_uno_multiplayer_payload(state, viewer_wallet):
     if viewer_index < 0:
         raise ValueError('Нет доступа к этой UNO-сессии.')
     hands = dict(state.get('hands') or {})
-    player_hand = uno_sort_hand(hands.get(viewer_wallet) or [])
+    player_hand = list(hands.get(viewer_wallet) or [])
     discard = list(state.get('discard') or [])
     top_card = discard[-1] if discard else None
     current_color = str(state.get('current_color') or (top_card or {}).get('color') or 'blue')
@@ -30048,6 +30501,7 @@ def build_uno_multiplayer_payload(state, viewer_wallet):
         if uno_card_playable(card, top_card, current_color, pending_draw_count=pending_draw_count)
     }
     uno_alert = build_uno_alert_payload(state, viewer_wallet)
+    active_reactions = build_uno_reaction_payload(state)
     reward_map = dict(state.get('reward_gain_by_wallet') or {})
     summary_map = dict(state.get('reward_summary_by_wallet') or {})
     opponents = []
@@ -30118,6 +30572,9 @@ def build_uno_multiplayer_payload(state, viewer_wallet):
         'player_cosmetics': uno_equipped_cosmetics_for(viewer_wallet),
         'is_owner': str(state.get('wallet') or '') == str(viewer_wallet or ''),
         'uno_alert': uno_alert,
+        'active_reactions': active_reactions,
+        'available_reactions': UNO_FREE_REACTIONS,
+        'can_surrender': not bool(state.get('complete')),
         **uno_turn_timer_payload(state),
     }
 
@@ -30130,8 +30587,8 @@ def build_uno_session_payload(state, viewer_wallet=None):
         if status == 'waiting':
             return build_uno_waiting_payload(state, viewer_wallet)
         return build_uno_multiplayer_payload(state, viewer_wallet)
-    player_hand = uno_sort_hand(state.get('player_hand') or [])
-    bot_hand = uno_sort_hand(state.get('bot_hand') or [])
+    player_hand = list(state.get('player_hand') or [])
+    bot_hand = list(state.get('bot_hand') or [])
     discard = list(state.get('discard') or [])
     top_card = discard[-1] if discard else None
     current_color = str(state.get('current_color') or (top_card or {}).get('color') or 'blue')
@@ -30142,6 +30599,7 @@ def build_uno_session_payload(state, viewer_wallet=None):
         if uno_card_playable(card, top_card, current_color, pending_draw_count=pending_draw_count)
     }
     uno_alert = build_uno_alert_payload(state, state['wallet'])
+    active_reactions = build_uno_reaction_payload(state)
     rewards_payload = state.get('reward_summary') or uno_reward_summary_for(state['wallet'])
     return {
         'kind': 'uno',
@@ -30191,6 +30649,9 @@ def build_uno_session_payload(state, viewer_wallet=None):
         'bot_name': state.get('bot_name') or 'UNO Bot',
         'is_owner': True,
         'uno_alert': uno_alert,
+        'active_reactions': active_reactions,
+        'available_reactions': UNO_FREE_REACTIONS,
+        'can_surrender': not bool(state.get('complete')),
         **uno_turn_timer_payload(state),
     }
 
@@ -30275,7 +30736,7 @@ def uno_start_multiplayer_session(state):
     deck = build_uno_deck(f"{state['id']}:{','.join(item['wallet'] for item in participants)}:{state.get('created_at') or now_iso()}")
     hands = {}
     for participant in participants:
-        hands[participant['wallet']] = uno_sort_hand([deck.pop() for _ in range(7)])
+        hands[participant['wallet']] = [deck.pop() for _ in range(7)]
     top_card = deck.pop()
     recycle_guard = 0
     while (top_card.get('color') == 'wild' or top_card.get('value') in {'skip', 'reverse', 'draw2'}) and recycle_guard < 24:
@@ -30515,7 +30976,7 @@ def uno_apply_card_effect(state, actor, card, chosen_color=None):
     hand_key = 'player_hand' if actor == 'player' else 'bot_hand'
     removed, remaining = uno_remove_hand_card(state.get(hand_key) or [], card.get('id'))
     card = removed or card
-    state[hand_key] = uno_sort_hand(remaining)
+    state[hand_key] = remaining
     discard = list(state.get('discard') or [])
     discard.append(card)
     state['discard'] = discard
@@ -30575,7 +31036,7 @@ def uno_run_bot_turn(state):
             state['pending_draw_count'] = 0
             state['turn'] = 'player'
             break
-        state['bot_hand'] = uno_sort_hand(list(state.get('bot_hand') or []) + drawn)
+        state['bot_hand'] = list(state.get('bot_hand') or []) + list(drawn)
         top_card = (state.get('discard') or [None])[-1]
         current_color = state.get('current_color')
         if pending_draw_count > 0:
@@ -30606,7 +31067,7 @@ def uno_apply_multiplayer_card_effect(state, wallet, card, chosen_color=None):
     if removed is None:
         raise ValueError('Карта не найдена в руке.')
     card = removed
-    hands[wallet] = uno_sort_hand(remaining)
+    hands[wallet] = remaining
     discard = list(state.get('discard') or [])
     discard.append(card)
     state['discard'] = discard
@@ -30685,8 +31146,8 @@ def create_uno_session(wallet, domain, display_name=None, bot_profile='standard'
         'status': 'active',
         'visibility': 'bot',
         'max_players': 2,
-        'player_hand': uno_sort_hand(player_hand),
-        'bot_hand': uno_sort_hand(bot_hand),
+        'player_hand': list(player_hand),
+        'bot_hand': list(bot_hand),
         'draw_pile': deck,
         'discard': [top_card],
         'current_color': top_card.get('color') or 'blue',
@@ -30710,6 +31171,38 @@ def create_uno_session(wallet, domain, display_name=None, bot_profile='standard'
     return build_uno_session_payload(state, wallet)
 
 
+def uno_apply_surrender(state, actor_id):
+    actor_key = str(actor_id or '').strip()
+    if not actor_key or bool(state.get('complete')):
+        return state
+    uno_clear_alert(state)
+    state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
+    if uno_state_mode(state) == 'bot':
+        winner = 'bot' if actor_key == str(state.get('wallet') or '').strip() else 'player'
+        state['winner'] = winner
+        state['last_action'] = f'{uno_actor_label(state, actor_key)} сдался. Победа у {uno_actor_label(state, winner)}.'
+        return finalize_uno_session(state)
+    participants = uno_participants(state)
+    hands = dict(state.get('hands') or {})
+    remaining = [item for item in participants if str(item.get('wallet') or '').strip() != actor_key]
+    if not remaining:
+        state['winner_wallet'] = ''
+        state['winner'] = None
+        state['last_action'] = f'{uno_actor_label(state, actor_key)} сдался. Матч завершён.'
+        return finalize_uno_session(state)
+    remaining.sort(
+        key=lambda item: (
+            len(hands.get(item.get('wallet')) or []),
+            uno_find_participant_index(state, item.get('wallet')),
+        )
+    )
+    winner_wallet = str(remaining[0].get('wallet') or '').strip()
+    state['winner_wallet'] = winner_wallet
+    state['winner'] = winner_wallet
+    state['last_action'] = f'{uno_actor_label(state, actor_key)} сдался. Победа у {uno_actor_label(state, winner_wallet)}.'
+    return finalize_uno_session(state)
+
+
 def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_color=None):
     state = load_uno_session(session_id)
     mode = uno_state_mode(state)
@@ -30729,6 +31222,14 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
             save_uno_session(state)
         if state.get('complete'):
             return build_uno_session_payload(state, wallet)
+        if action_key == 'react':
+            state = uno_record_reaction(state, wallet, card_id)
+            save_uno_session(state)
+            return build_uno_session_payload(state, wallet)
+        if action_key == 'surrender':
+            state = uno_apply_surrender(state, wallet)
+            save_uno_session(state)
+            return build_uno_session_payload(state, wallet)
         active_alert = uno_active_alert(state)
         if action_key == 'uno':
             if not active_alert:
@@ -30745,14 +31246,14 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
             raise ValueError(f'Сейчас ход игрока {uno_player_name(participants[current_index])}.')
         top_card = (state.get('discard') or [None])[-1]
         hands = dict(state.get('hands') or {})
-        player_hand = uno_sort_hand(hands.get(wallet) or [])
+        player_hand = list(hands.get(wallet) or [])
         pending_draw_count = uno_pending_draw_count(state)
         if action_key == 'draw':
             if pending_draw_count > 0:
                 drawn = uno_draw_cards(state, pending_draw_count)
                 recycle_notice = uno_take_recycle_notice(state)
                 state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
-                hands[wallet] = uno_sort_hand(player_hand + drawn)
+                hands[wallet] = list(player_hand) + list(drawn)
                 state['hands'] = hands
                 state['pending_draw_count'] = 0
                 next_index = uno_next_player_index(state, current_index, 1)
@@ -30768,7 +31269,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
             recycle_notice = uno_take_recycle_notice(state)
             state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
             if drawn:
-                updated_hand = uno_sort_hand(player_hand + drawn)
+                updated_hand = list(player_hand) + list(drawn)
                 hands[wallet] = updated_hand
                 state['hands'] = hands
                 if uno_has_playable_card(updated_hand, top_card, state.get('current_color')):
@@ -30807,6 +31308,14 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
         save_uno_session(state)
     if state.get('complete'):
         return build_uno_session_payload(state, wallet)
+    if action_key == 'react':
+        state = uno_record_reaction(state, wallet, card_id)
+        save_uno_session(state)
+        return build_uno_session_payload(state, wallet)
+    if action_key == 'surrender':
+        state = uno_apply_surrender(state, wallet)
+        save_uno_session(state)
+        return build_uno_session_payload(state, wallet)
     active_alert = uno_active_alert(state)
     if action_key == 'uno':
         if not active_alert:
@@ -30827,7 +31336,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
             drawn = uno_draw_cards(state, pending_draw_count)
             recycle_notice = uno_take_recycle_notice(state)
             state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
-            state['player_hand'] = uno_sort_hand(list(state.get('player_hand') or []) + drawn)
+            state['player_hand'] = list(state.get('player_hand') or []) + list(drawn)
             state['pending_draw_count'] = 0
             state['last_action'] = f'Ты забрал стек +{len(drawn)}.{recycle_notice} Ход у {state.get("bot_name") or "UNO Bot"}.'
             state['turn'] = 'bot'
@@ -30841,7 +31350,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
                 state['last_action'] = f'Колода пуста.{recycle_notice} Ход переходит к боту.'
                 state['turn'] = 'bot'
             else:
-                state['player_hand'] = uno_sort_hand(list(state.get('player_hand') or []) + drawn)
+                state['player_hand'] = list(state.get('player_hand') or []) + list(drawn)
                 if uno_has_playable_card(state.get('player_hand') or [], top_card, state.get('current_color')):
                     state['last_action'] = f'Карта в руке. Теперь её можно тянуть на стол.{recycle_notice}'
                 else:
@@ -39182,6 +39691,7 @@ def api_uno_action():
     session_id = (payload.get('session_id') or '').strip()
     action = (payload.get('action') or '').strip().lower()
     card_id = (payload.get('card_id') or '').strip()
+    reaction_key = (payload.get('reaction_key') or '').strip().lower()
     chosen_color = (payload.get('chosen_color') or '').strip().lower()
     if not actor_id:
         return json_error('Нужно подключить кошелёк или войти как guest.')
@@ -39190,7 +39700,13 @@ def api_uno_action():
     if not session_id:
         return json_error('Не указан session_id.')
     try:
-        session = apply_uno_session_action(session_id, actor_id, action, card_id=card_id, chosen_color=chosen_color)
+        session = apply_uno_session_action(
+            session_id,
+            actor_id,
+            action,
+            card_id=reaction_key if action == 'react' else card_id,
+            chosen_color=chosen_color,
+        )
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'session': session, 'player': get_player(wallet) if valid_wallet_address(wallet) else None})
