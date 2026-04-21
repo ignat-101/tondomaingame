@@ -1486,8 +1486,7 @@ PAGE_TEMPLATE = """
         0 0 0 1px rgba(255,255,255,0.05);
     }
 
-    .uno-surface-tab-kicker,
-    .uno-mobile-nav-kicker {
+    .uno-surface-tab-kicker {
       position: relative;
       z-index: 1;
       display: block;
@@ -1499,8 +1498,7 @@ PAGE_TEMPLATE = """
       color: rgba(255,255,255,0.62);
     }
 
-    .uno-surface-tab-label,
-    .uno-mobile-nav-label {
+    .uno-surface-tab-label {
       position: relative;
       z-index: 1;
       display: block;
@@ -1511,8 +1509,7 @@ PAGE_TEMPLATE = """
       color: inherit;
     }
 
-    .uno-surface-tab-note,
-    .uno-mobile-nav-note {
+    .uno-surface-tab-note {
       position: relative;
       z-index: 1;
       display: block;
@@ -14265,13 +14262,6 @@ PAGE_TEMPLATE = """
       color: var(--uno-tab-text, #fff6ea);
       font-weight: 800;
       letter-spacing: 0.02em;
-      display: grid;
-      align-content: center;
-      justify-items: start;
-      text-align: left;
-      gap: 3px;
-      padding: 7px 10px 8px;
-      border-radius: 16px;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
         0 12px 22px rgba(0, 0, 0, 0.18);
@@ -14286,11 +14276,6 @@ PAGE_TEMPLATE = """
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.06),
         0 14px 24px rgba(0, 0, 0, 0.22);
-    }
-
-    body.uno-app-context .mobile-nav button.active .uno-mobile-nav-kicker,
-    body.uno-app-context .mobile-nav button.active .uno-mobile-nav-note {
-      color: rgba(28, 18, 7, 0.74);
     }
 
     body.uno-app-context .top-app-nav-link {
@@ -14456,22 +14441,6 @@ PAGE_TEMPLATE = """
       transform: translateY(-2px);
     }
 
-    body.uno-live-lock .mascot-side-launch {
-      position: fixed;
-      left: 10px;
-      top: calc(50% + 4px);
-      transform: translateY(-50%);
-      min-width: 48px;
-      min-height: 34px;
-      padding: 0 12px;
-      border-radius: 14px;
-      z-index: 55;
-    }
-
-    body.uno-live-lock .mascot-side-launch:hover:not(:disabled) {
-      transform: translateY(calc(-50% - 1px));
-    }
-
     @media (max-height: 760px) {
       body.tma-app.uno-live-lock .uno-shell.playing {
         padding: 6px;
@@ -14502,24 +14471,15 @@ PAGE_TEMPLATE = """
     }
 
     body.uno-live-lock .mobile-nav,
-    body.uno-live-lock .currency-float {
-      display: none !important;
-    }
-
+    body.uno-live-lock .currency-float,
     body.uno-live-lock .mascot-widget {
-      display: grid !important;
-      pointer-events: none;
-      background: none !important;
-      box-shadow: none !important;
+      display: none !important;
     }
 
     body.uno-live-lock .mascot-fab,
-    body.uno-live-lock .mascot-popover {
-      display: none !important;
-    }
-
+    body.uno-live-lock .mascot-popover,
     body.uno-live-lock .mascot-side-launch {
-      display: inline-flex !important;
+      display: none !important;
       pointer-events: auto;
     }
 
@@ -19576,23 +19536,9 @@ PAGE_TEMPLATE = """
         mascotUnoActions.hidden = !unoContext || !unoEnabled;
       }
       if (mascotSideUnoBtn) {
-        const activeUnoBattle = unoEnabled
-          && state.activeApp === 'uno'
-          && state.unoSession
-          && !state.unoSession.complete
-          && String(state.unoSession.status || '') === 'playing';
-        mascotSideUnoBtn.hidden = !activeUnoBattle;
+        mascotSideUnoBtn.hidden = true;
         mascotSideUnoBtn.textContent = 'UNO';
       }
-    }
-
-    function setUnoMobileNavButton(button, label, note = '') {
-      if (!button) return;
-      button.innerHTML = `
-        <span class="uno-mobile-nav-kicker">UNO</span>
-        <span class="uno-mobile-nav-label">${escapeHtml(label || '')}</span>
-        <span class="uno-mobile-nav-note">${escapeHtml(note || '')}</span>
-      `;
     }
 
     function syncMobileNavContext() {
@@ -19628,10 +19574,10 @@ PAGE_TEMPLATE = """
       }
       if (!navPack || !navModes || !navGuilds || !navAchievements) return;
       if (unoContext) {
-        setUnoMobileNavButton(navPack, 'Menu', 'Lobby');
-        setUnoMobileNavButton(navModes, 'Profile', 'Domain');
-        setUnoMobileNavButton(navGuilds, 'Clans', 'Rooms');
-        setUnoMobileNavButton(navAchievements, 'Pass', 'Season');
+        navPack.textContent = 'Menu';
+        navModes.textContent = 'Profile';
+        navGuilds.textContent = 'Clans';
+        navAchievements.textContent = 'Pass';
         [navPack, navModes, navGuilds, navAchievements].forEach((button) => button.classList.remove('active'));
         const activeButton = activeView === 'profile'
           ? navModes
