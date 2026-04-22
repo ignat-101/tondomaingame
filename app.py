@@ -14024,7 +14024,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) #view-uno {
-      padding: calc(42px + env(safe-area-inset-top)) 12px calc(156px + env(safe-area-inset-bottom));
+      padding: calc(42px + env(safe-area-inset-top)) 12px calc(124px + env(safe-area-inset-bottom));
       border-radius: 20px;
     }
 
@@ -14044,7 +14044,7 @@ PAGE_TEMPLATE = """
       height: var(--app-height, 100vh);
       min-height: var(--app-height, 100vh);
       overflow: hidden;
-      padding-bottom: calc(128px + env(safe-area-inset-bottom));
+      padding-bottom: calc(108px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.active {
@@ -14102,19 +14102,17 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       margin: 0;
       padding: 12px;
-      height: calc(var(--app-height, 100vh) - 238px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      max-height: calc(var(--app-height, 100vh) - 238px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      min-height: 0;
+      min-height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       border-radius: 24px;
       clip-path: inset(0 round 24px);
       box-sizing: border-box;
       overflow: hidden;
-      padding-bottom: calc(18px + env(safe-area-inset-bottom));
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
       background-clip: padding-box;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
-      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      padding-bottom: 12px;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-scroller,
@@ -14123,25 +14121,25 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-stage {
       min-height: 0;
       overflow-y: auto;
-      padding-bottom: calc(216px + env(safe-area-inset-bottom));
+      padding-bottom: calc(176px + env(safe-area-inset-bottom));
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
     }
 
-    body.tma-app.uno-app-context:not(.tma-desktop) #view-profile.active,
-    body.tma-app.uno-app-context:not(.tma-desktop) #view-guilds.active,
-    body.tma-app.uno-app-context:not(.tma-desktop) #view-achievements.active {
-      height: calc(var(--app-height, 100vh) - 238px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      max-height: calc(var(--app-height, 100vh) - 238px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell {
       min-height: 0;
-      overflow-y: auto;
-      overflow-x: clip;
-      padding-bottom: calc(216px + env(safe-area-inset-bottom));
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-      background-clip: padding-box;
-      clip-path: inset(0 round 28px);
+      height: auto;
+      max-height: none;
+      align-self: start;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller {
+      min-height: 0;
+      overflow-y: visible;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
