@@ -1639,11 +1639,23 @@ PAGE_TEMPLATE = """
       gap: 12px;
     }
 
+    .uno-shared-top {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .uno-shared-top .uno-home-title {
+      min-height: 0;
+    }
+
     .uno-shared-shell {
       display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
       gap: 12px;
-      overflow: hidden;
+      align-content: start;
+      overflow: clip;
     }
 
     .uno-shared-hero-card {
@@ -14101,7 +14113,7 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       margin: 0;
       padding: 12px;
-      min-height: calc(var(--app-height, 100vh) - 188px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       border-radius: 24px;
       clip-path: inset(0 round 24px);
       box-sizing: border-box;
@@ -14124,6 +14136,19 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
+    }
+
+    body.tma-app.uno-app-context:not(.tma-desktop) #view-profile.active,
+    body.tma-app.uno-app-context:not(.tma-desktop) #view-guilds.active,
+    body.tma-app.uno-app-context:not(.tma-desktop) #view-achievements.active {
+      min-height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      overflow-y: auto;
+      overflow-x: clip;
+      padding-bottom: calc(184px + env(safe-area-inset-bottom));
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      background-clip: padding-box;
+      clip-path: inset(0 round 28px);
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
@@ -14636,6 +14661,7 @@ PAGE_TEMPLATE = """
     body.uno-app-context #view-achievements.active,
     body.uno-app-context #view-guilds.active {
       display: grid;
+      align-content: start;
       gap: 14px;
       border-radius: 28px;
       border-color: var(--uno-shared-panel-border, rgba(255, 214, 74, 0.2));
@@ -14646,6 +14672,15 @@ PAGE_TEMPLATE = """
         0 28px 52px rgba(0, 0, 0, 0.24),
         inset 0 0 0 1px rgba(255,255,255,0.03);
       overflow: hidden;
+    }
+
+    body.uno-app-context #view-profile.active > h2,
+    body.uno-app-context #view-profile.active > p.muted,
+    body.uno-app-context #view-guilds.active > h2,
+    body.uno-app-context #view-guilds.active > p.muted,
+    body.uno-app-context #view-achievements.active > h2,
+    body.uno-app-context #view-achievements.active > p.muted {
+      display: none;
     }
 
     body.uno-app-context #view-profile .panel::before,
@@ -21421,15 +21456,15 @@ PAGE_TEMPLATE = """
     function unoSharedViewHeroContent(viewName) {
       return {
         profile: {
-          title: 'UNO Profile',
+          title: 'Profile',
           body: 'Общий профиль, домен и активные скины для матчей UNO.'
         },
         guilds: {
-          title: 'UNO Clans',
+          title: 'Clans',
           body: 'Кланы, комнаты и командный прогресс в том же живом стиле, что и меню UNO.'
         },
         achievements: {
-          title: 'UNO Pass',
+          title: 'Pass',
           body: 'Сезонный пропуск, задания и награды в отдельной UNO-витрине.'
         }
       }[String(viewName || '')] || null;
@@ -21457,22 +21492,20 @@ PAGE_TEMPLATE = """
       nav.dataset.unoSharedNav = safeView;
       nav.innerHTML = unoSurfaceActionsMarkup(safeView, {tiles: true});
       const hero = document.createElement('div');
-      hero.className = 'uno-shared-hero-card';
+      hero.className = 'uno-home-top uno-shared-top';
       hero.dataset.unoSharedHero = safeView;
-      hero.style.setProperty('--uno-banner-surface', theme.bannerSurface || '');
-      hero.style.setProperty('--uno-banner-art', theme.bannerArt || 'none');
       hero.innerHTML = `
-        <span class="uno-shared-kicker">UNO</span>
-        <h2>${escapeHtml(content.title)}</h2>
-        <p>${escapeHtml(content.body)}</p>
+        <div class="uno-home-title">
+          ${unoBrandBadge(content.title, theme.bannerSurface || '')}
+        </div>
       `;
       const firstElement = Array.from(view.children).find((node) => node.nodeType === 1);
       if (firstElement) {
-        view.insertBefore(nav, firstElement);
         view.insertBefore(hero, firstElement);
+        view.insertBefore(nav, firstElement);
       } else {
-        view.appendChild(nav);
         view.appendChild(hero);
+        view.appendChild(nav);
       }
       bindUnoSurfaceActions(nav);
       view.classList.add('uno-shared-shell');
