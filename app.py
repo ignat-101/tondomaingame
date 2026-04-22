@@ -1247,6 +1247,7 @@ PAGE_TEMPLATE = """
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-top: auto;
       text-align: center;
       font-size: 12px;
       color: rgba(214, 230, 248, 0.76);
@@ -2638,9 +2639,9 @@ PAGE_TEMPLATE = """
       border-radius: 24px;
       overflow: hidden;
       background:
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
-        linear-gradient(180deg, rgba(8, 14, 24, 0.02), rgba(7, 12, 21, 0.06)),
-        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.08), transparent 30%);
+        linear-gradient(180deg, rgba(8, 14, 24, 0.56), rgba(7, 12, 21, 0.72)),
+        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.05), transparent 30%),
+        var(--uno-live-shell-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
         inset 0 18px 34px rgba(255,255,255,0.02);
@@ -2654,9 +2655,8 @@ PAGE_TEMPLATE = """
       background:
         linear-gradient(180deg, rgba(8, 14, 24, 0.01), rgba(8, 12, 20, 0.04)),
         radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.06), transparent 26%),
-        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.06), transparent 30%),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
-      opacity: 0.84;
+        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.05), transparent 30%);
+      opacity: 0.52;
       pointer-events: none;
     }
 
@@ -2668,9 +2668,8 @@ PAGE_TEMPLATE = """
       border: 1px solid rgba(255,255,255,0.06);
       background:
         linear-gradient(135deg, rgba(255,255,255,0.03), transparent 42%),
-        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.04), transparent 24%),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
-      opacity: 0.48;
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.04), transparent 24%);
+      opacity: 0.24;
       pointer-events: none;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -2687,9 +2686,8 @@ PAGE_TEMPLATE = """
       inset: 8px;
       border-radius: 20px;
       background:
-        linear-gradient(180deg, rgba(7, 12, 20, 0.01), rgba(7, 12, 20, 0.04)),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
-      opacity: 1;
+        linear-gradient(180deg, rgba(7, 12, 20, 0.02), rgba(7, 12, 20, 0.06));
+      opacity: 0.9;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.05),
         0 14px 26px rgba(0,0,0,0.1);
@@ -2704,9 +2702,8 @@ PAGE_TEMPLATE = """
       border-radius: inherit;
       background:
         radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04), transparent 54%),
-        linear-gradient(135deg, rgba(255,255,255,0.03), transparent 48%),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
-      opacity: 1;
+        linear-gradient(135deg, rgba(255,255,255,0.03), transparent 48%);
+      opacity: 0.42;
     }
 
     .uno-stack {
@@ -3345,22 +3342,24 @@ PAGE_TEMPLATE = """
 
     .uno-reaction-float {
       position: absolute;
-      top: -8px;
-      right: 0;
-      min-width: 44px;
-      height: 44px;
-      padding: 0 10px;
+      top: -12px;
+      right: 2px;
+      min-width: 56px;
+      height: 56px;
+      padding: 0 12px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.22);
       background:
         linear-gradient(180deg, rgba(13, 20, 32, 0.94), rgba(9, 14, 22, 0.98)),
         radial-gradient(circle at top, rgba(255, 214, 74, 0.14), transparent 72%);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
-      animation: unoReactionFloat 1.8s ease-out both;
+      font-size: 30px;
+      box-shadow:
+        0 22px 42px rgba(0, 0, 0, 0.28),
+        0 0 0 1px rgba(255,255,255,0.06);
+      animation: unoReactionFloat 2.2s ease-out both;
       z-index: 4;
       pointer-events: none;
     }
@@ -3652,7 +3651,8 @@ PAGE_TEMPLATE = """
       border-radius: 28px;
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
-        linear-gradient(180deg, rgba(8, 18, 30, 0.08), rgba(7, 12, 22, 0.18)),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
+        linear-gradient(180deg, rgba(8, 18, 30, 0.14), rgba(7, 12, 22, 0.26)),
         radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 62%),
         var(--uno-live-shell-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
@@ -3669,8 +3669,9 @@ PAGE_TEMPLATE = """
       border-radius: 22px;
       background:
         linear-gradient(180deg, rgba(8, 14, 23, 0.01), rgba(8, 12, 18, 0.03)),
-        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.03), transparent 20%);
-      opacity: 0.28;
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.03), transparent 20%),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
+      opacity: 0.46;
       pointer-events: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
     }
@@ -8002,6 +8003,109 @@ PAGE_TEMPLATE = """
       grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
       gap: 10px;
       perspective: 1200px;
+    }
+
+    .battle-reaction-hud {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      z-index: 8;
+      display: grid;
+      gap: 10px;
+      justify-items: start;
+      pointer-events: none;
+    }
+
+    .battle-reaction-hud > * {
+      pointer-events: auto;
+    }
+
+    .battle-reaction-toggle {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      border: 1px solid rgba(121, 217, 255, 0.2);
+      background:
+        linear-gradient(180deg, rgba(10, 18, 31, 0.96), rgba(7, 13, 22, 0.98)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.14), transparent 72%);
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.24),
+        inset 0 0 0 1px rgba(255,255,255,0.04);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .battle-reaction-sheet {
+      display: none;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(121, 217, 255, 0.18);
+      background:
+        linear-gradient(180deg, rgba(10, 18, 31, 0.96), rgba(7, 13, 22, 0.98)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.14), transparent 72%);
+      box-shadow: 0 16px 34px rgba(0,0,0,0.24);
+      min-width: 154px;
+    }
+
+    .battle-reaction-sheet.visible {
+      display: grid;
+    }
+
+    .battle-reaction-option {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background:
+        linear-gradient(180deg, rgba(17, 23, 36, 0.92), rgba(10, 15, 24, 0.98)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.1), transparent 68%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    }
+
+    .battle-reaction-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 7;
+      overflow: visible;
+    }
+
+    .battle-reaction-burst {
+      position: absolute;
+      left: 50%;
+      top: 44%;
+      min-width: 66px;
+      height: 66px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background:
+        linear-gradient(180deg, rgba(13, 20, 32, 0.96), rgba(9, 14, 22, 0.99)),
+        radial-gradient(circle at top, rgba(255, 214, 74, 0.16), transparent 72%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      box-shadow:
+        0 26px 54px rgba(0, 0, 0, 0.28),
+        0 0 0 1px rgba(255,255,255,0.06);
+      transform: translate(-50%, -50%);
+      animation: battleReactionFloat 2.1s ease-out both;
+    }
+
+    @keyframes battleReactionFloat {
+      0% { opacity: 0; transform: translate(-50%, -10%) scale(0.82); }
+      16% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -88%) scale(1.08); }
     }
 
     .interactive-action-btn {
@@ -14054,7 +14158,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) #view-uno {
-      padding: calc(42px + env(safe-area-inset-top)) 12px calc(16px + env(safe-area-inset-bottom));
+      padding: calc(42px + env(safe-area-inset-top)) 12px 0;
       border-radius: 20px;
     }
 
@@ -14074,7 +14178,7 @@ PAGE_TEMPLATE = """
       height: var(--app-height, 100vh);
       min-height: var(--app-height, 100vh);
       overflow: hidden;
-      padding-bottom: calc(108px + env(safe-area-inset-bottom));
+      padding-bottom: 0;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.active {
@@ -14084,7 +14188,7 @@ PAGE_TEMPLATE = """
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
-      align-items: start;
+      align-items: stretch;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
     }
@@ -14102,14 +14206,14 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout {
       height: auto;
-      min-height: 100%;
+      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top));
       align-content: stretch;
       align-items: stretch;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout .uno-home-shell {
       height: auto !important;
-      min-height: calc(var(--app-height, 100vh) - 54px - env(safe-area-inset-top)) !important;
+      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top)) !important;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
@@ -14153,7 +14257,7 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       margin: 0;
       padding: 12px;
-      min-height: calc(var(--app-height, 100vh) - 82px - env(safe-area-inset-top));
+      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top));
       border-radius: 24px;
       clip-path: inset(0 round 24px);
       box-sizing: border-box;
@@ -16789,7 +16893,9 @@ PAGE_TEMPLATE = """
       tmaFullscreenRequestedAt: 0,
       currencyFloatCollapsed: false,
       unoGuestCompletedMatches: 0,
-      unoLastCompletedSessionId: ''
+      unoLastCompletedSessionId: '',
+      battleReactionOpen: false,
+      battleReactionTimer: null
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -16807,6 +16913,14 @@ PAGE_TEMPLATE = """
     const unoGuestIdStorageKey = 'tondomaingame_uno_guest_id_v1';
     const unoGuestNameStorageKey = 'tondomaingame_uno_guest_name_v1';
     const unoGuestMatchesStorageKey = 'tondomaingame_uno_guest_matches_v1';
+    const sharedBattleReactions = [
+      {key: 'fire', emoji: '🔥', label: 'Огонь'},
+      {key: 'laugh', emoji: '😂', label: 'Смешно'},
+      {key: 'wow', emoji: '😮', label: 'Вау'},
+      {key: 'thumbs', emoji: '👍', label: 'Ок'},
+      {key: 'clap', emoji: '👏', label: 'Аплодисменты'},
+      {key: 'skull', emoji: '💀', label: 'Разнос'},
+    ];
     if (initialDuelInviteId) {
       state.pendingDuelLaunch = {
         inviteId: initialDuelInviteId,
@@ -20894,7 +21008,38 @@ PAGE_TEMPLATE = """
 
     function cosmeticEmojiSymbol(cosmetics) {
       if (!cosmetics || !cosmetics.emoji) return '';
-      return String(cosmetics.emoji.emoji || '•').trim();
+      const explicit = String((cosmetics.emoji && cosmetics.emoji.emoji) || '').trim();
+      if (explicit) return explicit;
+      const emojiKey = String((cosmetics.emoji && cosmetics.emoji.key) || '').trim().toLowerCase();
+      if (!emojiKey) return '';
+      const catalog = Array.isArray((state.playerProfile && state.playerProfile.rewards && state.playerProfile.rewards.cosmetic_catalog))
+        ? state.playerProfile.rewards.cosmetic_catalog
+        : [];
+      const catalogMatch = catalog.find((item) => String((item && item.key) || '').trim().toLowerCase() === emojiKey);
+      if (catalogMatch && catalogMatch.emoji) return String(catalogMatch.emoji || '').trim();
+      const keyMap = {
+        emoji_leaf: '🌿',
+        emoji_wave: '🌊',
+        emoji_spade: '♠️',
+        emoji_club: '♣️',
+        emoji_swords: '⚔️',
+        emoji_diamond: '💠',
+        emoji_crown: '👑',
+        emoji_shield: '🛡️',
+        emoji_flame: '🔥',
+        emoji_moon: '🌙',
+        emoji_star: '⭐',
+        emoji_bolt: '⚡',
+        emoji_gem: '💎',
+        emoji_eye: '🧿',
+        emoji_ice: '❄️',
+        emoji_sun: '☀️',
+        emoji_comet: '☄️',
+        emoji_trident: '🔱',
+        emoji_anchor: '⚓',
+        emoji_stock_dot: '•',
+      };
+      return keyMap[emojiKey] || '';
     }
 
     function cosmeticEmojiBadge(cosmetics) {
@@ -22696,6 +22841,56 @@ PAGE_TEMPLATE = """
     function unoReactionBubbleMarkup(reaction) {
       if (!reaction || !reaction.emoji) return '';
       return `<div class="uno-reaction-float" aria-hidden="true">${escapeHtml(reaction.emoji)}</div>`;
+    }
+
+    function battleReactionHudMarkup() {
+      return `
+        <div class="battle-reaction-hud">
+          <button type="button" class="battle-reaction-toggle" id="battle-reaction-toggle" aria-label="Эмодзи реакции">💬</button>
+          <div class="battle-reaction-sheet${state.battleReactionOpen ? ' visible' : ''}" id="battle-reaction-sheet">
+            ${sharedBattleReactions.map((item) => `<button type="button" class="battle-reaction-option" data-battle-reaction="${escapeHtml(item.key)}" title="${escapeHtml(item.label)}">${escapeHtml(item.emoji)}</button>`).join('')}
+          </div>
+          <div class="battle-reaction-layer" id="battle-reaction-layer"></div>
+        </div>
+      `;
+    }
+
+    function clearBattleReactionFx() {
+      if (state.battleReactionTimer) {
+        window.clearTimeout(state.battleReactionTimer);
+        state.battleReactionTimer = null;
+      }
+      const layer = battleResult ? battleResult.querySelector('#battle-reaction-layer') : null;
+      if (layer) {
+        layer.innerHTML = '';
+      }
+    }
+
+    function toggleBattleReactionSheet(force = null) {
+      state.battleReactionOpen = typeof force === 'boolean' ? force : !state.battleReactionOpen;
+      const sheet = battleResult ? battleResult.querySelector('#battle-reaction-sheet') : null;
+      if (sheet) {
+        sheet.classList.toggle('visible', state.battleReactionOpen);
+      }
+    }
+
+    function triggerBattleReactionFx(reactionKey = '') {
+      const reaction = sharedBattleReactions.find((item) => String(item.key || '') === String(reactionKey || ''));
+      if (!reaction) return;
+      state.battleReactionOpen = false;
+      const sheet = battleResult ? battleResult.querySelector('#battle-reaction-sheet') : null;
+      if (sheet) {
+        sheet.classList.remove('visible');
+      }
+      const layer = battleResult ? battleResult.querySelector('#battle-reaction-layer') : null;
+      if (!layer) return;
+      clearBattleReactionFx();
+      layer.innerHTML = `<div class="battle-reaction-burst" aria-hidden="true">${escapeHtml(reaction.emoji || '🙂')}</div>`;
+      state.battleReactionTimer = window.setTimeout(() => {
+        const activeLayer = battleResult ? battleResult.querySelector('#battle-reaction-layer') : null;
+        if (activeLayer) activeLayer.innerHTML = '';
+        state.battleReactionTimer = null;
+      }, 2200);
     }
 
     function bindUnoSurfaceActions(root = document) {
@@ -24837,6 +25032,8 @@ PAGE_TEMPLATE = """
     function renderBattleResult(result) {
       clearInteractiveChoiceTimer();
       clearBattleAutostartTimer();
+      clearBattleReactionFx();
+      state.battleReactionOpen = false;
       setBattleLaunchInFlight(false);
       state.lastReplayTapAt = 0;
       setBattleLiveLock(false);
@@ -25108,6 +25305,7 @@ PAGE_TEMPLATE = """
                     </div>
                   </div>
                 </div>
+                ${result.interactive_session_id ? battleReactionHudMarkup() : ''}
               </div>
               <div class="arena-rail player">
                 <div class="tiny"><strong>Колода пользователя</strong> • <span class="arena-domain-label">${result.player_domain}.ton</span></div>
@@ -25154,6 +25352,8 @@ PAGE_TEMPLATE = """
         const interactiveTimer = battleResult.querySelector('#interactive-timer');
         const skipLiveTutorialBtn = battleResult.querySelector('#skip-live-tutorial-btn');
         const cancelBattleBtn = battleResult.querySelector('#cancel-battle-btn');
+        const battleReactionToggleBtn = battleResult.querySelector('#battle-reaction-toggle');
+        const battleReactionButtons = Array.from(battleResult.querySelectorAll('[data-battle-reaction]'));
         const applyPrebattlePreset = (preset) => {
           const meta = tutorialBuildPresetMeta(preset || 'balanced');
           if (prebattleBuildChart) {
@@ -25198,6 +25398,12 @@ PAGE_TEMPLATE = """
           }
           startInteractiveChoiceTimer(interactiveTimer, () => handleInteractiveBattleChoice('guard', null, true), 850);
         };
+        if (battleReactionToggleBtn) {
+          battleReactionToggleBtn.addEventListener('click', () => toggleBattleReactionSheet());
+        }
+        battleReactionButtons.forEach((button) => {
+          button.addEventListener('click', () => triggerBattleReactionFx(button.dataset.battleReaction || ''));
+        });
         if (result.battle_session_id && prebattleStage) {
           prebattleStage.classList.add('accept-pop');
           setTimeout(() => prebattleStage.classList.remove('accept-pop'), 760);
