@@ -1072,8 +1072,7 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 14% 12%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.22)), transparent 28%),
         radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.18), transparent 26%),
         radial-gradient(circle at 50% 100%, rgba(49, 168, 255, 0.16), transparent 34%),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
-        linear-gradient(180deg, rgba(12, 18, 30, 0.92), rgba(7, 12, 22, 0.95));
+        var(--uno-shell-surface, linear-gradient(180deg, rgba(12, 18, 30, 0.92), rgba(7, 12, 22, 0.95)));
       box-shadow:
         0 28px 56px rgba(0, 0, 0, 0.34),
         inset 0 0 0 1px rgba(255, 255, 255, 0.03);
@@ -1242,8 +1241,8 @@ PAGE_TEMPLATE = """
     }
 
     .uno-shell-footer {
-      min-height: 54px;
-      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      min-height: 96px;
+      padding: 24px 14px calc(34px + env(safe-area-inset-bottom));
       border-top: 1px solid rgba(255,255,255,0.08);
       display: flex;
       align-items: center;
@@ -1253,7 +1252,7 @@ PAGE_TEMPLATE = """
       color: rgba(214, 230, 248, 0.76);
       background:
         linear-gradient(180deg, rgba(8, 14, 24, 0.04), rgba(5, 10, 18, 0.16)),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
+        var(--uno-shell-surface, linear-gradient(180deg, rgba(12, 18, 30, 0.92), rgba(7, 12, 22, 0.95)));
     }
 
     .uno-shell-footer a {
@@ -2640,7 +2639,7 @@ PAGE_TEMPLATE = """
       overflow: hidden;
       background:
         var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
-        linear-gradient(180deg, rgba(8, 14, 24, 0.02), rgba(7, 12, 21, 0.08)),
+        linear-gradient(180deg, rgba(8, 14, 24, 0.02), rgba(7, 12, 21, 0.06)),
         radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.08), transparent 30%);
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
@@ -2657,7 +2656,7 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.06), transparent 26%),
         radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.06), transparent 30%),
         var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
-      opacity: 0.72;
+      opacity: 0.84;
       pointer-events: none;
     }
 
@@ -2671,7 +2670,7 @@ PAGE_TEMPLATE = """
         linear-gradient(135deg, rgba(255,255,255,0.03), transparent 42%),
         radial-gradient(circle at 18% 18%, rgba(255,255,255,0.04), transparent 24%),
         var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
-      opacity: 0.34;
+      opacity: 0.48;
       pointer-events: none;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -2707,7 +2706,7 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04), transparent 54%),
         linear-gradient(135deg, rgba(255,255,255,0.03), transparent 48%),
         var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
-      opacity: 0.96;
+      opacity: 1;
     }
 
     .uno-stack {
@@ -3653,10 +3652,9 @@ PAGE_TEMPLATE = """
       border-radius: 28px;
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
         linear-gradient(180deg, rgba(8, 18, 30, 0.08), rgba(7, 12, 22, 0.18)),
         radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 62%),
-        var(--uno-panel-surface, rgba(7, 16, 29, 0.76));
+        var(--uno-live-shell-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
         0 18px 34px var(--uno-panel-shadow, rgba(0, 0, 0, 0.2));
@@ -3671,9 +3669,8 @@ PAGE_TEMPLATE = """
       border-radius: 22px;
       background:
         linear-gradient(180deg, rgba(8, 14, 23, 0.01), rgba(8, 12, 18, 0.03)),
-        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.03), transparent 20%),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
-      opacity: 0.42;
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.03), transparent 20%);
+      opacity: 0.28;
       pointer-events: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
     }
@@ -14112,7 +14109,7 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout .uno-home-shell {
       height: auto !important;
-      min-height: calc(var(--app-height, 100vh) - 70px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+      min-height: calc(var(--app-height, 100vh) - 54px - env(safe-area-inset-top)) !important;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
@@ -14156,17 +14153,17 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       margin: 0;
       padding: 12px;
-      min-height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: calc(var(--app-height, 100vh) - 82px - env(safe-area-inset-top));
       border-radius: 24px;
       clip-path: inset(0 round 24px);
       box-sizing: border-box;
       overflow: hidden;
-      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      padding-bottom: 0;
       background-clip: padding-box;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
-      padding-bottom: 12px;
+      padding-bottom: 0;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-scroller,
@@ -14192,8 +14189,8 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell .uno-shell-footer,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell .uno-shell-footer {
-      min-height: calc(108px + env(safe-area-inset-bottom));
-      padding-bottom: calc(86px + env(safe-area-inset-bottom));
+      min-height: calc(138px + env(safe-area-inset-bottom));
+      padding-bottom: calc(54px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
@@ -22800,7 +22797,7 @@ PAGE_TEMPLATE = """
         `radial-gradient(circle at 82% 18%, ${hexToRgba(arenaTheme.secondary, 0.12)}, transparent 26%)`,
         `linear-gradient(180deg, ${hexToRgba(arenaTheme.secondary, 0.32)}, ${hexToRgba(arenaTheme.base, 0.76)})`,
       ].join(',');
-      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-surface:${escapeHtml(unoTheme.arenaSurface || 'none')};--uno-arena-focus-surface:${escapeHtml(unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-arena-board-surface:${escapeHtml(unoTheme.arenaBoardSurface || unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-live-shell-surface:${escapeHtml(liveShellSurface)};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
+      const shellVisualStyle = `--uno-shell-surface:${escapeHtml(tableSurface)};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-surface:${escapeHtml(unoTheme.arenaSurface || 'none')};--uno-arena-focus-surface:${escapeHtml(unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-arena-board-surface:${escapeHtml(unoTheme.arenaBoardSurface || unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-live-shell-surface:${escapeHtml(liveShellSurface)};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
       const unoHeaderClass = bannerSurface ? 'uno-header skin-banner' : 'uno-header';
       const unoHeaderStyle = bannerSurface ? ` style="--uno-banner-surface:${escapeHtml(bannerSurface)};"` : '';
       const sessionStatus = String((session && session.status) || '');
