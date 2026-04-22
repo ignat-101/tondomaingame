@@ -1211,7 +1211,7 @@ PAGE_TEMPLATE = """
 
     .uno-home-shell {
       display: grid;
-      grid-template-rows: auto auto auto minmax(0, 1fr);
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto;
       align-content: stretch;
       gap: 12px;
       overflow: hidden;
@@ -1231,6 +1231,26 @@ PAGE_TEMPLATE = """
       touch-action: pan-y;
       padding-right: 2px;
       padding-bottom: 10px;
+    }
+
+    .uno-shell-footer {
+      min-height: 54px;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(214, 230, 248, 0.76);
+      background:
+        linear-gradient(180deg, rgba(8, 14, 24, 0.08), rgba(5, 10, 18, 0.28)),
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
+    }
+
+    .uno-shell-footer a {
+      color: rgba(126, 226, 255, 0.98);
+      text-decoration: none;
     }
 
     .uno-home-top {
@@ -3018,7 +3038,9 @@ PAGE_TEMPLATE = """
       padding: 14px 16px;
       border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(7, 16, 29, 0.72);
+      background:
+        linear-gradient(180deg, rgba(7, 16, 29, 0.66), rgba(7, 16, 29, 0.82)),
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
       color: #eef8ff;
     }
 
@@ -3038,17 +3060,23 @@ PAGE_TEMPLATE = """
 
     .uno-result-box.outcome-win {
       border-color: rgba(83, 246, 184, 0.24);
-      background: linear-gradient(180deg, rgba(8, 34, 26, 0.88), rgba(7, 16, 29, 0.76));
+      background:
+        linear-gradient(180deg, rgba(8, 34, 26, 0.78), rgba(7, 16, 29, 0.7)),
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
     }
 
     .uno-result-box.outcome-loss {
       border-color: rgba(255, 122, 134, 0.24);
-      background: linear-gradient(180deg, rgba(42, 12, 18, 0.88), rgba(7, 16, 29, 0.76));
+      background:
+        linear-gradient(180deg, rgba(42, 12, 18, 0.78), rgba(7, 16, 29, 0.7)),
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
     }
 
     .uno-result-box.outcome-draw {
       border-color: rgba(255, 214, 74, 0.24);
-      background: linear-gradient(180deg, rgba(43, 31, 8, 0.88), rgba(7, 16, 29, 0.76));
+      background:
+        linear-gradient(180deg, rgba(43, 31, 8, 0.78), rgba(7, 16, 29, 0.7)),
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
     }
 
     .uno-result-box::after {
@@ -3616,10 +3644,9 @@ PAGE_TEMPLATE = """
       border-radius: 28px;
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
-        linear-gradient(180deg, rgba(8, 18, 30, 0.36), rgba(7, 12, 22, 0.54)),
+        linear-gradient(180deg, rgba(8, 18, 30, 0.16), rgba(7, 12, 22, 0.28)),
         radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 62%),
-        var(--uno-arena-art, none),
-        var(--uno-arena-surface, none),
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none)),
         var(--uno-panel-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -3634,12 +3661,10 @@ PAGE_TEMPLATE = """
       inset: 14px;
       border-radius: 22px;
       background:
-        linear-gradient(180deg, rgba(8, 14, 23, 0.02), rgba(8, 12, 18, 0.1)),
+        linear-gradient(180deg, rgba(8, 14, 23, 0.01), rgba(8, 12, 18, 0.04)),
         radial-gradient(circle at 50% 44%, rgba(255,255,255,0.04), transparent 20%),
-        var(--uno-panel-art, none),
-        var(--uno-arena-surface, none),
-        var(--uno-arena-art, none);
-      opacity: 0.78;
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
+      opacity: 0.54;
       pointer-events: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
     }
@@ -3804,8 +3829,7 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 50% 18%, rgba(255, 214, 74, 0.18), transparent 22%),
         radial-gradient(circle at 18% 84%, rgba(255, 91, 87, 0.12), transparent 24%),
         radial-gradient(circle at 82% 18%, rgba(78, 186, 255, 0.12), transparent 26%),
-        var(--uno-arena-surface, none),
-        var(--uno-arena-art, none),
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none)),
         linear-gradient(180deg, rgba(7, 13, 23, 0.82), rgba(5, 10, 18, 0.95));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
@@ -14136,8 +14160,8 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell {
       min-height: 0 !important;
-      height: auto !important;
-      max-height: none !important;
+      height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+      max-height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
       align-self: start;
       overflow: clip;
     }
@@ -14145,8 +14169,8 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller {
       min-height: 0;
-      overflow-y: visible;
-      padding-bottom: 0;
+      overflow-y: auto;
+      padding-bottom: 12px;
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
@@ -21367,12 +21391,18 @@ PAGE_TEMPLATE = """
         bannerSurface,
         backSurface,
         arenaSurface,
-        tableSurface: [
+        arenaFocusSurface: [
+          'linear-gradient(180deg, rgba(7, 12, 20, 0.14), rgba(5, 10, 18, 0.24))',
           arenaArt,
-          unoReferenceSurface(colorKey, arenaSurface),
+          arenaSurface,
+        ].join(','),
+        tableSurface: [
+          'linear-gradient(180deg, rgba(6, 11, 18, 0.28), rgba(5, 10, 18, 0.44))',
+          arenaArt,
+          arenaSurface,
         ].join(','),
         panelSurface: [
-          'linear-gradient(180deg, rgba(8, 16, 27, 0.74), rgba(7, 12, 20, 0.92))',
+          'linear-gradient(180deg, rgba(8, 16, 27, 0.54), rgba(7, 12, 20, 0.74))',
           arenaArt,
           arenaSurface,
         ].join(','),
@@ -21484,6 +21514,10 @@ PAGE_TEMPLATE = """
         </div>
         ${unoSurfaceActionsMarkup(activeTab, {tiles: true})}
       `;
+    }
+
+    function unoShellFooterMarkup() {
+      return `<div class="uno-shell-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>`;
     }
 
     function unoSharedViewHeroContent(viewName) {
@@ -22684,7 +22718,7 @@ PAGE_TEMPLATE = """
         textColor: backTheme.text,
         edgeMark: backMark,
       };
-      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-surface:${escapeHtml(unoTheme.arenaSurface || 'none')};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
+      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-surface:${escapeHtml(unoTheme.arenaSurface || 'none')};--uno-arena-focus-surface:${escapeHtml(unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
       const unoHeaderClass = bannerSurface ? 'uno-header skin-banner' : 'uno-header';
       const unoHeaderStyle = bannerSurface ? ` style="--uno-banner-surface:${escapeHtml(bannerSurface)};"` : '';
       const sessionStatus = String((session && session.status) || '');
@@ -22772,6 +22806,7 @@ PAGE_TEMPLATE = """
                 </div>
               `}
             </div>
+            ${unoShellFooterMarkup()}
           </div>
         `;
         const unoRookieStartBtn = document.getElementById('uno-rookie-start-btn');
@@ -22871,6 +22906,7 @@ PAGE_TEMPLATE = """
                 </div>
               </div>
             </div>
+            ${unoShellFooterMarkup()}
           </div>
         `;
         const unoAfterBotBtn = document.getElementById('uno-after-bot-btn');
