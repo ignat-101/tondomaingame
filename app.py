@@ -1634,21 +1634,10 @@ PAGE_TEMPLATE = """
       color: rgba(28, 18, 7, 0.78);
     }
 
-    .uno-shared-nav {
+    .uno-shared-header {
       display: grid;
       gap: 12px;
-    }
-
-    .uno-shared-top {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .uno-shared-top .uno-home-title {
-      min-height: 0;
+      align-content: start;
     }
 
     .uno-shared-shell {
@@ -14035,7 +14024,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) #view-uno {
-      padding: calc(42px + env(safe-area-inset-top)) 12px calc(124px + env(safe-area-inset-bottom));
+      padding: calc(42px + env(safe-area-inset-top)) 12px calc(156px + env(safe-area-inset-bottom));
       border-radius: 20px;
     }
 
@@ -14055,7 +14044,7 @@ PAGE_TEMPLATE = """
       height: var(--app-height, 100vh);
       min-height: var(--app-height, 100vh);
       overflow: hidden;
-      padding-bottom: calc(108px + env(safe-area-inset-bottom));
+      padding-bottom: calc(128px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.active {
@@ -14113,17 +14102,19 @@ PAGE_TEMPLATE = """
       max-width: 100%;
       margin: 0;
       padding: 12px;
-      min-height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(var(--app-height, 100vh) - 238px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      max-height: calc(var(--app-height, 100vh) - 238px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: 0;
       border-radius: 24px;
       clip-path: inset(0 round 24px);
       box-sizing: border-box;
       overflow: hidden;
-      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      padding-bottom: calc(18px + env(safe-area-inset-bottom));
       background-clip: padding-box;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
-      padding-bottom: 12px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-scroller,
@@ -14132,7 +14123,7 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-stage {
       min-height: 0;
       overflow-y: auto;
-      padding-bottom: calc(176px + env(safe-area-inset-bottom));
+      padding-bottom: calc(216px + env(safe-area-inset-bottom));
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
@@ -14141,10 +14132,12 @@ PAGE_TEMPLATE = """
     body.tma-app.uno-app-context:not(.tma-desktop) #view-profile.active,
     body.tma-app.uno-app-context:not(.tma-desktop) #view-guilds.active,
     body.tma-app.uno-app-context:not(.tma-desktop) #view-achievements.active {
-      min-height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(var(--app-height, 100vh) - 238px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      max-height: calc(var(--app-height, 100vh) - 238px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: 0;
       overflow-y: auto;
       overflow-x: clip;
-      padding-bottom: calc(184px + env(safe-area-inset-bottom));
+      padding-bottom: calc(216px + env(safe-area-inset-bottom));
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       background-clip: padding-box;
@@ -21453,6 +21446,15 @@ PAGE_TEMPLATE = """
       `;
     }
 
+    function unoSurfaceHeaderMarkup(activeTab = 'menu', cosmeticSurface = '') {
+      return `
+        <div class="uno-home-top">
+          <div class="uno-home-title">${unoBrandBadge('UNO', cosmeticSurface)}</div>
+        </div>
+        ${unoSurfaceActionsMarkup(activeTab, {tiles: true})}
+      `;
+    }
+
     function unoSharedViewHeroContent(viewName) {
       return {
         profile: {
@@ -21477,8 +21479,6 @@ PAGE_TEMPLATE = """
         view.classList.remove('uno-shared-shell');
         const existing = view.querySelector(`[data-uno-shared-hero="${viewName}"]`);
         if (existing) existing.remove();
-        const existingNav = view.querySelector(`[data-uno-shared-nav="${viewName}"]`);
-        if (existingNav) existingNav.remove();
       });
       if (state.activeApp !== 'uno') return;
       const safeView = String(activeView || document.body.dataset.activeView || '').trim().toLowerCase();
@@ -21487,27 +21487,17 @@ PAGE_TEMPLATE = """
       const view = document.getElementById(`view-${safeView}`);
       if (!view) return;
       const theme = currentUnoSharedTheme();
-      const nav = document.createElement('div');
-      nav.className = 'uno-shared-nav';
-      nav.dataset.unoSharedNav = safeView;
-      nav.innerHTML = unoSurfaceActionsMarkup(safeView, {tiles: true});
       const hero = document.createElement('div');
-      hero.className = 'uno-home-top uno-shared-top';
+      hero.className = 'uno-shared-header';
       hero.dataset.unoSharedHero = safeView;
-      hero.innerHTML = `
-        <div class="uno-home-title">
-          ${unoBrandBadge(content.title, theme.bannerSurface || '')}
-        </div>
-      `;
+      hero.innerHTML = unoSurfaceHeaderMarkup(safeView, theme.bannerSurface || '');
       const firstElement = Array.from(view.children).find((node) => node.nodeType === 1);
       if (firstElement) {
         view.insertBefore(hero, firstElement);
-        view.insertBefore(nav, firstElement);
       } else {
         view.appendChild(hero);
-        view.appendChild(nav);
       }
-      bindUnoSurfaceActions(nav);
+      bindUnoSurfaceActions(hero);
       view.classList.add('uno-shared-shell');
     }
 
@@ -22698,12 +22688,9 @@ PAGE_TEMPLATE = """
           restoreUnoSession().catch(() => {});
           return;
         }
-      unoRoot.innerHTML = `
+        unoRoot.innerHTML = `
           <div class="uno-shell landing uno-home-shell" style="${shellVisualStyle}">
-            <div class="uno-home-top">
-              <div class="uno-home-title">${unoBrandBadge('UNO', bannerSurface)}</div>
-            </div>
-            ${unoSurfaceActionsMarkup('menu', {tiles: true})}
+            ${unoSurfaceHeaderMarkup('menu', bannerSurface)}
             <div class="uno-meta-strip">
               <div class="uno-chip">${identity.progressEnabled ? `Профиль ${escapeHtml(identityLabel)}` : 'Guest-режим'}</div>
               <div class="uno-chip">${identity.progressEnabled ? `Сезон ${Number(rewards.season_level || 1)}` : 'Кошелёк не обязателен'}</div>
@@ -22805,10 +22792,7 @@ PAGE_TEMPLATE = """
         const seasonTarget = Number(progressReport.season_target || rewards.season_target || 16);
         unoRoot.innerHTML = `
           <div class="uno-shell completed uno-home-shell" style="${shellVisualStyle}">
-            <div class="uno-home-top">
-              <div class="uno-home-title">${unoBrandBadge('UNO', bannerSurface)}</div>
-            </div>
-            ${unoSurfaceActionsMarkup('menu', {tiles: true})}
+            ${unoSurfaceHeaderMarkup('menu', bannerSurface)}
             <div class="uno-meta-strip">
               <div class="uno-chip">${escapeHtml(unoModeLabel(session.mode, session.bot_profile))}</div>
               <div class="uno-chip">${escapeHtml(session.winner_label || 'Матч завершён')}</div>
