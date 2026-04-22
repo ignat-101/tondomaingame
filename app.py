@@ -1094,6 +1094,14 @@ PAGE_TEMPLATE = """
       z-index: 1;
     }
 
+    .uno-shell.playing {
+      background:
+        radial-gradient(circle at 14% 12%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.2)), transparent 26%),
+        radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.12), transparent 24%),
+        radial-gradient(circle at 50% 100%, rgba(49, 168, 255, 0.1), transparent 30%),
+        var(--uno-live-shell-surface, linear-gradient(180deg, rgba(11, 18, 31, 0.96), rgba(8, 13, 24, 0.98)));
+    }
+
     .uno-banner {
       min-height: 54px;
       padding: 0 18px;
@@ -14095,6 +14103,11 @@ PAGE_TEMPLATE = """
       align-items: stretch;
     }
 
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout .uno-home-shell {
+      height: auto !important;
+      min-height: calc(var(--app-height, 100vh) - 156px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    }
+
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
       min-height: 0;
       overflow-y: auto;
@@ -22728,7 +22741,12 @@ PAGE_TEMPLATE = """
         textColor: backTheme.text,
         edgeMark: backMark,
       };
-      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-surface:${escapeHtml(unoTheme.arenaSurface || 'none')};--uno-arena-focus-surface:${escapeHtml(unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-arena-board-surface:${escapeHtml(unoTheme.arenaBoardSurface || unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
+      const liveShellSurface = [
+        `radial-gradient(circle at 18% 16%, ${hexToRgba(arenaTheme.accent, 0.14)}, transparent 30%)`,
+        `radial-gradient(circle at 82% 18%, ${hexToRgba(arenaTheme.secondary, 0.12)}, transparent 26%)`,
+        `linear-gradient(180deg, ${hexToRgba(arenaTheme.secondary, 0.32)}, ${hexToRgba(arenaTheme.base, 0.76)})`,
+      ].join(',');
+      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-surface:${escapeHtml(unoTheme.arenaSurface || 'none')};--uno-arena-focus-surface:${escapeHtml(unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-arena-board-surface:${escapeHtml(unoTheme.arenaBoardSurface || unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-live-shell-surface:${escapeHtml(liveShellSurface)};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
       const unoHeaderClass = bannerSurface ? 'uno-header skin-banner' : 'uno-header';
       const unoHeaderStyle = bannerSurface ? ` style="--uno-banner-surface:${escapeHtml(bannerSurface)};"` : '';
       const sessionStatus = String((session && session.status) || '');
@@ -29932,7 +29950,7 @@ def uno_get_actor_hand(state, actor_id):
 
 
 def uno_set_actor_hand(state, actor_id, cards):
-    hand_cards = list(cards or [])
+    hand_cards = uno_sort_hand(cards)
     actor_key = str(actor_id or '').strip()
     if uno_state_mode(state) == 'bot':
         hand_key = 'player_hand' if uno_bot_actor_from_id(state, actor_key) == 'player' else 'bot_hand'
@@ -30582,7 +30600,7 @@ def build_uno_multiplayer_payload(state, viewer_wallet):
     if viewer_index < 0:
         raise ValueError('Нет доступа к этой UNO-сессии.')
     hands = dict(state.get('hands') or {})
-    player_hand = list(hands.get(viewer_wallet) or [])
+    player_hand = uno_sort_hand(hands.get(viewer_wallet) or [])
     discard = list(state.get('discard') or [])
     top_card = discard[-1] if discard else None
     current_color = str(state.get('current_color') or (top_card or {}).get('color') or 'blue')
@@ -30681,8 +30699,8 @@ def build_uno_session_payload(state, viewer_wallet=None):
         if status == 'waiting':
             return build_uno_waiting_payload(state, viewer_wallet)
         return build_uno_multiplayer_payload(state, viewer_wallet)
-    player_hand = list(state.get('player_hand') or [])
-    bot_hand = list(state.get('bot_hand') or [])
+    player_hand = uno_sort_hand(state.get('player_hand') or [])
+    bot_hand = uno_sort_hand(state.get('bot_hand') or [])
     discard = list(state.get('discard') or [])
     top_card = discard[-1] if discard else None
     current_color = str(state.get('current_color') or (top_card or {}).get('color') or 'blue')
@@ -30830,7 +30848,7 @@ def uno_start_multiplayer_session(state):
     deck = build_uno_deck(f"{state['id']}:{','.join(item['wallet'] for item in participants)}:{state.get('created_at') or now_iso()}")
     hands = {}
     for participant in participants:
-        hands[participant['wallet']] = [deck.pop() for _ in range(7)]
+        hands[participant['wallet']] = uno_sort_hand([deck.pop() for _ in range(7)])
     top_card = deck.pop()
     recycle_guard = 0
     while (top_card.get('color') == 'wild' or top_card.get('value') in {'skip', 'reverse', 'draw2'}) and recycle_guard < 24:
@@ -31130,7 +31148,7 @@ def uno_run_bot_turn(state):
             state['pending_draw_count'] = 0
             state['turn'] = 'player'
             break
-        state['bot_hand'] = list(state.get('bot_hand') or []) + list(drawn)
+        state['bot_hand'] = uno_sort_hand(list(state.get('bot_hand') or []) + list(drawn))
         top_card = (state.get('discard') or [None])[-1]
         current_color = state.get('current_color')
         if pending_draw_count > 0:
@@ -31215,8 +31233,8 @@ def create_uno_session(wallet, domain, display_name=None, bot_profile='standard'
     rookie_profile = str(bot_profile or '').strip().lower() == 'rookie'
     player_hand_size = 8 if rookie_profile else 7
     bot_hand_size = 6 if rookie_profile else 7
-    player_hand = [deck.pop() for _ in range(player_hand_size)]
-    bot_hand = [deck.pop() for _ in range(bot_hand_size)]
+    player_hand = uno_sort_hand([deck.pop() for _ in range(player_hand_size)])
+    bot_hand = uno_sort_hand([deck.pop() for _ in range(bot_hand_size)])
     top_card = deck.pop()
     recycle_guard = 0
     while (top_card.get('color') == 'wild' or top_card.get('value') in {'skip', 'reverse', 'draw2'}) and recycle_guard < 24:
@@ -31231,6 +31249,7 @@ def create_uno_session(wallet, domain, display_name=None, bot_profile='standard'
             if uno_card_playable(rescue_card, top_card, top_card.get('color') or 'blue'):
                 break
             rescue_guard += 1
+        player_hand = uno_sort_hand(player_hand)
     state = {
         'id': session_id,
         'wallet': wallet,
@@ -31347,7 +31366,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
                 drawn = uno_draw_cards(state, pending_draw_count)
                 recycle_notice = uno_take_recycle_notice(state)
                 state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
-                hands[wallet] = list(player_hand) + list(drawn)
+                hands[wallet] = uno_sort_hand(list(player_hand) + list(drawn))
                 state['hands'] = hands
                 state['pending_draw_count'] = 0
                 next_index = uno_next_player_index(state, current_index, 1)
@@ -31363,7 +31382,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
             recycle_notice = uno_take_recycle_notice(state)
             state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
             if drawn:
-                updated_hand = list(player_hand) + list(drawn)
+                updated_hand = uno_sort_hand(list(player_hand) + list(drawn))
                 hands[wallet] = updated_hand
                 state['hands'] = hands
                 if uno_has_playable_card(updated_hand, top_card, state.get('current_color')):
@@ -31430,7 +31449,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
             drawn = uno_draw_cards(state, pending_draw_count)
             recycle_notice = uno_take_recycle_notice(state)
             state['turn_index'] = int(state.get('turn_index', 0) or 0) + 1
-            state['player_hand'] = list(state.get('player_hand') or []) + list(drawn)
+            state['player_hand'] = uno_sort_hand(list(state.get('player_hand') or []) + list(drawn))
             state['pending_draw_count'] = 0
             state['last_action'] = f'Ты забрал стек +{len(drawn)}.{recycle_notice} Ход у {state.get("bot_name") or "UNO Bot"}.'
             state['turn'] = 'bot'
@@ -31444,7 +31463,7 @@ def apply_uno_session_action(session_id, wallet, action, card_id=None, chosen_co
                 state['last_action'] = f'Колода пуста.{recycle_notice} Ход переходит к боту.'
                 state['turn'] = 'bot'
             else:
-                state['player_hand'] = list(state.get('player_hand') or []) + list(drawn)
+                state['player_hand'] = uno_sort_hand(list(state.get('player_hand') or []) + list(drawn))
                 if uno_has_playable_card(state.get('player_hand') or [], top_card, state.get('current_color')):
                     state['last_action'] = f'Карта в руке. Теперь её можно тянуть на стол.{recycle_notice}'
                 else:
