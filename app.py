@@ -1391,6 +1391,13 @@ PAGE_TEMPLATE = """
         var(--uno-banner-surface, radial-gradient(circle at top, rgba(255, 214, 74, 0.18), transparent 68%));
     }
 
+    .uno-home-tile.wide strong {
+      white-space: nowrap;
+      overflow-wrap: normal;
+      word-break: normal;
+      flex: 0 1 auto;
+    }
+
     .uno-home-tile.wide .actions {
       display: flex;
       flex-wrap: wrap;
@@ -2632,9 +2639,9 @@ PAGE_TEMPLATE = """
       border-radius: 24px;
       overflow: hidden;
       background:
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
         linear-gradient(180deg, rgba(8, 14, 24, 0.02), rgba(7, 12, 21, 0.08)),
-        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.08), transparent 30%),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
+        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.08), transparent 30%);
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
         inset 0 18px 34px rgba(255,255,255,0.02);
@@ -3646,9 +3653,9 @@ PAGE_TEMPLATE = """
       border-radius: 28px;
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
         linear-gradient(180deg, rgba(8, 18, 30, 0.08), rgba(7, 12, 22, 0.18)),
         radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 62%),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
         var(--uno-panel-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -14050,7 +14057,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) #view-uno {
-      padding: calc(42px + env(safe-area-inset-top)) 12px calc(124px + env(safe-area-inset-bottom));
+      padding: calc(42px + env(safe-area-inset-top)) 12px calc(16px + env(safe-area-inset-bottom));
       border-radius: 20px;
     }
 
@@ -14105,7 +14112,7 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout .uno-home-shell {
       height: auto !important;
-      min-height: calc(var(--app-height, 100vh) - 156px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+      min-height: calc(var(--app-height, 100vh) - 70px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
@@ -14183,11 +14190,17 @@ PAGE_TEMPLATE = """
       overflow: hidden;
     }
 
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell .uno-shell-footer,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell .uno-shell-footer {
+      min-height: calc(108px + env(safe-area-inset-bottom));
+      padding-bottom: calc(86px + env(safe-area-inset-bottom));
+    }
+
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller {
       min-height: 0;
       overflow-y: visible;
-      padding-bottom: 0;
+      padding-bottom: 12px;
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
