@@ -1072,8 +1072,8 @@ PAGE_TEMPLATE = """
         radial-gradient(circle at 14% 12%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.22)), transparent 28%),
         radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.18), transparent 26%),
         radial-gradient(circle at 50% 100%, rgba(49, 168, 255, 0.16), transparent 34%),
-        var(--uno-arena-art, none),
-        linear-gradient(180deg, rgba(12, 18, 30, 0.98), rgba(7, 12, 22, 0.98));
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
+        linear-gradient(180deg, rgba(12, 18, 30, 0.92), rgba(7, 12, 22, 0.95));
       box-shadow:
         0 28px 56px rgba(0, 0, 0, 0.34),
         inset 0 0 0 1px rgba(255, 255, 255, 0.03);
@@ -1244,8 +1244,8 @@ PAGE_TEMPLATE = """
       font-size: 12px;
       color: rgba(214, 230, 248, 0.76);
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.08), rgba(5, 10, 18, 0.28)),
-        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
+        linear-gradient(180deg, rgba(8, 14, 24, 0.04), rgba(5, 10, 18, 0.16)),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
     }
 
     .uno-shell-footer a {
@@ -2624,9 +2624,9 @@ PAGE_TEMPLATE = """
       border-radius: 24px;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.04), rgba(7, 12, 21, 0.12)),
-        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.1), transparent 30%),
-        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
+        linear-gradient(180deg, rgba(8, 14, 24, 0.02), rgba(7, 12, 21, 0.08)),
+        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.08), transparent 30%),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
         inset 0 18px 34px rgba(255,255,255,0.02);
@@ -2638,11 +2638,11 @@ PAGE_TEMPLATE = """
       inset: 0;
       border-radius: inherit;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.01), rgba(8, 12, 20, 0.05)),
-        radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.08), transparent 26%),
-        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.08), transparent 30%),
-        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
-      opacity: 0.82;
+        linear-gradient(180deg, rgba(8, 14, 24, 0.01), rgba(8, 12, 20, 0.04)),
+        radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.06), transparent 26%),
+        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.06), transparent 30%),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
+      opacity: 0.72;
       pointer-events: none;
     }
 
@@ -2653,10 +2653,10 @@ PAGE_TEMPLATE = """
       border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.06);
       background:
-        linear-gradient(135deg, rgba(255,255,255,0.04), transparent 42%),
-        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.05), transparent 24%),
-        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
-      opacity: 0.42;
+        linear-gradient(135deg, rgba(255,255,255,0.03), transparent 42%),
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.04), transparent 24%),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
+      opacity: 0.34;
       pointer-events: none;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -2673,8 +2673,8 @@ PAGE_TEMPLATE = """
       inset: 8px;
       border-radius: 20px;
       background:
-        linear-gradient(180deg, rgba(7, 12, 20, 0.01), rgba(7, 12, 20, 0.08)),
-        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
+        linear-gradient(180deg, rgba(7, 12, 20, 0.01), rgba(7, 12, 20, 0.04)),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
       opacity: 1;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.05),
@@ -2689,10 +2689,10 @@ PAGE_TEMPLATE = """
       inset: 0;
       border-radius: inherit;
       background:
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 54%),
-        linear-gradient(135deg, rgba(255,255,255,0.04), transparent 48%),
-        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
-      opacity: 0.92;
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04), transparent 54%),
+        linear-gradient(135deg, rgba(255,255,255,0.03), transparent 48%),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
+      opacity: 0.96;
     }
 
     .uno-stack {
@@ -3638,9 +3638,9 @@ PAGE_TEMPLATE = """
       border-radius: 28px;
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
-        linear-gradient(180deg, rgba(8, 18, 30, 0.16), rgba(7, 12, 22, 0.28)),
+        linear-gradient(180deg, rgba(8, 18, 30, 0.08), rgba(7, 12, 22, 0.18)),
         radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 62%),
-        var(--uno-arena-focus-surface, var(--uno-arena-surface, none)),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
         var(--uno-panel-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -3655,10 +3655,10 @@ PAGE_TEMPLATE = """
       inset: 14px;
       border-radius: 22px;
       background:
-        linear-gradient(180deg, rgba(8, 14, 23, 0.01), rgba(8, 12, 18, 0.04)),
-        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.04), transparent 20%),
-        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
-      opacity: 0.54;
+        linear-gradient(180deg, rgba(8, 14, 23, 0.01), rgba(8, 12, 18, 0.03)),
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.03), transparent 20%),
+        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
+      opacity: 0.42;
       pointer-events: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
     }
@@ -14090,7 +14090,9 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout {
       height: auto;
-      min-height: 0;
+      min-height: 100%;
+      align-content: stretch;
+      align-items: stretch;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
@@ -14161,11 +14163,11 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell {
-      min-height: 0 !important;
+      min-height: 100% !important;
       height: auto !important;
       max-height: none !important;
-      align-self: start;
-      overflow: clip;
+      align-self: stretch;
+      overflow: hidden;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
@@ -21364,6 +21366,14 @@ PAGE_TEMPLATE = """
       const bannerArt = guildAsset ? `url("${guildAsset}") center/cover no-repeat` : 'none';
       const backSurface = giftCardbackSurface(backKey, emoji);
       const arenaSurface = giftArenaSurface(arenaKey, emoji);
+      const arenaPatternSurface = monogramPatternSurface(emoji, arenaTheme, 'arena') || 'none';
+      const arenaBoardSurface = [
+        arenaPatternSurface,
+        `radial-gradient(circle at 50% 44%, ${hexToRgba(arenaTheme.accent, 0.2)}, transparent 58%)`,
+        `radial-gradient(circle at 18% 18%, ${hexToRgba(arenaTheme.secondary, 0.12)}, transparent 34%)`,
+        arenaArt,
+        `linear-gradient(180deg, ${hexToRgba(arenaTheme.secondary, 0.72)}, ${hexToRgba(arenaTheme.base, 0.84)})`,
+      ].join(',');
       const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : `linear-gradient(135deg, ${hexToRgba(arenaTheme.secondary, 0.92)}, ${hexToRgba(frameTheme.accent, 0.82)})`;
       const tabSurface = [
         `linear-gradient(180deg, ${hexToRgba(frameTheme.base, 0.88)}, ${hexToRgba(frameTheme.secondary, 0.96)})`,
@@ -21393,20 +21403,16 @@ PAGE_TEMPLATE = """
         bannerSurface,
         backSurface,
         arenaSurface,
-        arenaFocusSurface: [
-          'linear-gradient(180deg, rgba(7, 12, 20, 0.14), rgba(5, 10, 18, 0.24))',
-          arenaArt,
-          arenaSurface,
-        ].join(','),
+        arenaPatternSurface,
+        arenaBoardSurface,
+        arenaFocusSurface: arenaBoardSurface,
         tableSurface: [
-          'linear-gradient(180deg, rgba(6, 11, 18, 0.28), rgba(5, 10, 18, 0.44))',
-          arenaArt,
-          arenaSurface,
+          'linear-gradient(180deg, rgba(6, 11, 18, 0.18), rgba(5, 10, 18, 0.34))',
+          arenaBoardSurface,
         ].join(','),
         panelSurface: [
-          'linear-gradient(180deg, rgba(8, 16, 27, 0.54), rgba(7, 12, 20, 0.74))',
-          arenaArt,
-          arenaSurface,
+          'linear-gradient(180deg, rgba(8, 16, 27, 0.22), rgba(7, 12, 20, 0.42))',
+          arenaBoardSurface,
         ].join(','),
         panelBorder: hexToRgba(arenaTheme.accent, 0.22),
         panelShadow: hexToRgba(arenaTheme.accent, 0.12),
@@ -22722,7 +22728,7 @@ PAGE_TEMPLATE = """
         textColor: backTheme.text,
         edgeMark: backMark,
       };
-      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-surface:${escapeHtml(unoTheme.arenaSurface || 'none')};--uno-arena-focus-surface:${escapeHtml(unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
+      const shellVisualStyle = `background:${tableSurface};--uno-panel-surface:${escapeHtml(unoTheme.panelSurface)};--uno-panel-border:${escapeHtml(unoTheme.panelBorder)};--uno-panel-shadow:${escapeHtml(unoTheme.panelShadow)};--uno-panel-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-art:${escapeHtml(unoTheme.arenaArt || 'none')};--uno-arena-surface:${escapeHtml(unoTheme.arenaSurface || 'none')};--uno-arena-focus-surface:${escapeHtml(unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-arena-board-surface:${escapeHtml(unoTheme.arenaBoardSurface || unoTheme.arenaFocusSurface || unoTheme.arenaSurface || 'none')};--uno-cardback-surface:${escapeHtml(backSurface)};--uno-cardback-art:${escapeHtml(unoTheme.cardbackArt || 'none')};--uno-theme-accent:${escapeHtml(arenaTheme.accent)};--uno-theme-accent-soft:${escapeHtml(hexToRgba(arenaTheme.accent, 0.2))};--uno-theme-text:${escapeHtml(arenaTheme.text || '#fff7ea')};--uno-frame-accent:${escapeHtml(unoTheme.frameAccent)};--uno-frame-soft:${escapeHtml(unoTheme.frameSoft)};--uno-frame-glow:${escapeHtml(unoTheme.frameGlow)};--uno-banner-surface:${escapeHtml(bannerSurface)};--uno-banner-art:${escapeHtml(unoTheme.bannerArt || 'none')};`;
       const unoHeaderClass = bannerSurface ? 'uno-header skin-banner' : 'uno-header';
       const unoHeaderStyle = bannerSurface ? ` style="--uno-banner-surface:${escapeHtml(bannerSurface)};"` : '';
       const sessionStatus = String((session && session.status) || '');
