@@ -2624,10 +2624,9 @@ PAGE_TEMPLATE = """
       border-radius: 24px;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.08), rgba(7, 12, 21, 0.18)),
+        linear-gradient(180deg, rgba(8, 14, 24, 0.04), rgba(7, 12, 21, 0.12)),
         radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.1), transparent 30%),
-        var(--uno-arena-surface, none),
-        var(--uno-arena-art, none);
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
         inset 0 18px 34px rgba(255,255,255,0.02);
@@ -2639,13 +2638,11 @@ PAGE_TEMPLATE = """
       inset: 0;
       border-radius: inherit;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.01), rgba(8, 12, 20, 0.09)),
+        linear-gradient(180deg, rgba(8, 14, 24, 0.01), rgba(8, 12, 20, 0.05)),
         radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.08), transparent 26%),
         radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.08), transparent 30%),
-        var(--uno-arena-surface, none),
-        var(--uno-arena-art, none),
-        var(--uno-panel-art, none);
-      opacity: 0.92;
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
+      opacity: 0.82;
       pointer-events: none;
     }
 
@@ -2658,9 +2655,8 @@ PAGE_TEMPLATE = """
       background:
         linear-gradient(135deg, rgba(255,255,255,0.04), transparent 42%),
         radial-gradient(circle at 18% 18%, rgba(255,255,255,0.05), transparent 24%),
-        var(--uno-arena-art, none),
-        var(--uno-arena-surface, none);
-      opacity: 0.28;
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
+      opacity: 0.42;
       pointer-events: none;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -2678,8 +2674,7 @@ PAGE_TEMPLATE = """
       border-radius: 20px;
       background:
         linear-gradient(180deg, rgba(7, 12, 20, 0.01), rgba(7, 12, 20, 0.08)),
-        var(--uno-arena-art, none),
-        var(--uno-arena-surface, none);
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
       opacity: 1;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.05),
@@ -2696,9 +2691,8 @@ PAGE_TEMPLATE = """
       background:
         radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 54%),
         linear-gradient(135deg, rgba(255,255,255,0.04), transparent 48%),
-        var(--uno-arena-art, none),
-        var(--uno-arena-surface, none);
-      opacity: 0.96;
+        var(--uno-arena-focus-surface, var(--uno-arena-surface, none));
+      opacity: 0.92;
     }
 
     .uno-stack {
@@ -14076,8 +14070,11 @@ PAGE_TEMPLATE = """
       grid-template-rows: minmax(0, 1fr);
       height: 100%;
       min-height: 0;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       align-items: start;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root,
@@ -14089,6 +14086,11 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
       align-content: start;
       align-items: start;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout {
+      height: auto;
+      min-height: 0;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
@@ -14160,8 +14162,8 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell {
       min-height: 0 !important;
-      height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-      max-height: calc(var(--app-height, 100vh) - 204px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+      height: auto !important;
+      max-height: none !important;
       align-self: start;
       overflow: clip;
     }
@@ -14169,8 +14171,8 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller {
       min-height: 0;
-      overflow-y: auto;
-      padding-bottom: 12px;
+      overflow-y: visible;
+      padding-bottom: 0;
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
@@ -22700,6 +22702,8 @@ PAGE_TEMPLATE = """
       syncMascotPopover();
       const identity = unoActiveIdentity();
       const session = state.unoSession;
+      const homeLikeUnoScreen = !session || Boolean(session.complete);
+      unoRoot.classList.toggle('uno-home-layout', homeLikeUnoScreen);
       const rewards = unoProgressEnabled()
         ? (((state.playerProfile && state.playerProfile.rewards) || {}))
         : { equipped_cosmetics: {}, pack_shards: 0, rare_tokens: 0, lucky_tokens: 0, season_level: 1, season_points: 0, season_target: 16 };
