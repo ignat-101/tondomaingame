@@ -16785,6 +16785,7 @@ PAGE_TEMPLATE = """
       unoGuestName: '',
       unoUiScroll: null,
       activeApp: 'domain',
+      sharedViewApp: 'domain',
       launcherOpen: false,
       performanceLite: false,
       seasonPassLevelIndex: 0,
@@ -17662,7 +17663,7 @@ PAGE_TEMPLATE = """
           return;
         }
         closeStartupGuide(true);
-        switchView('profile');
+        switchDomainSharedView('profile');
         return;
       }
       startupGuideStepIndex += 1;
@@ -19652,7 +19653,7 @@ PAGE_TEMPLATE = """
       if (inviteBtn && !inviteBtn.disabled) bindFunctionalControl(inviteBtn, sendGuildInvite);
       if (guildHelpBattleBtn) bindFunctionalControl(guildHelpBattleBtn, () => switchView('modes'));
       if (guildHelpPackBtn) bindFunctionalControl(guildHelpPackBtn, () => switchView('pack'));
-      if (guildHelpProfileBtn) bindFunctionalControl(guildHelpProfileBtn, () => switchView('profile'));
+      if (guildHelpProfileBtn) bindFunctionalControl(guildHelpProfileBtn, () => switchDomainSharedView('profile'));
       if (guildWeeklyRewardBtn && !guildWeeklyRewardBtn.disabled) bindFunctionalControl(guildWeeklyRewardBtn, claimGuildWeeklyReward);
       renderSocialGuildBadges();
     }
@@ -19778,6 +19779,7 @@ PAGE_TEMPLATE = """
         if (state.activeApp === 'uno') {
           state.activeApp = 'domain';
         }
+        state.sharedViewApp = 'domain';
         if (document.body.dataset.activeView === 'uno') {
           document.body.dataset.activeView = 'profile';
         }
@@ -19798,6 +19800,32 @@ PAGE_TEMPLATE = """
       }
       setStatus(walletStatus, 'Раздел недоступен.', 'warning');
       return false;
+    }
+
+    function currentAppContext(viewName = '') {
+      const safeView = String(viewName || document.body.dataset.activeView || '').trim().toLowerCase();
+      if (safeView === 'uno') return 'uno';
+      if (['profile', 'guilds', 'achievements'].includes(safeView)) {
+        return state.sharedViewApp === 'uno' ? 'uno' : 'domain';
+      }
+      return 'domain';
+    }
+
+    function isUnoAppContext(viewName = '') {
+      return hasUnoTesterAccess() && currentAppContext(viewName) === 'uno';
+    }
+
+    function switchDomainSharedView(name) {
+      state.sharedViewApp = 'domain';
+      state.activeApp = 'domain';
+      switchView(name);
+      syncMascotPopover();
+      syncMobileNavContext();
+      syncUnoSharedViewHero(name);
+      try {
+        window.localStorage.setItem(appLauncherStorageKey, 'domain');
+      } catch (_) {
+      }
     }
 
     function switchView(name) {
@@ -19841,7 +19869,15 @@ PAGE_TEMPLATE = """
         button.classList.toggle('active', button.id === `top-nav-${name}`);
       });
       document.body.dataset.activeView = name;
-      state.activeApp = name === 'uno' ? 'uno' : 'domain';
+      if (name === 'uno') {
+        state.sharedViewApp = 'uno';
+        state.activeApp = 'uno';
+      } else if (['profile', 'guilds', 'achievements'].includes(name)) {
+        state.activeApp = currentAppContext(name);
+      } else {
+        state.sharedViewApp = 'domain';
+        state.activeApp = 'domain';
+      }
       applyUnoTesterVisibility();
       syncMascotPopover();
       syncMobileNavContext();
@@ -19899,7 +19935,7 @@ PAGE_TEMPLATE = """
       closeAppLauncher();
       if (safeApp === 'uno') {
         if (!hasUnoTesterAccess()) {
-          switchView('profile');
+          switchDomainSharedView('profile');
           return;
         }
         clearCompletedUnoSession();
@@ -19907,7 +19943,11 @@ PAGE_TEMPLATE = """
         restoreUnoSession().catch(() => {});
         return;
       }
-      switchView(document.body.dataset.activeView === 'uno' ? 'profile' : (document.body.dataset.activeView || 'profile'));
+      if (document.body.dataset.activeView === 'uno' || ['profile', 'guilds', 'achievements'].includes(String(document.body.dataset.activeView || '').trim().toLowerCase())) {
+        switchDomainSharedView('profile');
+      } else {
+        switchView(document.body.dataset.activeView || 'profile');
+      }
       showStartupGuideIfNeeded();
     }
 
@@ -19926,7 +19966,7 @@ PAGE_TEMPLATE = """
         if (closePopover) {
           setMascotOpen(false);
         }
-        switchView('profile');
+        switchDomainSharedView('profile');
         return;
       }
       clearCompletedUnoSession();
@@ -19956,7 +19996,7 @@ PAGE_TEMPLATE = """
 
     function syncMascotPopover() {
       const unoEnabled = hasUnoTesterAccess();
-      const unoContext = unoEnabled && (document.body.dataset.activeView === 'uno' || state.activeApp === 'uno');
+      const unoContext = unoEnabled && isUnoAppContext();
       if (mascotPopoverTitle) {
         mascotPopoverTitle.textContent = unoContext ? 'UNO Arena' : 'Помощник Ton Domain';
       }
@@ -19976,8 +20016,8 @@ PAGE_TEMPLATE = """
     }
 
     function syncMobileNavContext() {
-      const unoContext = hasUnoTesterAccess() && state.activeApp === 'uno';
       const activeView = String(document.body.dataset.activeView || 'profile');
+      const unoContext = isUnoAppContext(activeView);
       document.body.classList.toggle('uno-app-context', unoContext);
       document.body.classList.toggle('domain-app-context', !unoContext);
       syncUnoSharedThemeChrome(unoContext ? currentUnoSharedTheme() : null);
@@ -20033,7 +20073,7 @@ PAGE_TEMPLATE = """
     function syncCurrencyFloatChrome() {
       if (!globalCurrencyFloat) return;
       globalCurrencyFloat.classList.remove('collapsed');
-      const hiddenForUnoDesktop = Boolean(state.activeApp === 'uno' && !document.body.classList.contains('tma-app') && document.body.dataset.activeView === 'uno');
+      const hiddenForUnoDesktop = Boolean(isUnoAppContext('uno') && !document.body.classList.contains('tma-app') && document.body.dataset.activeView === 'uno');
       globalCurrencyFloat.style.display = hiddenForUnoDesktop ? 'none' : 'inline-flex';
     }
 
@@ -20087,6 +20127,7 @@ PAGE_TEMPLATE = """
     function switchUnoSharedView(name) {
       switchView(name);
       if (!hasUnoTesterAccess()) return;
+      state.sharedViewApp = 'uno';
       state.activeApp = 'uno';
       syncMascotPopover();
       syncMobileNavContext();
@@ -20304,7 +20345,7 @@ PAGE_TEMPLATE = """
 
     function renderProfile() {
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
-      const unoSharedTheme = state.activeApp === 'uno' ? currentUnoSharedTheme() : null;
+      const unoSharedTheme = isUnoAppContext('profile') ? currentUnoSharedTheme() : null;
       const mobileProfileStyle = unoSharedTheme
         ? ` style="background:${unoSharedTheme.tableSurface}; border-color:rgba(255,214,74,0.18); box-shadow:0 18px 34px rgba(0,0,0,0.22);"`
         : '';
@@ -20498,7 +20539,7 @@ PAGE_TEMPLATE = """
         return;
       }
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
-      const unoSharedTheme = state.activeApp === 'uno' ? currentUnoSharedTheme() : null;
+      const unoSharedTheme = isUnoAppContext('achievements') ? currentUnoSharedTheme() : null;
       const track = Array.isArray(rewards.season_pass_track) ? rewards.season_pass_track : [];
       const seasonTasks = Array.isArray(rewards.season_tasks) ? rewards.season_tasks : [];
       const rewardTone = (text) => {
@@ -21579,8 +21620,8 @@ PAGE_TEMPLATE = """
         const existing = view.querySelector(`[data-uno-shared-hero="${viewName}"]`);
         if (existing) existing.remove();
       });
-      if (state.activeApp !== 'uno') return;
       const safeView = String(activeView || document.body.dataset.activeView || '').trim().toLowerCase();
+      if (!isUnoAppContext(safeView)) return;
       const content = unoSharedViewHeroContent(safeView);
       if (!content) return;
       const view = document.getElementById(`view-${safeView}`);
@@ -25557,7 +25598,7 @@ PAGE_TEMPLATE = """
       refreshOneCardSelector();
       updateButtons();
       mountWalletIntoProfile();
-      switchView('profile');
+      switchDomainSharedView('profile');
       setStatus(walletStatus, 'Выбери домен заново и открой новую колоду.', 'warning');
       setStatus(document.getElementById('pack-status'), 'Привязка домена сброшена. Можно выбрать другой домен.', 'warning');
       renderDisciplineBuild({pool: 0, points: {attack: 0, defense: 0, luck: 0, speed: 0, magic: 0}});
@@ -27212,7 +27253,7 @@ PAGE_TEMPLATE = """
       bindFunctionalControl(telegramMiniappLinkBtn, () => linkTelegramFromMiniApp({requestWrite: true}), 'click', {skipPrepare: true});
     }
     bindFunctionalControl(walletOpenPackBtn, () => switchView('pack'));
-    bindFunctionalControl(document.getElementById('back-to-wallet-btn'), () => switchView('profile'));
+    bindFunctionalControl(document.getElementById('back-to-wallet-btn'), () => switchDomainSharedView('profile'));
     bindFunctionalControl(document.getElementById('rebind-domain-btn'), rebindDomain);
     bindFunctionalControl(document.getElementById('shuffle-deck-btn'), shuffleDeck);
     bindFunctionalControl(document.getElementById('open-pack-btn'), () => queuePackOpen('daily', 'common'));
@@ -27306,90 +27347,90 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(toggleDeckBtn, toggleDeck);
     bindFunctionalControl(document.getElementById('mobile-show-deck-btn'), showDeck);
     bindFunctionalControl(navPack, async () => {
-      if (state.activeApp === 'uno') {
+      if (isUnoAppContext()) {
         openUnoHub({closePopover: false});
         return;
       }
       switchView('pack');
     });
     bindFunctionalControl(navModes, async () => {
-      if (state.activeApp === 'uno') {
+      if (isUnoAppContext()) {
         switchUnoSharedView('profile');
         return;
       }
       switchView('modes');
     });
     bindFunctionalControl(topNavModes, () => {
-      if (state.activeApp === 'uno') {
+      if (isUnoAppContext()) {
         openUnoHub({closePopover: false});
         return;
       }
       switchView('modes');
     });
     bindFunctionalControl(document.getElementById('nav-profile'), () => {
-      switchView('profile');
+      switchDomainSharedView('profile');
     });
     bindFunctionalControl(topNavProfile, () => {
-      if (state.activeApp === 'uno') {
+      if (isUnoAppContext()) {
         openUnoHub({closePopover: false});
         return;
       }
-      switchView('profile');
+      switchDomainSharedView('profile');
     });
     bindFunctionalControl(topNavPack, () => {
-      if (state.activeApp === 'uno') {
+      if (isUnoAppContext()) {
         switchUnoSharedView('profile');
         return;
       }
       switchView('pack');
     });
     bindFunctionalControl(navGuilds, async () => {
-      if (state.activeApp === 'uno') {
+      if (isUnoAppContext()) {
         switchUnoSharedView('guilds');
         return;
       }
-      switchView('guilds');
+      switchDomainSharedView('guilds');
     });
     bindFunctionalControl(navAchievements, async () => {
-      if (state.activeApp === 'uno') {
+      if (isUnoAppContext()) {
         switchUnoSharedView('achievements');
         return;
       }
-      switchView('achievements');
+      switchDomainSharedView('achievements');
     });
     bindFunctionalControl(topNavGuilds, () => {
-      if (state.activeApp === 'uno') {
+      if (isUnoAppContext()) {
         switchUnoSharedView('guilds');
         return;
       }
-      switchView('guilds');
+      switchDomainSharedView('guilds');
     });
     bindFunctionalControl(topNavAchievements, () => {
-      if (state.activeApp === 'uno') {
+      if (isUnoAppContext()) {
         switchUnoSharedView('achievements');
         return;
       }
-      switchView('achievements');
+      switchDomainSharedView('achievements');
     });
     if (globalCurrencyToggle) {
       bindFunctionalControl(globalCurrencyToggle, () => toggleCurrencyFloatCollapsed(), 'click', {skipPrepare: true});
     }
     if (globalCurrencyMenu) {
       bindFunctionalControl(globalCurrencyMenu, () => {
-        if (state.activeApp === 'uno') {
+        if (isUnoAppContext()) {
           switchUnoSharedView('profile');
           return;
         }
-        switchView('profile');
+        switchDomainSharedView('profile');
       }, 'click', {skipPrepare: true});
     }
     if (appLauncherHomeBtn) {
       bindFunctionalControl(appLauncherHomeBtn, () => {
-        if (state.activeApp === 'uno') {
+        if (isUnoAppContext()) {
           openUnoHub({closePopover: false});
           return;
         }
-        switchView('profile');
+        switchDomainSharedView('profile');
       });
     }
     if (appLauncher) {
@@ -27399,7 +27440,7 @@ PAGE_TEMPLATE = """
     }
     if (mascotFab) {
       bindFunctionalControl(mascotFab, () => {
-        if (state.activeApp === 'uno') {
+        if (isUnoAppContext()) {
           setMascotOpen(false);
           openAppLauncher();
           return;
@@ -27411,7 +27452,7 @@ PAGE_TEMPLATE = """
     if (mascotOpenProfileBtn) {
       bindFunctionalControl(mascotOpenProfileBtn, () => {
         setMascotOpen(false);
-        switchView('profile');
+        switchDomainSharedView('profile');
       });
     }
     if (mascotOpenPackBtn) {
