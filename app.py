@@ -14053,12 +14053,18 @@ PAGE_TEMPLATE = """
       height: 100%;
       min-height: 0;
       overflow: hidden;
+      align-items: start;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell {
       height: 100%;
       min-height: 0;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
+      align-content: start;
+      align-items: start;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
@@ -14129,17 +14135,18 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell {
-      min-height: 0;
-      height: auto;
-      max-height: none;
+      min-height: 0 !important;
+      height: auto !important;
+      max-height: none !important;
       align-self: start;
+      overflow: clip;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller {
       min-height: 0;
       overflow-y: visible;
-      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      padding-bottom: 0;
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
@@ -14717,13 +14724,39 @@ PAGE_TEMPLATE = """
       box-shadow: 0 16px 30px var(--uno-shared-shadow, rgba(0, 0, 0, 0.16));
     }
 
-    body.uno-app-context #view-profile button:not(.secondary),
-    body.uno-app-context #view-achievements button:not(.secondary),
-    body.uno-app-context #view-guilds button:not(.secondary) {
+    body.uno-app-context #view-profile button:not(.secondary):not(.uno-surface-tab),
+    body.uno-app-context #view-achievements button:not(.secondary):not(.uno-surface-tab),
+    body.uno-app-context #view-guilds button:not(.secondary):not(.uno-surface-tab) {
       border-color: rgba(255, 214, 74, 0.36);
       background: linear-gradient(135deg, rgba(255, 91, 87, 0.88), rgba(255, 214, 74, 0.8));
       color: #1b1208;
       box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    body.uno-app-context #view-profile .uno-surface-tab,
+    body.uno-app-context #view-achievements .uno-surface-tab,
+    body.uno-app-context #view-guilds .uno-surface-tab {
+      border-color: var(--uno-tab-border, rgba(255, 255, 255, 0.12));
+      background:
+        linear-gradient(180deg, rgba(10, 16, 27, 0.18), rgba(8, 12, 20, 0.12)),
+        var(--uno-tab-surface, linear-gradient(180deg, rgba(16, 22, 36, 0.92), rgba(10, 15, 24, 0.96)));
+      color: var(--uno-tab-text, rgba(255, 246, 234, 0.92));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.02),
+        0 18px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    body.uno-app-context #view-profile .uno-surface-tab.active,
+    body.uno-app-context #view-achievements .uno-surface-tab.active,
+    body.uno-app-context #view-guilds .uno-surface-tab.active {
+      border-color: var(--uno-tab-active-border, rgba(255, 214, 74, 0.32));
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0)),
+        var(--uno-tab-active-surface, linear-gradient(135deg, rgba(255, 91, 87, 0.92), rgba(255, 214, 74, 0.84)));
+      color: var(--uno-tab-active-text, #1a1208);
+      box-shadow:
+        0 18px 32px rgba(0, 0, 0, 0.22),
+        0 0 0 1px rgba(255,255,255,0.06);
     }
 
     body.uno-app-context #view-profile button.secondary,
