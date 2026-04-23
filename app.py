@@ -14248,6 +14248,11 @@ PAGE_TEMPLATE = """
       padding-bottom: 0;
     }
 
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.active.uno-home-outer-shell {
+      min-height: calc(var(--app-height, 100vh) + 320px);
+      padding-bottom: calc(132px + env(safe-area-inset-bottom));
+    }
+
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell {
       height: auto;
