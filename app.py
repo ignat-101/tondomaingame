@@ -3301,50 +3301,37 @@ PAGE_TEMPLATE = """
       line-height: 1.4;
     }
 
-    .uno-reaction-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
+    .uno-reaction-hud {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      z-index: 8;
+      display: grid;
+      gap: 10px;
+      justify-items: start;
+      pointer-events: none;
     }
 
-    .uno-reaction-btn {
-      min-width: 0;
-      width: 40px;
-      height: 40px;
-      padding: 0;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background:
-        linear-gradient(180deg, rgba(17, 23, 36, 0.92), rgba(10, 15, 24, 0.98)),
-        radial-gradient(circle at top, rgba(255, 214, 74, 0.1), transparent 68%);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 19px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
-    }
-
-    .uno-reaction-btn:disabled {
-      opacity: 0.56;
+    .uno-reaction-hud > * {
+      pointer-events: auto;
     }
 
     .uno-reaction-float {
       position: absolute;
-      top: -12px;
-      right: 2px;
-      min-width: 56px;
-      height: 56px;
-      padding: 0 12px;
+      top: -14px;
+      right: 4px;
+      min-width: 66px;
+      height: 66px;
+      padding: 0 14px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.22);
+      border: 1px solid rgba(255,255,255,0.2);
       background:
         linear-gradient(180deg, rgba(13, 20, 32, 0.94), rgba(9, 14, 22, 0.98)),
         radial-gradient(circle at top, rgba(255, 214, 74, 0.14), transparent 72%);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 30px;
+      font-size: 36px;
       box-shadow:
         0 22px 42px rgba(0, 0, 0, 0.28),
         0 0 0 1px rgba(255,255,255,0.06);
@@ -14781,10 +14768,10 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.uno-live-lock .uno-reaction-float {
-      min-width: 38px;
-      height: 38px;
-      font-size: 18px;
-      top: -4px;
+      min-width: 56px;
+      height: 56px;
+      font-size: 30px;
+      top: -8px;
     }
 
     body.tma-app.uno-live-lock .uno-opponent-zone,
@@ -16970,6 +16957,7 @@ PAGE_TEMPLATE = """
       currencyFloatCollapsed: false,
       unoGuestCompletedMatches: 0,
       unoLastCompletedSessionId: '',
+      unoReactionOpen: false,
       battleReactionOpen: false,
       battleReactionTimer: null
     };
@@ -22905,12 +22893,15 @@ PAGE_TEMPLATE = """
       `;
     }
 
-    function unoReactionBarMarkup(session, actionLocked = false) {
+    function unoReactionHudMarkup(session, actionLocked = false) {
       const reactions = Array.isArray(session && session.available_reactions) ? session.available_reactions : [];
       if (!reactions.length || !session || session.complete) return '';
       return `
-        <div class="uno-reaction-bar">
-          ${reactions.map((item) => `<button type="button" class="uno-reaction-btn" data-uno-reaction="${escapeHtml(item.key || '')}" title="${escapeHtml(item.label || item.key || '')}"${actionLocked ? ' disabled' : ''}>${escapeHtml(item.emoji || '🙂')}</button>`).join('')}
+        <div class="battle-reaction-hud uno-reaction-hud">
+          <button type="button" class="battle-reaction-toggle" id="uno-reaction-toggle" aria-label="Эмодзи реакции">💬</button>
+          <div class="battle-reaction-sheet${state.unoReactionOpen ? ' visible' : ''}" id="uno-reaction-sheet">
+            ${reactions.map((item) => `<button type="button" class="battle-reaction-option" data-uno-reaction="${escapeHtml(item.key || '')}" title="${escapeHtml(item.label || item.key || '')}"${actionLocked ? ' disabled' : ''}>${escapeHtml(item.emoji || '🙂')}</button>`).join('')}
+          </div>
         </div>
       `;
     }
@@ -22918,6 +22909,14 @@ PAGE_TEMPLATE = """
     function unoReactionBubbleMarkup(reaction) {
       if (!reaction || !reaction.emoji) return '';
       return `<div class="uno-reaction-float" aria-hidden="true">${escapeHtml(reaction.emoji)}</div>`;
+    }
+
+    function toggleUnoReactionSheet(force) {
+      state.unoReactionOpen = typeof force === 'boolean' ? force : !state.unoReactionOpen;
+      const sheet = unoRoot ? unoRoot.querySelector('#uno-reaction-sheet') : null;
+      if (sheet) {
+        sheet.classList.toggle('visible', state.unoReactionOpen);
+      }
     }
 
     function battleReactionHudMarkup() {
@@ -23448,7 +23447,6 @@ PAGE_TEMPLATE = """
               ${recycleCounterLabel ? `<div class="uno-chip">${escapeHtml(recycleCounterLabel)}</div>` : ''}
               ${turnCountdownLabel ? `<div class="uno-chip" data-uno-turn-countdown data-deadline-ts="${turnDeadlineTs}">Ход: ${escapeHtml(turnCountdownLabel)}</div>` : ''}
             </div>
-            ${unoReactionBarMarkup(session, actionLocked)}
           </div>
           ${unoAlert ? `
             <div class="uno-alert-banner ${unoAlert.viewer_role === 'call' ? 'call' : 'catch'}">
@@ -23486,6 +23484,7 @@ PAGE_TEMPLATE = """
             </div>
             <div class="uno-live-board">
               <div class="uno-event-layer" data-uno-event-layer hidden></div>
+              ${unoReactionHudMarkup(session, actionLocked)}
               <div class="uno-live-board-head">
                 <span>${session.pending_draw_count ? `Стек +${Number(session.pending_draw_count || 0)}` : (canTapDraw ? `Колода • ${deckCounterLabel}` : `Колода • ${deckCounterLabel}`)}</span>
                 <span>${session.your_turn && !session.complete ? `Бросай сюда • ${escapeHtml(session.current_color_label || '—')}` : `Стол • ${escapeHtml(session.current_color_label || '—')}`}</span>
@@ -23577,6 +23576,10 @@ PAGE_TEMPLATE = """
       if (unoResultLauncherBtn) bindFunctionalControl(unoResultLauncherBtn, () => openAppLauncher(), 'click', {skipPrepare: true});
       if (unoExitBtn) bindFunctionalControl(unoExitBtn, exitUnoSession, 'click', {skipPrepare: true});
       if (unoSurrenderBtn && session.can_surrender) bindFunctionalControl(unoSurrenderBtn, () => runUnoAction('surrender'), 'click', {skipPrepare: true});
+      const unoReactionToggleBtn = unoRoot.querySelector('#uno-reaction-toggle');
+      if (unoReactionToggleBtn) {
+        unoReactionToggleBtn.addEventListener('click', () => toggleUnoReactionSheet());
+      }
       bindUnoSurfaceActions(unoRoot);
       unoRoot.querySelectorAll('[data-uno-color]').forEach((button) => {
         bindFunctionalControl(button, () => runUnoAction('play', button.dataset.unoCardId, button.dataset.unoColor), 'click', {skipPrepare: true});
@@ -23861,6 +23864,7 @@ PAGE_TEMPLATE = """
       const normalized = String(reactionKey || '').trim().toLowerCase();
       if (!normalized) return;
       try {
+        state.unoReactionOpen = false;
         const data = await api('/api/uno/action', {
           method: 'POST',
           body: unoActorPayload({
@@ -30246,7 +30250,7 @@ UNO_TURN_TIMEOUT_SECONDS = 18
 UNO_STALL_PENALTY_CARDS = 1
 UNO_BOT_UNO_REACTION_MIN_SECONDS = 1.15
 UNO_BOT_UNO_REACTION_MAX_SECONDS = 2.45
-UNO_REACTION_VISIBLE_SECONDS = 3.8
+UNO_REACTION_VISIBLE_SECONDS = 86400
 UNO_FREE_REACTIONS = [
     {'key': 'fire', 'emoji': '🔥', 'label': 'Огонь'},
     {'key': 'laugh', 'emoji': '😂', 'label': 'Смешно'},
@@ -30402,8 +30406,6 @@ def normalize_uno_reaction_key(value):
 
 
 def uno_prune_reactions(state, reference_time=None):
-    now_value = reference_time or now_utc()
-    cutoff = now_value - timedelta(seconds=UNO_REACTION_VISIBLE_SECONDS)
     pruned = []
     for item in list((state or {}).get('reactions') or []):
         key = normalize_uno_reaction_key(item.get('key'))
@@ -30412,8 +30414,6 @@ def uno_prune_reactions(state, reference_time=None):
         try:
             created_at = parse_iso(item.get('created_at'))
         except Exception:
-            continue
-        if created_at < cutoff:
             continue
         normalized = dict(item)
         normalized['key'] = key
