@@ -14214,20 +14214,18 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .shell {
-      height: var(--app-height, 100vh);
+      height: auto;
       min-height: var(--app-height, 100vh);
-      overflow: hidden;
-      padding-bottom: 0;
+      overflow-x: hidden;
+      overflow-y: visible;
+      padding-bottom: calc(126px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.active {
       display: block;
       height: auto;
       min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top));
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
+      overflow: visible;
       padding-bottom: 0;
     }
 
@@ -14235,7 +14233,7 @@ PAGE_TEMPLATE = """
       display: block;
       min-height: 0;
       padding-bottom: 0;
-      overflow-y: auto;
+      overflow: visible;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root,
