@@ -2639,10 +2639,10 @@ PAGE_TEMPLATE = """
       border-radius: 24px;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.10), rgba(7, 12, 21, 0.18));
+        linear-gradient(180deg, rgba(8, 14, 24, 0.02), rgba(7, 12, 21, 0.05));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
-        inset 0 10px 18px rgba(255,255,255,0.01);
+        inset 0 8px 14px rgba(255,255,255,0.004);
     }
 
     .uno-center::before {
@@ -2650,9 +2650,8 @@ PAGE_TEMPLATE = """
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.01), rgba(8, 12, 20, 0.02));
-      opacity: 0.16;
+      background: none;
+      opacity: 0;
       pointer-events: none;
     }
 
@@ -2661,14 +2660,14 @@ PAGE_TEMPLATE = """
       position: absolute;
       inset: 8px;
       border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.05);
       background:
-        linear-gradient(135deg, rgba(255,255,255,0.02), transparent 42%);
-      opacity: 0.12;
+        linear-gradient(135deg, rgba(255,255,255,0.01), transparent 42%);
+      opacity: 0.08;
       pointer-events: none;
       box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.02),
-        0 16px 26px rgba(0, 0, 0, 0.12);
+        inset 0 0 0 1px rgba(255,255,255,0.01),
+        0 10px 18px rgba(0, 0, 0, 0.08);
     }
 
     .uno-center > * {
@@ -3642,8 +3641,8 @@ PAGE_TEMPLATE = """
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
         var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
-        linear-gradient(180deg, rgba(8, 18, 30, 0.05), rgba(7, 12, 22, 0.08)),
-        radial-gradient(circle at center, rgba(255,255,255,0.02), transparent 62%),
+        linear-gradient(180deg, rgba(8, 18, 30, 0.01), rgba(7, 12, 22, 0.03)),
+        radial-gradient(circle at center, rgba(255,255,255,0.01), transparent 62%),
         var(--uno-live-shell-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -3658,11 +3657,11 @@ PAGE_TEMPLATE = """
       inset: 14px;
       border-radius: 22px;
       background:
-        linear-gradient(180deg, rgba(8, 14, 23, 0.01), rgba(8, 12, 18, 0.02)),
-        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.02), transparent 20%);
-      opacity: 0.12;
+        linear-gradient(180deg, rgba(8, 14, 23, 0.005), rgba(8, 12, 18, 0.01)),
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.01), transparent 20%);
+      opacity: 0.04;
       pointer-events: none;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
     }
 
     .uno-live-board.event-beat::after {
@@ -14178,6 +14177,7 @@ PAGE_TEMPLATE = """
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
+      padding-bottom: calc(18px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root,
@@ -14192,10 +14192,11 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout {
+      display: block;
       height: auto;
-      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top));
-      align-content: stretch;
-      align-items: stretch;
+      min-height: 0;
+      align-content: start;
+      align-items: start;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout .uno-home-shell {
@@ -14246,9 +14247,8 @@ PAGE_TEMPLATE = """
       padding: 12px;
       min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top));
       border-radius: 24px;
-      clip-path: inset(0 round 24px);
       box-sizing: border-box;
-      overflow: hidden;
+      overflow: visible;
       padding-bottom: 0;
       background-clip: padding-box;
     }
@@ -14271,21 +14271,25 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell {
-      min-height: 100% !important;
+      display: flex !important;
+      flex-direction: column;
+      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top)) !important;
       height: auto !important;
       max-height: none !important;
       align-self: stretch;
-      overflow: hidden;
+      overflow: visible;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell .uno-shell-footer,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell .uno-shell-footer {
-      min-height: calc(138px + env(safe-area-inset-bottom));
-      padding-bottom: calc(54px + env(safe-area-inset-bottom));
+      min-height: calc(164px + env(safe-area-inset-bottom));
+      padding-bottom: calc(72px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller {
+      display: block;
+      flex: 1 0 auto;
       min-height: 0;
       overflow-y: visible;
       padding-bottom: 0;
@@ -21557,15 +21561,15 @@ PAGE_TEMPLATE = """
       const arenaAsset = cosmeticAssetUrl('arena', arenaKey);
       const cardbackAsset = cosmeticAssetUrl('cardback', backKey);
       const guildAsset = guildKey ? cosmeticAssetUrl('guild', guildKey) : '';
-      const arenaArt = arenaAsset ? `url("${arenaAsset}") center/cover no-repeat` : 'none';
+      const arenaArt = 'none';
       const cardbackArt = cardbackAsset ? `url("${cardbackAsset}") center/cover no-repeat` : 'none';
       const bannerArt = guildAsset ? `url("${guildAsset}") center/cover no-repeat` : 'none';
       const backSurface = giftCardbackSurface(backKey, emoji);
       const arenaSurface = giftArenaSurface(arenaKey, emoji);
       const arenaPatternSurface = monogramPatternSurface(emoji, arenaTheme, 'arena') || 'none';
       const arenaBoardSurface = [
-        `radial-gradient(circle at 50% 44%, ${hexToRgba(arenaTheme.accent, 0.2)}, transparent 58%)`,
-        `radial-gradient(circle at 18% 18%, ${hexToRgba(arenaTheme.secondary, 0.12)}, transparent 34%)`,
+        `radial-gradient(circle at 50% 44%, ${hexToRgba(arenaTheme.accent, 0.12)}, transparent 58%)`,
+        `radial-gradient(circle at 18% 18%, ${hexToRgba(arenaTheme.secondary, 0.06)}, transparent 34%)`,
         arenaSurface,
       ].join(',');
       const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : `linear-gradient(135deg, ${hexToRgba(arenaTheme.secondary, 0.92)}, ${hexToRgba(frameTheme.accent, 0.82)})`;
@@ -21576,6 +21580,15 @@ PAGE_TEMPLATE = """
       const activeTabSurface = [
         `linear-gradient(135deg, ${hexToRgba(arenaTheme.secondary, 0.96)}, ${hexToRgba(frameTheme.accent, 0.84)})`,
         `radial-gradient(circle at top, rgba(255,255,255,0.12), transparent 72%)`,
+      ].join(',');
+      const shellSurface = [
+        `radial-gradient(circle at 14% 12%, ${hexToRgba(arenaTheme.accent, 0.12)}, transparent 28%)`,
+        `radial-gradient(circle at 88% 18%, ${hexToRgba(arenaTheme.secondary, 0.08)}, transparent 24%)`,
+        `linear-gradient(180deg, ${hexToRgba(arenaTheme.secondary, 0.9)}, ${hexToRgba(arenaTheme.base, 0.96)})`,
+      ].join(',');
+      const panelSurface = [
+        `radial-gradient(circle at top, ${hexToRgba(arenaTheme.accent, 0.08)}, transparent 68%)`,
+        `linear-gradient(180deg, ${hexToRgba(arenaTheme.secondary, 0.22)}, ${hexToRgba(arenaTheme.base, 0.42)})`,
       ].join(',');
       return {
         arenaKey,
@@ -21600,14 +21613,8 @@ PAGE_TEMPLATE = """
         arenaPatternSurface,
         arenaBoardSurface,
         arenaFocusSurface: arenaBoardSurface,
-        tableSurface: [
-          'linear-gradient(180deg, rgba(6, 11, 18, 0.18), rgba(5, 10, 18, 0.34))',
-          arenaBoardSurface,
-        ].join(','),
-        panelSurface: [
-          'linear-gradient(180deg, rgba(8, 16, 27, 0.22), rgba(7, 12, 20, 0.42))',
-          arenaBoardSurface,
-        ].join(','),
+        tableSurface: shellSurface,
+        panelSurface,
         panelBorder: hexToRgba(arenaTheme.accent, 0.22),
         panelShadow: hexToRgba(arenaTheme.accent, 0.12),
         frameAccent: hexToRgba(frameTheme.accent, 0.34),
