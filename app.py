@@ -16925,6 +16925,10 @@ PAGE_TEMPLATE = """
       unoDealIntroSeenSessionId: '',
       unoDrawFx: null,
       unoDrawFxTimer: null,
+      unoReactionFx: {},
+      unoReactionFxSeen: {},
+      unoReactionFxSessionId: '',
+      unoReactionFxTimer: null,
       unoCountdownTimer: null,
       unoDrag: null,
       unoGuestId: '',
@@ -22019,6 +22023,80 @@ PAGE_TEMPLATE = """
       }
     }
 
+    function clearUnoReactionFx(options = {}) {
+      if (state.unoReactionFxTimer) {
+        window.clearTimeout(state.unoReactionFxTimer);
+        state.unoReactionFxTimer = null;
+      }
+      state.unoReactionFx = {};
+      if (options.resetSeen) {
+        state.unoReactionFxSeen = {};
+      }
+      if (options.resetSession) {
+        state.unoReactionFxSessionId = '';
+      }
+    }
+
+    function pruneUnoReactionFx() {
+      const nowTs = Date.now();
+      const activeFx = {};
+      Object.entries(state.unoReactionFx || {}).forEach(([actorId, item]) => {
+        if (!item || !item.emoji) return;
+        if (Number(item.until || 0) <= nowTs) return;
+        activeFx[actorId] = item;
+      });
+      state.unoReactionFx = activeFx;
+      return activeFx;
+    }
+
+    function scheduleUnoReactionFxExpiry() {
+      if (state.unoReactionFxTimer) {
+        window.clearTimeout(state.unoReactionFxTimer);
+        state.unoReactionFxTimer = null;
+      }
+      const activeFx = Object.values(pruneUnoReactionFx());
+      if (!activeFx.length) return;
+      const nowTs = Date.now();
+      const nextUntil = Math.min(...activeFx.map((item) => Number(item.until || 0)).filter((value) => Number.isFinite(value) && value > nowTs));
+      if (!Number.isFinite(nextUntil)) return;
+      state.unoReactionFxTimer = window.setTimeout(() => {
+        state.unoReactionFxTimer = null;
+        pruneUnoReactionFx();
+        if (document.body.dataset.activeView === 'uno' && state.unoSession && !state.unoSession.complete) {
+          renderUnoPanel();
+        }
+      }, Math.max(40, nextUntil - nowTs + 12));
+    }
+
+    function syncUnoReactionFx(session) {
+      if (!session || session.complete) {
+        clearUnoReactionFx({resetSeen: true, resetSession: true});
+        return new Map();
+      }
+      const sessionId = String(session.session_id || '').trim();
+      if (state.unoReactionFxSessionId !== sessionId) {
+        clearUnoReactionFx({resetSeen: true});
+        state.unoReactionFxSessionId = sessionId;
+      }
+      const nowTs = Date.now();
+      const reactions = Array.isArray(session.active_reactions) ? session.active_reactions : [];
+      reactions.forEach((item) => {
+        const actorId = String(item && item.actor_id || '').trim();
+        const emoji = String(item && item.emoji || '').trim();
+        if (!actorId || !emoji) return;
+        const signature = `${actorId}:${String(item && item.key || '')}:${String(item && item.created_at || '')}`;
+        if (state.unoReactionFxSeen[actorId] === signature) return;
+        state.unoReactionFxSeen[actorId] = signature;
+        state.unoReactionFx[actorId] = {
+          emoji,
+          until: nowTs + 5000,
+        };
+      });
+      const activeFx = pruneUnoReactionFx();
+      scheduleUnoReactionFxExpiry();
+      return new Map(Object.entries(activeFx).map(([actorId, item]) => [actorId, item]));
+    }
+
     function triggerUnoEventFx(session, options = {}) {
       if (!unoRoot || !session) return;
       clearUnoEventFx();
@@ -22976,6 +23054,7 @@ PAGE_TEMPLATE = """
       stopUnoCountdownTicker();
       clearUnoDragInteraction();
       clearUnoDealIntro(false);
+      clearUnoReactionFx({resetSeen: true, resetSession: true});
       clearUnoDrawFx();
       clearUnoEventFx();
       const session = state.unoSession;
@@ -22985,6 +23064,7 @@ PAGE_TEMPLATE = """
         state.unoLastEventKey = '';
         rememberUnoSession(null);
         clearUnoDealIntro(false);
+        clearUnoReactionFx({resetSeen: true, resetSession: true});
         renderUnoPanel();
         return;
       }
@@ -23004,6 +23084,7 @@ PAGE_TEMPLATE = """
       state.unoLastEventKey = '';
       rememberUnoSession(null);
       clearUnoDealIntro(false);
+      clearUnoReactionFx({resetSeen: true, resetSession: true});
       renderUnoPanel();
     }
 
@@ -23021,6 +23102,7 @@ PAGE_TEMPLATE = """
         setUnoLiveLock(false);
         state.unoLastEventKey = '';
         clearUnoDealIntro(false);
+        clearUnoReactionFx({resetSeen: true, resetSession: true});
         clearUnoEventFx();
         clearUnoDrawFx();
         unoRoot.innerHTML = '<div class="uno-empty"><strong>Раздел недоступен.</strong></div>';
@@ -23080,6 +23162,7 @@ PAGE_TEMPLATE = """
         stopUnoCountdownTicker();
         state.unoLastEventKey = '';
         clearUnoDealIntro(false);
+        clearUnoReactionFx({resetSeen: true, resetSession: true});
         clearUnoEventFx();
         clearUnoDrawFx();
         const cachedSessionId = rememberedUnoSessionId();
@@ -23177,6 +23260,7 @@ PAGE_TEMPLATE = """
         stopUnoStatusPolling();
         stopUnoCountdownTicker();
         state.unoLastEventKey = '';
+        clearUnoReactionFx({resetSeen: true, resetSession: true});
         clearUnoEventFx();
         clearUnoDrawFx();
         syncUnoCompletedMatchCounter(session);
@@ -23395,8 +23479,7 @@ PAGE_TEMPLATE = """
       const shouldAnimateUnoIntro = Boolean(nextUnoEventKey && !state.unoLastEventKey && !session.complete);
       const canTapDraw = Boolean(session.can_draw && !unoAlert && !actionLocked && !pendingWildCardId && !state.unoDrawFx);
       const currentColorMarkup = unoColorIndicatorMarkup(session.current_color, session.current_color_label, {compact: true});
-      const activeReactions = Array.isArray(session.active_reactions) ? session.active_reactions : [];
-      const reactionMap = new Map(activeReactions.map((item) => [String(item && item.actor_id || ''), item]));
+      const reactionMap = syncUnoReactionFx(session);
       const viewerActorId = String((identity && (identity.wallet || identity.guest_id)) || (state.wallet || '') || '');
       const deckCounterLabel = Number(session.draw_remaining || 0);
       const recycleCounterLabel = Number(session.recycle_count || 0) > 0 ? `Перемешано ${Number(session.recycle_count || 0)}x` : '';
