@@ -14206,9 +14206,15 @@ PAGE_TEMPLATE = """
       min-height: calc(118px + env(safe-area-inset-bottom));
       padding: 24px 12px calc(46px + env(safe-area-inset-bottom));
       border-top: 1px solid rgba(255,255,255,0.08);
-      background: transparent;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.02), transparent 18%),
+        radial-gradient(circle at 50% 0%, rgba(255,255,255,0.04), transparent 42%),
+        var(--uno-shell-surface, linear-gradient(180deg, rgba(12, 18, 30, 0.92), rgba(7, 12, 22, 0.95)));
       text-align: center;
       border-radius: 0 0 20px 20px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.03),
+        inset 0 -1px 0 rgba(255,255,255,0.08);
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell .uno-shell-footer {
