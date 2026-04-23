@@ -14160,9 +14160,12 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell {
+      display: flex;
+      flex-direction: column;
       padding: calc(42px + env(safe-area-inset-top)) 12px calc(118px + env(safe-area-inset-bottom));
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.18));
       border-radius: 24px;
+      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top));
       background:
         radial-gradient(circle at 14% 12%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.22)), transparent 28%),
         radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.18), transparent 26%),
@@ -14192,10 +14195,16 @@ PAGE_TEMPLATE = """
       z-index: 1;
     }
 
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell > #uno-root {
+      flex: 1 0 auto;
+      min-height: 0;
+    }
+
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell > .support-footer {
       display: block !important;
-      margin-top: 18px;
-      padding: 14px 12px calc(10px + env(safe-area-inset-bottom));
+      margin-top: auto;
+      min-height: calc(118px + env(safe-area-inset-bottom));
+      padding: 24px 12px calc(46px + env(safe-area-inset-bottom));
       border-top: 1px solid rgba(255,255,255,0.08);
       background: transparent;
       text-align: center;
