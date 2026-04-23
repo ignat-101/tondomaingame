@@ -14162,7 +14162,7 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell {
       display: flex;
       flex-direction: column;
-      padding: calc(42px + env(safe-area-inset-top)) 12px calc(118px + env(safe-area-inset-bottom));
+      padding: calc(42px + env(safe-area-inset-top)) 12px calc(132px + env(safe-area-inset-bottom));
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.18));
       border-radius: 24px;
       min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top));
@@ -14174,7 +14174,7 @@ PAGE_TEMPLATE = """
       box-shadow:
         0 28px 56px rgba(0, 0, 0, 0.34),
         inset 0 0 0 1px rgba(255, 255, 255, 0.03);
-      overflow: visible;
+      overflow: hidden;
       position: relative;
       isolation: isolate;
     }
@@ -14197,14 +14197,16 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell > #uno-root {
       flex: 1 0 auto;
+      display: flex;
+      flex-direction: column;
       min-height: 0;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell > .support-footer {
       display: block !important;
       margin-top: auto;
-      min-height: calc(118px + env(safe-area-inset-bottom));
-      padding: 24px 12px calc(46px + env(safe-area-inset-bottom));
+      min-height: calc(188px + env(safe-area-inset-bottom));
+      padding: 28px 12px calc(62px + env(safe-area-inset-bottom));
       border-top: 1px solid rgba(255,255,255,0.08);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.02), transparent 18%),
@@ -14215,6 +14217,9 @@ PAGE_TEMPLATE = """
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.03),
         inset 0 -1px 0 rgba(255,255,255,0.08);
+      display: flex !important;
+      align-items: flex-end;
+      justify-content: center;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell .uno-shell-footer {
@@ -14223,12 +14228,13 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell .uno-shell.landing.uno-home-shell,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell .uno-shell.completed.uno-home-shell {
+      flex: 1 0 auto;
       padding: 0;
       border: 0;
       border-radius: 0;
       background: transparent;
       box-shadow: none;
-      min-height: 0 !important;
+      min-height: 100% !important;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) {
