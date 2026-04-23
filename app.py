@@ -14159,6 +14159,63 @@ PAGE_TEMPLATE = """
       display: none !important;
     }
 
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell {
+      padding: calc(42px + env(safe-area-inset-top)) 12px calc(118px + env(safe-area-inset-bottom));
+      border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.18));
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 14% 12%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.22)), transparent 28%),
+        radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.18), transparent 26%),
+        radial-gradient(circle at 50% 100%, rgba(49, 168, 255, 0.16), transparent 34%),
+        var(--uno-shell-surface, linear-gradient(180deg, rgba(12, 18, 30, 0.92), rgba(7, 12, 22, 0.95)));
+      box-shadow:
+        0 28px 56px rgba(0, 0, 0, 0.34),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+      overflow: visible;
+      position: relative;
+      isolation: isolate;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background:
+        linear-gradient(130deg, transparent 0 32%, rgba(255,255,255,0.045) 32% 34%, transparent 34% 48%, rgba(255,255,255,0.035) 48% 50%, transparent 50% 100%);
+      opacity: 0.65;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell > .support-footer {
+      display: block !important;
+      margin-top: 18px;
+      padding: 14px 12px calc(10px + env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: transparent;
+      text-align: center;
+      border-radius: 0 0 20px 20px;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell .uno-shell-footer {
+      display: none !important;
+    }
+
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell .uno-shell.landing.uno-home-shell,
+    body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell .uno-shell.completed.uno-home-shell {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      min-height: 0 !important;
+    }
+
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) {
       overflow: hidden;
       overscroll-behavior: none;
@@ -22946,6 +23003,10 @@ PAGE_TEMPLATE = """
 
     function renderUnoPanel() {
       if (!unoRoot) return;
+      if (viewUno) {
+        viewUno.classList.remove('uno-home-outer-shell');
+        viewUno.removeAttribute('style');
+      }
       const previousUnoUiScroll = captureUnoUiScrollState();
       clearUnoDragInteraction();
       if (!hasUnoTesterAccess()) {
@@ -23001,6 +23062,10 @@ PAGE_TEMPLATE = """
       const compactUnoLive = Boolean(compactUnoViewport && unoLiveScreen);
       setUnoLiveLock(unoLiveScreen);
       syncMobileNavContext();
+      if (viewUno && homeLikeUnoScreen) {
+        viewUno.classList.add('uno-home-outer-shell');
+        viewUno.setAttribute('style', shellVisualStyle);
+      }
       const identityLabel = identity.progressEnabled
         ? `${state.selectedDomain}.ton`
         : identity.displayName;
