@@ -573,7 +573,10 @@ PAGE_TEMPLATE = """
     body.performance-lite .uno-event-deal-card,
     body.performance-lite .uno-result-scene-word,
     body.performance-lite .uno-result-ring,
+    body.performance-lite .uno-result-core,
     body.performance-lite .uno-result-card,
+    body.performance-lite .uno-result-streak,
+    body.performance-lite .uno-result-spark,
     body.performance-lite .pack-card-fan-card,
     body.performance-lite .pack-card-fan-copy,
     body.performance-lite .pack-card-fan-panel,
@@ -3115,7 +3118,10 @@ PAGE_TEMPLATE = """
     .uno-result-scene-grid,
     .uno-result-scene-word,
     .uno-result-ring,
-    .uno-result-card {
+    .uno-result-card,
+    .uno-result-core,
+    .uno-result-streak,
+    .uno-result-spark {
       position: absolute;
       pointer-events: none;
     }
@@ -3167,6 +3173,18 @@ PAGE_TEMPLATE = """
       animation-delay: 0.18s;
     }
 
+    .uno-result-core {
+      left: 50%;
+      top: 50%;
+      width: 132px;
+      height: 132px;
+      border-radius: 999px;
+      transform: translate(-50%, -50%) scale(0.52);
+      opacity: 0;
+      filter: blur(10px);
+      animation: unoResultCorePulse 1.2s cubic-bezier(.18,.88,.22,1) forwards;
+    }
+
     .uno-result-card {
       width: 92px;
       height: 128px;
@@ -3181,7 +3199,6 @@ PAGE_TEMPLATE = """
         inset 0 0 0 1px rgba(255,255,255,0.04);
       opacity: 0;
       transform-origin: center center;
-      animation: unoResultCardEntry 0.96s cubic-bezier(.18,.88,.22,1) forwards;
     }
 
     .uno-result-card::before {
@@ -3253,6 +3270,40 @@ PAGE_TEMPLATE = """
       animation: unoResultCardEntryRight 0.96s cubic-bezier(.18,.88,.22,1) forwards;
       animation-delay: 0.2s;
     }
+
+    .uno-result-streak {
+      width: 8px;
+      height: 62px;
+      border-radius: 999px;
+      opacity: 0;
+      filter: blur(0.35px);
+      transform-origin: center top;
+      animation: unoResultStreakRise 1.22s cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .uno-result-streak.st1 { left: 18%; top: 28%; --rot: -24deg; animation-delay: 0.02s; }
+    .uno-result-streak.st2 { left: 33%; top: 16%; --rot: -12deg; animation-delay: 0.09s; }
+    .uno-result-streak.st3 { right: 33%; top: 16%; --rot: 12deg; animation-delay: 0.06s; }
+    .uno-result-streak.st4 { right: 18%; top: 28%; --rot: 24deg; animation-delay: 0.14s; }
+
+    .uno-result-spark {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      opacity: 0;
+      filter: blur(0.2px);
+      animation: unoResultSparkRise 1.4s cubic-bezier(.16,.84,.2,1) forwards;
+      box-shadow: 0 0 18px currentColor;
+    }
+
+    .uno-result-spark.s1 { left: 16%; top: 38%; --spark-x: -18px; --spark-y: -54px; animation-delay: 0.04s; }
+    .uno-result-spark.s2 { left: 24%; top: 22%; --spark-x: -8px; --spark-y: -68px; animation-delay: 0.08s; }
+    .uno-result-spark.s3 { left: 38%; top: 14%; --spark-x: -4px; --spark-y: -62px; animation-delay: 0.14s; }
+    .uno-result-spark.s4 { left: 46%; top: 22%; --spark-x: -2px; --spark-y: -74px; animation-delay: 0.19s; }
+    .uno-result-spark.s5 { right: 46%; top: 18%; --spark-x: 2px; --spark-y: -76px; animation-delay: 0.1s; }
+    .uno-result-spark.s6 { right: 38%; top: 14%; --spark-x: 4px; --spark-y: -62px; animation-delay: 0.16s; }
+    .uno-result-spark.s7 { right: 24%; top: 22%; --spark-x: 8px; --spark-y: -68px; animation-delay: 0.22s; }
+    .uno-result-spark.s8 { right: 16%; top: 38%; --spark-x: 18px; --spark-y: -54px; animation-delay: 0.28s; }
 
     .uno-result-scene::before,
     .uno-result-scene::after {
@@ -3327,16 +3378,55 @@ PAGE_TEMPLATE = """
       border-color: rgba(113, 248, 190, 0.2);
     }
 
+    .uno-result-box.outcome-win .uno-result-core {
+      background: radial-gradient(circle, rgba(113, 248, 190, 0.48), rgba(255, 214, 74, 0.2) 46%, transparent 72%);
+    }
+
+    .uno-result-box.outcome-win .uno-result-streak,
+    .uno-result-box.outcome-win .uno-result-spark {
+      color: rgba(113, 248, 190, 0.94);
+      background: linear-gradient(180deg, rgba(113, 248, 190, 0.96), rgba(255, 214, 74, 0.12));
+    }
+
     .uno-result-box.outcome-loss .uno-result-scene-word,
     .uno-result-box.outcome-loss .uno-result-ring {
       color: rgba(255, 131, 145, 0.44);
       border-color: rgba(255, 131, 145, 0.18);
     }
 
+    .uno-result-box.outcome-loss .uno-result-core {
+      background: radial-gradient(circle, rgba(255, 131, 145, 0.4), rgba(96, 22, 34, 0.24) 48%, transparent 74%);
+    }
+
+    .uno-result-box.outcome-loss .uno-result-card {
+      display: none;
+    }
+
+    .uno-result-box.outcome-loss .uno-result-streak,
+    .uno-result-box.outcome-loss .uno-result-spark {
+      color: rgba(255, 131, 145, 0.92);
+      background: linear-gradient(180deg, rgba(255, 131, 145, 0.96), rgba(255, 180, 84, 0.08));
+      animation-name: unoResultStreakFall;
+    }
+
+    .uno-result-box.outcome-loss .uno-result-spark {
+      animation-name: unoResultSparkFall;
+    }
+
     .uno-result-box.outcome-draw .uno-result-scene-word,
     .uno-result-box.outcome-draw .uno-result-ring {
       color: rgba(255, 214, 74, 0.42);
       border-color: rgba(255, 214, 74, 0.18);
+    }
+
+    .uno-result-box.outcome-draw .uno-result-core {
+      background: radial-gradient(circle, rgba(255, 214, 74, 0.4), rgba(121, 217, 255, 0.16) 46%, transparent 72%);
+    }
+
+    .uno-result-box.outcome-draw .uno-result-streak,
+    .uno-result-box.outcome-draw .uno-result-spark {
+      color: rgba(255, 214, 74, 0.92);
+      background: linear-gradient(180deg, rgba(255, 214, 74, 0.96), rgba(121, 217, 255, 0.12));
     }
 
     .uno-result-scene-particle {
@@ -3362,6 +3452,7 @@ PAGE_TEMPLATE = """
 
     .uno-result-box.outcome-loss .uno-result-scene-particle {
       background: linear-gradient(180deg, rgba(255, 131, 145, 0.94), rgba(255, 214, 74, 0.12));
+      animation-name: unoResultParticleFall;
     }
 
     .uno-result-box.outcome-draw .uno-result-scene-particle {
@@ -3571,10 +3662,22 @@ PAGE_TEMPLATE = """
       100% { opacity: 0; transform: translateY(82px) rotate(18deg) scale(1.08); }
     }
 
+    @keyframes unoResultParticleFall {
+      0% { opacity: 0; transform: translateY(-12px) rotate(0deg) scale(0.72); }
+      24% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(92px) rotate(-18deg) scale(1.04); }
+    }
+
     @keyframes unoResultRing {
       0% { opacity: 0; transform: translate(-50%, -50%) scale(0.54); }
       28% { opacity: 0.58; }
       100% { opacity: 0; transform: translate(-50%, -50%) scale(1.18); }
+    }
+
+    @keyframes unoResultCorePulse {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.48); }
+      38% { opacity: 0.88; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1.16); }
     }
 
     @keyframes unoResultCardEntryLeft {
@@ -3607,6 +3710,30 @@ PAGE_TEMPLATE = """
     @keyframes unoResultProgressGrow {
       0% { width: 0; }
       100% { width: var(--uno-progress, 0%); }
+    }
+
+    @keyframes unoResultStreakRise {
+      0% { opacity: 0; transform: translate3d(0, 24px, 0) scale(0.72) rotate(var(--rot, 0deg)); }
+      18% { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(0, -74px, 0) scale(1.06) rotate(var(--rot, 0deg)); }
+    }
+
+    @keyframes unoResultStreakFall {
+      0% { opacity: 0; transform: translate3d(0, -24px, 0) scale(0.72) rotate(var(--rot, 0deg)); }
+      18% { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(0, 86px, 0) scale(1.06) rotate(var(--rot, 0deg)); }
+    }
+
+    @keyframes unoResultSparkRise {
+      0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.42); }
+      20% { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(var(--spark-x, 0), var(--spark-y, -56px), 0) scale(1.16); }
+    }
+
+    @keyframes unoResultSparkFall {
+      0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.42); }
+      20% { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(var(--spark-x, 0), calc(var(--spark-y, -56px) * -1), 0) scale(1.16); }
     }
 
     .uno-empty {
@@ -23555,11 +23682,24 @@ PAGE_TEMPLATE = """
                 <div class="uno-result-scene">
                   <div class="uno-result-scene-grid"></div>
                   <div class="uno-result-scene-word">${escapeHtml(outcomePill)}</div>
+                  <div class="uno-result-core"></div>
                   <i class="uno-result-ring r1"></i>
                   <i class="uno-result-ring r2"></i>
                   <div class="uno-result-card c1"></div>
                   <div class="uno-result-card c2"></div>
                   <div class="uno-result-card c3"></div>
+                  <i class="uno-result-streak st1"></i>
+                  <i class="uno-result-streak st2"></i>
+                  <i class="uno-result-streak st3"></i>
+                  <i class="uno-result-streak st4"></i>
+                  <i class="uno-result-spark s1"></i>
+                  <i class="uno-result-spark s2"></i>
+                  <i class="uno-result-spark s3"></i>
+                  <i class="uno-result-spark s4"></i>
+                  <i class="uno-result-spark s5"></i>
+                  <i class="uno-result-spark s6"></i>
+                  <i class="uno-result-spark s7"></i>
+                  <i class="uno-result-spark s8"></i>
                   <div class="uno-result-scene-badge">${escapeHtml(outcomePill)}</div>
                   <i class="uno-result-scene-particle p1"></i>
                   <i class="uno-result-scene-particle p2"></i>
