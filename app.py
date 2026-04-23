@@ -14165,7 +14165,7 @@ PAGE_TEMPLATE = """
       padding: calc(42px + env(safe-area-inset-top)) 12px calc(132px + env(safe-area-inset-bottom));
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.18));
       border-radius: 24px;
-      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top));
+      min-height: calc(var(--app-height, 100vh) + 188px);
       background:
         radial-gradient(circle at 14% 12%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.22)), transparent 28%),
         radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.18), transparent 26%),
@@ -14205,8 +14205,8 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell > .support-footer {
       display: block !important;
       margin-top: auto;
-      min-height: calc(188px + env(safe-area-inset-bottom));
-      padding: 28px 12px calc(62px + env(safe-area-inset-bottom));
+      min-height: calc(320px + env(safe-area-inset-bottom));
+      padding: 36px 12px calc(92px + env(safe-area-inset-bottom));
       border-top: 1px solid rgba(255,255,255,0.08);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.02), transparent 18%),
@@ -16509,7 +16509,7 @@ PAGE_TEMPLATE = """
             <p class="muted">Можно купить 4-значный .ton на площадках и затем вернуться к игре с новым доменом.</p>
             <div class="links-row" id="marketplaces-links"></div>
           </div>
-          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
+          <div class="support-footer">support <a href="https://t.me/ignat101" target="_blank" rel="noopener noreferrer">@ignat101</a></div>
         </section>
 
         <section class="panel view" id="view-pack">
@@ -16617,7 +16617,7 @@ PAGE_TEMPLATE = """
           </div>
           <h3 style="margin-top:18px;">Редкости карт</h3>
           <div class="deck-list" id="card-catalog-list"></div>
-          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
+          <div class="support-footer">support <a href="https://t.me/ignat101" target="_blank" rel="noopener noreferrer">@ignat101</a></div>
         </section>
 
         <section class="panel view" id="view-modes">
@@ -16670,21 +16670,21 @@ PAGE_TEMPLATE = """
 
           <div class="result-box" id="battle-result" style="display:none;"></div>
           <div class="result-box" id="invite-result" style="display:none;"></div>
-          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
+          <div class="support-footer">support <a href="https://t.me/ignat101" target="_blank" rel="noopener noreferrer">@ignat101</a></div>
         </section>
 
         <section class="panel view" id="view-uno" hidden>
           <h2>UNO Arena</h2>
           <p class="muted">Классический UNO-режим внутри mini app: бот, друзья до 6 игроков и быстрый матч. Можно играть как guest без кошелька или с общим прогрессом через домен.</p>
           <div id="uno-root" class="uno-root"></div>
-          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
+          <div class="support-footer">support <a href="https://t.me/ignat101" target="_blank" rel="noopener noreferrer">@ignat101</a></div>
         </section>
 
         <section class="panel view" id="view-battleflow">
           <h2>Ход боя</h2>
           <p class="muted">Подробный разбор раундов матча: какие карты сошлись, какие решения были выбраны и как сложился итог.</p>
           <div id="battle-flow-view"></div>
-          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
+          <div class="support-footer">support <a href="https://t.me/ignat101" target="_blank" rel="noopener noreferrer">@ignat101</a></div>
         </section>
 
         <section class="panel view" id="view-profile">
@@ -16708,14 +16708,14 @@ PAGE_TEMPLATE = """
           <div id="mobile-leaderboard" class="leaderboard"></div>
           <h3 style="margin-top:20px;">Общая база игроков</h3>
           <div id="mobile-global-players-list" class="global-players-list"></div>
-          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
+          <div class="support-footer">support <a href="https://t.me/ignat101" target="_blank" rel="noopener noreferrer">@ignat101</a></div>
         </section>
 
         <section class="panel view" id="view-guilds">
           <h2>Кланы и клановые войны</h2>
           <p class="muted">Отдельный экран кланов: состав, заявки, чат, недельные цели, война недели и награда клана.</p>
           <div id="guild-panel" class="deck-list"></div>
-          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
+          <div class="support-footer">support <a href="https://t.me/ignat101" target="_blank" rel="noopener noreferrer">@ignat101</a></div>
         </section>
 
         <section class="panel view" id="view-achievements">
@@ -16725,7 +16725,7 @@ PAGE_TEMPLATE = """
             <button id="refresh-achievements-btn" disabled>Обновить пропуск</button>
           </div>
           <div class="deck-list" id="achievements-list"></div>
-          <div class="support-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>
+          <div class="support-footer">support <a href="https://t.me/ignat101" target="_blank" rel="noopener noreferrer">@ignat101</a></div>
         </section>
       </main>
 
@@ -21807,7 +21807,7 @@ PAGE_TEMPLATE = """
     }
 
     function unoShellFooterMarkup() {
-      return `<div class="uno-shell-footer">support - <a href="https://t.me/ignat_101" target="_blank" rel="noopener noreferrer">@ignat_101</a></div>`;
+      return `<div class="uno-shell-footer">support <a href="https://t.me/ignat101" target="_blank" rel="noopener noreferrer">@ignat101</a></div>`;
     }
 
     function unoSharedViewHeroContent(viewName) {
