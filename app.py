@@ -14041,7 +14041,8 @@ PAGE_TEMPLATE = """
     }
 
     body:not(.tma-app)[data-active-view="uno"] #view-uno > h2,
-    body:not(.tma-app)[data-active-view="uno"] #view-uno > p {
+    body:not(.tma-app)[data-active-view="uno"] #view-uno > p,
+    body:not(.tma-app)[data-active-view="uno"] #view-uno > .support-footer {
       display: none !important;
     }
 
@@ -14145,25 +14146,17 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) #view-uno {
-      padding: calc(42px + env(safe-area-inset-top)) 12px calc(118px + env(safe-area-inset-bottom));
+      padding: calc(42px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
       border-radius: 20px;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
     }
 
     body.tma-app[data-active-view="uno"] #view-uno > h2,
-    body.tma-app[data-active-view="uno"] #view-uno > p {
+    body.tma-app[data-active-view="uno"] #view-uno > p,
+    body.tma-app[data-active-view="uno"] #view-uno > .support-footer {
       display: none !important;
-    }
-
-    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) #view-uno > .support-footer,
-    body.tma-app[data-active-view="uno"]:not(.uno-live-lock) #view-uno > .support-footer {
-      display: block !important;
-      margin-top: 18px;
-      padding-top: 14px;
-      padding-bottom: calc(10px + env(safe-area-inset-bottom));
-      border-top: 1px solid rgba(255,255,255,0.08);
-      background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.04), rgba(5, 10, 18, 0.16));
-      border-radius: 0 0 20px 20px;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) {
@@ -14187,7 +14180,7 @@ PAGE_TEMPLATE = """
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
-      padding-bottom: calc(18px + env(safe-area-inset-bottom));
+      padding-bottom: 0;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root,
@@ -23082,6 +23075,7 @@ PAGE_TEMPLATE = """
                 </div>
               `}
             </div>
+            ${unoShellFooterMarkup()}
           </div>
         `;
         const unoRookieStartBtn = document.getElementById('uno-rookie-start-btn');
@@ -23181,6 +23175,7 @@ PAGE_TEMPLATE = """
                 </div>
               </div>
             </div>
+            ${unoShellFooterMarkup()}
           </div>
         `;
         const unoAfterBotBtn = document.getElementById('uno-after-bot-btn');
