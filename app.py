@@ -14203,7 +14203,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell > .support-footer {
-      display: block !important;
+      display: none !important;
       margin-top: auto;
       min-height: calc(380px + env(safe-area-inset-bottom));
       padding: 40px 12px calc(112px + env(safe-area-inset-bottom));
@@ -14223,7 +14223,7 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell .uno-shell-footer {
-      display: none !important;
+      display: flex !important;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell .uno-shell.landing.uno-home-shell,
@@ -14354,7 +14354,7 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell {
       display: flex !important;
       flex-direction: column;
-      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top)) !important;
+      min-height: calc(var(--app-height, 100vh) + 320px) !important;
       height: auto !important;
       max-height: none !important;
       align-self: stretch;
@@ -14363,8 +14363,12 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell .uno-shell-footer,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell .uno-shell-footer {
-      min-height: calc(260px + env(safe-area-inset-bottom));
-      padding-bottom: calc(116px + env(safe-area-inset-bottom));
+      min-height: calc(320px + env(safe-area-inset-bottom));
+      padding-bottom: calc(132px + env(safe-area-inset-bottom));
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.02), transparent 16%),
+        radial-gradient(circle at 50% 0%, rgba(255,255,255,0.035), transparent 42%);
+      border-radius: 0 0 22px 22px;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
