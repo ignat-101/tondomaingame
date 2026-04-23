@@ -2639,12 +2639,10 @@ PAGE_TEMPLATE = """
       border-radius: 24px;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.56), rgba(7, 12, 21, 0.72)),
-        radial-gradient(circle at 50% 22%, rgba(255, 214, 74, 0.05), transparent 30%),
-        var(--uno-live-shell-surface, rgba(7, 16, 29, 0.76));
+        linear-gradient(180deg, rgba(8, 14, 24, 0.10), rgba(7, 12, 21, 0.18));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
-        inset 0 18px 34px rgba(255,255,255,0.02);
+        inset 0 10px 18px rgba(255,255,255,0.01);
     }
 
     .uno-center::before {
@@ -2653,10 +2651,8 @@ PAGE_TEMPLATE = """
       inset: 0;
       border-radius: inherit;
       background:
-        linear-gradient(180deg, rgba(8, 14, 24, 0.01), rgba(8, 12, 20, 0.04)),
-        radial-gradient(circle at 50% 20%, rgba(255, 214, 74, 0.06), transparent 26%),
-        radial-gradient(circle at 50% 82%, rgba(78, 186, 255, 0.05), transparent 30%);
-      opacity: 0.52;
+        linear-gradient(180deg, rgba(8, 14, 24, 0.01), rgba(8, 12, 20, 0.02));
+      opacity: 0.16;
       pointer-events: none;
     }
 
@@ -2667,9 +2663,8 @@ PAGE_TEMPLATE = """
       border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.06);
       background:
-        linear-gradient(135deg, rgba(255,255,255,0.03), transparent 42%),
-        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.04), transparent 24%);
-      opacity: 0.24;
+        linear-gradient(135deg, rgba(255,255,255,0.02), transparent 42%);
+      opacity: 0.12;
       pointer-events: none;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -2685,12 +2680,9 @@ PAGE_TEMPLATE = """
       position: absolute;
       inset: 8px;
       border-radius: 20px;
-      background:
-        linear-gradient(180deg, rgba(7, 12, 20, 0.02), rgba(7, 12, 20, 0.06));
-      opacity: 0.9;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.05),
-        0 14px 26px rgba(0,0,0,0.1);
+      background: transparent;
+      opacity: 0;
+      box-shadow: none;
       pointer-events: none;
       z-index: 0;
     }
@@ -2700,10 +2692,8 @@ PAGE_TEMPLATE = """
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04), transparent 54%),
-        linear-gradient(135deg, rgba(255,255,255,0.03), transparent 48%);
-      opacity: 0.42;
+      background: none;
+      opacity: 0;
     }
 
     .uno-stack {
@@ -3652,8 +3642,8 @@ PAGE_TEMPLATE = """
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.14));
       background:
         var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none))),
-        linear-gradient(180deg, rgba(8, 18, 30, 0.14), rgba(7, 12, 22, 0.26)),
-        radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 62%),
+        linear-gradient(180deg, rgba(8, 18, 30, 0.05), rgba(7, 12, 22, 0.08)),
+        radial-gradient(circle at center, rgba(255,255,255,0.02), transparent 62%),
         var(--uno-live-shell-surface, rgba(7, 16, 29, 0.76));
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.02),
@@ -3668,10 +3658,9 @@ PAGE_TEMPLATE = """
       inset: 14px;
       border-radius: 22px;
       background:
-        linear-gradient(180deg, rgba(8, 14, 23, 0.01), rgba(8, 12, 18, 0.03)),
-        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.03), transparent 20%),
-        var(--uno-arena-board-surface, var(--uno-arena-focus-surface, var(--uno-arena-surface, none)));
-      opacity: 0.46;
+        linear-gradient(180deg, rgba(8, 14, 23, 0.01), rgba(8, 12, 18, 0.02)),
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.02), transparent 20%);
+      opacity: 0.12;
       pointer-events: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
     }
@@ -14182,20 +14171,18 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.active {
-      display: grid;
-      grid-template-rows: minmax(0, 1fr);
-      height: 100%;
-      min-height: 0;
+      display: block;
+      height: auto;
+      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top));
       overflow-y: auto;
       overflow-x: hidden;
-      align-items: stretch;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell {
-      height: 100%;
+      height: auto;
       min-height: 0;
     }
 
@@ -14276,7 +14263,7 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-stage {
       min-height: 0;
       overflow-y: auto;
-      padding-bottom: calc(176px + env(safe-area-inset-bottom));
+      padding-bottom: calc(118px + env(safe-area-inset-bottom));
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
@@ -14301,7 +14288,7 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed .uno-home-scroller {
       min-height: 0;
       overflow-y: visible;
-      padding-bottom: 12px;
+      padding-bottom: 0;
     }
 
     body.tma-app[data-active-view="uno"]:not(.uno-live-lock) .uno-root {
@@ -21577,11 +21564,9 @@ PAGE_TEMPLATE = """
       const arenaSurface = giftArenaSurface(arenaKey, emoji);
       const arenaPatternSurface = monogramPatternSurface(emoji, arenaTheme, 'arena') || 'none';
       const arenaBoardSurface = [
-        arenaPatternSurface,
         `radial-gradient(circle at 50% 44%, ${hexToRgba(arenaTheme.accent, 0.2)}, transparent 58%)`,
         `radial-gradient(circle at 18% 18%, ${hexToRgba(arenaTheme.secondary, 0.12)}, transparent 34%)`,
-        arenaArt,
-        `linear-gradient(180deg, ${hexToRgba(arenaTheme.secondary, 0.72)}, ${hexToRgba(arenaTheme.base, 0.84)})`,
+        arenaSurface,
       ].join(',');
       const bannerSurface = guildKey ? giftGuildSurface(guildKey, emoji) : `linear-gradient(135deg, ${hexToRgba(arenaTheme.secondary, 0.92)}, ${hexToRgba(frameTheme.accent, 0.82)})`;
       const tabSurface = [
