@@ -571,6 +571,9 @@ PAGE_TEMPLATE = """
     body.performance-lite .uno-deal-intro-flight,
     body.performance-lite .uno-event-burst,
     body.performance-lite .uno-event-deal-card,
+    body.performance-lite .uno-result-scene-word,
+    body.performance-lite .uno-result-ring,
+    body.performance-lite .uno-result-card,
     body.performance-lite .pack-card-fan-card,
     body.performance-lite .pack-card-fan-copy,
     body.performance-lite .pack-card-fan-panel,
@@ -578,6 +581,10 @@ PAGE_TEMPLATE = """
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+    }
+
+    body.performance-lite .uno-reaction-float::before {
+      display: none !important;
     }
 
     .shell {
@@ -3094,15 +3101,157 @@ PAGE_TEMPLATE = """
 
     .uno-result-scene {
       position: relative;
-      min-height: 118px;
+      min-height: 156px;
       margin: 6px 0 14px;
       border-radius: 24px;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(8, 13, 20, 0.48), rgba(8, 13, 20, 0.78)),
-        radial-gradient(circle at 50% 24%, rgba(255,255,255,0.08), transparent 28%);
+        linear-gradient(180deg, rgba(8, 13, 20, 0.38), rgba(8, 13, 20, 0.82)),
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.1), transparent 24%);
       border: 1px solid rgba(255,255,255,0.08);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+
+    .uno-result-scene-grid,
+    .uno-result-scene-word,
+    .uno-result-ring,
+    .uno-result-card {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .uno-result-scene-grid {
+      inset: 0;
+      opacity: 0.22;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.04), transparent 34%, rgba(255,255,255,0.02) 50%, transparent 66%),
+        linear-gradient(90deg, transparent 0 11%, rgba(255,255,255,0.04) 11.5% 12%, transparent 12.5% 100%),
+        linear-gradient(180deg, transparent 0 17%, rgba(255,255,255,0.035) 17.5% 18%, transparent 18.5% 100%);
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,1), rgba(0,0,0,0.25) 72%, transparent 100%);
+    }
+
+    .uno-result-scene-word {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -54%);
+      font-size: 48px;
+      line-height: 1;
+      font-weight: 1000;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      opacity: 0.1;
+      filter: blur(0.6px);
+      animation: unoResultWordFloat 3.4s ease-in-out infinite alternate;
+    }
+
+    .uno-result-ring {
+      left: 50%;
+      top: 50%;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.72);
+      animation: unoResultRing 1.7s cubic-bezier(.18,.88,.22,1) forwards;
+    }
+
+    .uno-result-ring.r1 {
+      width: 138px;
+      height: 138px;
+      animation-delay: 0.06s;
+    }
+
+    .uno-result-ring.r2 {
+      width: 196px;
+      height: 196px;
+      animation-delay: 0.18s;
+    }
+
+    .uno-result-card {
+      width: 92px;
+      height: 128px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.14);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 22%, rgba(255,255,255,0.08), transparent 28%),
+        linear-gradient(180deg, rgba(10, 16, 26, 0.92), rgba(7, 12, 20, 0.98));
+      box-shadow:
+        0 28px 44px rgba(0, 0, 0, 0.3),
+        inset 0 0 0 1px rgba(255,255,255,0.04);
+      opacity: 0;
+      transform-origin: center center;
+      animation: unoResultCardEntry 0.96s cubic-bezier(.18,.88,.22,1) forwards;
+    }
+
+    .uno-result-card::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 72px;
+      height: 34px;
+      border-radius: 999px;
+      transform: translate(-50%, -50%) rotate(-12deg);
+      background: linear-gradient(135deg, rgba(255, 125, 88, 0.98), rgba(255, 214, 74, 0.96));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 10px 18px rgba(255, 150, 76, 0.24);
+    }
+
+    .uno-result-card::after {
+      content: "UNO";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(-12deg);
+      font-size: 18px;
+      font-weight: 1000;
+      letter-spacing: 0.04em;
+      color: #2f1706;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.22);
+    }
+
+    .uno-result-box.outcome-win .uno-result-card::before {
+      background: linear-gradient(135deg, rgba(83, 246, 184, 0.98), rgba(255, 214, 74, 0.96));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 10px 18px rgba(83, 246, 184, 0.24);
+    }
+
+    .uno-result-box.outcome-loss .uno-result-card::before {
+      background: linear-gradient(135deg, rgba(255, 122, 134, 0.98), rgba(255, 170, 84, 0.94));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 10px 18px rgba(255, 122, 134, 0.24);
+    }
+
+    .uno-result-box.outcome-draw .uno-result-card::before {
+      background: linear-gradient(135deg, rgba(255, 214, 74, 0.98), rgba(121, 217, 255, 0.94));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 10px 18px rgba(255, 214, 74, 0.24);
+    }
+
+    .uno-result-card.c1 {
+      left: 18%;
+      top: 26px;
+      animation: unoResultCardEntryLeft 0.96s cubic-bezier(.18,.88,.22,1) forwards;
+      animation-delay: 0.06s;
+    }
+
+    .uno-result-card.c2 {
+      left: 50%;
+      top: 18px;
+      animation: unoResultCardEntryCenter 1.02s cubic-bezier(.18,.88,.22,1) forwards;
+      animation-delay: 0.13s;
+    }
+
+    .uno-result-card.c3 {
+      right: 18%;
+      top: 28px;
+      animation: unoResultCardEntryRight 0.96s cubic-bezier(.18,.88,.22,1) forwards;
+      animation-delay: 0.2s;
     }
 
     .uno-result-scene::before,
@@ -3151,6 +3300,7 @@ PAGE_TEMPLATE = """
       box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
       backdrop-filter: blur(10px);
       z-index: 1;
+      animation: unoResultBadgePulse 1.05s cubic-bezier(.18,.88,.22,1) both;
     }
 
     .uno-result-box.outcome-win .uno-result-scene-badge {
@@ -3169,6 +3319,24 @@ PAGE_TEMPLATE = """
       background: rgba(65, 48, 11, 0.6);
       border-color: rgba(255, 214, 74, 0.24);
       color: #fff5d9;
+    }
+
+    .uno-result-box.outcome-win .uno-result-scene-word,
+    .uno-result-box.outcome-win .uno-result-ring {
+      color: rgba(113, 248, 190, 0.46);
+      border-color: rgba(113, 248, 190, 0.2);
+    }
+
+    .uno-result-box.outcome-loss .uno-result-scene-word,
+    .uno-result-box.outcome-loss .uno-result-ring {
+      color: rgba(255, 131, 145, 0.44);
+      border-color: rgba(255, 131, 145, 0.18);
+    }
+
+    .uno-result-box.outcome-draw .uno-result-scene-word,
+    .uno-result-box.outcome-draw .uno-result-ring {
+      color: rgba(255, 214, 74, 0.42);
+      border-color: rgba(255, 214, 74, 0.18);
     }
 
     .uno-result-scene-particle {
@@ -3251,7 +3419,8 @@ PAGE_TEMPLATE = """
       border-radius: inherit;
       background: linear-gradient(90deg, rgba(255, 122, 72, 0.96), rgba(255, 214, 74, 0.96));
       box-shadow: 0 0 22px rgba(255, 180, 76, 0.28);
-      transition: width 320ms ease;
+      width: var(--uno-progress, 0%);
+      animation: unoResultProgressGrow 1.15s cubic-bezier(.18,.88,.22,1) both;
     }
 
     .uno-result-task-list {
@@ -3316,31 +3485,62 @@ PAGE_TEMPLATE = """
 
     .uno-reaction-float {
       position: absolute;
-      top: -14px;
-      right: 4px;
-      min-width: 66px;
-      height: 66px;
-      padding: 0 14px;
+      top: -18px;
+      right: 0;
+      min-width: 74px;
+      height: 74px;
+      padding: 0 16px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.2);
       background:
         linear-gradient(180deg, rgba(13, 20, 32, 0.94), rgba(9, 14, 22, 0.98)),
-        radial-gradient(circle at top, rgba(255, 214, 74, 0.14), transparent 72%);
+        radial-gradient(circle at 50% 8%, rgba(255, 214, 74, 0.2), transparent 66%);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 36px;
+      font-size: 40px;
       opacity: 1;
       transform: translateY(0) scale(1);
       box-shadow:
-        0 22px 42px rgba(0, 0, 0, 0.28),
+        0 22px 42px rgba(0, 0, 0, 0.32),
         0 0 0 1px rgba(255,255,255,0.06);
       z-index: 4;
       pointer-events: none;
+      isolation: isolate;
+      overflow: visible;
     }
 
     .uno-reaction-float.enter {
-      animation: unoReactionFloat 0.42s cubic-bezier(0.2, 0.9, 0.28, 1.08) both;
+      animation: unoReactionFloat 0.56s cubic-bezier(0.18, 0.94, 0.24, 1.08) both;
+    }
+
+    .uno-reaction-float::before,
+    .uno-reaction-float::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .uno-reaction-float::before {
+      inset: -10px;
+      opacity: 0;
+      background: radial-gradient(circle, rgba(255, 214, 74, 0.28), transparent 68%);
+      filter: blur(10px);
+      z-index: -1;
+    }
+
+    .uno-reaction-float::after {
+      inset: 8px 12px auto 12px;
+      height: 22px;
+      opacity: 0.22;
+      background: linear-gradient(180deg, rgba(255,255,255,0.62), transparent);
+      filter: blur(1px);
+    }
+
+    .uno-reaction-float.enter::before {
+      animation: unoReactionHalo 0.76s ease-out both;
     }
 
     .uno-player-row,
@@ -3350,8 +3550,13 @@ PAGE_TEMPLATE = """
 
     @keyframes unoReactionFloat {
       0% { opacity: 0; transform: translateY(14px) scale(0.82); }
-      60% { opacity: 1; transform: translateY(-4px) scale(1.06); }
+      58% { opacity: 1; transform: translateY(-8px) scale(1.12) rotate(-7deg); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes unoReactionHalo {
+      0% { opacity: 0.62; transform: scale(0.56); }
+      100% { opacity: 0; transform: scale(1.38); }
     }
 
     @keyframes unoResultGlow {
@@ -3364,6 +3569,44 @@ PAGE_TEMPLATE = """
       0% { opacity: 0; transform: translateY(12px) rotate(0deg) scale(0.72); }
       24% { opacity: 1; }
       100% { opacity: 0; transform: translateY(82px) rotate(18deg) scale(1.08); }
+    }
+
+    @keyframes unoResultRing {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.54); }
+      28% { opacity: 0.58; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.18); }
+    }
+
+    @keyframes unoResultCardEntryLeft {
+      0% { opacity: 0; transform: translate(-18px, 34px) rotate(-28deg) scale(0.62); }
+      100% { opacity: 1; transform: translateY(24px) rotate(-17deg) scale(0.82); }
+    }
+
+    @keyframes unoResultCardEntryCenter {
+      0% { opacity: 0; transform: translate(-50%, 40px) rotate(0deg) scale(0.58); }
+      72% { opacity: 1; transform: translate(-50%, 10px) rotate(-3deg) scale(0.96); }
+      100% { opacity: 1; transform: translate(-50%, 18px) rotate(-2deg) scale(0.9); }
+    }
+
+    @keyframes unoResultCardEntryRight {
+      0% { opacity: 0; transform: translate(18px, 34px) rotate(28deg) scale(0.62); }
+      100% { opacity: 1; transform: translateY(24px) rotate(17deg) scale(0.82); }
+    }
+
+    @keyframes unoResultBadgePulse {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.74); }
+      68% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes unoResultWordFloat {
+      0% { transform: translate(-50%, -54%) scale(0.98); }
+      100% { transform: translate(-50%, -48%) scale(1.03); }
+    }
+
+    @keyframes unoResultProgressGrow {
+      0% { width: 0; }
+      100% { width: var(--uno-progress, 0%); }
     }
 
     .uno-empty {
@@ -14755,10 +14998,10 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.uno-live-lock .uno-reaction-float {
-      min-width: 56px;
-      height: 56px;
-      font-size: 30px;
-      top: -8px;
+      min-width: 64px;
+      height: 64px;
+      font-size: 34px;
+      top: -12px;
     }
 
     body.tma-app.uno-live-lock .uno-opponent-zone,
@@ -23310,6 +23553,13 @@ PAGE_TEMPLATE = """
                   <div class="tiny">${escapeHtml(resultSummary)}</div>
                 </div>
                 <div class="uno-result-scene">
+                  <div class="uno-result-scene-grid"></div>
+                  <div class="uno-result-scene-word">${escapeHtml(outcomePill)}</div>
+                  <i class="uno-result-ring r1"></i>
+                  <i class="uno-result-ring r2"></i>
+                  <div class="uno-result-card c1"></div>
+                  <div class="uno-result-card c2"></div>
+                  <div class="uno-result-card c3"></div>
                   <div class="uno-result-scene-badge">${escapeHtml(outcomePill)}</div>
                   <i class="uno-result-scene-particle p1"></i>
                   <i class="uno-result-scene-particle p2"></i>
@@ -23329,7 +23579,7 @@ PAGE_TEMPLATE = """
                       <strong>Уровень ${levelBefore}${levelAfter > levelBefore ? ` → ${levelAfter}` : ''}</strong>
                       <span>${Number(progressReport.season_after_points || rewards.season_points || 0)}/${seasonTarget} XP</span>
                     </div>
-                    <div class="uno-result-progress-bar"><div class="uno-result-progress-fill" style="width:${progressPercent}%;"></div></div>
+                    <div class="uno-result-progress-bar"><div class="uno-result-progress-fill" style="--uno-progress:${progressPercent}%;"></div></div>
                   </div>
                   ${completedTasks.length ? `
                     <div class="uno-result-task-list">
