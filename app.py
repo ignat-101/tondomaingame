@@ -571,6 +571,8 @@ PAGE_TEMPLATE = """
     body.performance-lite .uno-deal-intro-flight,
     body.performance-lite .uno-event-burst,
     body.performance-lite .uno-event-deal-card,
+    body.performance-lite .uno-complete-stage::before,
+    body.performance-lite .uno-complete-stage::after,
     body.performance-lite .uno-result-scene-word,
     body.performance-lite .uno-result-ring,
     body.performance-lite .uno-result-core,
@@ -3102,6 +3104,115 @@ PAGE_TEMPLATE = """
       margin-bottom: 12px;
     }
 
+    .uno-complete-stage {
+      position: relative;
+      min-height: 244px;
+      margin: -4px 0 -54px;
+      pointer-events: none;
+      isolation: isolate;
+      z-index: 0;
+    }
+
+    .uno-complete-stage::before,
+    .uno-complete-stage::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 38%;
+      width: 260px;
+      height: 260px;
+      border-radius: 999px;
+      transform: translate(-50%, -50%);
+      filter: blur(28px);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .uno-complete-stage::before {
+      background: radial-gradient(circle, rgba(255, 214, 74, 0.26), transparent 68%);
+    }
+
+    .uno-complete-stage::after {
+      background: radial-gradient(circle, rgba(121, 217, 255, 0.16), transparent 72%);
+    }
+
+    .uno-complete-stage.outcome-win::before {
+      background: radial-gradient(circle, rgba(113, 248, 190, 0.3), transparent 68%);
+    }
+
+    .uno-complete-stage.outcome-loss::before {
+      background: radial-gradient(circle, rgba(255, 131, 145, 0.26), transparent 68%);
+    }
+
+    .uno-complete-stage.outcome-draw::before {
+      background: radial-gradient(circle, rgba(255, 214, 74, 0.28), transparent 68%);
+    }
+
+    .uno-complete-stage .uno-result-scene {
+      min-height: 228px;
+      margin: 0;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    .uno-complete-stage .uno-result-scene-grid {
+      inset: 24px 10px 12px;
+      opacity: 0.12;
+    }
+
+    .uno-complete-stage .uno-result-scene-word {
+      top: 46%;
+      font-size: 64px;
+      letter-spacing: 0.18em;
+      opacity: 0.12;
+    }
+
+    .uno-complete-stage .uno-result-core {
+      width: 176px;
+      height: 176px;
+      top: 42%;
+    }
+
+    .uno-complete-stage .uno-result-ring.r1 {
+      width: 182px;
+      height: 182px;
+      top: 42%;
+    }
+
+    .uno-complete-stage .uno-result-ring.r2 {
+      width: 246px;
+      height: 246px;
+      top: 42%;
+    }
+
+    .uno-complete-stage .uno-result-card {
+      top: 54px;
+      box-shadow:
+        0 30px 48px rgba(0, 0, 0, 0.32),
+        inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    .uno-complete-stage .uno-result-scene-badge {
+      top: 44%;
+      min-width: 148px;
+      min-height: 58px;
+      font-size: 18px;
+      box-shadow: 0 22px 44px rgba(0, 0, 0, 0.3);
+    }
+
+    .uno-complete-stage .uno-result-scene-particle {
+      width: 20px;
+      height: 74px;
+    }
+
+    .uno-result-box.compact-cinema {
+      position: relative;
+      z-index: 2;
+      margin-top: 0;
+    }
+
     .uno-result-scene {
       position: relative;
       min-height: 156px;
@@ -3229,21 +3340,24 @@ PAGE_TEMPLATE = """
       text-shadow: 0 1px 0 rgba(255,255,255,0.22);
     }
 
-    .uno-result-box.outcome-win .uno-result-card::before {
+    .uno-result-box.outcome-win .uno-result-card::before,
+    .uno-complete-stage.outcome-win .uno-result-card::before {
       background: linear-gradient(135deg, rgba(83, 246, 184, 0.98), rgba(255, 214, 74, 0.96));
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.22),
         0 10px 18px rgba(83, 246, 184, 0.24);
     }
 
-    .uno-result-box.outcome-loss .uno-result-card::before {
+    .uno-result-box.outcome-loss .uno-result-card::before,
+    .uno-complete-stage.outcome-loss .uno-result-card::before {
       background: linear-gradient(135deg, rgba(255, 122, 134, 0.98), rgba(255, 170, 84, 0.94));
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.22),
         0 10px 18px rgba(255, 122, 134, 0.24);
     }
 
-    .uno-result-box.outcome-draw .uno-result-card::before {
+    .uno-result-box.outcome-draw .uno-result-card::before,
+    .uno-complete-stage.outcome-draw .uno-result-card::before {
       background: linear-gradient(135deg, rgba(255, 214, 74, 0.98), rgba(121, 217, 255, 0.94));
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.22),
@@ -3354,77 +3468,97 @@ PAGE_TEMPLATE = """
       animation: unoResultBadgePulse 1.05s cubic-bezier(.18,.88,.22,1) both;
     }
 
-    .uno-result-box.outcome-win .uno-result-scene-badge {
+    .uno-result-box.outcome-win .uno-result-scene-badge,
+    .uno-complete-stage.outcome-win .uno-result-scene-badge {
       background: rgba(14, 45, 30, 0.6);
       border-color: rgba(113, 248, 190, 0.24);
       color: #effff6;
     }
 
-    .uno-result-box.outcome-loss .uno-result-scene-badge {
+    .uno-result-box.outcome-loss .uno-result-scene-badge,
+    .uno-complete-stage.outcome-loss .uno-result-scene-badge {
       background: rgba(62, 17, 24, 0.62);
       border-color: rgba(255, 131, 145, 0.22);
       color: #fff1f3;
     }
 
-    .uno-result-box.outcome-draw .uno-result-scene-badge {
+    .uno-result-box.outcome-draw .uno-result-scene-badge,
+    .uno-complete-stage.outcome-draw .uno-result-scene-badge {
       background: rgba(65, 48, 11, 0.6);
       border-color: rgba(255, 214, 74, 0.24);
       color: #fff5d9;
     }
 
     .uno-result-box.outcome-win .uno-result-scene-word,
-    .uno-result-box.outcome-win .uno-result-ring {
+    .uno-result-box.outcome-win .uno-result-ring,
+    .uno-complete-stage.outcome-win .uno-result-scene-word,
+    .uno-complete-stage.outcome-win .uno-result-ring {
       color: rgba(113, 248, 190, 0.46);
       border-color: rgba(113, 248, 190, 0.2);
     }
 
-    .uno-result-box.outcome-win .uno-result-core {
+    .uno-result-box.outcome-win .uno-result-core,
+    .uno-complete-stage.outcome-win .uno-result-core {
       background: radial-gradient(circle, rgba(113, 248, 190, 0.48), rgba(255, 214, 74, 0.2) 46%, transparent 72%);
     }
 
     .uno-result-box.outcome-win .uno-result-streak,
-    .uno-result-box.outcome-win .uno-result-spark {
+    .uno-result-box.outcome-win .uno-result-spark,
+    .uno-complete-stage.outcome-win .uno-result-streak,
+    .uno-complete-stage.outcome-win .uno-result-spark {
       color: rgba(113, 248, 190, 0.94);
       background: linear-gradient(180deg, rgba(113, 248, 190, 0.96), rgba(255, 214, 74, 0.12));
     }
 
     .uno-result-box.outcome-loss .uno-result-scene-word,
-    .uno-result-box.outcome-loss .uno-result-ring {
+    .uno-result-box.outcome-loss .uno-result-ring,
+    .uno-complete-stage.outcome-loss .uno-result-scene-word,
+    .uno-complete-stage.outcome-loss .uno-result-ring {
       color: rgba(255, 131, 145, 0.44);
       border-color: rgba(255, 131, 145, 0.18);
     }
 
-    .uno-result-box.outcome-loss .uno-result-core {
+    .uno-result-box.outcome-loss .uno-result-core,
+    .uno-complete-stage.outcome-loss .uno-result-core {
       background: radial-gradient(circle, rgba(255, 131, 145, 0.4), rgba(96, 22, 34, 0.24) 48%, transparent 74%);
     }
 
-    .uno-result-box.outcome-loss .uno-result-card {
+    .uno-result-box.outcome-loss .uno-result-card,
+    .uno-complete-stage.outcome-loss .uno-result-card {
       display: none;
     }
 
     .uno-result-box.outcome-loss .uno-result-streak,
-    .uno-result-box.outcome-loss .uno-result-spark {
+    .uno-result-box.outcome-loss .uno-result-spark,
+    .uno-complete-stage.outcome-loss .uno-result-streak,
+    .uno-complete-stage.outcome-loss .uno-result-spark {
       color: rgba(255, 131, 145, 0.92);
       background: linear-gradient(180deg, rgba(255, 131, 145, 0.96), rgba(255, 180, 84, 0.08));
       animation-name: unoResultStreakFall;
     }
 
-    .uno-result-box.outcome-loss .uno-result-spark {
+    .uno-result-box.outcome-loss .uno-result-spark,
+    .uno-complete-stage.outcome-loss .uno-result-spark {
       animation-name: unoResultSparkFall;
     }
 
     .uno-result-box.outcome-draw .uno-result-scene-word,
-    .uno-result-box.outcome-draw .uno-result-ring {
+    .uno-result-box.outcome-draw .uno-result-ring,
+    .uno-complete-stage.outcome-draw .uno-result-scene-word,
+    .uno-complete-stage.outcome-draw .uno-result-ring {
       color: rgba(255, 214, 74, 0.42);
       border-color: rgba(255, 214, 74, 0.18);
     }
 
-    .uno-result-box.outcome-draw .uno-result-core {
+    .uno-result-box.outcome-draw .uno-result-core,
+    .uno-complete-stage.outcome-draw .uno-result-core {
       background: radial-gradient(circle, rgba(255, 214, 74, 0.4), rgba(121, 217, 255, 0.16) 46%, transparent 72%);
     }
 
     .uno-result-box.outcome-draw .uno-result-streak,
-    .uno-result-box.outcome-draw .uno-result-spark {
+    .uno-result-box.outcome-draw .uno-result-spark,
+    .uno-complete-stage.outcome-draw .uno-result-streak,
+    .uno-complete-stage.outcome-draw .uno-result-spark {
       color: rgba(255, 214, 74, 0.92);
       background: linear-gradient(180deg, rgba(255, 214, 74, 0.96), rgba(121, 217, 255, 0.12));
     }
@@ -3445,17 +3579,24 @@ PAGE_TEMPLATE = """
     .uno-result-scene-particle.p4 { right: 42%; top: 8%; animation-delay: 0.08s; }
     .uno-result-scene-particle.p5 { right: 28%; top: 10%; animation-delay: 0.14s; }
     .uno-result-scene-particle.p6 { right: 14%; top: 18%; animation-delay: 0.2s; }
+    .uno-result-scene-particle.p7 { left: 10%; top: 34%; animation-delay: 0.12s; }
+    .uno-result-scene-particle.p8 { left: 22%; top: 24%; animation-delay: 0.18s; }
+    .uno-result-scene-particle.p9 { right: 22%; top: 24%; animation-delay: 0.16s; }
+    .uno-result-scene-particle.p10 { right: 10%; top: 34%; animation-delay: 0.24s; }
 
-    .uno-result-box.outcome-win .uno-result-scene-particle {
+    .uno-result-box.outcome-win .uno-result-scene-particle,
+    .uno-complete-stage.outcome-win .uno-result-scene-particle {
       background: linear-gradient(180deg, rgba(113, 248, 190, 0.94), rgba(255, 214, 74, 0.18));
     }
 
-    .uno-result-box.outcome-loss .uno-result-scene-particle {
+    .uno-result-box.outcome-loss .uno-result-scene-particle,
+    .uno-complete-stage.outcome-loss .uno-result-scene-particle {
       background: linear-gradient(180deg, rgba(255, 131, 145, 0.94), rgba(255, 214, 74, 0.12));
       animation-name: unoResultParticleFall;
     }
 
-    .uno-result-box.outcome-draw .uno-result-scene-particle {
+    .uno-result-box.outcome-draw .uno-result-scene-particle,
+    .uno-complete-stage.outcome-draw .uno-result-scene-particle {
       background: linear-gradient(180deg, rgba(255, 214, 74, 0.92), rgba(121, 217, 255, 0.14));
     }
 
@@ -23673,12 +23814,7 @@ PAGE_TEMPLATE = """
               <div class="uno-chip">${identity.progressEnabled ? `Сезон ${levelAfter}` : 'Guest-режим'}</div>
             </div>
             <div class="uno-home-scroller uno-stage">
-              <div class="uno-result-box ${outcomeClass}">
-                <div class="uno-result-hero">
-                  <span class="uno-result-pill">${escapeHtml(outcomePill)}</span>
-                  <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
-                  <div class="tiny">${escapeHtml(resultSummary)}</div>
-                </div>
+              <div class="uno-complete-stage ${outcomeClass}" aria-hidden="true">
                 <div class="uno-result-scene">
                   <div class="uno-result-scene-grid"></div>
                   <div class="uno-result-scene-word">${escapeHtml(outcomePill)}</div>
@@ -23707,6 +23843,17 @@ PAGE_TEMPLATE = """
                   <i class="uno-result-scene-particle p4"></i>
                   <i class="uno-result-scene-particle p5"></i>
                   <i class="uno-result-scene-particle p6"></i>
+                  <i class="uno-result-scene-particle p7"></i>
+                  <i class="uno-result-scene-particle p8"></i>
+                  <i class="uno-result-scene-particle p9"></i>
+                  <i class="uno-result-scene-particle p10"></i>
+                </div>
+              </div>
+              <div class="uno-result-box ${outcomeClass} compact-cinema">
+                <div class="uno-result-hero">
+                  <span class="uno-result-pill">${escapeHtml(outcomePill)}</span>
+                  <strong>${escapeHtml(session.winner_label || 'Матч завершён')}</strong>
+                  <div class="tiny">${escapeHtml(resultSummary)}</div>
                 </div>
                 <div class="uno-reward-line">
                   <span class="summary-chip">💠 +${Number((rewardGain.pack_shards) || 0)}</span>
