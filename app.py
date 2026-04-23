@@ -1241,8 +1241,8 @@ PAGE_TEMPLATE = """
     }
 
     .uno-shell-footer {
-      min-height: 96px;
-      padding: 24px 14px calc(34px + env(safe-area-inset-bottom));
+      min-height: 156px;
+      padding: 28px 14px calc(52px + env(safe-area-inset-bottom));
       border-top: 1px solid rgba(255,255,255,0.08);
       display: flex;
       align-items: center;
@@ -14165,7 +14165,7 @@ PAGE_TEMPLATE = """
       padding: calc(42px + env(safe-area-inset-top)) 12px calc(132px + env(safe-area-inset-bottom));
       border: 1px solid var(--uno-panel-border, rgba(121, 217, 255, 0.18));
       border-radius: 24px;
-      min-height: calc(var(--app-height, 100vh) + 188px);
+      min-height: calc(var(--app-height, 100vh) + 320px);
       background:
         radial-gradient(circle at 14% 12%, var(--uno-theme-accent-soft, rgba(255, 91, 87, 0.22)), transparent 28%),
         radial-gradient(circle at 88% 18%, rgba(255, 214, 74, 0.18), transparent 26%),
@@ -14205,8 +14205,8 @@ PAGE_TEMPLATE = """
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) #view-uno.uno-home-outer-shell > .support-footer {
       display: block !important;
       margin-top: auto;
-      min-height: calc(320px + env(safe-area-inset-bottom));
-      padding: 36px 12px calc(92px + env(safe-area-inset-bottom));
+      min-height: calc(380px + env(safe-area-inset-bottom));
+      padding: 40px 12px calc(112px + env(safe-area-inset-bottom));
       border-top: 1px solid rgba(255,255,255,0.08);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.02), transparent 18%),
@@ -14282,7 +14282,7 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-root.uno-home-layout .uno-home-shell {
       height: auto !important;
-      min-height: calc(var(--app-height, 100vh) - 42px - env(safe-area-inset-top)) !important;
+      min-height: calc(var(--app-height, 100vh) + 320px) !important;
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
@@ -14363,8 +14363,8 @@ PAGE_TEMPLATE = """
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing.uno-home-shell .uno-shell-footer,
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed.uno-home-shell .uno-shell-footer {
-      min-height: calc(164px + env(safe-area-inset-bottom));
-      padding-bottom: calc(72px + env(safe-area-inset-bottom));
+      min-height: calc(260px + env(safe-area-inset-bottom));
+      padding-bottom: calc(116px + env(safe-area-inset-bottom));
     }
 
     body.tma-app:not(.tma-desktop)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing .uno-home-scroller,
