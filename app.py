@@ -3330,12 +3330,17 @@ PAGE_TEMPLATE = """
       align-items: center;
       justify-content: center;
       font-size: 36px;
+      opacity: 1;
+      transform: translateY(0) scale(1);
       box-shadow:
         0 22px 42px rgba(0, 0, 0, 0.28),
         0 0 0 1px rgba(255,255,255,0.06);
-      animation: unoReactionFloat 2.2s ease-out both;
       z-index: 4;
       pointer-events: none;
+    }
+
+    .uno-reaction-float.enter {
+      animation: unoReactionFloat 0.42s cubic-bezier(0.2, 0.9, 0.28, 1.08) both;
     }
 
     .uno-player-row,
@@ -3345,8 +3350,8 @@ PAGE_TEMPLATE = """
 
     @keyframes unoReactionFloat {
       0% { opacity: 0; transform: translateY(14px) scale(0.82); }
-      18% { opacity: 1; }
-      100% { opacity: 0; transform: translateY(-14px) scale(1.04); }
+      60% { opacity: 1; transform: translateY(-4px) scale(1.06); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     @keyframes unoResultGlow {
@@ -22049,6 +22054,13 @@ PAGE_TEMPLATE = """
       return activeFx;
     }
 
+    function settleUnoReactionFx() {
+      Object.values(state.unoReactionFx || {}).forEach((item) => {
+        if (!item || !item.fresh) return;
+        item.fresh = false;
+      });
+    }
+
     function scheduleUnoReactionFxExpiry() {
       if (state.unoReactionFxTimer) {
         window.clearTimeout(state.unoReactionFxTimer);
@@ -22089,6 +22101,8 @@ PAGE_TEMPLATE = """
         state.unoReactionFxSeen[actorId] = signature;
         state.unoReactionFx[actorId] = {
           emoji,
+          signature,
+          fresh: true,
           until: nowTs + 5000,
         };
       });
@@ -22968,7 +22982,7 @@ PAGE_TEMPLATE = """
 
     function unoReactionBubbleMarkup(reaction) {
       if (!reaction || !reaction.emoji) return '';
-      return `<div class="uno-reaction-float" aria-hidden="true">${escapeHtml(reaction.emoji)}</div>`;
+      return `<div class="uno-reaction-float${reaction.fresh ? ' enter' : ''}" aria-hidden="true">${escapeHtml(reaction.emoji)}</div>`;
     }
 
     function toggleUnoReactionSheet(force) {
@@ -23680,6 +23694,7 @@ PAGE_TEMPLATE = """
       } else {
         startUnoCountdownTicker(session);
       }
+      settleUnoReactionFx();
       state.unoLastEventKey = nextUnoEventKey;
     }
 
