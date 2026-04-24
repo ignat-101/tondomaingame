@@ -11507,6 +11507,31 @@ PAGE_TEMPLATE = """
       transform: scale(1.06) translateY(0);
     }
 
+    .pack-replay-hero-btn {
+      position: relative;
+      z-index: 4;
+      width: min(100%, 360px);
+      margin: 2px auto 12px;
+      padding: 13px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 222, 118, 0.72);
+      background: linear-gradient(135deg, #f26b4e, #f2c957);
+      color: #1a1208;
+      box-shadow: 0 14px 34px rgba(242, 155, 65, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.34);
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      transform: translateZ(0);
+    }
+
+    .pack-replay-hero-btn[hidden] {
+      display: none !important;
+    }
+
+    .pack-replay-hero-btn:disabled {
+      opacity: 0.58;
+      filter: grayscale(0.3);
+    }
+
     .pack-showcase.pack-type-common {
       background:
         radial-gradient(circle at 50% 0%, rgba(69, 215, 255, 0.18), transparent 38%),
@@ -17237,6 +17262,7 @@ PAGE_TEMPLATE = """
               <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
             </div>
             <div class="pack-counter" id="pack-counter" style="display:none;"></div>
+            <button type="button" class="pack-replay-hero-btn" id="pack-replay-hero-btn" hidden>Смотреть анимацию 7288</button>
             <p class="pack-note" id="pack-note">НАЖМИ, ЧТОБЫ ОТКРЫТЬ</p>
             <div class="foil-pack" id="foil-pack">
               <div class="pack-cap"></div>
@@ -17815,6 +17841,7 @@ PAGE_TEMPLATE = """
     const packRestoreActions = document.getElementById('pack-restore-actions');
     const restorePreviousDeckBtn = document.getElementById('restore-previous-deck-btn');
     const replayCosmeticPackBtn = document.getElementById('replay-cosmetic-pack-btn');
+    const packReplayHeroBtn = document.getElementById('pack-replay-hero-btn');
     const claimDailyRewardBtn = document.getElementById('claim-daily-reward-btn');
     const claimQuestRewardBtn = document.getElementById('claim-quest-reward-btn');
     const cardCatalogList = document.getElementById('card-catalog-list');
@@ -20020,6 +20047,10 @@ PAGE_TEMPLATE = """
       restorePreviousDeckBtn.disabled = !restoreVisible;
       replayCosmeticPackBtn.style.display = replayVisible ? '' : 'none';
       replayCosmeticPackBtn.disabled = !replayVisible || state.packOpening;
+      if (packReplayHeroBtn) {
+        packReplayHeroBtn.hidden = !replayVisible;
+        packReplayHeroBtn.disabled = !replayVisible || state.packOpening;
+      }
     }
 
     function renderRewardsPanels() {
@@ -28641,6 +28672,9 @@ PAGE_TEMPLATE = """
     }
     if (replayCosmeticPackBtn) {
       bindFunctionalControl(replayCosmeticPackBtn, replayLastCosmeticPack);
+    }
+    if (packReplayHeroBtn) {
+      bindFunctionalControl(packReplayHeroBtn, replayLastCosmeticPack);
     }
     document.querySelectorAll('.reward-pack-btn').forEach((button) => {
       bindFunctionalControl(button, () => openRewardPack(button.dataset.rewardPack));
