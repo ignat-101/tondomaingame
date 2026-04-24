@@ -39654,7 +39654,13 @@ def telegram_clear_inline_keyboard(chat_id, message_id):
 
 
 def telegram_welcome_markup():
-    return {'remove_keyboard': True}
+    if not TG_WEBAPP_URL:
+        return None
+    return {
+        'keyboard': [[{'text': 'Open tondomaingame', 'web_app': {'url': TG_WEBAPP_URL}}]],
+        'resize_keyboard': True,
+        'one_time_keyboard': False,
+    }
 
 
 def handle_invite_callback(callback_query):
@@ -39768,7 +39774,7 @@ def handle_telegram_message(message):
     if text.startswith('/start') or text.startswith('/app'):
         telegram_send_message(
             chat_id,
-            'tondomaingame готов. Кнопка mini app под клавиатурой отключена. Открывай игру через Telegram Mini App или прямую ссылку.',
+            'tondomaingame готов. Нажми кнопку Open tondomaingame под клавиатурой, подключи TON-кошелёк и начинай матч.',
             telegram_welcome_markup(),
         )
         return
@@ -42086,7 +42092,16 @@ def telegram_setup():
     result = telegram_api('setWebhook', payload)
     menu_result = None
     try:
-        menu_result = telegram_api('setChatMenuButton', {'menu_button': {'type': 'default'}})
+        menu_payload = {'menu_button': {'type': 'default'}}
+        if TG_WEBAPP_URL:
+            menu_payload = {
+                'menu_button': {
+                    'type': 'web_app',
+                    'text': 'Open game',
+                    'web_app': {'url': TG_WEBAPP_URL},
+                }
+            }
+        menu_result = telegram_api('setChatMenuButton', menu_payload)
     except Exception as exc:
         menu_result = {'ok': False, 'error': str(exc)}
     return jsonify({'ok': True, 'webhook_url': webhook_url, 'telegram': result, 'menu_button': menu_result})
