@@ -125,6 +125,7 @@ ENV_FILE_PATH = Path(os.getenv('ENV_FILE_PATH', '.env'))
 PACK_PITY_THRESHOLD = int(os.getenv('PACK_PITY_THRESHOLD', '20'))
 TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS = int(os.getenv('TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS', '300'))
 ADMIN_ANALYTICS_TOKEN = os.getenv('ADMIN_ANALYTICS_TOKEN', os.getenv('ANALYTICS_TOKEN', 'ignat101')).strip()
+TG_CHANNEL_USERNAME = os.getenv('TG_CHANNEL_USERNAME', 'domaingame').lstrip('@').strip() or 'domaingame'
 
 
 def parse_env_csv_set(name, default=''):
@@ -30081,6 +30082,7 @@ MANAGED_ENV_KEYS = {
     'TG_WEBAPP_URL': {'type': 'str', 'description': 'URL Telegram mini app'},
     'TG_BOT_TOKEN': {'type': 'str', 'description': 'Telegram bot token'},
     'TG_BOT_USERNAME': {'type': 'str', 'description': 'Username Telegram-бота'},
+    'TG_CHANNEL_USERNAME': {'type': 'str', 'description': 'Telegram-канал для задания подписки'},
     'PACK_RECEIVER_WALLET': {'type': 'str', 'description': 'Кошелек получателя оплаты пака'},
     'SEASON_PASS_RECEIVER_WALLET': {'type': 'str', 'description': 'Кошелек получателя оплаты пропуска'},
     'SEASON_PASS_WEB3_JETTON_MASTER': {'type': 'str', 'description': 'Jetton master для оплаты пропуска через WEB3'},
@@ -30105,6 +30107,7 @@ ENV_DEFAULT_VALUES = {
     'TG_WEBAPP_URL': str(TG_WEBAPP_URL),
     'TG_BOT_TOKEN': str(TG_BOT_TOKEN or ''),
     'TG_BOT_USERNAME': str(TG_BOT_USERNAME or ''),
+    'TG_CHANNEL_USERNAME': str(TG_CHANNEL_USERNAME or ''),
     'PACK_RECEIVER_WALLET': str(PACK_RECEIVER_WALLET or ''),
     'SEASON_PASS_RECEIVER_WALLET': str(SEASON_PASS_RECEIVER_WALLET or ''),
     'SEASON_PASS_WEB3_JETTON_MASTER': str(SEASON_PASS_WEB3_JETTON_MASTER or ''),
@@ -30762,6 +30765,14 @@ SEASON_PASS_TASKS = [
     {'key': 'daily_open_1_pack', 'label': 'Открыть 1 пак', 'target': 1, 'reward_points': 4, 'tier_label': 'Быстрый старт'},
     {'key': 'daily_open_2_packs', 'label': 'Открыть 2 пака', 'target': 2, 'reward_points': 7, 'tier_label': 'Продвинутый этап'},
     {'key': 'daily_open_3_packs', 'label': 'Открыть 3 пака', 'target': 3, 'reward_points': 11, 'tier_label': 'Испытание дня'},
+    {
+        'key': 'global_subscribe_domaingame',
+        'label': 'Подписаться на Telegram-канал @domaingame',
+        'target': 1,
+        'reward_points': 10,
+        'tier_label': 'Общее задание',
+        'scope': 'global',
+    },
 ]
 
 
@@ -30846,14 +30857,57 @@ def uno_progress_report(before_rewards, after_rewards, reward_gain, *, bonus_pac
     }
 
 
-def season_task_claimed_keys(wallet, task_day=None):
+def season_task_claimed_keys(wallet, task_day=None, include_global=False):
     day_key = task_day or today_utc_str()
     with closing(get_db()) as conn:
         rows = conn.execute(
             'SELECT task_key FROM season_task_claims WHERE wallet = ? AND task_day = ?',
             (wallet, day_key),
         ).fetchall()
-    return {row['task_key'] for row in rows}
+        claimed = {row['task_key'] for row in rows}
+        if include_global:
+            global_rows = conn.execute(
+                'SELECT task_key FROM season_task_claims WHERE wallet = ? AND task_day = ?',
+                (wallet, 'global'),
+            ).fetchall()
+            claimed.update(row['task_key'] for row in global_rows)
+    return claimed
+
+
+def telegram_channel_subscription_verified(wallet):
+    if not wallet or not TG_CHANNEL_USERNAME:
+        return False
+    with closing(get_db()) as conn:
+        cached = conn.execute(
+            '''
+            SELECT 1
+            FROM domain_telemetry
+            WHERE wallet = ? AND event_type = ?
+            LIMIT 1
+            ''',
+            (wallet, 'telegram_channel_subscribed'),
+        ).fetchone()
+    if cached:
+        return True
+    link = telegram_wallet_link(wallet)
+    if not link or not link.get('telegram_user_id') or not TG_BOT_TOKEN:
+        return False
+    try:
+        result = telegram_api(
+            'getChatMember',
+            {'chat_id': f'@{TG_CHANNEL_USERNAME}', 'user_id': int(link['telegram_user_id'])},
+        )
+        status = str((result.get('result') or {}).get('status') or '').lower()
+    except Exception:
+        return False
+    subscribed = status in {'creator', 'administrator', 'member', 'restricted'}
+    if subscribed:
+        log_domain_telemetry(
+            'telegram_channel_subscribed',
+            wallet=wallet,
+            payload={'channel': f'@{TG_CHANNEL_USERNAME}', 'telegram_user_id': link.get('telegram_user_id'), 'status': status},
+        )
+    return subscribed
 
 
 def season_task_progress(wallet):
@@ -30886,7 +30940,8 @@ def season_task_progress(wallet):
         if str(payload.get('result') or '').lower() == 'win':
             wins_today += 1
     packs_today = int((pack_row['value'] if pack_row else 0) or 0)
-    claimed_keys = season_task_claimed_keys(wallet, task_day=day_key)
+    claimed_keys = season_task_claimed_keys(wallet, task_day=day_key, include_global=True)
+    subscribed_to_channel = telegram_channel_subscription_verified(wallet)
     metrics = {
         'daily_play_2': matches_today,
         'daily_play_5': matches_today,
@@ -30897,19 +30952,21 @@ def season_task_progress(wallet):
         'daily_open_1_pack': packs_today,
         'daily_open_2_packs': packs_today,
         'daily_open_3_packs': packs_today,
+        'global_subscribe_domaingame': 1 if subscribed_to_channel else 0,
     }
     tasks = []
     for item in SEASON_PASS_TASKS:
         progress = int(metrics.get(item['key'], 0) or 0)
         target = int(item['target'])
         claimed = item['key'] in claimed_keys
+        task_day = 'global' if item.get('scope') == 'global' else day_key
         tasks.append(
             {
                 **item,
                 'progress': min(progress, target),
                 'claimed': claimed,
                 'claimable': (progress >= target) and not claimed,
-                'day_key': day_key,
+                'day_key': task_day,
             }
         )
     return tasks
@@ -33502,11 +33559,20 @@ def dispatch_wallet_telegram_notifications(wallet):
 
 
 def telegram_notification_scan_once():
+    scanned = 0
+    sent_wallets = 0
+    sent_types = {}
     for wallet in telegram_notification_wallets():
+        scanned += 1
         try:
-            dispatch_wallet_telegram_notifications(wallet)
+            sent = dispatch_wallet_telegram_notifications(wallet)
+            if sent:
+                sent_wallets += 1
+                for item in sent:
+                    sent_types[item] = sent_types.get(item, 0) + 1
         except Exception:
             continue
+    return {'scanned': scanned, 'sent_wallets': sent_wallets, 'sent_types': sent_types}
 
 
 def telegram_notification_loop():
@@ -39697,9 +39763,36 @@ def handle_telegram_message(message):
         )
         return
 
+    if text.startswith('/subscribe'):
+        if not from_user or not from_user.get('id'):
+            telegram_send_message(chat_id, 'Не удалось определить Telegram-пользователя. Попробуй ещё раз.')
+            return
+        link = telegram_user_link(from_user.get('id'))
+        if not link or not link.get('wallet'):
+            telegram_send_message(
+                chat_id,
+                f'Сначала привяжи кошелёк через /link_wallet <wallet>, потом подпишись на @{TG_CHANNEL_USERNAME}.',
+                telegram_welcome_markup(),
+            )
+            return
+        if telegram_channel_subscription_verified(link['wallet']):
+            rewards = reward_summary(link['wallet'])
+            telegram_send_message(
+                chat_id,
+                f'Подписка на @{TG_CHANNEL_USERNAME} подтверждена. Общее задание засчитано, уровень пропуска: {rewards.get("season_level", 1)}.',
+                telegram_welcome_markup(),
+            )
+        else:
+            telegram_send_message(
+                chat_id,
+                f'Подписка пока не подтверждена. Подпишись на @{TG_CHANNEL_USERNAME}, затем отправь /subscribe ещё раз.',
+                telegram_welcome_markup(),
+            )
+        return
+
     telegram_send_message(
         chat_id,
-        'Команды:\n/start\n/app\n/link_wallet <wallet>\n/leaderboard\n/rating <wallet>\n\nДля игры открой mini app.',
+        'Команды:\n/start\n/app\n/link_wallet <wallet>\n/subscribe\n/leaderboard\n/rating <wallet>\n\nДля игры открой mini app.',
         telegram_welcome_markup(),
     )
 
@@ -41826,8 +41919,33 @@ def telegram_dispatch():
         return json_error('TG_SETUP_TOKEN не настроен.', 400)
     if request.args.get('token') != TG_SETUP_TOKEN:
         return json_error('Неверный dispatch token.', 403)
-    telegram_notification_scan_once()
-    return jsonify({'ok': True, 'scanned': len(telegram_notification_wallets())})
+    result = telegram_notification_scan_once()
+    return jsonify({'ok': True, **result})
+
+
+@app.route('/telegram/status')
+def telegram_status():
+    if not TG_SETUP_TOKEN:
+        return json_error('TG_SETUP_TOKEN не настроен.', 400)
+    if request.args.get('token') != TG_SETUP_TOKEN:
+        return json_error('Неверный status token.', 403)
+    status = {
+        'bot_token_configured': bool(TG_BOT_TOKEN),
+        'bot_username': TG_BOT_USERNAME,
+        'webapp_url': TG_WEBAPP_URL,
+        'channel': f'@{TG_CHANNEL_USERNAME}' if TG_CHANNEL_USERNAME else '',
+        'linked_wallets': len(telegram_notification_wallets()),
+        'notify_interval_seconds': TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS,
+        'worker_alive': bool(TELEGRAM_NOTIFY_THREAD and TELEGRAM_NOTIFY_THREAD.is_alive()),
+    }
+    if TG_BOT_TOKEN:
+        try:
+            status['get_me'] = telegram_api('getMe', {})
+            status['api_ok'] = True
+        except Exception as exc:
+            status['api_ok'] = False
+            status['api_error'] = str(exc)
+    return jsonify({'ok': True, 'telegram': status})
 
 
 init_db()
