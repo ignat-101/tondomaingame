@@ -21833,17 +21833,46 @@ PAGE_TEMPLATE = """
       });
     }
 
-    function startRouletteTickSync(trackNode, totalDistancePx, stepPx) {
+    function playRouletteStartSound() {
+      const ctx = ensureRouletteAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const sweepOsc = ctx.createOscillator();
+      const sweepGain = ctx.createGain();
+      const sweepFilter = ctx.createBiquadFilter();
+      sweepFilter.type = 'bandpass';
+      sweepFilter.frequency.setValueAtTime(760, now);
+      sweepFilter.frequency.exponentialRampToValueAtTime(1480, now + 0.28);
+      sweepOsc.type = 'sawtooth';
+      sweepOsc.frequency.setValueAtTime(150, now);
+      sweepOsc.frequency.exponentialRampToValueAtTime(310, now + 0.28);
+      sweepGain.gain.setValueAtTime(0.0001, now);
+      sweepGain.gain.exponentialRampToValueAtTime(0.045, now + 0.02);
+      sweepGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34);
+      sweepOsc.connect(sweepFilter);
+      sweepFilter.connect(sweepGain);
+      sweepGain.connect(ctx.destination);
+      sweepOsc.start(now);
+      sweepOsc.stop(now + 0.36);
+    }
+
+    function startRouletteTickSync(trackNode, totalDistancePx, stepPx, durationMs = 4650) {
       if (!trackNode) return () => {};
       const safeStep = Math.max(1, Number(stepPx || 1));
       const finalDistance = Math.max(safeStep, Number(totalDistancePx || 0));
+      const safeDuration = Math.max(600, Number(durationMs || 0));
+      const startAt = performance.now();
       let rafId = 0;
       let stopped = false;
       let lastTickIndex = -1;
+      const easeProgress = (t) => 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3.2);
       const frame = () => {
         if (stopped) return;
-        const currentOffset = Math.abs(rouletteTrackTranslateX(trackNode));
-        const currentTickIndex = Math.max(0, Math.floor(currentOffset / safeStep));
+        const elapsed = performance.now() - startAt;
+        const timedOffset = finalDistance * easeProgress(elapsed / safeDuration);
+        const cssOffset = Math.abs(rouletteTrackTranslateX(trackNode));
+        const currentOffset = Math.max(timedOffset, cssOffset);
+        const currentTickIndex = Math.min(Math.floor(finalDistance / safeStep), Math.max(0, Math.floor(currentOffset / safeStep)));
         if (currentTickIndex > lastTickIndex) {
           for (let tickIndex = lastTickIndex + 1; tickIndex <= currentTickIndex; tickIndex += 1) {
             const progress = Math.min(1, (tickIndex * safeStep) / finalDistance);
@@ -25443,6 +25472,12 @@ PAGE_TEMPLATE = """
       }
     }
 
+    function localDeckScore(cards) {
+      return (Array.isArray(cards) ? cards : []).reduce((sum, card) => {
+        return sum + Number(card.pool_value ?? card.base_power ?? card.score ?? 0);
+      }, 0);
+    }
+
     function showdownDeckMarkup(cards, fallbackCard) {
       const normalized = Array.isArray(cards) && cards.length
         ? cards
@@ -27587,7 +27622,8 @@ PAGE_TEMPLATE = """
       rouletteTrack.classList.add('spinning');
       await nextFrame();
       await nextFrame();
-      const stopTickSync = startRouletteTickSync(rouletteTrack, target, cardStep);
+      playRouletteStartSound();
+      const stopTickSync = startRouletteTickSync(rouletteTrack, target, cardStep, 4650);
       rouletteTrack.style.transition = 'transform 4650ms cubic-bezier(.07,.82,.12,1)';
       rouletteTrack.style.transform = `translate3d(-${target.toFixed(2)}px,0,0)`;
       await waitForTransitionEnd(rouletteTrack, 4650);
@@ -27651,6 +27687,11 @@ PAGE_TEMPLATE = """
           const cosmetic = data.cosmetic_reward || {};
           await playCosmeticRouletteReveal(cosmetic);
           packScoreLabel.textContent = `Открыт предмет: ${cosmetic.name || '-'}`;
+          if (Array.isArray(state.cards) && state.cards.length === 5) {
+            await sleep(900);
+            await renderPack(state.cards, localDeckScore(state.cards), false);
+            setStatus(document.getElementById('pack-status'), `Открыт ${cosmetic.name || 'косметический предмет'}. Активная колода не изменилась.`, 'success');
+          }
         } else {
           await renderPack(data.cards, data.total_score);
         }
@@ -31117,21 +31158,22 @@ def claim_daily_reward(wallet):
 
 
 def claim_win_quest_reward(wallet):
-    rewards = ensure_player_rewards(wallet)
-    available = int(rewards.get('wins_for_quest', 0)) - int(rewards.get('wins_claimed', 0))
-    if available < 3:
-        raise ValueError('Квест на победы ещё не готов.')
-    rare_tokens = int(rewards.get('rare_tokens', 0)) + 1
-    wins_claimed = int(rewards.get('wins_claimed', 0)) + 3
+    ensure_player_rewards(wallet)
     with closing(get_db()) as conn:
-        conn.execute(
+        cursor = conn.execute(
             '''
             UPDATE player_rewards
-            SET rare_tokens = ?, wins_claimed = ?, updated_at = ?
+            SET rare_tokens = rare_tokens + 1,
+                wins_claimed = wins_claimed + 3,
+                updated_at = ?
             WHERE wallet = ?
+              AND wins_for_quest >= wins_claimed + 3
             ''',
-            (rare_tokens, wins_claimed, now_iso(), wallet),
+            (now_iso(), wallet),
         )
+        if cursor.rowcount < 1:
+            conn.rollback()
+            raise ValueError('Квест на победы ещё не готов.')
         conn.commit()
     return reward_summary(wallet)
 
@@ -35223,6 +35265,7 @@ def load_active_deck_cards(wallet, domain):
             SELECT cards_json
             FROM pack_opens
             WHERE wallet = ? AND domain = ?
+              AND total_score > 0
             ORDER BY created_at DESC
             LIMIT 1
             ''',
@@ -35247,6 +35290,7 @@ def restore_previous_deck_cards(wallet, domain):
             SELECT cards_json
             FROM pack_opens
             WHERE wallet = ? AND domain = ?
+              AND total_score > 0
             ORDER BY created_at DESC
             LIMIT 2
             ''',
@@ -40560,17 +40604,7 @@ def api_pack():
             'emoji': selected.get('emoji'),
             'rarity_key': cosmetic_item_rarity(selected),
         }
-        cards = [{
-            'domain': domain,
-            'slot': 1,
-            'title': selected['name'],
-            'rarity': cosmetic_item_rarity(selected).capitalize(),
-            'rarity_key': cosmetic_item_rarity(selected),
-            'pool_value': 0,
-            'base_power': 0,
-            'ability': f'Открыт предмет: {selected["name"]}',
-            'skill_name': selected['type'],
-        }]
+        cards = []
         total = 0
     else:
         cards = generate_pack(domain, seed_value=seed, pack_type=pack_type, guarantee_legendary=guarantee_legendary, wallet=wallet)
