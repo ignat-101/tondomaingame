@@ -5505,6 +5505,8 @@ PAGE_TEMPLATE = """
     #pack-cards.cosmetic-roulette-live {
       min-height: 224px;
       overflow-anchor: none;
+      overflow-x: hidden;
+      grid-template-columns: minmax(0, 1fr);
       contain: layout paint;
     }
     .leaderboard, .team-grid { grid-template-columns: 1fr; }
@@ -11922,8 +11924,11 @@ PAGE_TEMPLATE = """
 
     .cosmetic-roulette {
       position: relative;
-      width: min(760px, 96vw);
+      width: 100%;
+      max-width: 760px;
+      min-width: 0;
       margin: 8px auto 0;
+      box-sizing: border-box;
       border-radius: 18px;
       border: 1px solid rgba(121, 217, 255, 0.28);
       background: linear-gradient(180deg, rgba(8, 16, 30, 0.96), rgba(5, 11, 22, 0.98));
@@ -11958,6 +11963,9 @@ PAGE_TEMPLATE = """
     .cosmetic-roulette-window {
       overflow: hidden;
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
       border-radius: 14px;
       border: 1px solid rgba(121, 217, 255, 0.18);
       background: radial-gradient(circle at top, rgba(69, 215, 255, 0.08), rgba(5, 10, 20, 0.98) 66%);
@@ -11965,6 +11973,7 @@ PAGE_TEMPLATE = """
 
     .cosmetic-roulette-track {
       display: inline-flex;
+      max-width: none;
       gap: 10px;
       align-items: stretch;
       padding: 10px;
