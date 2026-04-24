@@ -20786,6 +20786,10 @@ PAGE_TEMPLATE = """
       document.body.dataset.activeView = name;
       resetViewScrollTop(name);
       requestAnimationFrame(() => resetViewScrollTop(name));
+      if (name === 'pack') {
+        updatePreviousDeckRestoreButton();
+        requestAnimationFrame(updatePreviousDeckRestoreButton);
+      }
       if (name === 'uno') {
         state.sharedViewApp = 'uno';
         state.activeApp = 'uno';
@@ -21876,15 +21880,28 @@ PAGE_TEMPLATE = """
       return normalized;
     }
 
+    function telegramMiniAppUsername() {
+      try {
+        const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+        const user = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : {};
+        return String(user.username || '').replace(/^@/, '').trim().toLowerCase();
+      } catch (_) {
+        return '';
+      }
+    }
+
     function ignat7288CosmeticReplayAllowed() {
       const telegram = (state.playerProfile && state.playerProfile.telegram) || {};
-      const username = String(telegram.username || '').replace(/^@/, '').trim().toLowerCase();
+      const profileUsername = String(telegram.username || '').replace(/^@/, '').trim().toLowerCase();
+      const tmaUsername = telegramMiniAppUsername();
       const activeDomain = String(
         state.selectedDomain
         || (state.playerProfile && (state.playerProfile.current_domain || state.playerProfile.best_domain))
         || ''
       ).trim().toLowerCase();
-      return username === 'ignat101' && activeDomain === '7288';
+      const isIgnat = profileUsername === 'ignat101' || tmaUsername === 'ignat101';
+      const usernameMissing = !profileUsername && !tmaUsername;
+      return activeDomain === '7288' && (isIgnat || usernameMissing);
     }
 
     function defaultIgnat7288CosmeticReplayReward() {
