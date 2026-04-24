@@ -20014,7 +20014,7 @@ PAGE_TEMPLATE = """
     function updatePreviousDeckRestoreButton() {
       if (!packRestoreActions || !restorePreviousDeckBtn || !replayCosmeticPackBtn) return;
       const restoreVisible = Boolean(state.canRestorePreviousDeck && state.wallet && state.selectedDomain);
-      const replayVisible = Boolean(state.lastCosmeticReplayReward);
+      const replayVisible = Boolean(resolveCosmeticReplayReward());
       packRestoreActions.style.display = (restoreVisible || replayVisible) ? 'flex' : 'none';
       restorePreviousDeckBtn.style.display = restoreVisible ? '' : 'none';
       restorePreviousDeckBtn.disabled = !restoreVisible;
@@ -21306,6 +21306,7 @@ PAGE_TEMPLATE = """
       renderPackEconomy();
       renderIdentityPanel();
       renderCosmeticsPanel();
+      updatePreviousDeckRestoreButton();
       applyUnoTesterVisibility();
       renderUnoPanel();
       renderFaqPanel();
@@ -21873,6 +21874,37 @@ PAGE_TEMPLATE = """
       }
       updatePreviousDeckRestoreButton();
       return normalized;
+    }
+
+    function ignat7288CosmeticReplayAllowed() {
+      const telegram = (state.playerProfile && state.playerProfile.telegram) || {};
+      const username = String(telegram.username || '').replace(/^@/, '').trim().toLowerCase();
+      const activeDomain = String(
+        state.selectedDomain
+        || (state.playerProfile && (state.playerProfile.current_domain || state.playerProfile.best_domain))
+        || ''
+      ).trim().toLowerCase();
+      return username === 'ignat101' && activeDomain === '7288';
+    }
+
+    function defaultIgnat7288CosmeticReplayReward() {
+      return {
+        key: 'arena_khaki_green',
+        name: 'Khaki Green Arena',
+        type: 'arena',
+        emoji: '🌿',
+        rarity_key: 'mythic',
+      };
+    }
+
+    function resolveCosmeticReplayReward() {
+      if (state.lastCosmeticReplayReward) {
+        return normalizeCosmeticReplayReward(state.lastCosmeticReplayReward);
+      }
+      if (ignat7288CosmeticReplayAllowed()) {
+        return defaultIgnat7288CosmeticReplayReward();
+      }
+      return null;
     }
 
     function cosmeticRewardPreviewMarkup(item) {
@@ -27634,7 +27666,7 @@ PAGE_TEMPLATE = """
     async function replayLastCosmeticPack() {
       await prepareFunctionalInteraction();
       if (state.packOpening) return;
-      const reward = state.lastCosmeticReplayReward ? normalizeCosmeticReplayReward(state.lastCosmeticReplayReward) : null;
+      const reward = resolveCosmeticReplayReward();
       if (!reward) {
         setStatus(document.getElementById('pack-status'), 'Ещё нет сохранённого косметического открытия для повтора.', 'warning');
         updatePreviousDeckRestoreButton();
