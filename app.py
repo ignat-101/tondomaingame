@@ -30135,6 +30135,7 @@ MANAGED_ENV_KEYS = {
     'DEBUG': {'type': 'bool', 'description': 'Режим отладки'},
     'APP_DB_PATH': {'type': 'str', 'description': 'Путь к SQLite базе'},
     'TONAPI_KEY': {'type': 'str', 'description': 'API ключ TonAPI'},
+    'APP_ROOT_URL': {'type': 'str', 'description': 'Публичный URL приложения'},
     'TG_WEBAPP_URL': {'type': 'str', 'description': 'URL Telegram mini app'},
     'TG_BOT_TOKEN': {'type': 'str', 'description': 'Telegram bot token'},
     'TG_BOT_USERNAME': {'type': 'str', 'description': 'Username Telegram-бота'},
@@ -30163,6 +30164,7 @@ ENV_DEFAULT_VALUES = {
     'DEBUG': '1' if DEBUG else '0',
     'APP_DB_PATH': str(DB_PATH),
     'TONAPI_KEY': str(TONAPI_KEY or ''),
+    'APP_ROOT_URL': str(APP_ROOT or ''),
     'TG_WEBAPP_URL': str(TG_WEBAPP_URL),
     'TG_BOT_TOKEN': str(TG_BOT_TOKEN or ''),
     'TG_BOT_USERNAME': str(TG_BOT_USERNAME or ''),
@@ -39665,12 +39667,7 @@ def telegram_clear_inline_keyboard(chat_id, message_id):
 
 
 def telegram_welcome_markup():
-    if not TG_WEBAPP_URL:
-        return None
-    return {
-        'keyboard': [[{'text': 'Open tondomaingame', 'web_app': {'url': TG_WEBAPP_URL}}]],
-        'resize_keyboard': True,
-    }
+    return {'remove_keyboard': True}
 
 
 def handle_invite_callback(callback_query):
@@ -39784,7 +39781,7 @@ def handle_telegram_message(message):
     if text.startswith('/start') or text.startswith('/app'):
         telegram_send_message(
             chat_id,
-            'tondomaingame готов. Открой mini app кнопкой ниже, подключи TON-кошелёк и начинай матч.',
+            'tondomaingame готов. Кнопка mini app под клавиатурой отключена. Открывай игру через Telegram Mini App или прямую ссылку.',
             telegram_welcome_markup(),
         )
         return
@@ -39878,7 +39875,7 @@ def handle_telegram_message(message):
 
     telegram_send_message(
         chat_id,
-        'Команды:\n/start\n/app\n/link_wallet <wallet>\n/subscribe\n/leaderboard\n/rating <wallet>\n\nДля игры открой mini app.',
+        'Команды:\n/start\n/app\n/link_wallet <wallet>\n/subscribe\n/leaderboard\n/rating <wallet>',
         telegram_welcome_markup(),
     )
 
@@ -42032,7 +42029,12 @@ def telegram_setup():
     if TG_WEBHOOK_SECRET:
         payload['secret_token'] = TG_WEBHOOK_SECRET
     result = telegram_api('setWebhook', payload)
-    return jsonify({'ok': True, 'webhook_url': webhook_url, 'telegram': result})
+    menu_result = None
+    try:
+        menu_result = telegram_api('setChatMenuButton', {'menu_button': {'type': 'default'}})
+    except Exception as exc:
+        menu_result = {'ok': False, 'error': str(exc)}
+    return jsonify({'ok': True, 'webhook_url': webhook_url, 'telegram': result, 'menu_button': menu_result})
 
 
 @app.route('/telegram/dispatch')
