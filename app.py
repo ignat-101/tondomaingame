@@ -11981,7 +11981,7 @@ PAGE_TEMPLATE = """
       display: grid;
       gap: 6px;
       align-content: start;
-      min-height: 134px;
+      min-height: 158px;
       position: relative;
       overflow: hidden;
     }
@@ -12008,6 +12008,15 @@ PAGE_TEMPLATE = """
       justify-content: center;
       background: radial-gradient(circle at 30% 24%, rgba(255,255,255,0.24), rgba(10,20,34,0.74));
       border: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .cosmetic-roulette-card .preview {
+      position: relative;
+      min-height: 58px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(7, 13, 24, 0.78);
     }
 
     .cosmetic-roulette-card .name {
@@ -17243,6 +17252,7 @@ PAGE_TEMPLATE = """
           <div class="status" id="pack-status"></div>
           <div class="actions" id="pack-restore-actions" style="display:none; margin-top:10px;">
             <button class="secondary" id="restore-previous-deck-btn">Оставить прошлую колоду</button>
+            <button class="secondary" id="replay-cosmetic-pack-btn">Пересмотреть косметический пак</button>
           </div>
           <div class="card-grid" id="pack-cards"></div>
           <h3 style="margin-top:18px;">Прокачка дисциплин</h3>
@@ -17638,7 +17648,8 @@ PAGE_TEMPLATE = """
       unoReactionOpen: false,
       unoCallCoachVisible: false,
       battleReactionOpen: false,
-      battleReactionTimer: null
+      battleReactionTimer: null,
+      lastCosmeticReplayReward: null
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
@@ -17656,6 +17667,7 @@ PAGE_TEMPLATE = """
     const unoGuestIdStorageKey = 'tondomaingame_uno_guest_id_v1';
     const unoGuestNameStorageKey = 'tondomaingame_uno_guest_name_v1';
     const unoGuestMatchesStorageKey = 'tondomaingame_uno_guest_matches_v1';
+    const cosmeticReplayStorageKey = 'tondomaingame_cosmetic_replay_v1';
     const sharedBattleReactions = [
       {key: 'fire', emoji: '🔥', label: 'Огонь'},
       {key: 'laugh', emoji: '😂', label: 'Смешно'},
@@ -17674,6 +17686,12 @@ PAGE_TEMPLATE = """
       state.unoGuestCompletedMatches = Number(window.localStorage.getItem(unoGuestMatchesStorageKey) || 0) || 0;
     } catch (_) {
       state.unoGuestCompletedMatches = 0;
+    }
+    try {
+      const storedCosmeticReplay = window.localStorage.getItem(cosmeticReplayStorageKey) || '';
+      state.lastCosmeticReplayReward = storedCosmeticReplay ? JSON.parse(storedCosmeticReplay) : null;
+    } catch (_) {
+      state.lastCosmeticReplayReward = null;
     }
     let duelInvitePollTimer = null;
     let duelInvitePollId = null;
@@ -17796,6 +17814,7 @@ PAGE_TEMPLATE = """
     const packSeasonSummary = document.getElementById('pack-season-summary');
     const packRestoreActions = document.getElementById('pack-restore-actions');
     const restorePreviousDeckBtn = document.getElementById('restore-previous-deck-btn');
+    const replayCosmeticPackBtn = document.getElementById('replay-cosmetic-pack-btn');
     const claimDailyRewardBtn = document.getElementById('claim-daily-reward-btn');
     const claimQuestRewardBtn = document.getElementById('claim-quest-reward-btn');
     const cardCatalogList = document.getElementById('card-catalog-list');
@@ -19993,10 +20012,14 @@ PAGE_TEMPLATE = """
     }
 
     function updatePreviousDeckRestoreButton() {
-      if (!packRestoreActions || !restorePreviousDeckBtn) return;
-      const visible = Boolean(state.canRestorePreviousDeck && state.wallet && state.selectedDomain);
-      packRestoreActions.style.display = visible ? 'flex' : 'none';
-      restorePreviousDeckBtn.disabled = !visible;
+      if (!packRestoreActions || !restorePreviousDeckBtn || !replayCosmeticPackBtn) return;
+      const restoreVisible = Boolean(state.canRestorePreviousDeck && state.wallet && state.selectedDomain);
+      const replayVisible = Boolean(state.lastCosmeticReplayReward);
+      packRestoreActions.style.display = (restoreVisible || replayVisible) ? 'flex' : 'none';
+      restorePreviousDeckBtn.style.display = restoreVisible ? '' : 'none';
+      restorePreviousDeckBtn.disabled = !restoreVisible;
+      replayCosmeticPackBtn.style.display = replayVisible ? '' : 'none';
+      replayCosmeticPackBtn.disabled = !replayVisible || state.packOpening;
     }
 
     function renderRewardsPanels() {
@@ -21762,31 +21785,141 @@ PAGE_TEMPLATE = """
       shineOsc.stop(now + 0.28);
     }
 
-    async function runRouletteTickSequence(totalDistancePx, stepPx) {
-      const safeStep = Math.max(1, Number(stepPx || 1));
-      const totalTicks = Math.max(18, Math.min(120, Math.floor(totalDistancePx / safeStep) + 6));
-      const phase1Ticks = Math.max(8, Math.floor(totalTicks * 0.55));
-      const phase2Ticks = Math.max(6, Math.floor(totalTicks * 0.35));
-      const phase3Ticks = Math.max(2, totalTicks - phase1Ticks - phase2Ticks);
-      const p1Interval = 2240 / phase1Ticks;
-      const p2Interval = 2090 / phase2Ticks;
-      const p3Interval = 380 / phase3Ticks;
+    function rouletteTrackTranslateX(node) {
+      if (!node) return 0;
+      const transform = window.getComputedStyle(node).transform || '';
+      if (!transform || transform === 'none') return 0;
+      try {
+        const matrix = typeof DOMMatrixReadOnly === 'function'
+          ? new DOMMatrixReadOnly(transform)
+          : new WebKitCSSMatrix(transform);
+        return Number(matrix.m41 || 0);
+      } catch (_) {
+        return 0;
+      }
+    }
 
-      for (let i = 0; i < phase1Ticks; i += 1) {
-        const t = i / Math.max(1, phase1Ticks - 1);
-        playRouletteTickSound(0.62, 1450 - t * 520);
-        await sleep(p1Interval);
+    function waitForTransitionEnd(node, fallbackMs = 0) {
+      return new Promise((resolve) => {
+        if (!node) {
+          resolve();
+          return;
+        }
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          node.removeEventListener('transitionend', onEnd);
+          window.clearTimeout(timer);
+          resolve();
+        };
+        const onEnd = (event) => {
+          if (event.target !== node) return;
+          finish();
+        };
+        const timer = window.setTimeout(finish, Math.max(60, Number(fallbackMs || 0) + 120));
+        node.addEventListener('transitionend', onEnd);
+      });
+    }
+
+    function startRouletteTickSync(trackNode, totalDistancePx, stepPx) {
+      if (!trackNode) return () => {};
+      const safeStep = Math.max(1, Number(stepPx || 1));
+      const finalDistance = Math.max(safeStep, Number(totalDistancePx || 0));
+      let rafId = 0;
+      let stopped = false;
+      let lastTickIndex = -1;
+      const frame = () => {
+        if (stopped) return;
+        const currentOffset = Math.abs(rouletteTrackTranslateX(trackNode));
+        const currentTickIndex = Math.max(0, Math.floor(currentOffset / safeStep));
+        if (currentTickIndex > lastTickIndex) {
+          for (let tickIndex = lastTickIndex + 1; tickIndex <= currentTickIndex; tickIndex += 1) {
+            const progress = Math.min(1, (tickIndex * safeStep) / finalDistance);
+            const pitch = 1450 - progress * 980;
+            const power = 0.64 - progress * 0.16;
+            playRouletteTickSound(power, pitch);
+          }
+          lastTickIndex = currentTickIndex;
+        }
+        rafId = window.requestAnimationFrame(frame);
+      };
+      rafId = window.requestAnimationFrame(frame);
+      return () => {
+        stopped = true;
+        if (rafId) {
+          window.cancelAnimationFrame(rafId);
+        }
+      };
+    }
+
+    function normalizeCosmeticReplayReward(cosmeticReward) {
+      const safeReward = cosmeticReward && typeof cosmeticReward === 'object' ? cosmeticReward : {};
+      return {
+        key: safeReward.key ? String(safeReward.key) : 'cosmetic_reward',
+        name: safeReward.name ? String(safeReward.name) : 'Косметический предмет',
+        type: safeReward.type ? String(safeReward.type) : 'cosmetic',
+        emoji: safeReward.emoji ? String(safeReward.emoji) : '',
+        rarity_key: safeReward.rarity_key ? String(safeReward.rarity_key) : 'basic',
+      };
+    }
+
+    function rememberCosmeticReplayReward(cosmeticReward) {
+      const normalized = normalizeCosmeticReplayReward(cosmeticReward);
+      state.lastCosmeticReplayReward = normalized;
+      try {
+        window.localStorage.setItem(cosmeticReplayStorageKey, JSON.stringify(normalized));
+      } catch (_) {
       }
-      for (let i = 0; i < phase2Ticks; i += 1) {
-        const t = i / Math.max(1, phase2Ticks - 1);
-        playRouletteTickSound(0.56, 910 - t * 370);
-        await sleep(p2Interval);
+      updatePreviousDeckRestoreButton();
+      return normalized;
+    }
+
+    function cosmeticRewardPreviewMarkup(item) {
+      const reward = normalizeCosmeticReplayReward(item);
+      const rewardEmoji = reward.type === 'emoji' ? (reward.emoji || '✨') : (reward.emoji || '');
+      const frameAsset = reward.type === 'frame' ? cosmeticAssetUrl('frame', reward.key) : '';
+      if (reward.type === 'cardback') {
+        return `<div style="position:absolute; inset:0; background:${giftCardbackSurface(reward.key, rewardEmoji)};"></div>`;
       }
-      for (let i = 0; i < phase3Ticks; i += 1) {
-        const t = i / Math.max(1, phase3Ticks - 1);
-        playRouletteTickSound(0.5, 520 - t * 120);
-        await sleep(p3Interval);
+      if (reward.type === 'arena') {
+        return `<div style="position:absolute; inset:0; background:${giftArenaSurface(reward.key, rewardEmoji)};"></div>`;
       }
+      if (reward.type === 'guild') {
+        return `<div style="position:absolute; inset:0; background:${giftGuildSurface(reward.key, rewardEmoji)};"></div>`;
+      }
+      if (reward.type === 'frame') {
+        return `
+          <div style="position:absolute; inset:0; border-radius:18px; background:linear-gradient(180deg, rgba(8,14,24,0.96), rgba(5,9,15,0.98));"></div>
+          ${frameAsset ? `<img src="${frameAsset}" alt="" style="position:absolute; inset:4px; width:calc(100% - 8px); height:calc(100% - 8px); object-fit:contain;">` : ''}
+        `;
+      }
+      if (reward.type === 'emoji') {
+        return `
+          <div style="position:absolute; inset:0; border-radius:18px; background:linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92));"></div>
+          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:56px;">${escapeHtml(rewardEmoji || '✨')}</div>
+        `;
+      }
+      return `
+        <div style="position:absolute; inset:0; border-radius:18px; background:linear-gradient(180deg, rgba(69,215,255,0.12), rgba(8,20,36,0.92));"></div>
+        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:42px;">${escapeHtml(cosmeticTypeIcon(reward))}</div>
+      `;
+    }
+
+    function cosmeticRewardRevealCardMarkup(item) {
+      const reward = normalizeCosmeticReplayReward(item);
+      return `
+        <article class="game-card ${cosmeticRarityKey(reward)}">
+          <div class="tiny">Cosmetic • ${escapeHtml(cosmeticRarityLabel(reward))}</div>
+          <h3>${escapeHtml(reward.name || 'Косметический предмет')}</h3>
+          <p>${escapeHtml(cosmeticTypeLabelRu(reward.type || 'cosmetic'))}</p>
+          <div style="margin-top:12px; border-radius:18px; min-height:148px; position:relative; overflow:hidden; border:1px solid rgba(121,217,255,0.18); background:rgba(5,10,18,0.74);">
+            ${cosmeticRewardPreviewMarkup(reward)}
+          </div>
+          <div class="team-line"><span>Источник</span><strong>Косметический пак</strong></div>
+          <p>Предмет добавлен в коллекцию и доступен во вкладке «Профиль».</p>
+        </article>
+      `;
     }
 
     function cosmeticEmojiSymbol(cosmetics) {
@@ -27333,19 +27466,17 @@ PAGE_TEMPLATE = """
     window.onTelegramSiteAuth = onTelegramSiteAuth;
     window.linkTelegramFromMiniApp = linkTelegramFromMiniApp;
 
-    async function playCosmeticRouletteReveal(cosmeticReward) {
+    async function playCosmeticRouletteReveal(cosmeticReward, options = {}) {
       await resumeRouletteAudioContext();
       const rewards = (state.playerProfile && state.playerProfile.rewards) || {};
       const catalog = Array.isArray(rewards.cosmetic_catalog) ? rewards.cosmetic_catalog.slice() : [];
-      const fallback = {
-        key: cosmeticReward && cosmeticReward.key ? cosmeticReward.key : 'cosmetic_reward',
-        name: cosmeticReward && cosmeticReward.name ? cosmeticReward.name : 'Косметический предмет',
-        type: cosmeticReward && cosmeticReward.type ? cosmeticReward.type : 'cosmetic',
-        emoji: cosmeticReward && cosmeticReward.emoji ? cosmeticReward.emoji : '',
-        rarity_key: cosmeticReward && cosmeticReward.rarity_key ? cosmeticReward.rarity_key : 'basic',
-      };
+      const persistReward = options.persist !== false;
+      const fallback = normalizeCosmeticReplayReward(cosmeticReward);
       if (!catalog.find((item) => item.key === fallback.key)) {
         catalog.push(fallback);
+      }
+      if (persistReward) {
+        rememberCosmeticReplayReward(fallback);
       }
       const stripSize = 42;
       const winnerIndex = 32;
@@ -27362,6 +27493,7 @@ PAGE_TEMPLATE = """
         return `
           <article class="cosmetic-roulette-card ${rarityKey}" data-roulette-index="${idx}">
             <div class="icon">${escapeHtml(cosmeticTypeIcon(item))}</div>
+            <div class="preview">${cosmeticRewardPreviewMarkup(item)}</div>
             <div class="name">${escapeHtml(item.name || 'Косметика')}</div>
             <div class="rarity">${escapeHtml(cosmeticRarityLabel(item))}</div>
             <div class="beam"></div>
@@ -27393,40 +27525,33 @@ PAGE_TEMPLATE = """
       const centerOffset = rouletteWindow.clientWidth / 2 - cardRect.width / 2;
       const target = Math.max(0, winnerIndex * cardStep - centerOffset);
       const fastTarget = Math.max(0, target - cardStep * 4);
-      const tickPromise = runRouletteTickSequence(target, cardStep).catch(() => {});
       rouletteTrack.style.transform = 'translateX(0px)';
       rouletteTrack.style.transition = 'none';
       rouletteTrack.classList.add('spinning');
-      await sleep(40);
+      await nextFrame();
+      await nextFrame();
+      const stopTickSync = startRouletteTickSync(rouletteTrack, target, cardStep);
       rouletteTrack.style.transition = 'transform 2200ms cubic-bezier(.18,.88,.24,1)';
       rouletteTrack.style.transform = `translateX(-${fastTarget.toFixed(2)}px)`;
-      await sleep(2240);
+      await waitForTransitionEnd(rouletteTrack, 2200);
       rouletteTrack.style.transition = 'transform 2050ms cubic-bezier(.06,.96,.12,1)';
       rouletteTrack.style.transform = `translateX(-${target.toFixed(2)}px)`;
-      await sleep(2090);
+      await waitForTransitionEnd(rouletteTrack, 2050);
       rouletteTrack.style.transition = 'transform 210ms ease-out';
       rouletteTrack.style.transform = `translateX(-${(target - 6).toFixed(2)}px)`;
-      await sleep(220);
+      await waitForTransitionEnd(rouletteTrack, 210);
       rouletteTrack.style.transition = 'transform 170ms ease-in';
       rouletteTrack.style.transform = `translateX(-${target.toFixed(2)}px)`;
-      await sleep(180);
+      await waitForTransitionEnd(rouletteTrack, 170);
       rouletteTrack.classList.remove('spinning');
-      await tickPromise;
+      stopTickSync();
       playRouletteDropSound();
       const finalCard = packCards.querySelector(`.cosmetic-roulette-card[data-roulette-index="${winnerIndex}"]`);
       if (finalCard) {
         finalCard.style.boxShadow = '0 0 0 1px rgba(255, 211, 110, 0.58), 0 0 24px rgba(255, 211, 110, 0.34)';
       }
       await sleep(260);
-      packCards.innerHTML = `
-        <article class="game-card ${cosmeticRarityKey(fallback)}">
-          <div class="tiny">Cosmetic • ${escapeHtml(cosmeticRarityLabel(fallback))}</div>
-          <h3>${escapeHtml(fallback.name || 'Косметический предмет')}</h3>
-          <p>${escapeHtml(cosmeticTypeLabelRu(fallback.type || 'cosmetic'))}</p>
-          <div class="team-line"><span>Источник</span><strong>Косметический пак</strong></div>
-          <p>Предмет добавлен в коллекцию и доступен во вкладке «Профиль».</p>
-        </article>
-      `;
+      packCards.innerHTML = cosmeticRewardRevealCardMarkup(fallback);
       packCards.classList.add('reveal');
     }
 
@@ -27503,6 +27628,38 @@ PAGE_TEMPLATE = """
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       } finally {
         state.packOpening = false;
+      }
+    }
+
+    async function replayLastCosmeticPack() {
+      await prepareFunctionalInteraction();
+      if (state.packOpening) return;
+      const reward = state.lastCosmeticReplayReward ? normalizeCosmeticReplayReward(state.lastCosmeticReplayReward) : null;
+      if (!reward) {
+        setStatus(document.getElementById('pack-status'), 'Ещё нет сохранённого косметического открытия для повтора.', 'warning');
+        updatePreviousDeckRestoreButton();
+        return;
+      }
+      state.packOpening = true;
+      updatePreviousDeckRestoreButton();
+      setStatus(document.getElementById('pack-status'), `Повторяем открытие: ${reward.name || 'косметический предмет'}.`, 'warning');
+      resetPackShowcaseIdleState({ preserveCinematic: true, preserveNote: true });
+      packShowcase.classList.add('cinematic', 'opened', 'bursting', 'opened-once');
+      packShowcase.classList.remove('reveal-live');
+      packNote.textContent = 'Повтор открытия';
+      if (packTap) {
+        packTap.textContent = ' ';
+      }
+      try {
+        await playCosmeticRouletteReveal(reward, {persist: false});
+        packScoreLabel.textContent = `Открыт предмет: ${reward.name || '-'}`;
+        packNote.textContent = '';
+        setStatus(document.getElementById('pack-status'), `Повтор открыт: ${reward.name || 'косметический предмет'}.`, 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      } finally {
+        state.packOpening = false;
+        updatePreviousDeckRestoreButton();
       }
     }
 
@@ -28432,6 +28589,9 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(claimQuestRewardBtn, claimQuestReward);
     if (restorePreviousDeckBtn) {
       bindFunctionalControl(restorePreviousDeckBtn, restorePreviousDeck);
+    }
+    if (replayCosmeticPackBtn) {
+      bindFunctionalControl(replayCosmeticPackBtn, replayLastCosmeticPack);
     }
     document.querySelectorAll('.reward-pack-btn').forEach((button) => {
       bindFunctionalControl(button, () => openRewardPack(button.dataset.rewardPack));
