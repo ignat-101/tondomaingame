@@ -2899,12 +2899,12 @@ PAGE_TEMPLATE = """
 
     .uno-call-float {
       position: absolute;
-      left: 18px;
-      bottom: 18px;
-      z-index: 12;
-      width: 72px;
-      height: 56px;
-      border-radius: 18px;
+      right: 18px;
+      top: 56px;
+      z-index: 14;
+      width: 82px;
+      height: 52px;
+      border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.12);
       background:
         linear-gradient(135deg, rgba(86, 88, 96, 0.64), rgba(29, 34, 43, 0.76)),
@@ -2944,7 +2944,7 @@ PAGE_TEMPLATE = """
       position: absolute;
       left: 14px;
       right: 14px;
-      bottom: 82px;
+      top: 116px;
       z-index: 24;
       display: grid;
       gap: 10px;
@@ -15309,10 +15309,10 @@ PAGE_TEMPLATE = """
     }
 
     body.tma-app.uno-live-lock .uno-call-float {
-      left: 10px;
-      bottom: 10px;
-      width: 58px;
-      height: 46px;
+      right: 10px;
+      top: 38px;
+      width: 62px;
+      height: 42px;
       border-radius: 15px;
       font-size: 12px;
     }
@@ -15320,7 +15320,7 @@ PAGE_TEMPLATE = """
     body.tma-app.uno-live-lock .uno-call-tip-overlay {
       left: 10px;
       right: 10px;
-      bottom: 62px;
+      top: 84px;
       padding: 10px 12px;
       border-radius: 16px;
     }
