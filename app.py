@@ -27728,6 +27728,7 @@ PAGE_TEMPLATE = """
         return;
       }
       state.packReplayTapCount = 0;
+      state.lastCosmeticReplayReward = defaultIgnat7288CosmeticReplayReward();
       await replayLastCosmeticPack();
     }
 
