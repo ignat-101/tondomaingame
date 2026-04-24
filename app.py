@@ -20042,12 +20042,15 @@ PAGE_TEMPLATE = """
       const rewards = state.playerProfile && state.playerProfile.rewards ? state.playerProfile.rewards : null;
       const synergies = state.playerProfile && state.playerProfile.synergies ? state.playerProfile.synergies : null;
       const seasonTasks = rewards && Array.isArray(rewards.season_tasks) ? rewards.season_tasks : [];
+      const subscribeTask = seasonTasks.find((item) => String(item.key || '') === 'global_subscribe_domaingame');
+      const subscribeDone = Boolean(subscribeTask && (subscribeTask.claimed || subscribeTask.claimable || Number(subscribeTask.progress || 0) >= Number(subscribeTask.target || 1)));
       const content = rewards ? `
         <div class="user-item">
           <strong>Награды и сезон</strong>
           <div class="tiny">Осколки: ${rewards.pack_shards || 0} • Редкие токены: ${rewards.rare_tokens || 0} • Lucky-токены: ${rewards.lucky_tokens || 0}</div>
           <div class="tiny">Сезон: ур. ${rewards.season_level || 1} • ${rewards.season_points || 0}/${rewards.season_target || 16} очков • ${rewards.premium_pass_active ? 'премиум активен' : 'free-трек'}</div>
           <div class="tiny">Дейлик: ${rewards.daily_available ? 'готов' : 'получен'} • Квест: ${rewards.quest_ready ? 'готов' : `до цели ${Math.max(0, Number(rewards.next_quest_target || 0) - Number(rewards.wins_for_quest || 0))} побед`}</div>
+          <div class="tiny">Подписка на @domaingame: ${subscribeTask ? (subscribeDone ? 'выполнено' : 'не выполнено') : 'задание недоступно'}</div>
           <div class="tiny">Задания пропуска: ${seasonTasks.length ? seasonTasks.map((item) => `${item.label} ${item.progress}/${item.target}${item.claimable ? ' • можно забрать' : (item.claimed ? ' • забрано' : '')}`).join(' • ') : 'нет'}</div>
           <div class="tiny">Синергии: ${synergies && synergies.labels && synergies.labels.length ? synergies.labels.join(' • ') : 'нет'}</div>
           <div class="tiny">Косметика: ${Array.isArray(rewards.cosmetics) && rewards.cosmetics.length ? rewards.cosmetics.map((item) => item.name).join(' • ') : 'ещё не открыта'}</div>
@@ -21480,6 +21483,11 @@ PAGE_TEMPLATE = """
       const unoSharedTheme = isUnoAppContext('achievements') ? currentUnoSharedTheme() : null;
       const track = Array.isArray(rewards.season_pass_track) ? rewards.season_pass_track : [];
       const seasonTasks = Array.isArray(rewards.season_tasks) ? rewards.season_tasks : [];
+      const globalSeasonTasks = seasonTasks.filter((task) => task && (task.scope === 'global' || String(task.key || '').startsWith('global_')));
+      const dailySeasonTasks = seasonTasks.filter((task) => !(task && (task.scope === 'global' || String(task.key || '').startsWith('global_'))));
+      const subscribeTask = globalSeasonTasks.find((task) => String(task.key || '') === 'global_subscribe_domaingame') || globalSeasonTasks[0] || null;
+      const subscribeDone = Boolean(subscribeTask && (subscribeTask.claimed || subscribeTask.claimable || Number(subscribeTask.progress || 0) >= Number(subscribeTask.target || 1)));
+      const subscribeLinked = Boolean(state.playerProfile && state.playerProfile.telegram_linked);
       const rewardTone = (text) => {
         if (unoSharedTheme) {
           const lowerUno = String(text || '').toLowerCase();
@@ -21527,6 +21535,17 @@ PAGE_TEMPLATE = """
           <strong>Сезонный пропуск</strong>
           <div class="tiny">Статус: ${rewards.premium_pass_active ? 'Премиум активен' : 'Бесплатный трек'} • сезон ${Number(rewards.season_level || 1)} • ${Number(rewards.season_points || 0)}/${Number(rewards.season_target || 16)} очков</div>
           <div class="tiny">Сверху премиум-линия, снизу бесплатная. На одном уровне могут открываться обе награды или только одна из них.</div>
+          ${subscribeTask ? `
+            <article class="catalog-card skill-card" style="margin-top:14px; padding:14px; min-height:118px; display:grid; gap:8px; align-content:start; background:${subscribeDone ? 'radial-gradient(circle at top, rgba(83,246,184,0.2), rgba(13,22,37,0.95) 62%)' : 'radial-gradient(circle at top, rgba(69,215,255,0.15), rgba(13,22,37,0.95) 62%)'}; border-color:${subscribeDone ? 'rgba(83,246,184,0.38)' : 'rgba(69,215,255,0.28)'};">
+              <div class="catalog-kicker">${escapeHtml(subscribeTask.tier_label || 'Общее задание')}</div>
+              <strong>${escapeHtml(subscribeTask.label || 'Подписаться на Telegram-канал')}</strong>
+              <div class="tiny">Статус: ${subscribeDone ? 'выполнено' : (subscribeLinked ? 'пока не выполнено' : 'нужно привязать Telegram')}</div>
+              <div class="tiny">Прогресс: ${Number(subscribeTask.progress || 0)}/${Number(subscribeTask.target || 1)} • награда +${Number(subscribeTask.reward_points || 0)} очков пропуска</div>
+              <div class="actions" style="margin-top:4px;">
+                <button type="button" class="secondary" id="verify-channel-subscription-btn"${subscribeDone ? ' disabled' : ''}>${subscribeDone ? 'Подписка подтверждена' : 'Проверить подписку'}</button>
+              </div>
+            </article>
+          ` : ''}
           <div style="display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
             <button type="button" id="season-pass-prev-btn" style="min-width:110px; min-height:40px; border-radius:12px; border:1px solid ${unoSharedTheme ? 'rgba(255,214,74,0.28)' : 'rgba(121,217,255,0.24)'}; background:${unoSharedTheme ? 'rgba(255,255,255,0.05)' : 'rgba(10,23,40,0.9)'}; color:${unoSharedTheme ? '#fff7ea' : '#eef6ff'}; font-weight:800; cursor:pointer;">← Назад</button>
             <span id="season-pass-level-label" style="display:inline-flex; align-items:center; min-height:40px; padding:0 14px; border-radius:999px; border:1px solid ${unoSharedTheme ? 'rgba(255,214,74,0.22)' : 'rgba(121,217,255,0.22)'}; background:${unoSharedTheme ? 'linear-gradient(135deg, rgba(255,93,82,0.18), rgba(255,214,74,0.16))' : 'rgba(10,23,40,0.78)'}; color:${unoSharedTheme ? '#fff4d5' : '#eef6ff'}; font-size:12px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;">Уровень 1 / ${track.length}</span>
@@ -21546,12 +21565,12 @@ PAGE_TEMPLATE = """
               </div>
             </div>
           </div>
-          ${seasonTasks.length ? `
+          ${dailySeasonTasks.length ? `
             <div style="margin-top:14px; display:grid; gap:10px;">
               <button type="button" id="toggle-season-tasks-btn" class="secondary" style="justify-self:start;">Показать задания пропуска</button>
               <div id="season-tasks-panel" style="display:none;">
                 <div class="catalog-grid">
-                  ${seasonTasks.map((task) => `
+                  ${dailySeasonTasks.map((task) => `
                     <article class="catalog-card skill-card" style="padding:12px; min-height:112px; display:grid; gap:8px; align-content:start; background:radial-gradient(circle at top, rgba(83,246,184,0.12), rgba(13,22,37,0.94) 62%);">
                       <div class="catalog-kicker">${escapeHtml(task.tier_label || 'Задание дня')}</div>
                       <strong>${escapeHtml(task.label)}</strong>
@@ -21578,6 +21597,7 @@ PAGE_TEMPLATE = """
       const passLevelLabel = document.getElementById('season-pass-level-label');
       const passPrevBtn = document.getElementById('season-pass-prev-btn');
       const passNextBtn = document.getElementById('season-pass-next-btn');
+      const verifyChannelSubscriptionBtn = document.getElementById('verify-channel-subscription-btn');
       const toggleSeasonTasksBtn = document.getElementById('toggle-season-tasks-btn');
       const seasonTasksPanel = document.getElementById('season-tasks-panel');
       const showPassLevel = (index) => {
@@ -21612,6 +21632,9 @@ PAGE_TEMPLATE = """
           seasonTasksPanel.style.display = expanded ? 'none' : 'block';
           toggleSeasonTasksBtn.textContent = expanded ? 'Показать задания пропуска' : 'Скрыть задания пропуска';
         }, 'click', {skipPrepare: true});
+      }
+      if (verifyChannelSubscriptionBtn && !verifyChannelSubscriptionBtn.disabled) {
+        bindFunctionalControl(verifyChannelSubscriptionBtn, verifyTelegramChannelSubscription, 'click', {skipPrepare: true});
       }
       showPassLevel(Math.max(0, Math.min(track.length - 1, Number((state.seasonPassLevelIndex || 0)))));
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
@@ -25039,6 +25062,30 @@ PAGE_TEMPLATE = """
         renderProfile();
         if (typeof renderWalletPanel === 'function') renderWalletPanel();
         setStatus(document.getElementById('pack-status'), 'Очки пропуска за задание получены.', 'success');
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
+    async function verifyTelegramChannelSubscription() {
+      if (!state.wallet) return;
+      try {
+        const data = await api('/api/rewards/channel-subscription', {
+          method: 'POST',
+          body: { wallet: state.wallet }
+        });
+        if (state.playerProfile) {
+          state.playerProfile.rewards = data.rewards || state.playerProfile.rewards;
+          state.playerProfile.telegram_linked = Boolean(data.telegram_linked);
+          state.playerProfile.telegram = data.telegram || state.playerProfile.telegram || null;
+        }
+        renderProfile();
+        if (typeof renderWalletPanel === 'function') renderWalletPanel();
+        setStatus(
+          document.getElementById('pack-status'),
+          data.verified ? 'Подписка подтверждена, задание выполнено.' : (data.telegram_linked ? `Подпишись на ${data.channel || '@domaingame'} и нажми проверку ещё раз.` : 'Сначала привяжи Telegram к кошельку.'),
+          data.verified ? 'success' : 'error'
+        );
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
@@ -40888,6 +40935,36 @@ def api_rewards_season_task():
     except ValueError as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'wallet': wallet, 'rewards': rewards})
+
+
+@app.route('/api/rewards/channel-subscription', methods=['POST'])
+def api_rewards_channel_subscription():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Некорректный адрес кошелька.')
+    ensure_player(wallet)
+    rewards = reward_summary(wallet)
+    task = next((item for item in rewards.get('season_tasks', []) if item.get('key') == 'global_subscribe_domaingame'), None)
+    telegram_link = telegram_wallet_link(wallet)
+    verified = bool(task and (task.get('claimed') or task.get('claimable') or int(task.get('progress', 0) or 0) >= int(task.get('target', 1) or 1)))
+    return jsonify(
+        {
+            'ok': True,
+            'wallet': wallet,
+            'verified': verified,
+            'telegram_linked': telegram_link is not None,
+            'telegram': {
+                'id': telegram_link['telegram_user_id'],
+                'username': telegram_link['username'],
+                'first_name': telegram_link['first_name'],
+                'linked_at': telegram_link['linked_at'],
+            } if telegram_link else None,
+            'channel': f'@{TG_CHANNEL_USERNAME}' if TG_CHANNEL_USERNAME else '',
+            'task': task,
+            'rewards': rewards,
+        }
+    )
 
 
 @app.route('/api/pack/payment-intent', methods=['POST'])
