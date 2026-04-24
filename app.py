@@ -592,6 +592,45 @@ PAGE_TEMPLATE = """
       display: none !important;
     }
 
+    body.performance-lite .uno-live-board,
+    body.performance-lite .uno-play-area,
+    body.performance-lite .uno-opponent-zone,
+    body.performance-lite .uno-player-zone,
+    body.performance-lite .uno-result-card,
+    body.performance-lite .showdown-main,
+    body.performance-lite .arena-board,
+    body.performance-lite .battle-control-bar,
+    body.performance-lite .gift-card,
+    body.performance-lite .pack-card,
+    body.performance-lite .pack-card-fan-stage {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+      filter: none !important;
+    }
+
+    body.performance-lite .uno-drag-ghost,
+    body.performance-lite .uno-transfer-badge,
+    body.performance-lite .battle-fx-layer,
+    body.performance-lite .battle-particle,
+    body.performance-lite .battle-ring,
+    body.performance-lite .battle-flash,
+    body.performance-lite .lane-reveal,
+    body.performance-lite .impact-node {
+      animation: none !important;
+      transition: none !important;
+      filter: none !important;
+      will-change: auto !important;
+    }
+
+    body.performance-lite .uno-card-btn,
+    body.performance-lite .uno-back-card,
+    body.performance-lite .domain-card,
+    body.performance-lite .gift-card,
+    body.performance-lite .pack-card {
+      will-change: auto !important;
+      filter: none !important;
+    }
+
     .shell {
       width: 100%;
       max-width: none;
@@ -18743,6 +18782,18 @@ PAGE_TEMPLATE = """
 
     function shouldUsePerformanceLite() {
       try {
+        const params = new URLSearchParams(window.location.search || '');
+        const forced = String(params.get('perf') || params.get('performance') || params.get('lite') || '').toLowerCase();
+        if (['full', 'off', '0', 'false'].includes(forced)) return false;
+        if (['lite', 'low', '1', 'true'].includes(forced)) return true;
+        let savedMode = '';
+        try {
+          savedMode = String(localStorage.getItem('tondomaingame_performance_mode') || '').toLowerCase();
+        } catch (_) {
+          savedMode = '';
+        }
+        if (['full', 'off'].includes(savedMode)) return false;
+        if (['lite', 'low'].includes(savedMode)) return true;
         const ua = String(navigator.userAgent || '').toLowerCase();
         const memory = Number(navigator.deviceMemory || 0);
         const cores = Number(navigator.hardwareConcurrency || 0);
@@ -18751,14 +18802,18 @@ PAGE_TEMPLATE = """
         const cheapMemory = memory > 0 && memory <= 4;
         const cheapCpu = cores > 0 && cores <= 4;
         const compactTma = document.body.classList.contains('tma-app') && !document.body.classList.contains('tma-desktop');
+        const narrowViewport = window.innerWidth <= 760 || window.innerHeight <= 760;
+        const saveData = Boolean(navigator.connection && navigator.connection.saveData);
         const prefersReduced = typeof window.matchMedia === 'function'
           ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
           : false;
         const extremelyCheap = (memory > 0 && memory <= 2) || (cores > 0 && cores <= 2);
         return Boolean(
           prefersReduced
+          || saveData
           || extremelyCheap
-          || (compactTma && !iosLike && (cheapMemory || cheapCpu || androidLike))
+          || (compactTma && (narrowViewport || iosLike || androidLike || cheapMemory || cheapCpu))
+          || (narrowViewport && (cheapMemory || cheapCpu || androidLike))
         );
       } catch (_) {
         return false;
@@ -22696,10 +22751,11 @@ PAGE_TEMPLATE = """
       clearUnoDealIntro(false);
       state.unoDealIntroSeenSessionId = nextId;
       state.unoDealIntroSessionId = nextId;
-      state.unoDealIntroUntil = Date.now() + 4680;
+      const introMs = state.performanceLite ? 1280 : 4680;
+      state.unoDealIntroUntil = Date.now() + introMs;
       state.unoDealIntroTimer = window.setTimeout(() => {
         clearUnoDealIntro(true);
-      }, 4720);
+      }, introMs + 40);
       return true;
     }
 
@@ -22810,6 +22866,9 @@ PAGE_TEMPLATE = """
     function triggerUnoEventFx(session, options = {}) {
       if (!unoRoot || !session) return;
       clearUnoEventFx();
+      if (state.performanceLite) {
+        return;
+      }
       const board = unoRoot.querySelector('.uno-live-board');
       const layer = unoRoot.querySelector('[data-uno-event-layer]');
       const deckCard = unoRoot.querySelector('.uno-stack-action .uno-back-card');
@@ -22828,7 +22887,7 @@ PAGE_TEMPLATE = """
       const badgeMatch = String(session.last_action || '').match(/\\+\\d+/);
       const badgeLabel = badgeMatch ? badgeMatch[0] : '';
       const drawLikeAction = /взял карту/i.test(String(session.last_action || ''));
-      const burstCount = intro ? 4 : (drawLikeAction ? 1 : 0);
+      const burstCount = intro ? 3 : (drawLikeAction ? 1 : 0);
       layer.hidden = false;
       layer.innerHTML = `
         <div class="uno-event-burst ${session.complete ? 'finish' : ''}">
@@ -23560,14 +23619,14 @@ PAGE_TEMPLATE = """
       const hasUnoAlert = Boolean(session.uno_alert && session.uno_alert.active);
       if (status === 'completed') return;
       const delayBase = immediate
-        ? (state.performanceLite ? 340 : 260)
+        ? (state.performanceLite ? 480 : 260)
         : (state.unoDrag
-          ? (state.performanceLite ? 340 : 260)
+          ? (state.performanceLite ? 480 : 260)
         : (hasUnoAlert
-          ? (state.performanceLite ? 520 : 420)
+          ? (state.performanceLite ? 720 : 420)
           : (status === 'waiting'
-            ? (state.performanceLite ? 1460 : 1200)
-            : (session.your_turn ? (state.performanceLite ? 980 : 820) : (state.performanceLite ? 1240 : 980)))));
+            ? (state.performanceLite ? 1800 : 1200)
+            : (session.your_turn ? (state.performanceLite ? 1260 : 820) : (state.performanceLite ? 1600 : 980)))));
       const delay = Math.max(220, delayBase);
       unoStatusPollTimer = window.setTimeout(() => {
         pollUnoStatus().catch(() => {});
@@ -25885,7 +25944,9 @@ PAGE_TEMPLATE = """
       }
       layer.appendChild(ring);
 
-      const particleCount = phase === 'finish' ? 58 : (phase === 'round' ? 26 : 34);
+      const particleCount = state.performanceLite
+        ? (phase === 'finish' ? 18 : (phase === 'round' ? 8 : 12))
+        : (phase === 'finish' ? 58 : (phase === 'round' ? 26 : 34));
       for (let i = 0; i < particleCount; i += 1) {
         const piece = document.createElement('div');
         piece.className = 'battle-particle';
