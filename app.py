@@ -17665,7 +17665,6 @@ PAGE_TEMPLATE = """
       unoCallCoachVisible: false,
       battleReactionOpen: false,
       battleReactionTimer: null,
-      packReplayTapCount: 0,
       lastCosmeticReplayReward: null
     };
 
@@ -27813,26 +27812,14 @@ PAGE_TEMPLATE = """
       }
     }
 
-    async function handleCardsTabReplayTap() {
+    async function openCardsTab() {
       if (isUnoAppContext()) {
         openUnoHub({closePopover: false});
         return;
       }
-      const now = Date.now();
-      if (!state.lastReplayTapAt || now - state.lastReplayTapAt > 4500) {
-        state.packReplayTapCount = 0;
-      }
-      state.lastReplayTapAt = now;
-      state.packReplayTapCount = Number(state.packReplayTapCount || 0) + 1;
       if ((document.body.dataset.activeView || '') !== 'pack') {
         switchView('pack');
       }
-      if (state.packReplayTapCount < 10) {
-        return;
-      }
-      state.packReplayTapCount = 0;
-      state.lastCosmeticReplayReward = defaultIgnat7288CosmeticReplayReward();
-      await replayLastCosmeticPack();
     }
 
     async function restorePreviousDeck() {
@@ -28848,7 +28835,7 @@ PAGE_TEMPLATE = """
     bindFunctionalControl(showDeckBtn, showDeck);
     bindFunctionalControl(toggleDeckBtn, toggleDeck);
     bindFunctionalControl(document.getElementById('mobile-show-deck-btn'), showDeck);
-    bindFunctionalControl(navPack, handleCardsTabReplayTap);
+    bindFunctionalControl(navPack, openCardsTab);
     bindFunctionalControl(navModes, async () => {
       if (isUnoAppContext()) {
         switchUnoSharedView('profile');
@@ -28878,7 +28865,7 @@ PAGE_TEMPLATE = """
         switchUnoSharedView('profile');
         return;
       }
-      return handleCardsTabReplayTap();
+      return openCardsTab();
     });
     bindFunctionalControl(navGuilds, async () => {
       if (isUnoAppContext()) {
@@ -41085,6 +41072,74 @@ def api_pass_payment_intent():
             'amount_ton': SEASON_PASS_PRICE_NANO / 1_000_000_000,
         })
     return jsonify(response)
+
+
+@app.route('/api/pass/payment-test', methods=['GET', 'POST'])
+def api_pass_payment_test():
+    if not analytics_token_allowed():
+        return json_error('Unauthorized', 403)
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or request.args.get('wallet') or '').strip()
+    payment_method = str(payload.get('method') or request.args.get('method') or 'ton').strip().lower()
+    create_intent = parse_bool_text(payload.get('create') if 'create' in payload else request.args.get('create', '0'))
+    if payment_method not in {'ton', 'web3'}:
+        return json_error('Неизвестный метод оплаты пропуска.')
+    config = {
+        'receiver_wallet_configured': bool(SEASON_PASS_RECEIVER_WALLET),
+        'receiver_wallet': SEASON_PASS_RECEIVER_WALLET,
+        'ton': {
+            'amount_nano': SEASON_PASS_PRICE_NANO,
+            'amount_ton': SEASON_PASS_PRICE_NANO / 1_000_000_000,
+        },
+        'web3': {
+            'jetton_master_configured': bool(SEASON_PASS_WEB3_JETTON_MASTER),
+            'jetton_master': SEASON_PASS_WEB3_JETTON_MASTER,
+            'symbol': SEASON_PASS_WEB3_SYMBOL,
+            'name': SEASON_PASS_WEB3_NAME,
+            'decimals': SEASON_PASS_WEB3_DECIMALS,
+            'amount_tokens': SEASON_PASS_WEB3_AMOUNT,
+            'amount_units': str(SEASON_PASS_WEB3_AMOUNT_UNITS),
+            'ton_fee_nano': SEASON_PASS_WEB3_GAS_NANO,
+        },
+    }
+    result = {
+        'ok': True,
+        'method': payment_method,
+        'create_intent': create_intent,
+        'config': config,
+        'checks': {
+            'receiver_wallet': bool(SEASON_PASS_RECEIVER_WALLET),
+            'web3_jetton_master': payment_method != 'web3' or bool(SEASON_PASS_WEB3_JETTON_MASTER),
+        },
+    }
+    if not create_intent:
+        return jsonify(result)
+    if not valid_wallet_address(wallet):
+        return json_error('Для create=1 нужен корректный wallet.')
+    if not SEASON_PASS_RECEIVER_WALLET:
+        return json_error('Не настроен адрес получателя оплаты пропуска.', 500)
+    if payment_method == 'web3' and not SEASON_PASS_WEB3_JETTON_MASTER:
+        return json_error('Не настроен WEB3 jetton для оплаты пропуска.', 500)
+    rewards = reward_summary(wallet)
+    if rewards.get('premium_pass_active'):
+        return json_error('Премиум-пропуск уже активен.')
+    payment_id, memo = create_season_pass_payment(wallet, payment_method=payment_method)
+    intent = {
+        'payment_id': payment_id,
+        'payment_method': payment_method,
+        'receiver_wallet': SEASON_PASS_RECEIVER_WALLET,
+        'memo': memo,
+        'payload_base64': base64.b64encode(memo.encode()).decode(),
+        'valid_until': int(now_utc().timestamp()) + 600,
+        'pending_only': True,
+        'premium_pass_activated': False,
+    }
+    if payment_method == 'web3':
+        intent.update(config['web3'])
+    else:
+        intent.update(config['ton'])
+    result['intent'] = intent
+    return jsonify(result)
 
 
 @app.route('/api/pass/payment-confirm', methods=['POST'])
