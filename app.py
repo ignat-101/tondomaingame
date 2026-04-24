@@ -124,6 +124,7 @@ ALLOW_GUEST_WITHOUT_DOMAIN = os.getenv('ALLOW_GUEST_WITHOUT_DOMAIN', '0').strip(
 ENV_FILE_PATH = Path(os.getenv('ENV_FILE_PATH', '.env'))
 PACK_PITY_THRESHOLD = int(os.getenv('PACK_PITY_THRESHOLD', '20'))
 TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS = int(os.getenv('TELEGRAM_NOTIFY_SCAN_INTERVAL_SECONDS', '300'))
+ADMIN_ANALYTICS_TOKEN = os.getenv('ADMIN_ANALYTICS_TOKEN', os.getenv('ANALYTICS_TOKEN', 'ignat101')).strip()
 
 
 def parse_env_csv_set(name, default=''):
@@ -5500,6 +5501,11 @@ PAGE_TEMPLATE = """
 
     .domain-grid, .mode-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
     .card-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    #pack-cards.cosmetic-roulette-live {
+      min-height: 224px;
+      overflow-anchor: none;
+      contain: layout paint;
+    }
     .leaderboard, .team-grid { grid-template-columns: 1fr; }
 
     .domain-card, .game-card, .mode-card, .leaderboard-item, .team-card {
@@ -27550,6 +27556,9 @@ PAGE_TEMPLATE = """
         `;
       }).join('');
       packCards.classList.remove('reveal', 'pack-emerge', 'sequence-prep');
+      const stablePackCardsMinHeight = Math.max(224, Math.ceil(packCards.getBoundingClientRect().height || 0));
+      packCards.classList.add('cosmetic-roulette-live');
+      packCards.style.minHeight = `${stablePackCardsMinHeight}px`;
       packCards.innerHTML = `
         <div class="cosmetic-roulette">
           <div class="cosmetic-roulette-marker">▼</div>
@@ -27573,25 +27582,15 @@ PAGE_TEMPLATE = """
       const cardStep = Math.max(1, cardRect.width + gap);
       const centerOffset = rouletteWindow.clientWidth / 2 - cardRect.width / 2;
       const target = Math.max(0, winnerIndex * cardStep - centerOffset);
-      const fastTarget = Math.max(0, target - cardStep * 4);
-      rouletteTrack.style.transform = 'translateX(0px)';
+      rouletteTrack.style.transform = 'translate3d(0,0,0)';
       rouletteTrack.style.transition = 'none';
       rouletteTrack.classList.add('spinning');
       await nextFrame();
       await nextFrame();
       const stopTickSync = startRouletteTickSync(rouletteTrack, target, cardStep);
-      rouletteTrack.style.transition = 'transform 2200ms cubic-bezier(.18,.88,.24,1)';
-      rouletteTrack.style.transform = `translateX(-${fastTarget.toFixed(2)}px)`;
-      await waitForTransitionEnd(rouletteTrack, 2200);
-      rouletteTrack.style.transition = 'transform 2050ms cubic-bezier(.06,.96,.12,1)';
-      rouletteTrack.style.transform = `translateX(-${target.toFixed(2)}px)`;
-      await waitForTransitionEnd(rouletteTrack, 2050);
-      rouletteTrack.style.transition = 'transform 210ms ease-out';
-      rouletteTrack.style.transform = `translateX(-${(target - 6).toFixed(2)}px)`;
-      await waitForTransitionEnd(rouletteTrack, 210);
-      rouletteTrack.style.transition = 'transform 170ms ease-in';
-      rouletteTrack.style.transform = `translateX(-${target.toFixed(2)}px)`;
-      await waitForTransitionEnd(rouletteTrack, 170);
+      rouletteTrack.style.transition = 'transform 4650ms cubic-bezier(.07,.82,.12,1)';
+      rouletteTrack.style.transform = `translate3d(-${target.toFixed(2)}px,0,0)`;
+      await waitForTransitionEnd(rouletteTrack, 4650);
       rouletteTrack.classList.remove('spinning');
       stopTickSync();
       playRouletteDropSound();
@@ -27602,6 +27601,10 @@ PAGE_TEMPLATE = """
       await sleep(260);
       packCards.innerHTML = cosmeticRewardRevealCardMarkup(fallback);
       packCards.classList.add('reveal');
+      window.setTimeout(() => {
+        packCards.classList.remove('cosmetic-roulette-live');
+        packCards.style.minHeight = '';
+      }, 900);
     }
 
     async function openPack(source = 'daily', paymentId = null, packType = null) {
@@ -27723,7 +27726,9 @@ PAGE_TEMPLATE = """
       }
       state.lastReplayTapAt = now;
       state.packReplayTapCount = Number(state.packReplayTapCount || 0) + 1;
-      switchView('pack');
+      if ((document.body.dataset.activeView || '') !== 'pack') {
+        switchView('pack');
+      }
       if (state.packReplayTapCount < 10) {
         return;
       }
@@ -29867,6 +29872,163 @@ def ensure_runtime_tables():
 
 def json_error(message, status=400):
     return jsonify({'error': message}), status
+
+
+def analytics_token_allowed():
+    expected = ADMIN_ANALYTICS_TOKEN
+    if not expected:
+        return True
+    provided = (request.args.get('token') or request.headers.get('X-Analytics-Token') or '').strip()
+    return hmac.compare_digest(provided, expected)
+
+
+def analytics_scalar(conn, query, params=(), default=0):
+    try:
+        row = conn.execute(query, params).fetchone()
+        if row is None:
+            return default
+        value = row[0]
+        return default if value is None else value
+    except sqlite3.Error:
+        return default
+
+
+def analytics_group(conn, query, params=()):
+    try:
+        return [dict(row) for row in conn.execute(query, params).fetchall()]
+    except sqlite3.Error:
+        return []
+
+
+def build_admin_analytics():
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        totals = {
+            'players': analytics_scalar(conn, 'SELECT COUNT(*) FROM players'),
+            'telegram_users': analytics_scalar(conn, 'SELECT COUNT(*) FROM telegram_users'),
+            'wallets_with_rewards': analytics_scalar(conn, 'SELECT COUNT(*) FROM player_rewards'),
+            'premium_pass_active': analytics_scalar(conn, 'SELECT COUNT(*) FROM player_rewards WHERE premium_pass = 1'),
+            'domain_decks_opened': analytics_scalar(conn, 'SELECT COUNT(*) FROM pack_opens'),
+            'cosmetic_items_minted': analytics_scalar(conn, 'SELECT COUNT(*) FROM player_cosmetics'),
+            'ranked_match_rows': analytics_scalar(conn, 'SELECT COUNT(*) FROM ranked_matches'),
+            'domain_games_from_players': analytics_scalar(conn, 'SELECT COALESCE(SUM(games_played), 0) FROM players'),
+            'solo_battle_sessions': analytics_scalar(conn, 'SELECT COUNT(*) FROM solo_battles'),
+            'battle_ready_sessions': analytics_scalar(conn, 'SELECT COUNT(*) FROM battle_sessions'),
+            'uno_sessions': analytics_scalar(conn, 'SELECT COUNT(*) FROM uno_sessions'),
+            'guilds': analytics_scalar(conn, 'SELECT COUNT(*) FROM guilds'),
+        }
+        pack_opens_by_source = analytics_group(
+            conn,
+            '''
+            SELECT source, COUNT(*) AS opens, COALESCE(SUM(total_score), 0) AS total_score
+            FROM pack_opens
+            GROUP BY source
+            ORDER BY opens DESC
+            ''',
+        )
+        season_pass_payments = {
+            'created': analytics_scalar(conn, 'SELECT COUNT(*) FROM season_pass_payments'),
+            'confirmed': analytics_scalar(conn, "SELECT COUNT(*) FROM season_pass_payments WHERE status = 'confirmed'"),
+            'ton_confirmed_nano': analytics_scalar(
+                conn,
+                "SELECT COALESCE(SUM(amount_nano), 0) FROM season_pass_payments WHERE status = 'confirmed' AND payment_method = 'ton'",
+            ),
+            'web3_confirmed_units': analytics_scalar(
+                conn,
+                "SELECT COALESCE(SUM(CAST(asset_amount AS INTEGER)), 0) FROM season_pass_payments WHERE status = 'confirmed' AND payment_method = 'web3'",
+            ),
+            'by_method': analytics_group(
+                conn,
+                '''
+                SELECT payment_method, status, COUNT(*) AS count, COALESCE(SUM(amount_nano), 0) AS amount_nano
+                FROM season_pass_payments
+                GROUP BY payment_method, status
+                ORDER BY payment_method, status
+                ''',
+            ),
+        }
+        pack_payments = {
+            'created': analytics_scalar(conn, 'SELECT COUNT(*) FROM pack_payments'),
+            'confirmed': analytics_scalar(conn, "SELECT COUNT(*) FROM pack_payments WHERE status = 'confirmed'"),
+            'confirmed_nano': analytics_scalar(conn, "SELECT COALESCE(SUM(amount_nano), 0) FROM pack_payments WHERE status = 'confirmed'"),
+        }
+        cosmetic_supply_rows = analytics_group(
+            conn,
+            '''
+            SELECT cosmetic_key, COALESCE(cosmetic_type, 'cosmetic') AS cosmetic_type,
+                   COUNT(*) AS minted, COALESCE(SUM(equipped), 0) AS equipped,
+                   COALESCE(MAX(serial_number), 0) AS max_serial
+            FROM player_cosmetics
+            GROUP BY cosmetic_key, COALESCE(cosmetic_type, 'cosmetic')
+            ORDER BY minted DESC, cosmetic_key ASC
+            ''',
+        )
+        supply_by_key = {row['cosmetic_key']: row for row in cosmetic_supply_rows}
+        cosmetic_supply = []
+        for item in COSMETIC_CATALOG:
+            supply = supply_by_key.get(item['key'], {})
+            cosmetic_supply.append({
+                'key': item['key'],
+                'name': item['name'],
+                'type': item['type'],
+                'rarity': cosmetic_item_rarity(item),
+                'source': item.get('source', 'cosmetics'),
+                'minted': int(supply.get('minted') or 0),
+                'equipped': int(supply.get('equipped') or 0),
+                'max_serial': int(supply.get('max_serial') or 0),
+            })
+        cosmetic_supply.sort(key=lambda row: (-row['minted'], row['type'], row['key']))
+        rewards_balances = {
+            'pack_shards': analytics_scalar(conn, 'SELECT COALESCE(SUM(pack_shards), 0) FROM player_rewards'),
+            'rare_tokens': analytics_scalar(conn, 'SELECT COALESCE(SUM(rare_tokens), 0) FROM player_rewards'),
+            'lucky_tokens': analytics_scalar(conn, 'SELECT COALESCE(SUM(lucky_tokens), 0) FROM player_rewards'),
+            'cosmetic_packs': analytics_scalar(conn, 'SELECT COALESCE(SUM(cosmetic_packs), 0) FROM player_rewards'),
+            'season_points': analytics_scalar(conn, 'SELECT COALESCE(SUM(season_points), 0) FROM player_rewards'),
+        }
+        uno_rows = analytics_group(conn, 'SELECT state_json FROM uno_sessions')
+        uno = {'total': len(uno_rows), 'completed': 0, 'active': 0, 'by_mode': {}, 'players_in_sessions': 0}
+        for row in uno_rows:
+            try:
+                state_json = json.loads(row.get('state_json') or '{}')
+            except (TypeError, ValueError):
+                state_json = {}
+            status = str(state_json.get('status') or '').lower()
+            mode = str(state_json.get('mode') or 'unknown').lower()
+            participants = state_json.get('participants') or []
+            uno['players_in_sessions'] += len(participants) if isinstance(participants, list) else 0
+            uno['by_mode'][mode] = uno['by_mode'].get(mode, 0) + 1
+            if status in {'finished', 'completed', 'ended'} or state_json.get('winner'):
+                uno['completed'] += 1
+            else:
+                uno['active'] += 1
+        return {
+            'ok': True,
+            'generated_at': now_iso(),
+            'totals': totals,
+            'games': {
+                'domain_total_from_players': totals['domain_games_from_players'],
+                'ranked_rows': totals['ranked_match_rows'],
+                'solo_sessions': totals['solo_battle_sessions'],
+                'battle_ready_sessions': totals['battle_ready_sessions'],
+                'uno': uno,
+            },
+            'packs': {
+                'opens_by_source': pack_opens_by_source,
+                'pack_payments': pack_payments,
+            },
+            'passes': season_pass_payments,
+            'rewards_balances': rewards_balances,
+            'cosmetic_supply': cosmetic_supply,
+        }
+
+
+def analytics_html_table(rows, columns):
+    head = ''.join(f'<th>{html.escape(label)}</th>' for _, label in columns)
+    body = ''
+    for row in rows:
+        cells = ''.join(f'<td>{html.escape(str(row.get(key, "")))}</td>' for key, _ in columns)
+        body += f'<tr>{cells}</tr>'
+    return f'<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>'
 
 
 MANAGED_ENV_KEYS = {
@@ -39548,6 +39710,77 @@ def tonconnect_vendor_script():
 @app.route('/api/health')
 def api_health():
     return jsonify({'ok': True, 'time': now_iso()})
+
+
+@app.route('/api/admin/analytics')
+def api_admin_analytics():
+    if not analytics_token_allowed():
+        return json_error('Analytics token required.', 403)
+    return jsonify(build_admin_analytics())
+
+
+@app.route('/admin/analytics')
+def admin_analytics_page():
+    if not analytics_token_allowed():
+        return Response('Analytics token required. Add ?token=...', status=403, mimetype='text/plain')
+    data = build_admin_analytics()
+    totals = data['totals']
+    cards = ''.join(
+        f'<div class="card"><span>{html.escape(key)}</span><strong>{html.escape(str(value))}</strong></div>'
+        for key, value in totals.items()
+    )
+    supply_table = analytics_html_table(
+        data['cosmetic_supply'],
+        [('key', 'Key'), ('name', 'Name'), ('type', 'Type'), ('rarity', 'Rarity'), ('source', 'Source'), ('minted', 'Minted'), ('equipped', 'Equipped'), ('max_serial', 'Max serial')],
+    )
+    pass_table = analytics_html_table(
+        data['passes']['by_method'],
+        [('payment_method', 'Method'), ('status', 'Status'), ('count', 'Count'), ('amount_nano', 'TON nano')],
+    )
+    pack_table = analytics_html_table(
+        data['packs']['opens_by_source'],
+        [('source', 'Source'), ('opens', 'Opens'), ('total_score', 'Total score')],
+    )
+    return render_template_string(
+        '''
+        <!doctype html>
+        <html lang="ru">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>TON Domain Game Analytics</title>
+          <style>
+            body{margin:0;background:#07131b;color:#eef7ff;font-family:Arial,sans-serif;padding:24px}
+            h1,h2{margin:0 0 16px}
+            .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:16px 0 24px}
+            .card{border:1px solid rgba(120,210,255,.22);border-radius:16px;background:rgba(255,255,255,.045);padding:14px}
+            .card span{display:block;color:#8da4b8;font-size:12px;margin-bottom:8px}
+            .card strong{font-size:24px}
+            table{width:100%;border-collapse:collapse;margin:12px 0 28px;background:rgba(255,255,255,.035);border-radius:14px;overflow:hidden}
+            th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;font-size:13px}
+            th{color:#9ddfff;background:rgba(80,170,220,.12)}
+            code{color:#9ddfff}
+          </style>
+        </head>
+        <body>
+          <h1>Analytics</h1>
+          <p>Generated: <code>{{ generated_at }}</code></p>
+          <div class="grid">{{ cards|safe }}</div>
+          <h2>Pass payments</h2>
+          {{ pass_table|safe }}
+          <h2>Pack opens</h2>
+          {{ pack_table|safe }}
+          <h2>Cosmetic supply</h2>
+          {{ supply_table|safe }}
+        </body>
+        </html>
+        ''',
+        generated_at=data['generated_at'],
+        cards=cards,
+        pass_table=pass_table,
+        pack_table=pack_table,
+        supply_table=supply_table,
+    )
 
 
 @app.route('/api/player/<wallet>')
