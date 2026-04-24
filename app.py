@@ -30138,7 +30138,10 @@ MANAGED_ENV_KEYS = {
     'TG_WEBAPP_URL': {'type': 'str', 'description': 'URL Telegram mini app'},
     'TG_BOT_TOKEN': {'type': 'str', 'description': 'Telegram bot token'},
     'TG_BOT_USERNAME': {'type': 'str', 'description': 'Username Telegram-бота'},
+    'TG_WEBHOOK_SECRET': {'type': 'str', 'description': 'Secret token Telegram webhook'},
+    'TG_SETUP_TOKEN': {'type': 'str', 'description': 'Token для /telegram/setup, /telegram/status, /telegram/dispatch'},
     'TG_CHANNEL_USERNAME': {'type': 'str', 'description': 'Telegram-канал для задания подписки'},
+    'ADMIN_ANALYTICS_TOKEN': {'type': 'str', 'description': 'Token для /admin/analytics'},
     'PACK_RECEIVER_WALLET': {'type': 'str', 'description': 'Кошелек получателя оплаты пака'},
     'SEASON_PASS_RECEIVER_WALLET': {'type': 'str', 'description': 'Кошелек получателя оплаты пропуска'},
     'SEASON_PASS_WEB3_JETTON_MASTER': {'type': 'str', 'description': 'Jetton master для оплаты пропуска через WEB3'},
@@ -30163,7 +30166,10 @@ ENV_DEFAULT_VALUES = {
     'TG_WEBAPP_URL': str(TG_WEBAPP_URL),
     'TG_BOT_TOKEN': str(TG_BOT_TOKEN or ''),
     'TG_BOT_USERNAME': str(TG_BOT_USERNAME or ''),
+    'TG_WEBHOOK_SECRET': str(TG_WEBHOOK_SECRET or ''),
+    'TG_SETUP_TOKEN': str(TG_SETUP_TOKEN or ''),
     'TG_CHANNEL_USERNAME': str(TG_CHANNEL_USERNAME or ''),
+    'ADMIN_ANALYTICS_TOKEN': str(ADMIN_ANALYTICS_TOKEN or ''),
     'PACK_RECEIVER_WALLET': str(PACK_RECEIVER_WALLET or ''),
     'SEASON_PASS_RECEIVER_WALLET': str(SEASON_PASS_RECEIVER_WALLET or ''),
     'SEASON_PASS_WEB3_JETTON_MASTER': str(SEASON_PASS_WEB3_JETTON_MASTER or ''),
@@ -30823,7 +30829,7 @@ SEASON_PASS_TASKS = [
     {'key': 'daily_open_3_packs', 'label': 'Открыть 3 пака', 'target': 3, 'reward_points': 11, 'tier_label': 'Испытание дня'},
     {
         'key': 'global_subscribe_domaingame',
-        'label': 'Подписаться на Telegram-канал @domaingame',
+        'label': f'Подписаться на Telegram-канал @{TG_CHANNEL_USERNAME}',
         'target': 1,
         'reward_points': 10,
         'tier_label': 'Общее задание',
@@ -30930,40 +30936,64 @@ def season_task_claimed_keys(wallet, task_day=None, include_global=False):
     return claimed
 
 
-def telegram_channel_subscription_verified(wallet):
-    if not wallet or not TG_CHANNEL_USERNAME:
-        return False
+def telegram_channel_subscription_status(wallet, *, use_cache=True):
+    channel = f'@{TG_CHANNEL_USERNAME}' if TG_CHANNEL_USERNAME else ''
+    if not wallet:
+        return {'verified': False, 'reason': 'wallet_missing', 'channel': channel}
+    if not TG_CHANNEL_USERNAME:
+        return {'verified': False, 'reason': 'channel_not_configured', 'channel': channel}
     with closing(get_db()) as conn:
-        cached = conn.execute(
-            '''
-            SELECT 1
-            FROM domain_telemetry
-            WHERE wallet = ? AND event_type = ?
-            LIMIT 1
-            ''',
-            (wallet, 'telegram_channel_subscribed'),
-        ).fetchone()
+        cached = None
+        if use_cache:
+            cached = conn.execute(
+                '''
+                SELECT payload_json, created_at
+                FROM domain_telemetry
+                WHERE wallet = ? AND event_type = ?
+                ORDER BY datetime(created_at) DESC, rowid DESC
+                LIMIT 1
+                ''',
+                (wallet, 'telegram_channel_subscribed'),
+            ).fetchone()
     if cached:
-        return True
+        return {'verified': True, 'reason': 'cached_verified', 'channel': channel, 'cached': True, 'checked_at': cached['created_at']}
     link = telegram_wallet_link(wallet)
-    if not link or not link.get('telegram_user_id') or not TG_BOT_TOKEN:
-        return False
+    if not link or not link.get('telegram_user_id'):
+        return {'verified': False, 'reason': 'telegram_not_linked', 'channel': channel, 'telegram_linked': False}
+    if not TG_BOT_TOKEN:
+        return {'verified': False, 'reason': 'bot_token_missing', 'channel': channel, 'telegram_linked': True}
     try:
         result = telegram_api(
             'getChatMember',
-            {'chat_id': f'@{TG_CHANNEL_USERNAME}', 'user_id': int(link['telegram_user_id'])},
+            {'chat_id': channel, 'user_id': int(link['telegram_user_id'])},
         )
         status = str((result.get('result') or {}).get('status') or '').lower()
-    except Exception:
-        return False
+    except Exception as exc:
+        return {
+            'verified': False,
+            'reason': 'telegram_api_error',
+            'channel': channel,
+            'telegram_linked': True,
+            'error': str(exc),
+        }
     subscribed = status in {'creator', 'administrator', 'member', 'restricted'}
     if subscribed:
         log_domain_telemetry(
             'telegram_channel_subscribed',
             wallet=wallet,
-            payload={'channel': f'@{TG_CHANNEL_USERNAME}', 'telegram_user_id': link.get('telegram_user_id'), 'status': status},
+            payload={'channel': channel, 'telegram_user_id': link.get('telegram_user_id'), 'status': status},
         )
-    return subscribed
+    return {
+        'verified': subscribed,
+        'reason': 'subscribed' if subscribed else 'not_subscribed',
+        'channel': channel,
+        'telegram_linked': True,
+        'telegram_status': status,
+    }
+
+
+def telegram_channel_subscription_verified(wallet):
+    return bool(telegram_channel_subscription_status(wallet).get('verified'))
 
 
 def season_task_progress(wallet):
@@ -40944,15 +40974,21 @@ def api_rewards_channel_subscription():
     if not valid_wallet_address(wallet):
         return json_error('Некорректный адрес кошелька.')
     ensure_player(wallet)
+    live_status = telegram_channel_subscription_status(wallet, use_cache=False)
     rewards = reward_summary(wallet)
     task = next((item for item in rewards.get('season_tasks', []) if item.get('key') == 'global_subscribe_domaingame'), None)
     telegram_link = telegram_wallet_link(wallet)
-    verified = bool(task and (task.get('claimed') or task.get('claimable') or int(task.get('progress', 0) or 0) >= int(task.get('target', 1) or 1)))
+    task_completed = bool(task and (task.get('claimed') or task.get('claimable') or int(task.get('progress', 0) or 0) >= int(task.get('target', 1) or 1)))
     return jsonify(
         {
             'ok': True,
             'wallet': wallet,
-            'verified': verified,
+            'verified': bool(live_status.get('verified')),
+            'subscription_verified': bool(live_status.get('verified')),
+            'task_completed': task_completed,
+            'reason': live_status.get('reason'),
+            'telegram_status': live_status.get('telegram_status'),
+            'telegram_error': live_status.get('error'),
             'telegram_linked': telegram_link is not None,
             'telegram': {
                 'id': telegram_link['telegram_user_id'],
@@ -40960,7 +40996,7 @@ def api_rewards_channel_subscription():
                 'first_name': telegram_link['first_name'],
                 'linked_at': telegram_link['linked_at'],
             } if telegram_link else None,
-            'channel': f'@{TG_CHANNEL_USERNAME}' if TG_CHANNEL_USERNAME else '',
+            'channel': live_status.get('channel') or (f'@{TG_CHANNEL_USERNAME}' if TG_CHANNEL_USERNAME else ''),
             'task': task,
             'rewards': rewards,
         }
