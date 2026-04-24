@@ -21905,14 +21905,17 @@ PAGE_TEMPLATE = """
     function giftCardbackSurface(key, emoji = '') {
       const theme = cosmeticTheme('cardback', key);
       const safeKey = String(key || '').toLowerCase();
+      const pattern = monogramPatternSurface(emoji, theme, 'cardback');
       if (safeKey.includes('stock_plain')) {
         return [
+          pattern,
           'radial-gradient(circle at 22% 18%, rgba(255,255,255,0.08), transparent 36%)',
           'radial-gradient(circle at 78% 82%, rgba(255,214,74,0.12), transparent 40%)',
           'linear-gradient(180deg, rgba(46,54,68,0.98), rgba(18,23,34,0.99))',
-        ].join(', ');
+        ].filter(Boolean).join(', ');
       }
       const layers = [];
+      if (pattern) layers.push(pattern);
       if (safeKey.includes('onyx_black')) {
         layers.push('radial-gradient(circle at 22% 18%, rgba(162, 186, 224, 0.24), transparent 42%)');
         layers.push('radial-gradient(circle at 78% 82%, rgba(148, 169, 201, 0.18), transparent 44%)');
