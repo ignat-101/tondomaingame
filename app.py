@@ -17665,6 +17665,8 @@ PAGE_TEMPLATE = """
       unoCallCoachVisible: false,
       battleReactionOpen: false,
       battleReactionTimer: null,
+      seasonPassResetTapCount: 0,
+      seasonPassResetLastTapAt: 0,
       lastCosmeticReplayReward: null
     };
 
@@ -21625,6 +21627,9 @@ PAGE_TEMPLATE = """
       if (passNextBtn) {
         bindFunctionalControl(passNextBtn, () => showPassLevel((state.seasonPassLevelIndex || 0) + 1), 'click', {skipPrepare: true});
       }
+      if (passLevelLabel && seasonPassTesterAllowed()) {
+        bindFunctionalControl(passLevelLabel, hiddenResetSeasonPassPremium, 'click', {skipPrepare: true});
+      }
       if (toggleSeasonTasksBtn && seasonTasksPanel) {
         bindFunctionalControl(toggleSeasonTasksBtn, () => {
           const expanded = seasonTasksPanel.style.display !== 'none';
@@ -21955,6 +21960,18 @@ PAGE_TEMPLATE = """
       } catch (_) {
         return '';
       }
+    }
+
+    function seasonPassTesterAllowed() {
+      const telegram = (state.playerProfile && state.playerProfile.telegram) || {};
+      const profileUsername = String(telegram.username || '').replace(/^@/, '').trim().toLowerCase();
+      const tmaUsername = telegramMiniAppUsername();
+      const wallet = String(state.wallet || '').trim().toLowerCase();
+      return Boolean(
+        (profileUsername && unoTesterUsernames.has(profileUsername))
+        || (tmaUsername && unoTesterUsernames.has(tmaUsername))
+        || (wallet && unoTesterWallets.has(wallet))
+      );
     }
 
     function ignat7288CosmeticReplayAllowed() {
@@ -25085,6 +25102,32 @@ PAGE_TEMPLATE = """
           data.verified ? 'Подписка подтверждена, задание выполнено.' : (data.telegram_linked ? `Подпишись на ${data.channel || '@domaingame'} и нажми проверку ещё раз.` : 'Сначала привяжи Telegram к кошельку.'),
           data.verified ? 'success' : 'error'
         );
+      } catch (error) {
+        setStatus(document.getElementById('pack-status'), error.message, 'error');
+      }
+    }
+
+    async function hiddenResetSeasonPassPremium() {
+      if (!state.wallet || !seasonPassTesterAllowed()) return;
+      const now = Date.now();
+      if (!state.seasonPassResetLastTapAt || now - state.seasonPassResetLastTapAt > 4500) {
+        state.seasonPassResetTapCount = 0;
+      }
+      state.seasonPassResetLastTapAt = now;
+      state.seasonPassResetTapCount = Number(state.seasonPassResetTapCount || 0) + 1;
+      if (state.seasonPassResetTapCount < 10) return;
+      state.seasonPassResetTapCount = 0;
+      try {
+        const data = await api('/api/pass/test-reset', {
+          method: 'POST',
+          body: { wallet: state.wallet }
+        });
+        if (state.playerProfile) {
+          state.playerProfile.rewards = data.rewards || state.playerProfile.rewards;
+        }
+        renderProfile();
+        updateButtons();
+        setStatus(document.getElementById('pack-status'), 'Тестовый премиум-пропуск сброшен. Оплату можно проверить заново.', 'success');
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
@@ -33832,6 +33875,16 @@ def confirm_season_pass_payment(payment_id, wallet, tx_hash=None, payment_method
     return dict(updated), reward_summary(wallet)
 
 
+def tester_wallet_allowed_for_reset(wallet):
+    if not valid_wallet_address(wallet):
+        return False
+    if wallet.lower() in UNO_TESTER_WALLETS:
+        return True
+    link = telegram_wallet_link(wallet)
+    username = str((link or {}).get('username') or '').replace('@', '').strip().lower()
+    return bool(username and username in UNO_TESTER_USERNAMES)
+
+
 def claim_guild_weekly_reward(wallet, guild_id):
     membership = current_guild_membership(wallet)
     if membership is None or membership['guild_id'] != guild_id:
@@ -41146,6 +41199,24 @@ def api_pass_payment_test():
         intent.update(config['ton'])
     result['intent'] = intent
     return jsonify(result)
+
+
+@app.route('/api/pass/test-reset', methods=['POST'])
+def api_pass_test_reset():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи TON-кошелёк.')
+    if not tester_wallet_allowed_for_reset(wallet):
+        return json_error('Тестовый сброс пропуска недоступен для этого аккаунта.', 403)
+    ensure_player(wallet)
+    with closing(get_db()) as conn:
+        conn.execute(
+            'UPDATE player_rewards SET premium_pass = 0, updated_at = ? WHERE wallet = ?',
+            (now_iso(), wallet),
+        )
+        conn.commit()
+    return jsonify({'ok': True, 'wallet': wallet, 'rewards': reward_summary(wallet)})
 
 
 @app.route('/api/pass/payment-confirm', methods=['POST'])
