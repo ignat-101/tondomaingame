@@ -15149,6 +15149,32 @@ PAGE_TEMPLATE = """
       min-height: clamp(220px, 32vh, 288px);
     }
 
+    body.tma-app.tma-desktop[data-active-view="uno"] .uno-shell.playing .uno-stage {
+      gap: 18px;
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"] .uno-player-row {
+      position: relative;
+      z-index: 2;
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"] .uno-player-hand {
+      gap: 0;
+      padding-left: 8px;
+      padding-bottom: 2px;
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"] .uno-player-hand .uno-card-btn {
+      width: 68px;
+      height: 102px;
+      border-radius: 16px;
+      margin-left: -10px;
+    }
+
+    body.tma-app.tma-desktop[data-active-view="uno"] .uno-player-hand .uno-card-btn:first-child {
+      margin-left: 0;
+    }
+
     @media (min-width: 980px) {
       body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-tile,
       body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-control,
