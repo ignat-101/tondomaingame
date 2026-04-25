@@ -592,11 +592,16 @@ PAGE_TEMPLATE = """
       display: none !important;
     }
 
+    :root {
+      --app-shell-max-width: 430px;
+    }
+
     .shell {
-      width: 100%;
-      max-width: none;
-      margin: 0;
+      width: min(100%, var(--app-shell-max-width));
+      max-width: var(--app-shell-max-width);
+      margin: 0 auto;
       padding: 20px 24px 132px;
+      box-sizing: border-box;
     }
 
     .top-app-nav {
@@ -16070,8 +16075,8 @@ PAGE_TEMPLATE = """
 
     body.tma-app.tma-desktop .shell {
       padding: 14px 12px calc(98px + env(safe-area-inset-bottom));
-      width: min(calc(var(--app-width, 100vw) - 24px), 1120px) !important;
-      max-width: min(calc(var(--app-width, 100vw) - 24px), 1120px) !important;
+      width: min(calc(var(--app-width, 100vw) - 24px), var(--app-shell-max-width)) !important;
+      max-width: min(calc(var(--app-width, 100vw) - 24px), var(--app-shell-max-width)) !important;
     }
 
     body.tma-app.tma-desktop .mobile-nav {
@@ -16239,8 +16244,8 @@ PAGE_TEMPLATE = """
       -webkit-overflow-scrolling: auto;
       touch-action: pan-y;
       padding: 12px 10px calc(126px + env(safe-area-inset-bottom));
-      width: calc(var(--app-width, 100vw) - 20px) !important;
-      max-width: calc(var(--app-width, 100vw) - 20px) !important;
+      width: min(calc(var(--app-width, 100vw) - 20px), var(--app-shell-max-width)) !important;
+      max-width: min(calc(var(--app-width, 100vw) - 20px), var(--app-shell-max-width)) !important;
       min-width: 0 !important;
       margin: 0 auto !important;
       box-sizing: border-box;
@@ -19155,7 +19160,8 @@ PAGE_TEMPLATE = """
       const viewportWidth = resolveTmaViewportWidth();
       const shellGutter = 10;
       const overlayGutter = 8;
-      const shellWidth = Math.max(300, Math.floor(viewportWidth - shellGutter * 2));
+      const shellMaxWidth = 430;
+      const shellWidth = Math.min(shellMaxWidth, Math.max(300, Math.floor(viewportWidth - shellGutter * 2)));
       const overlayWidth = Math.max(280, Math.floor(viewportWidth - overlayGutter * 2));
       shell.style.width = `${shellWidth}px`;
       shell.style.maxWidth = `${shellWidth}px`;
