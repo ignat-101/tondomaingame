@@ -1994,6 +1994,18 @@ PAGE_TEMPLATE = """
       margin-left: 0;
     }
 
+    .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row.uno-guide-single-hand {
+      width: 78px;
+      justify-content: flex-start;
+    }
+
+    .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row.uno-guide-single-hand .uno-card-btn {
+      width: 78px;
+      height: 116px;
+      margin-left: 0;
+      flex: 0 0 auto;
+    }
+
     .uno-guide-control-row {
       position: absolute;
       left: 14px;
@@ -5036,6 +5048,16 @@ PAGE_TEMPLATE = """
         height: 52px;
         margin-left: 0;
         flex: 0 0 auto;
+      }
+
+      .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row.uno-guide-single-hand {
+        width: 56px;
+        gap: 0;
+      }
+
+      .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row.uno-guide-single-hand .uno-card-btn {
+        width: 56px;
+        height: 84px;
       }
 
       .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-discard {
@@ -18154,10 +18176,8 @@ PAGE_TEMPLATE = """
               <div class="uno-guide-draw-track">
                 <div class="uno-guide-draw-card" data-uno-guide-draw-card>${unoBackCardMarkup(unoGuideBackSurface, '', 'UNO')}</div>
                 <div class="uno-guide-discard">${unoCardMarkup(unoDemoCard('yellow', '7', 'guide-track-top'), {asButton: false})}</div>
-                <div class="uno-guide-hand-row">
+                <div class="uno-guide-hand-row uno-guide-single-hand" data-uno-guide-draw-hand>
                   ${unoCardMarkup(unoDemoCard('blue', '2', 'guide-hand-a'), {asButton: false})}
-                  ${unoCardMarkup(unoDemoCard('green', 'reverse', 'guide-hand-b'), {asButton: false})}
-                  ${unoCardMarkup(unoDemoCard('red', '9', 'guide-hand-c'), {asButton: false})}
                 </div>
               </div>
               <div class="uno-guide-control-row">
