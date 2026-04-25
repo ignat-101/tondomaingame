@@ -21627,9 +21627,6 @@ PAGE_TEMPLATE = """
       if (passNextBtn) {
         bindFunctionalControl(passNextBtn, () => showPassLevel((state.seasonPassLevelIndex || 0) + 1), 'click', {skipPrepare: true});
       }
-      if (passLevelLabel && seasonPassTesterAllowed()) {
-        bindFunctionalControl(passLevelLabel, hiddenResetSeasonPassPremium, 'click', {skipPrepare: true});
-      }
       if (toggleSeasonTasksBtn && seasonTasksPanel) {
         bindFunctionalControl(toggleSeasonTasksBtn, () => {
           const expanded = seasonTasksPanel.style.display !== 'none';
@@ -25131,6 +25128,15 @@ PAGE_TEMPLATE = """
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
+    }
+
+    async function openAchievementsTabWithTesterReset() {
+      if (isUnoAppContext()) {
+        switchUnoSharedView('achievements');
+      } else {
+        switchDomainSharedView('achievements');
+      }
+      await hiddenResetSeasonPassPremium();
     }
 
     function renderFaqPanel() {
@@ -28917,13 +28923,7 @@ PAGE_TEMPLATE = """
       }
       switchDomainSharedView('guilds');
     });
-    bindFunctionalControl(navAchievements, async () => {
-      if (isUnoAppContext()) {
-        switchUnoSharedView('achievements');
-        return;
-      }
-      switchDomainSharedView('achievements');
-    });
+    bindFunctionalControl(navAchievements, openAchievementsTabWithTesterReset);
     bindFunctionalControl(topNavGuilds, () => {
       if (isUnoAppContext()) {
         switchUnoSharedView('guilds');
@@ -28931,13 +28931,7 @@ PAGE_TEMPLATE = """
       }
       switchDomainSharedView('guilds');
     });
-    bindFunctionalControl(topNavAchievements, () => {
-      if (isUnoAppContext()) {
-        switchUnoSharedView('achievements');
-        return;
-      }
-      switchDomainSharedView('achievements');
-    });
+    bindFunctionalControl(topNavAchievements, openAchievementsTabWithTesterReset);
     if (globalCurrencyToggle) {
       bindFunctionalControl(globalCurrencyToggle, () => toggleCurrencyFloatCollapsed(), 'click', {skipPrepare: true});
     }
