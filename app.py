@@ -5022,12 +5022,29 @@ PAGE_TEMPLATE = """
       .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row {
         right: 12px;
         bottom: 22px;
+        width: 144px;
+        justify-content: flex-end;
       }
 
       .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row .uno-card-btn {
-        width: 50px;
-        height: 76px;
-        margin-left: -16px;
+        width: 42px;
+        height: 64px;
+        margin-left: -4px;
+      }
+
+      .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-discard {
+        right: 12px;
+        top: 16px;
+        transform: rotate(4deg) scale(0.9);
+      }
+
+      .uno-guide-draw-card {
+        width: 62px;
+        height: 94px;
+      }
+
+      .uno-guide-draw-track::after {
+        right: 12px;
       }
 
       .uno-guide-control-row {
@@ -21634,8 +21651,8 @@ PAGE_TEMPLATE = """
       showPassLevel(Math.max(0, Math.min(track.length - 1, Number((state.seasonPassLevelIndex || 0)))));
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
       const buySeasonPassWeb3Btn = document.getElementById('buy-season-pass-web3-btn');
-      if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon);
-      if (buySeasonPassWeb3Btn && !buySeasonPassWeb3Btn.disabled) bindFunctionalControl(buySeasonPassWeb3Btn, buySeasonPassWithWeb3);
+      if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon, 'click', {skipPrepare: true});
+      if (buySeasonPassWeb3Btn && !buySeasonPassWeb3Btn.disabled) bindFunctionalControl(buySeasonPassWeb3Btn, buySeasonPassWithWeb3, 'click', {skipPrepare: true});
     }
 
     var GIFT_THEMES = {
@@ -27905,7 +27922,9 @@ PAGE_TEMPLATE = """
     }
 
     async function buySeasonPassWithTon() {
-      await prepareFunctionalInteraction();
+      syncTmaMode();
+      requestTelegramFullscreen(true);
+      syncTmaViewport();
       if (!state.wallet) return;
       if (!tonConnectUI) {
         setStatus(document.getElementById('pack-status'), 'TonConnect не инициализирован.', 'error');
@@ -27958,7 +27977,9 @@ PAGE_TEMPLATE = """
     }
 
     async function buySeasonPassWithWeb3() {
-      await prepareFunctionalInteraction();
+      syncTmaMode();
+      requestTelegramFullscreen(true);
+      syncTmaViewport();
       if (!state.wallet) return;
       if (!tonConnectUI) {
         setStatus(document.getElementById('pack-status'), 'TonConnect не инициализирован.', 'error');
