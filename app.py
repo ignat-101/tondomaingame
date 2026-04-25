@@ -5026,14 +5026,16 @@ PAGE_TEMPLATE = """
       .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row {
         right: 12px;
         bottom: 18px;
-        width: 124px;
+        width: 132px;
         justify-content: flex-end;
+        gap: 3px;
       }
 
       .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row .uno-card-btn {
-        width: 36px;
-        height: 56px;
-        margin-left: 2px;
+        width: 34px;
+        height: 52px;
+        margin-left: 0;
+        flex: 0 0 auto;
       }
 
       .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-discard {
@@ -27937,13 +27939,15 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: { wallet: state.wallet }
         });
+        const recipientAddress = await normalizeTonRecipientAddress(intent.receiver_wallet, false);
+        const payloadBase64 = await buildTonCommentPayloadBase64(intent.memo || 'season-pass');
         const tx = await tonConnectUI.sendTransaction({
           validUntil: intent.valid_until,
           messages: [
             {
-              address: intent.receiver_wallet,
+              address: recipientAddress,
               amount: String(intent.amount_nano),
-              payload: intent.payload_base64 || undefined
+              payload: payloadBase64 || undefined
             }
           ]
         });
@@ -27976,6 +27980,23 @@ PAGE_TEMPLATE = """
       const whole = wholeRaw.replace(/^0+(?=\\d)/, '') || '0';
       const fraction = `${fractionRaw}${'0'.repeat(safeDecimals)}`.slice(0, safeDecimals);
       return `${whole}${fraction}`.replace(/^0+(?=\\d)/, '') || '0';
+    }
+
+    async function buildTonCommentPayloadBase64(commentText) {
+      const tonWebReady = await ensureTonWebScript();
+      if (!tonWebReady || !window.TonWeb) return null;
+      const TonWeb = window.TonWeb;
+      const cell = new TonWeb.boc.Cell();
+      cell.bits.writeUint(0, 32);
+      cell.bits.writeString(String(commentText || 'season-pass'));
+      return TonWeb.utils.bytesToBase64(await cell.toBoc(false));
+    }
+
+    async function normalizeTonRecipientAddress(address, bounceable = false) {
+      const tonWebReady = await ensureTonWebScript();
+      if (!tonWebReady || !window.TonWeb) return String(address || '').trim();
+      const TonWeb = window.TonWeb;
+      return new TonWeb.utils.Address(String(address || '').trim()).toString(true, true, bounceable);
     }
 
     async function buySeasonPassWithWeb3() {
