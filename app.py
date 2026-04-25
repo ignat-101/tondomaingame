@@ -4837,9 +4837,13 @@ PAGE_TEMPLATE = """
       18% {
         opacity: 1;
       }
+      72% {
+        opacity: 0.92;
+        transform: translate(142px, -30px) rotate(6deg) scale(0.94);
+      }
       100% {
         opacity: 0;
-        transform: translate(216px, -34px) rotate(8deg) scale(1.02);
+        transform: translate(162px, -46px) rotate(8deg) scale(0.9);
       }
     }
 
@@ -5021,26 +5025,26 @@ PAGE_TEMPLATE = """
 
       .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row {
         right: 12px;
-        bottom: 22px;
-        width: 144px;
+        bottom: 18px;
+        width: 124px;
         justify-content: flex-end;
       }
 
       .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-hand-row .uno-card-btn {
-        width: 42px;
-        height: 64px;
-        margin-left: -4px;
+        width: 36px;
+        height: 56px;
+        margin-left: 2px;
       }
 
       .uno-guide-deck-stage .uno-guide-draw-track .uno-guide-discard {
-        right: 12px;
-        top: 16px;
-        transform: rotate(4deg) scale(0.9);
+        right: 10px;
+        top: 14px;
+        transform: rotate(4deg) scale(0.78);
       }
 
       .uno-guide-draw-card {
-        width: 62px;
-        height: 94px;
+        width: 54px;
+        height: 82px;
       }
 
       .uno-guide-draw-track::after {
@@ -21597,7 +21601,6 @@ PAGE_TEMPLATE = """
           ` : ''}
           <div class="actions" style="margin-top:10px; flex-wrap:wrap;">
             <button id="buy-season-pass-btn"${rewards.premium_pass_active ? ' disabled' : ''}>Купить премиум-пропуск за 1.49 TON</button>
-            <button class="secondary" id="buy-season-pass-web3-btn"${rewards.premium_pass_active ? ' disabled' : ''}>Купить за 100 WEB3</button>
           </div>
         </div>
       `;
@@ -21650,9 +21653,7 @@ PAGE_TEMPLATE = """
       }
       showPassLevel(Math.max(0, Math.min(track.length - 1, Number((state.seasonPassLevelIndex || 0)))));
       const buySeasonPassBtn = document.getElementById('buy-season-pass-btn');
-      const buySeasonPassWeb3Btn = document.getElementById('buy-season-pass-web3-btn');
       if (buySeasonPassBtn && !buySeasonPassBtn.disabled) bindFunctionalControl(buySeasonPassBtn, buySeasonPassWithTon, 'click', {skipPrepare: true});
-      if (buySeasonPassWeb3Btn && !buySeasonPassWeb3Btn.disabled) bindFunctionalControl(buySeasonPassWeb3Btn, buySeasonPassWithWeb3, 'click', {skipPrepare: true});
     }
 
     var GIFT_THEMES = {
@@ -27941,7 +27942,8 @@ PAGE_TEMPLATE = """
           messages: [
             {
               address: intent.receiver_wallet,
-              amount: String(intent.amount_nano)
+              amount: String(intent.amount_nano),
+              payload: intent.payload_base64 || undefined
             }
           ]
         });
