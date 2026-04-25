@@ -141,9 +141,7 @@ def normalize_domain_token(value):
 
 
 UNO_PRIVATE_MODE = os.getenv('UNO_PRIVATE_MODE', '1').strip().lower() in {'1', 'true', 'yes', 'on'}
-UNO_TESTER_USERNAMES = parse_env_csv_set('UNO_TESTER_USERNAMES', 'ignat_101')
 UNO_TESTER_DOMAINS = {normalize_domain_token(item) for item in parse_env_csv_set('UNO_TESTER_DOMAINS', '7288') if normalize_domain_token(item)}
-UNO_TESTER_WALLETS = parse_env_csv_set('UNO_TESTER_WALLETS', '')
 
 DOMAIN_CACHE = {}
 TEN_K_CONFIG_CACHE = {'config': None, 'expires_at': 0.0}
@@ -17665,17 +17663,13 @@ PAGE_TEMPLATE = """
       unoCallCoachVisible: false,
       battleReactionOpen: false,
       battleReactionTimer: null,
-      seasonPassResetTapCount: 0,
-      seasonPassResetLastTapAt: 0,
       lastCosmeticReplayReward: null
     };
 
     const telegramBotUsername = {{ telegram_bot_username|tojson }};
     const telegramWebappUrl = {{ telegram_webapp_url|tojson }};
     const unoPrivateMode = Boolean({{ uno_private_mode|tojson }});
-    const unoTesterUsernames = new Set(({{ uno_tester_usernames|tojson }} || []).map((item) => String(item || '').trim().toLowerCase()).filter(Boolean));
     const unoTesterDomains = new Set(({{ uno_tester_domains|tojson }} || []).map((item) => String(item || '').trim().toLowerCase()).filter(Boolean));
-    const unoTesterWallets = new Set(({{ uno_tester_wallets|tojson }} || []).map((item) => String(item || '').trim().toLowerCase()).filter(Boolean));
     const marketplaceLinks = {{ marketplace_links|tojson }};
     const activeDuelInviteStoragePrefix = 'active_duel_invite:';
     const initialSearchParams = new URLSearchParams(window.location.search || '');
@@ -21959,18 +21953,6 @@ PAGE_TEMPLATE = """
       }
     }
 
-    function seasonPassTesterAllowed() {
-      const telegram = (state.playerProfile && state.playerProfile.telegram) || {};
-      const profileUsername = String(telegram.username || '').replace(/^@/, '').trim().toLowerCase();
-      const tmaUsername = telegramMiniAppUsername();
-      const wallet = String(state.wallet || '').trim().toLowerCase();
-      return Boolean(
-        (profileUsername && unoTesterUsernames.has(profileUsername))
-        || (tmaUsername && unoTesterUsernames.has(tmaUsername))
-        || (wallet && unoTesterWallets.has(wallet))
-      );
-    }
-
     function ignat7288CosmeticReplayAllowed() {
       const telegram = (state.playerProfile && state.playerProfile.telegram) || {};
       const profileUsername = String(telegram.username || '').replace(/^@/, '').trim().toLowerCase();
@@ -25102,41 +25084,6 @@ PAGE_TEMPLATE = """
       } catch (error) {
         setStatus(document.getElementById('pack-status'), error.message, 'error');
       }
-    }
-
-    async function hiddenResetSeasonPassPremium() {
-      if (!state.wallet || !seasonPassTesterAllowed()) return;
-      const now = Date.now();
-      if (!state.seasonPassResetLastTapAt || now - state.seasonPassResetLastTapAt > 4500) {
-        state.seasonPassResetTapCount = 0;
-      }
-      state.seasonPassResetLastTapAt = now;
-      state.seasonPassResetTapCount = Number(state.seasonPassResetTapCount || 0) + 1;
-      if (state.seasonPassResetTapCount < 10) return;
-      state.seasonPassResetTapCount = 0;
-      try {
-        const data = await api('/api/pass/test-reset', {
-          method: 'POST',
-          body: { wallet: state.wallet }
-        });
-        if (state.playerProfile) {
-          state.playerProfile.rewards = data.rewards || state.playerProfile.rewards;
-        }
-        renderProfile();
-        updateButtons();
-        setStatus(document.getElementById('pack-status'), 'Тестовый премиум-пропуск сброшен. Оплату можно проверить заново.', 'success');
-      } catch (error) {
-        setStatus(document.getElementById('pack-status'), error.message, 'error');
-      }
-    }
-
-    async function openAchievementsTabWithTesterReset() {
-      if (isUnoAppContext()) {
-        switchUnoSharedView('achievements');
-      } else {
-        switchDomainSharedView('achievements');
-      }
-      await hiddenResetSeasonPassPremium();
     }
 
     function renderFaqPanel() {
@@ -28923,7 +28870,13 @@ PAGE_TEMPLATE = """
       }
       switchDomainSharedView('guilds');
     });
-    bindFunctionalControl(navAchievements, openAchievementsTabWithTesterReset);
+    bindFunctionalControl(navAchievements, () => {
+      if (isUnoAppContext()) {
+        switchUnoSharedView('achievements');
+        return;
+      }
+      switchDomainSharedView('achievements');
+    });
     bindFunctionalControl(topNavGuilds, () => {
       if (isUnoAppContext()) {
         switchUnoSharedView('guilds');
@@ -28931,7 +28884,13 @@ PAGE_TEMPLATE = """
       }
       switchDomainSharedView('guilds');
     });
-    bindFunctionalControl(topNavAchievements, openAchievementsTabWithTesterReset);
+    bindFunctionalControl(topNavAchievements, () => {
+      if (isUnoAppContext()) {
+        openUnoHub({closePopover: false});
+        return;
+      }
+      switchDomainSharedView('achievements');
+    });
     if (globalCurrencyToggle) {
       bindFunctionalControl(globalCurrencyToggle, () => toggleCurrencyFloatCollapsed(), 'click', {skipPrepare: true});
     }
@@ -33867,16 +33826,6 @@ def confirm_season_pass_payment(payment_id, wallet, tx_hash=None, payment_method
             conn.commit()
         updated = conn.execute('SELECT * FROM season_pass_payments WHERE id = ?', (payment_id,)).fetchone()
     return dict(updated), reward_summary(wallet)
-
-
-def tester_wallet_allowed_for_reset(wallet):
-    if not valid_wallet_address(wallet):
-        return False
-    if wallet.lower() in UNO_TESTER_WALLETS:
-        return True
-    link = telegram_wallet_link(wallet)
-    username = str((link or {}).get('username') or '').replace('@', '').strip().lower()
-    return bool(username and username in UNO_TESTER_USERNAMES)
 
 
 def claim_guild_weekly_reward(wallet, guild_id):
@@ -39928,9 +39877,7 @@ def index():
         telegram_bot_username=TG_BOT_USERNAME,
         telegram_webapp_url=TG_WEBAPP_URL,
         uno_private_mode=UNO_PRIVATE_MODE,
-        uno_tester_usernames=sorted(UNO_TESTER_USERNAMES),
         uno_tester_domains=sorted(UNO_TESTER_DOMAINS),
-        uno_tester_wallets=sorted(UNO_TESTER_WALLETS),
     )
 
 
@@ -41193,24 +41140,6 @@ def api_pass_payment_test():
         intent.update(config['ton'])
     result['intent'] = intent
     return jsonify(result)
-
-
-@app.route('/api/pass/test-reset', methods=['POST'])
-def api_pass_test_reset():
-    payload = request.get_json(silent=True) or {}
-    wallet = (payload.get('wallet') or '').strip()
-    if not valid_wallet_address(wallet):
-        return json_error('Сначала подключи TON-кошелёк.')
-    if not tester_wallet_allowed_for_reset(wallet):
-        return json_error('Тестовый сброс пропуска недоступен для этого аккаунта.', 403)
-    ensure_player(wallet)
-    with closing(get_db()) as conn:
-        conn.execute(
-            'UPDATE player_rewards SET premium_pass = 0, updated_at = ? WHERE wallet = ?',
-            (now_iso(), wallet),
-        )
-        conn.commit()
-    return jsonify({'ok': True, 'wallet': wallet, 'rewards': reward_summary(wallet)})
 
 
 @app.route('/api/pass/payment-confirm', methods=['POST'])
