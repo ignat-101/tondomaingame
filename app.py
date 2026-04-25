@@ -15120,13 +15120,12 @@ PAGE_TEMPLATE = """
       height: auto;
     }
 
-    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .currency-float,
-    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .mascot-widget {
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .currency-float {
       display: none !important;
     }
 
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .shell {
-      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      padding-bottom: calc(112px + env(safe-area-inset-bottom));
     }
 
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell {
@@ -15151,27 +15150,29 @@ PAGE_TEMPLATE = """
     }
 
     @media (min-width: 980px) {
-      body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-grid,
-      body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-
       body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-tile,
       body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-control,
       body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-tile,
       body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-control {
         min-height: 148px;
       }
+    }
 
-      body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-tile.wide,
-      body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-tile.wide {
-        grid-column: span 2;
-        min-height: 148px;
+    @media (max-width: 430px) {
+      .uno-home-tile.wide {
+        flex-direction: column;
+        align-items: stretch;
       }
 
-      body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-control.code-entry,
-      body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-home-control.code-entry {
-        grid-column: span 2;
+      .uno-home-tile.wide .actions {
+        width: 100%;
+        margin-left: 0;
+        justify-content: stretch;
+      }
+
+      .uno-home-tile.wide .actions button {
+        flex: 1 1 auto;
+        width: 100%;
       }
     }
 
