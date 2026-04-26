@@ -27992,7 +27992,7 @@ PAGE_TEMPLATE = """
           method: 'POST',
           body: { wallet: state.wallet }
         });
-        const recipientAddress = await normalizeTonRecipientAddress(intent.receiver_wallet, false);
+        const recipientAddress = await normalizeTonRecipientAddress(intent.receiver_wallet, true);
         const tx = await tonConnectUI.sendTransaction({
           validUntil: intent.valid_until,
           messages: [
@@ -28043,7 +28043,7 @@ PAGE_TEMPLATE = """
       return TonWeb.utils.bytesToBase64(await cell.toBoc(false));
     }
 
-    async function normalizeTonRecipientAddress(address, bounceable = false) {
+    async function normalizeTonRecipientAddress(address, bounceable = true) {
       const tonWebReady = await ensureTonWebScript();
       if (!tonWebReady || !window.TonWeb) return String(address || '').trim();
       const TonWeb = window.TonWeb;
