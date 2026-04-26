@@ -28008,6 +28008,42 @@ PAGE_TEMPLATE = """
       }
     }
 
+    async function confirmSeasonPassPaymentWithRetry({wallet, paymentId, paymentMethod = 'ton', txHash = ''}) {
+      const maxAttempts = 10;
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        const result = await fetch('/api/pass/payment-confirm', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            wallet: String(wallet || ''),
+            payment_id: String(paymentId || ''),
+            payment_method: String(paymentMethod || 'ton'),
+            tx_hash: String(txHash || ''),
+          }),
+        }).then(async (response) => {
+          const data = await response.json();
+          if (!response.ok || !data || data.ok === false) {
+            throw new Error((data && data.error) || 'Ошибка подтверждения платежа.');
+          }
+          return data;
+        });
+        if (result.status === 'confirmed') {
+          return result;
+        }
+        if (result.status === 'pending') {
+          setStatus(
+            document.getElementById('pack-status'),
+            `Платёж в сети найден, ждём подтверждение (${attempt}/${maxAttempts})...`,
+            'warning'
+          );
+          await sleep(3000);
+          continue;
+        }
+        throw new Error('Неожиданный статус подтверждения платежа.');
+      }
+      throw new Error('Платёж отправлен, но подтверждение задерживается. Подожди минуту и нажми покупку повторно: повторной оплаты не требуется.');
+    }
+
     async function buySeasonPassWithTon() {
       syncTmaMode();
       requestTelegramFullscreen(true);
@@ -28035,13 +28071,11 @@ PAGE_TEMPLATE = """
             }
           ]
         });
-        const confirmed = await api('/api/pass/payment-confirm', {
-          method: 'POST',
-          body: {
-            wallet: state.wallet,
-            payment_id: intent.payment_id,
-            tx_hash: tx && tx.boc ? tx.boc.slice(0, 120) : ''
-          }
+        const confirmed = await confirmSeasonPassPaymentWithRetry({
+          wallet: state.wallet,
+          paymentId: intent.payment_id,
+          paymentMethod: 'ton',
+          txHash: tx && tx.boc ? tx.boc.slice(0, 120) : ''
         });
         if (state.playerProfile) {
           state.playerProfile.rewards = confirmed.rewards;
@@ -28222,14 +28256,11 @@ PAGE_TEMPLATE = """
             }
           ]
         });
-        const confirmed = await api('/api/pass/payment-confirm', {
-          method: 'POST',
-          body: {
-            wallet: state.wallet,
-            payment_id: intent.payment_id,
-            payment_method: 'web3',
-            tx_hash: tx && tx.boc ? tx.boc.slice(0, 120) : ''
-          }
+        const confirmed = await confirmSeasonPassPaymentWithRetry({
+          wallet: state.wallet,
+          paymentId: intent.payment_id,
+          paymentMethod: 'web3',
+          txHash: tx && tx.boc ? tx.boc.slice(0, 120) : ''
         });
         if (state.playerProfile) {
           state.playerProfile.rewards = confirmed.rewards;
@@ -41713,8 +41744,11 @@ def api_pass_payment_confirm():
     try:
         payment, rewards = confirm_season_pass_payment(payment_id, wallet, tx_hash=tx_hash, payment_method=payment_method)
     except ValueError as exc:
-        return json_error(str(exc), 400)
-    return jsonify({'ok': True, 'payment': payment, 'rewards': rewards})
+        error_text = str(exc)
+        if 'ещё не найдена' in error_text:
+            return jsonify({'ok': True, 'status': 'pending', 'payment_id': payment_id, 'payment_method': payment_method})
+        return json_error(error_text, 400)
+    return jsonify({'ok': True, 'status': 'confirmed', 'payment': payment, 'rewards': rewards})
 
 
 @app.route('/api/guilds/reward/claim', methods=['POST'])
