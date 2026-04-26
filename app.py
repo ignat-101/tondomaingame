@@ -28110,6 +28110,10 @@ PAGE_TEMPLATE = """
       if (!/^\\d+$/.test(amountNanoString)) {
         throw new Error('Некорректный amountNano от сервера: ожидается строка nanotons.');
       }
+      const treasuryAddress = await normalizeTonRecipientAddress(String(session.treasuryAddress || '').trim(), false);
+      if (!treasuryAddress) {
+        throw new Error('Сервер вернул пустой treasury address.');
+      }
       const validUntil = Math.floor(Date.now() / 1000) + 600;
       if (!Number.isInteger(validUntil)) {
         throw new Error('Некорректный validUntil.');
@@ -28118,7 +28122,7 @@ PAGE_TEMPLATE = """
         validUntil,
         messages: [
           {
-            address: String(session.treasuryAddress || '').trim(),
+            address: treasuryAddress,
             amount: amountNanoString,
             bounce: false,
           },
@@ -34084,6 +34088,20 @@ def tonapi_parse_address(address):
     }
 
 
+def tonapi_account_status(address):
+    value = str(address or '').strip()
+    if not value:
+        raise ValueError('Пустой TON-адрес.')
+    try:
+        response = HTTP.get(f'https://tonapi.io/v2/accounts/{value}', headers=tonapi_headers(), timeout=15)
+        response.raise_for_status()
+        payload = response.json()
+    except requests.RequestException as exc:
+        raise RuntimeError(f'Ошибка TonAPI при получении статуса адреса: {exc}') from exc
+    status = str(payload.get('status') or '').strip().lower()
+    return status
+
+
 def verify_incoming_ton_comment_payment(receiver_wallet, sender_wallet, expected_amount_nano, expected_comment, created_at_iso):
     if not TONAPI_KEY:
         raise RuntimeError('TONAPI_KEY не настроен, сервер не может проверить входящую транзакцию.')
@@ -34193,6 +34211,12 @@ def create_wallet_verify_session(wallet):
     treasury_wallet = TON_VERIFY_TREASURY_ADDRESS or SEASON_PASS_RECEIVER_WALLET or PACK_RECEIVER_WALLET
     if not treasury_wallet:
         raise ValueError('TON_VERIFY_TREASURY_ADDRESS не настроен.')
+    treasury_parsed = tonapi_parse_address(treasury_wallet)
+    treasury_status = tonapi_account_status(treasury_parsed['bounceable'])
+    if treasury_status not in {'active', 'frozen'}:
+        raise ValueError('TON_VERIFY_TREASURY_ADDRESS должен быть активным wallet-адресом (не uninitialized).')
+    # Для простого verify-перевода отдаем non-bounceable форму, чтобы снизить риск emulation проблем в Tonkeeper.
+    treasury_wallet = treasury_parsed['non_bounceable'] or treasury_wallet
     amount_nano = str(50_000_000 + random.randint(100_000, 9_999_999))
     session_id = uuid.uuid4().hex
     created_at = now_iso()
