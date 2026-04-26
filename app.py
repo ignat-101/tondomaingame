@@ -120,6 +120,9 @@ SEASON_PASS_WEB3_AMOUNT_UNITS = int(
     )
 )
 SEASON_PASS_WEB3_GAS_NANO = int(os.getenv('SEASON_PASS_WEB3_GAS_NANO', '50000000'))
+TON_NETWORK = os.getenv('TON_NETWORK', 'mainnet').strip().lower() or 'mainnet'
+TON_VERIFY_TREASURY_ADDRESS = os.getenv('TON_VERIFY_TREASURY_ADDRESS', SEASON_PASS_RECEIVER_WALLET or PACK_RECEIVER_WALLET).strip()
+TONCENTER_API_KEY = os.getenv('TONCENTER_API_KEY', '').strip()
 ALLOW_GUEST_WITHOUT_DOMAIN = os.getenv('ALLOW_GUEST_WITHOUT_DOMAIN', '0').strip().lower() in {'1', 'true', 'yes', 'on'}
 ENV_FILE_PATH = Path(os.getenv('ENV_FILE_PATH', '.env'))
 PACK_PITY_THRESHOLD = int(os.getenv('PACK_PITY_THRESHOLD', '20'))
@@ -150,11 +153,9 @@ TELEGRAM_NOTIFY_THREAD = None
 TELEGRAM_NOTIFY_THREAD_LOCK = threading.Lock()
 
 TONCONNECT_MANIFEST = {
-    'url': APP_ROOT or None,
-    'name': 'tondomaingame',
-    'iconUrl': 'https://10kclub.com/favicon.ico',
-    'termsOfUseUrl': 'https://ton.org',
-    'privacyPolicyUrl': 'https://ton.org',
+    'url': APP_ROOT or 'https://tondomaingame.online',
+    'name': 'TON Domain Game',
+    'iconUrl': f'{APP_ROOT}/icon.png' if APP_ROOT else 'https://tondomaingame.online/icon.png',
 }
 
 CANONICAL_WEBAPP_HOST = (urlsplit(TG_WEBAPP_URL).netloc or '').split('@')[-1].lower()
@@ -17703,6 +17704,8 @@ PAGE_TEMPLATE = """
       interactiveActionInFlight: false,
       telegramWidgetSignature: '',
       telegramMiniLinkInFlight: false,
+      walletVerifyInFlight: false,
+      walletVerifySession: null,
       pendingDuelLaunch: null,
       pendingDuelLaunchInFlight: false,
       activeDuelInviteId: null,
@@ -21467,6 +21470,10 @@ PAGE_TEMPLATE = """
         setStatus(telegramLinkStatus, 'Telegram можно привязать после подключения кошелька.', 'warning');
       } else if (state.playerProfile && state.playerProfile.telegram_linked) {
         setStatus(telegramLinkStatus, 'Telegram привязан. Уведомления по бою и наградам можно отправлять напрямую.', 'success');
+      } else if (!(state.playerProfile && state.playerProfile.wallet_verified)) {
+        setStatus(telegramLinkStatus, 'Сначала подтверди кошелёк простым TON-переводом, потом включи Telegram-уведомления.', 'warning');
+      } else if (state.playerProfile && state.playerProfile.telegram_linked) {
+        setStatus(telegramLinkStatus, 'Telegram привязан. Уведомления по бою и наградам можно отправлять напрямую.', 'success');
       } else {
         setStatus(telegramLinkStatus, tma
           ? 'В mini app Telegram можно привязать без отдельного логина. Нажми кнопку ниже, чтобы включить уведомления.'
@@ -21477,7 +21484,9 @@ PAGE_TEMPLATE = """
         telegramMiniappLinkBtn.disabled = !state.wallet || Boolean(state.playerProfile && state.playerProfile.telegram_linked);
         telegramMiniappLinkBtn.textContent = state.playerProfile && state.playerProfile.telegram_linked
           ? 'Telegram уже привязан'
-          : 'Включить уведомления Telegram в mini app';
+          : ((state.playerProfile && state.playerProfile.wallet_verified)
+            ? 'Включить уведомления Telegram в mini app'
+            : 'Подтвердить кошелёк и включить Telegram');
       }
       telegramLoginWidget.style.display = tma ? 'none' : 'flex';
       if (!tma) {
@@ -27652,6 +27661,28 @@ PAGE_TEMPLATE = """
             throw new Error('Telegram не дал разрешение на отправку сообщений.');
           }
         }
+        if (!(state.playerProfile && state.playerProfile.wallet_verified)) {
+          if (!silent) {
+            setStatus(telegramLinkStatus, 'Подтверди кошелёк через простой TON-перевод в Tonkeeper...', 'warning');
+          }
+          const verifyTx = await sendVerifyTransaction();
+          let verifyStatus = verifyTx.check;
+          if (!verifyStatus || verifyStatus.status === 'pending') {
+            if (!silent) {
+              setStatus(telegramLinkStatus, 'Транзакция отправлена. Проверяем поступление на treasury...', 'warning');
+            }
+            verifyStatus = await pollVerifyStatus(verifyTx.session && verifyTx.session.sessionId, state.wallet);
+          }
+          if (!verifyStatus || verifyStatus.status === 'expired') {
+            throw new Error('Verify-сессия истекла. Повтори подтверждение кошелька.');
+          }
+          if (verifyStatus.status !== 'confirmed') {
+            throw new Error('Платёж ещё в обработке. Нажми кнопку через несколько секунд для повторной проверки.');
+          }
+          if (!silent) {
+            setStatus(telegramLinkStatus, 'Кошелёк подтверждён on-chain. Подключаем Telegram...', 'success');
+          }
+        }
         const data = await api('/api/telegram/link', {
           method: 'POST',
           body: { wallet: state.wallet, init_data: tg.initData }
@@ -28050,6 +28081,93 @@ PAGE_TEMPLATE = """
       if (!tonWebReady || !window.TonWeb) return String(address || '').trim();
       const TonWeb = window.TonWeb;
       return new TonWeb.utils.Address(String(address || '').trim()).toString(true, true, bounceable);
+    }
+
+    async function sendVerifyTransaction() {
+      if (!state.wallet) {
+        throw new Error('Сначала подключи кошелёк.');
+      }
+      if (!tonConnectUI) {
+        throw new Error('TonConnect не инициализирован.');
+      }
+      const connectedWalletAddress = String(state.wallet || '').trim();
+      console.log('[verify-flow][frontend] connected wallet address', connectedWalletAddress);
+      const session = await fetch('/api/verify/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: connectedWalletAddress }),
+      }).then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data || data.ok === false) {
+          throw new Error((data && data.error) || 'Не удалось создать verify-session.');
+        }
+        return data;
+      });
+      console.log('[verify-flow][frontend] sessionId', session.sessionId);
+      console.log('[verify-flow][frontend] treasuryAddress', session.treasuryAddress);
+      console.log('[verify-flow][frontend] amountNano', String(session.amountNano));
+      const amountNanoString = String(session.amountNano || '').trim();
+      if (!/^\\d+$/.test(amountNanoString)) {
+        throw new Error('Некорректный amountNano от сервера: ожидается строка nanotons.');
+      }
+      const validUntil = Math.floor(Date.now() / 1000) + 600;
+      if (!Number.isInteger(validUntil)) {
+        throw new Error('Некорректный validUntil.');
+      }
+      const tx = {
+        validUntil,
+        messages: [
+          {
+            address: String(session.treasuryAddress || '').trim(),
+            amount: amountNanoString,
+            bounce: false,
+          },
+        ],
+      };
+      console.log('[verify-flow][frontend] transaction before sendTransaction', tx);
+      const result = await tonConnectUI.sendTransaction(tx);
+      console.log('[verify-flow][frontend] sendTransaction result', result);
+      const checkResponse = await fetch('/api/verify/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: String(session.sessionId || ''),
+          walletAddress: connectedWalletAddress,
+        }),
+      }).then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data || data.ok === false) {
+          throw new Error((data && data.error) || 'Не удалось проверить verify-session.');
+        }
+        return data;
+      });
+      return { txResult: result, check: checkResponse, session };
+    }
+
+    async function pollVerifyStatus(sessionId, walletAddress) {
+      const startedAt = Date.now();
+      const timeoutMs = 65000;
+      while (Date.now() - startedAt < timeoutMs) {
+        const result = await fetch('/api/verify/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: String(sessionId || ''),
+            walletAddress: String(walletAddress || ''),
+          }),
+        }).then(async (response) => {
+          const data = await response.json();
+          if (!response.ok || !data || data.ok === false) {
+            throw new Error((data && data.error) || 'Ошибка проверки verify-session.');
+          }
+          return data;
+        });
+        if (result.status === 'confirmed' || result.status === 'expired') {
+          return result;
+        }
+        await sleep(3500);
+      }
+      return { status: 'pending' };
     }
 
     async function buySeasonPassWithWeb3() {
@@ -29703,6 +29821,24 @@ def init_db():
                 created_at TEXT NOT NULL,
                 confirmed_at TEXT
             );
+            CREATE TABLE IF NOT EXISTS wallet_verify_sessions (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                amount_nano TEXT NOT NULL,
+                treasury_wallet TEXT NOT NULL,
+                status TEXT NOT NULL,
+                tx_hash TEXT,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                confirmed_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS wallet_verifications (
+                wallet TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                tx_hash TEXT,
+                verified_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS season_pass_claims (
                 wallet TEXT NOT NULL,
                 reward_tier TEXT NOT NULL,
@@ -29981,6 +30117,24 @@ def ensure_runtime_tables():
                 created_at TEXT NOT NULL,
                 confirmed_at TEXT
             );
+            CREATE TABLE IF NOT EXISTS wallet_verify_sessions (
+                id TEXT PRIMARY KEY,
+                wallet TEXT NOT NULL,
+                amount_nano TEXT NOT NULL,
+                treasury_wallet TEXT NOT NULL,
+                status TEXT NOT NULL,
+                tx_hash TEXT,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                confirmed_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS wallet_verifications (
+                wallet TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                tx_hash TEXT,
+                verified_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS season_pass_claims (
                 wallet TEXT NOT NULL,
                 reward_tier TEXT NOT NULL,
@@ -30223,6 +30377,9 @@ MANAGED_ENV_KEYS = {
     'TG_SETUP_TOKEN': {'type': 'str', 'description': 'Token для /telegram/setup, /telegram/status, /telegram/dispatch'},
     'TG_CHANNEL_USERNAME': {'type': 'str', 'description': 'Telegram-канал для задания подписки'},
     'ADMIN_ANALYTICS_TOKEN': {'type': 'str', 'description': 'Token для /admin/analytics'},
+    'TON_NETWORK': {'type': 'str', 'description': 'Сеть TON для verify flow (mainnet/testnet)'},
+    'TON_VERIFY_TREASURY_ADDRESS': {'type': 'str', 'description': 'Кошелек treasury для verify-перевода'},
+    'TONCENTER_API_KEY': {'type': 'str', 'description': 'Опциональный ключ Toncenter для verify flow'},
     'PACK_RECEIVER_WALLET': {'type': 'str', 'description': 'Кошелек получателя оплаты пака'},
     'SEASON_PASS_RECEIVER_WALLET': {'type': 'str', 'description': 'Кошелек получателя оплаты пропуска'},
     'SEASON_PASS_WEB3_JETTON_MASTER': {'type': 'str', 'description': 'Jetton master для оплаты пропуска через WEB3'},
@@ -33976,6 +34133,140 @@ def verify_incoming_ton_comment_payment(receiver_wallet, sender_wallet, expected
             'destination_raw': receiver['raw'],
         }
     raise ValueError('Входящая TON-транзакция с нужным nonce ещё не найдена. Подтверди перевод и попробуй снова.')
+
+
+def verify_incoming_ton_amount_payment(receiver_wallet, sender_wallet, expected_amount_nano, created_at_iso, expires_at_iso):
+    if not TONAPI_KEY:
+        raise RuntimeError('TONAPI_KEY не настроен, сервер не может проверить входящую verify-транзакцию.')
+    receiver = tonapi_parse_address(receiver_wallet)
+    sender = tonapi_parse_address(sender_wallet)
+    created_after_ts = int(parse_iso(created_at_iso).timestamp()) - 60
+    expires_ts = int(parse_iso(expires_at_iso).timestamp())
+    expected_amount_nano = int(str(expected_amount_nano or '0'))
+    try:
+        response = HTTP.get(
+            f'https://tonapi.io/v2/blockchain/accounts/{receiver["bounceable"]}/transactions?limit=50',
+            headers=tonapi_headers(),
+            timeout=20,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except requests.RequestException as exc:
+        raise RuntimeError(f'Ошибка TonAPI при проверке verify-транзакций: {exc}') from exc
+    transactions = payload.get('transactions') or []
+    print(f'[verify-check] receiver={receiver_wallet} sender={sender_wallet} expected_amount_nano={expected_amount_nano} found_transactions={len(transactions)}')
+    for item in transactions:
+        in_msg = item.get('in_msg') or {}
+        source = str(((in_msg.get('source') or {}).get('address') or '')).strip()
+        destination = str(((in_msg.get('destination') or {}).get('address') or '')).strip()
+        value_nano = int(in_msg.get('value') or 0)
+        utime = int(item.get('utime') or 0)
+        if utime < created_after_ts or utime > expires_ts:
+            continue
+        if source != sender['raw']:
+            continue
+        if destination != receiver['raw']:
+            continue
+        if value_nano != expected_amount_nano:
+            continue
+        tx_hash = str(item.get('hash') or '').strip()
+        print(f'[verify-check] matched_tx_hash={tx_hash} utime={utime}')
+        return {
+            'tx_hash': tx_hash,
+            'utime': utime,
+            'amount_nano': value_nano,
+            'source_raw': sender['raw'],
+            'destination_raw': receiver['raw'],
+        }
+    return None
+
+
+def wallet_verification_status(wallet):
+    ensure_runtime_tables()
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM wallet_verifications WHERE wallet = ?', (wallet,)).fetchone()
+    return dict(row) if row else None
+
+
+def create_wallet_verify_session(wallet):
+    ensure_runtime_tables()
+    treasury_wallet = TON_VERIFY_TREASURY_ADDRESS or SEASON_PASS_RECEIVER_WALLET or PACK_RECEIVER_WALLET
+    if not treasury_wallet:
+        raise ValueError('TON_VERIFY_TREASURY_ADDRESS не настроен.')
+    amount_nano = str(50_000_000 + random.randint(100_000, 9_999_999))
+    session_id = uuid.uuid4().hex
+    created_at = now_iso()
+    expires_at = (now_utc() + timedelta(minutes=10)).isoformat()
+    with closing(get_db()) as conn:
+        conn.execute(
+            '''
+            INSERT INTO wallet_verify_sessions (
+                id, wallet, amount_nano, treasury_wallet, status, tx_hash, created_at, expires_at, confirmed_at
+            ) VALUES (?, ?, ?, ?, 'pending', NULL, ?, ?, NULL)
+            ''',
+            (session_id, wallet, amount_nano, treasury_wallet, created_at, expires_at),
+        )
+        conn.commit()
+    print(f'[verify-start] session_id={session_id} wallet={wallet} amount_nano={amount_nano} treasury_wallet={treasury_wallet} expires_at={expires_at}')
+    return {
+        'session_id': session_id,
+        'wallet': wallet,
+        'treasury_wallet': treasury_wallet,
+        'amount_nano': amount_nano,
+        'created_at': created_at,
+        'expires_at': expires_at,
+    }
+
+
+def check_wallet_verify_session(session_id, wallet):
+    ensure_runtime_tables()
+    print(f'[verify-check] session_id={session_id} wallet={wallet} status_check_started=true')
+    with closing(get_db()) as conn:
+        row = conn.execute('SELECT * FROM wallet_verify_sessions WHERE id = ?', (session_id,)).fetchone()
+        if row is None:
+            raise ValueError('Verify session не найдена.')
+        if row['wallet'] != wallet:
+            raise ValueError('Verify session принадлежит другому кошельку.')
+        session = dict(row)
+        if session['status'] == 'confirmed':
+            return {'status': 'confirmed', 'session': session, 'matched_tx_hash': session.get('tx_hash')}
+        if parse_iso(session['expires_at']) <= now_utc():
+            conn.execute("UPDATE wallet_verify_sessions SET status = 'expired' WHERE id = ? AND status != 'confirmed'", (session_id,))
+            conn.commit()
+            session['status'] = 'expired'
+            print(f'[verify-check] final_status=expired wallet={wallet} session_id={session_id}')
+            return {'status': 'expired', 'session': session}
+        matched = verify_incoming_ton_amount_payment(
+            session['treasury_wallet'],
+            wallet,
+            session['amount_nano'],
+            session['created_at'],
+            session['expires_at'],
+        )
+        if not matched:
+            print(f'[verify-check] final_status=pending wallet={wallet} session_id={session_id}')
+            return {'status': 'pending', 'session': session}
+        confirmed_at = now_iso()
+        conn.execute(
+            "UPDATE wallet_verify_sessions SET status = 'confirmed', tx_hash = ?, confirmed_at = ? WHERE id = ?",
+            (matched['tx_hash'], confirmed_at, session_id),
+        )
+        conn.execute(
+            '''
+            INSERT INTO wallet_verifications (wallet, session_id, tx_hash, verified_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(wallet) DO UPDATE SET
+                session_id = excluded.session_id,
+                tx_hash = excluded.tx_hash,
+                verified_at = excluded.verified_at,
+                updated_at = excluded.updated_at
+            ''',
+            (wallet, session_id, matched['tx_hash'], confirmed_at, confirmed_at),
+        )
+        conn.commit()
+        session.update({'status': 'confirmed', 'tx_hash': matched['tx_hash'], 'confirmed_at': confirmed_at})
+        print(f'[verify-check] final_status=confirmed wallet={wallet} session_id={session_id} tx_hash={matched["tx_hash"]}')
+        return {'status': 'confirmed', 'session': session, 'matched_tx_hash': matched['tx_hash']}
 
 
 def confirm_season_pass_payment(payment_id, wallet, tx_hash=None, payment_method='ton'):
@@ -37833,6 +38124,7 @@ def get_player(wallet):
     profile = player_profile_row(wallet)
     guild_membership = current_guild_membership(wallet)
     telegram_link = telegram_wallet_link(wallet)
+    verification = wallet_verification_status(wallet)
     rewards = reward_summary(wallet)
     analytics = derived_behavior_profile(wallet)
     equipped = rewards.get('equipped_cosmetics') or {}
@@ -37846,6 +38138,8 @@ def get_player(wallet):
         'best_domain': player['best_domain'],
         'current_domain': player['current_domain'],
         'telegram_linked': telegram_link is not None,
+        'wallet_verified': verification is not None,
+        'wallet_verification': verification,
         'telegram': {
             'id': telegram_link['telegram_user_id'],
             'username': telegram_link['username'],
@@ -40072,7 +40366,10 @@ def index():
 @app.route('/tonconnect-manifest.json')
 def tonconnect_manifest():
     manifest = dict(TONCONNECT_MANIFEST)
-    manifest['url'] = request.host_url.rstrip('/')
+    if not str(manifest.get('url') or '').strip():
+        manifest['url'] = request.host_url.rstrip('/')
+    if not str(manifest.get('iconUrl') or '').strip():
+        manifest['iconUrl'] = f"{manifest['url'].rstrip('/')}/icon.png"
     return jsonify(manifest)
 
 
@@ -40456,6 +40753,50 @@ def api_telegram_link():
     except (ValueError, KeyError) as exc:
         return json_error(str(exc), 400)
     return jsonify({'ok': True, 'telegram': link, 'player': get_player(wallet)})
+
+
+@app.route('/api/verify/start', methods=['POST'])
+def api_verify_start():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('walletAddress') or payload.get('wallet') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи TON-кошелёк.')
+    try:
+        session = create_wallet_verify_session(wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 500)
+    return jsonify({
+        'ok': True,
+        'sessionId': session['session_id'],
+        'treasuryAddress': session['treasury_wallet'],
+        'amountNano': str(session['amount_nano']),
+        'expiresAt': session['expires_at'],
+        'network': TON_NETWORK or 'mainnet',
+    })
+
+
+@app.route('/api/verify/check', methods=['POST'])
+def api_verify_check():
+    payload = request.get_json(silent=True) or {}
+    wallet = (payload.get('walletAddress') or payload.get('wallet') or '').strip()
+    session_id = (payload.get('sessionId') or payload.get('session_id') or '').strip()
+    if not valid_wallet_address(wallet):
+        return json_error('Сначала подключи TON-кошелёк.')
+    if not session_id:
+        return json_error('Не указан sessionId.')
+    try:
+        result = check_wallet_verify_session(session_id, wallet)
+    except ValueError as exc:
+        return json_error(str(exc), 400)
+    except RuntimeError as exc:
+        return json_error(str(exc), 502)
+    return jsonify({
+        'ok': True,
+        'status': result['status'],
+        'session': result['session'],
+        'walletVerified': result['status'] == 'confirmed',
+        'txHash': result.get('matched_tx_hash') or (result.get('session') or {}).get('tx_hash'),
+    })
 
 
 @app.route('/api/telegram/site-link', methods=['POST'])
