@@ -27993,12 +27993,14 @@ PAGE_TEMPLATE = """
           body: { wallet: state.wallet }
         });
         const recipientAddress = await normalizeTonRecipientAddress(intent.receiver_wallet, true);
+        const payloadBase64 = await buildTonCommentPayloadBase64(intent.memo || 'season-pass');
         const tx = await tonConnectUI.sendTransaction({
           validUntil: intent.valid_until,
           messages: [
             {
               address: recipientAddress,
-              amount: String(intent.amount_nano)
+              amount: String(intent.amount_nano),
+              payload: payloadBase64 || undefined
             }
           ]
         });
@@ -33898,6 +33900,84 @@ def create_season_pass_payment(wallet, payment_method='ton'):
     return payment_id, memo
 
 
+def tonapi_headers():
+    headers = {}
+    if TONAPI_KEY:
+        headers['Authorization'] = f'Bearer {TONAPI_KEY}'
+    return headers
+
+
+def tonapi_parse_address(address):
+    value = str(address or '').strip()
+    if not value:
+        raise ValueError('Пустой TON-адрес.')
+    try:
+        response = HTTP.get(f'https://tonapi.io/v2/address/{value}/parse', headers=tonapi_headers(), timeout=15)
+        response.raise_for_status()
+        payload = response.json()
+    except requests.RequestException as exc:
+        raise RuntimeError(f'Ошибка TonAPI при разборе адреса: {exc}') from exc
+    raw_form = str(payload.get('raw_form') or '').strip()
+    if not raw_form:
+        raise RuntimeError('TonAPI не вернул raw_form для адреса.')
+    return {
+        'raw': raw_form,
+        'bounceable': str(((payload.get('bounceable') or {}).get('b64url') or (payload.get('bounceable') or {}).get('b64') or value)).strip(),
+        'non_bounceable': str(((payload.get('non_bounceable') or {}).get('b64url') or (payload.get('non_bounceable') or {}).get('b64') or value)).strip(),
+    }
+
+
+def verify_incoming_ton_comment_payment(receiver_wallet, sender_wallet, expected_amount_nano, expected_comment, created_at_iso):
+    if not TONAPI_KEY:
+        raise RuntimeError('TONAPI_KEY не настроен, сервер не может проверить входящую транзакцию.')
+    receiver = tonapi_parse_address(receiver_wallet)
+    sender = tonapi_parse_address(sender_wallet)
+    created_after_ts = int(parse_iso(created_at_iso).timestamp()) - 120
+    try:
+        response = HTTP.get(
+            f'https://tonapi.io/v2/blockchain/accounts/{receiver["bounceable"]}/transactions?limit=25',
+            headers=tonapi_headers(),
+            timeout=20,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except requests.RequestException as exc:
+        raise RuntimeError(f'Ошибка TonAPI при проверке входящих транзакций: {exc}') from exc
+    transactions = payload.get('transactions') or []
+    expected_comment = str(expected_comment or '').strip()
+    expected_amount_nano = int(expected_amount_nano or 0)
+    for item in transactions:
+        in_msg = item.get('in_msg') or {}
+        source = (in_msg.get('source') or {}).get('address')
+        destination = (in_msg.get('destination') or {}).get('address')
+        decoded_name = str(in_msg.get('decoded_op_name') or '').strip().lower()
+        decoded_body = in_msg.get('decoded_body') or {}
+        comment_text = str(decoded_body.get('text') or '').strip()
+        value_nano = int(in_msg.get('value') or 0)
+        utime = int(item.get('utime') or 0)
+        if utime < created_after_ts:
+            continue
+        if str(source or '').strip() != sender['raw']:
+            continue
+        if str(destination or '').strip() != receiver['raw']:
+            continue
+        if value_nano != expected_amount_nano:
+            continue
+        if decoded_name != 'text_comment':
+            continue
+        if comment_text != expected_comment:
+            continue
+        return {
+            'tx_hash': str(item.get('hash') or '').strip(),
+            'utime': utime,
+            'amount_nano': value_nano,
+            'comment': comment_text,
+            'source_raw': sender['raw'],
+            'destination_raw': receiver['raw'],
+        }
+    raise ValueError('Входящая TON-транзакция с нужным nonce ещё не найдена. Подтверди перевод и попробуй снова.')
+
+
 def confirm_season_pass_payment(payment_id, wallet, tx_hash=None, payment_method='ton'):
     with closing(get_db()) as conn:
         row = conn.execute('SELECT * FROM season_pass_payments WHERE id = ?', (payment_id,)).fetchone()
@@ -33909,6 +33989,16 @@ def confirm_season_pass_payment(payment_id, wallet, tx_hash=None, payment_method
         requested_method = str(payment_method or 'ton').strip().lower()
         if row_method != requested_method:
             raise ValueError('Метод подтверждения не совпадает с созданным платежом.')
+        verified_tx = None
+        if row_method == 'ton':
+            verified_tx = verify_incoming_ton_comment_payment(
+                SEASON_PASS_RECEIVER_WALLET,
+                wallet,
+                int(row['amount_nano'] or 0),
+                row['memo'],
+                row['created_at'],
+            )
+            tx_hash = tx_hash or verified_tx.get('tx_hash')
         if row['status'] != 'confirmed':
             conn.execute(
                 'UPDATE season_pass_payments SET status = ?, tx_hash = ?, confirmed_at = ? WHERE id = ?',
@@ -33920,7 +34010,10 @@ def confirm_season_pass_payment(payment_id, wallet, tx_hash=None, payment_method
             )
             conn.commit()
         updated = conn.execute('SELECT * FROM season_pass_payments WHERE id = ?', (payment_id,)).fetchone()
-    return dict(updated), reward_summary(wallet)
+    result = dict(updated)
+    if verified_tx:
+        result['verified_tx'] = verified_tx
+    return result, reward_summary(wallet)
 
 
 def claim_guild_weekly_reward(wallet, guild_id):
@@ -41148,7 +41241,8 @@ def api_pass_payment_intent():
         'payment_method': payment_method,
         'receiver_wallet': SEASON_PASS_RECEIVER_WALLET,
         'memo': memo,
-        'payload_base64': base64.b64encode(memo.encode()).decode(),
+        'comment_text': memo,
+        'verification_mode': 'ton_comment_transfer' if payment_method == 'ton' else 'web3_transfer',
         'valid_until': int(now_utc().timestamp()) + 600,
     }
     if payment_method == 'web3':
@@ -41224,7 +41318,8 @@ def api_pass_payment_test():
         'payment_method': payment_method,
         'receiver_wallet': SEASON_PASS_RECEIVER_WALLET,
         'memo': memo,
-        'payload_base64': base64.b64encode(memo.encode()).decode(),
+        'comment_text': memo,
+        'verification_mode': 'ton_comment_transfer' if payment_method == 'ton' else 'web3_transfer',
         'valid_until': int(now_utc().timestamp()) + 600,
         'pending_only': True,
         'premium_pass_activated': False,
