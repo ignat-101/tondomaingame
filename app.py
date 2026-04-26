@@ -3182,6 +3182,12 @@ PAGE_TEMPLATE = """
       color: #eef8ff;
     }
 
+    .uno-log {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
     .uno-reward-line {
       display: flex;
       flex-wrap: wrap;
@@ -4027,9 +4033,13 @@ PAGE_TEMPLATE = """
       gap: 12px;
     }
 
-    .uno-intro-grid,
-    .uno-participants-grid {
+    .uno-intro-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .uno-participants-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      align-items: start;
     }
 
     .uno-mode-grid {
@@ -14798,7 +14808,8 @@ PAGE_TEMPLATE = """
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.landing,
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting,
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.completed {
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-home-scroller,
@@ -14817,6 +14828,12 @@ PAGE_TEMPLATE = """
     body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.playing .uno-stage {
       grid-template-rows: auto minmax(280px, 1fr) auto auto;
       align-content: stretch;
+    }
+
+    body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage,
+    body.tma-app.tma-desktop[data-active-view="uno"]:not(.uno-live-lock) .uno-shell.waiting .uno-stage {
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      align-content: start;
     }
 
     body:not(.tma-app)[data-active-view="uno"]:not(.uno-live-lock) .uno-live-board,
