@@ -27993,14 +27993,12 @@ PAGE_TEMPLATE = """
           body: { wallet: state.wallet }
         });
         const recipientAddress = await normalizeTonRecipientAddress(intent.receiver_wallet, false);
-        const payloadBase64 = await buildTonCommentPayloadBase64(intent.memo || 'season-pass');
         const tx = await tonConnectUI.sendTransaction({
           validUntil: intent.valid_until,
           messages: [
             {
               address: recipientAddress,
-              amount: String(intent.amount_nano),
-              payload: payloadBase64 || undefined
+              amount: String(intent.amount_nano)
             }
           ]
         });
